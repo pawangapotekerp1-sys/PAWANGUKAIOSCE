@@ -21,12 +21,18 @@ type ExamTemplateRow = {
   block_id: string | null;
   topic_id: string | null;
   block_name?: string | null;
+  icon_name?: string | null;
+  color_theme?: string | null;
   block?: {
     name: string;
     sort_order?: number | null;
+    icon_name?: string | null;
+    color_theme?: string | null;
   } | Array<{
     name: string;
     sort_order?: number | null;
+    icon_name?: string | null;
+    color_theme?: string | null;
   }> | null;
   topic?: {
     name: string;
@@ -45,6 +51,8 @@ type TryoutCatalogEntryRow = {
   block_id: string | null;
   block_name: string | null;
   block_sort_order: number | null;
+  icon_name?: string | null;
+  color_theme?: string | null;
   topic_id: string | null;
   topic_name: string | null;
   topic_sort_order: number | null;
@@ -61,6 +69,8 @@ type TaxonomyBlockRow = {
   name: string;
   slug: string;
   sort_order: number | null;
+  icon_name?: string | null;
+  color_theme?: string | null;
   topics?: Array<{
     id: string;
     name: string;
@@ -204,6 +214,8 @@ export type TryoutTemplate = {
   blockId: string | null;
   blockName: string | null;
   blockSortOrder: number | null;
+  iconName?: string | null;
+  colorTheme?: string | null;
   topicId: string | null;
   topicName: string | null;
   topicSortOrder: number | null;
@@ -297,6 +309,8 @@ function mapTemplate(row: ExamTemplateRow): TryoutTemplate {
     blockId: row.block_id,
     blockName: relatedBlock?.name ?? row.block_name ?? null,
     blockSortOrder: relatedBlock?.sort_order ?? null,
+    iconName: relatedBlock?.icon_name ?? row.icon_name ?? null,
+    colorTheme: relatedBlock?.color_theme ?? row.color_theme ?? null,
     topicId: row.topic_id,
     topicName: relatedTopic?.name ?? null,
     topicSortOrder: relatedTopic?.sort_order ?? null,
@@ -319,6 +333,8 @@ function mapCatalogEntry(row: TryoutCatalogEntryRow): TryoutCatalogEntry {
     blockId: row.block_id,
     blockName: row.block_name,
     blockSortOrder: row.block_sort_order,
+    iconName: row.icon_name ?? null,
+    colorTheme: row.color_theme ?? null,
     topicId: row.topic_id,
     topicName: row.topic_name,
     topicSortOrder: row.topic_sort_order,
@@ -362,7 +378,7 @@ async function listTryoutCatalogEntriesFallback(
     listPublishedExamTemplates(client),
     client
       .from("blocks")
-      .select("id, name, slug, sort_order, topics:topics(id, name, slug, sort_order, is_active)")
+      .select("id, name, slug, sort_order, icon_name, color_theme, topics:topics(id, name, slug, sort_order, is_active)")
       .eq("is_active", true)
       .order("created_at", { ascending: true }),
     client
@@ -429,6 +445,8 @@ async function listTryoutCatalogEntriesFallback(
       blockId: null,
       blockName: null,
       blockSortOrder: null,
+      iconName: fullTemplate?.iconName ?? null,
+      colorTheme: fullTemplate?.colorTheme ?? null,
       topicId: null,
       topicName: null,
       topicSortOrder: null,
@@ -459,6 +477,8 @@ async function listTryoutCatalogEntriesFallback(
       blockId: block.id,
       blockName: block.name,
       blockSortOrder: template?.blockSortOrder ?? block.sort_order,
+      iconName: template?.iconName ?? block.icon_name ?? null,
+      colorTheme: template?.colorTheme ?? block.color_theme ?? null,
       topicId: null,
       topicName: null,
       topicSortOrder: null,
@@ -488,6 +508,8 @@ async function listTryoutCatalogEntriesFallback(
         blockId: block.id,
         blockName: block.name,
         blockSortOrder: topicTemplate?.blockSortOrder ?? block.sort_order,
+        iconName: topicTemplate?.iconName ?? block.icon_name ?? null,
+        colorTheme: topicTemplate?.colorTheme ?? block.color_theme ?? null,
         topicId: topic.id,
         topicName: topicTemplate?.topicName ?? topic.name,
         topicSortOrder: topicTemplate?.topicSortOrder ?? topic.sort_order,
@@ -706,7 +728,7 @@ export async function listPublishedExamTemplates(
 ): Promise<TryoutTemplate[]> {
   const { data, error } = await client
     .from("exam_templates")
-    .select("id, slug, title, description, mode, question_count, duration_minutes, block_id, topic_id, block:blocks(name, sort_order), topic:topics(name, sort_order)")
+    .select("id, slug, title, description, mode, question_count, duration_minutes, block_id, topic_id, block:blocks(name, sort_order, icon_name, color_theme), topic:topics(name, sort_order)")
     .eq("status", "published")
     .order("created_at", { ascending: true });
 

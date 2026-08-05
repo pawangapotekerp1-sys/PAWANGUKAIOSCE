@@ -2,13 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   ArrowRight,
-  FlaskConical,
-  Scale,
-  Stethoscope,
-  Layers,
   BookOpen,
   AlertCircle,
-  Infinity as InfinityIcon
+  LayoutGrid,
+  icons
 } from "lucide-react";
 import { Link } from "react-router";
 import ProductShell from "../../components/layout/product-shell";
@@ -19,57 +16,38 @@ import { productShellMeta } from "../../mocks/student-dashboard";
 import { useStudentShell } from "./use-student-shell";
 import { listTryoutCatalogEntries } from "../../lib/api/tryout-api";
 import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
+import type { ElementType } from "react";
 
-const getBlockVisuals = (blockId: string | null, blockName: string | null, mode?: string) => {
-  if (mode === "full") {
-    return {
-      icon: InfinityIcon,
-      accentBg: "bg-gradient-to-br from-fuchsia-500/20 to-purple-500/20 text-fuchsia-600 dark:text-fuchsia-400",
-      badgeBg: "bg-gradient-to-r from-fuchsia-500/10 to-purple-500/10 text-fuchsia-700 dark:text-fuchsia-300 border-fuchsia-500/20",
-      proportionLabel: "Komprehensif",
-      subtitle: "Seluruh Materi Blok",
-    };
-  }
+export const mapBlockVisuals = (iconName?: string | null, colorTheme?: string | null) => {
+  const IconComponent = iconName && iconName in icons 
+    ? icons[iconName as keyof typeof icons] 
+    : LayoutGrid;
 
-  const name = (blockName || "").toLowerCase();
-  const id = (blockId || "").toLowerCase();
+  const theme = (colorTheme || "slate").toLowerCase();
   
-  if (name.includes("clinical") || name.includes("klinis") || id.includes("cs")) {
-    return {
-      icon: Stethoscope,
-      accentBg: "bg-teal-500/10 text-teal-600 dark:bg-teal-500/20 dark:text-teal-400",
-      badgeBg: "bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20",
-      proportionLabel: "50% Proporsi UKAI",
-      subtitle: "Klinis & Terapetika",
-    };
-  }
+  let accentBg = "bg-slate-500/10 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400";
   
-  if (name.includes("pharmaceutical") || name.includes("teknologi") || id.includes("ps")) {
-    return {
-      icon: FlaskConical,
-      accentBg: "bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400",
-      badgeBg: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20",
-      proportionLabel: "35% Proporsi UKAI",
-      subtitle: "Teknologi & Formulasi",
-    };
-  }
-  
-  if (name.includes("social") || name.includes("sba") || name.includes("regulasi") || id.includes("sba")) {
-    return {
-      icon: Scale,
-      accentBg: "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
-      badgeBg: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20",
-      proportionLabel: "15% Proporsi UKAI",
-      subtitle: "Regulasi & Manajemen",
-    };
+  if (theme === "teal") {
+    accentBg = "bg-teal-500/10 text-teal-600 dark:bg-teal-500/20 dark:text-teal-400";
+  } else if (theme === "indigo") {
+    accentBg = "bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400";
+  } else if (theme === "amber" || theme === "yellow") {
+    accentBg = "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400";
+  } else if (theme === "fuchsia" || theme === "purple") {
+    accentBg = "bg-gradient-to-br from-fuchsia-500/20 to-purple-500/20 text-fuchsia-600 dark:text-fuchsia-400";
+  } else if (theme === "blue") {
+    accentBg = "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400";
+  } else if (theme === "green") {
+    accentBg = "bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400";
+  } else if (theme === "rose" || theme === "red") {
+    accentBg = "bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400";
+  } else if (theme === "cyan") {
+    accentBg = "bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400";
   }
   
   return {
-    icon: Layers,
-    accentBg: "bg-slate-500/10 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400",
-    badgeBg: "bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/20",
-    proportionLabel: "Proporsi UKAI",
-    subtitle: "Materi Khusus",
+    icon: IconComponent as ElementType,
+    accentBg,
   };
 };
 
@@ -150,9 +128,10 @@ function TryoutBlockSelectionPage() {
               </div>
             ) : (
               blockOptions.map((block) => {
-                const visuals = getBlockVisuals(block.blockId, block.blockName, block.mode);
+                const visuals = mapBlockVisuals(block.iconName, block.colorTheme);
                 const Icon = visuals.icon;
                 const buttonText = block.mode === "full" ? "Mulai Try Out Besar" : "Mulai Try Out Blok Ini";
+                const subtitle = block.mode === "full" ? "Seluruh Materi Blok" : block.mode === "block" ? "Latihan Per Blok" : "Materi Khusus";
                 
                 return (
                   <Card
@@ -169,7 +148,7 @@ function TryoutBlockSelectionPage() {
                         {block.title}
                       </CardTitle>
                       <CardDescription className="text-sm font-medium text-muted-foreground mt-1">
-                        {visuals.subtitle}
+                        {subtitle}
                       </CardDescription>
                       <p className="text-sm text-muted-foreground/90 mt-3 leading-relaxed">
                         {block.description}
@@ -229,3 +208,4 @@ function TryoutBlockSelectionPage() {
 }
 
 export default TryoutBlockSelectionPage;
+

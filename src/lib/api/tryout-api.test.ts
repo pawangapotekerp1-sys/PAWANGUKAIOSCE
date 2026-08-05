@@ -115,10 +115,12 @@ describe("tryout-api", () => {
       })),
     ];
     const questionsSelect = vi.fn(() => ({
-      eq: vi.fn().mockResolvedValue({
-        data: publishedQuestionRows,
-        error: null,
-      }),
+      eq: vi.fn(() => ({
+        limit: vi.fn().mockResolvedValue({
+          data: publishedQuestionRows,
+          error: null,
+        }),
+      })),
     }));
     const client = {
       rpc,
@@ -165,6 +167,8 @@ describe("tryout-api", () => {
         blockId: null,
         blockName: null,
         blockSortOrder: null,
+        iconName: null,
+        colorTheme: null,
         topicId: null,
         topicName: null,
         topicSortOrder: null,
@@ -185,6 +189,8 @@ describe("tryout-api", () => {
         blockId: "block-1",
         blockName: "Clinical Science",
         blockSortOrder: 1,
+        iconName: null,
+        colorTheme: null,
         topicId: null,
         topicName: null,
         topicSortOrder: null,
@@ -205,6 +211,8 @@ describe("tryout-api", () => {
         blockId: "block-1",
         blockName: "Clinical Science",
         blockSortOrder: 1,
+        iconName: null,
+        colorTheme: null,
         topicId: "topic-1",
         topicName: "Kardiologi",
         topicSortOrder: 2,
@@ -394,6 +402,8 @@ describe("tryout-api", () => {
         blockId: null,
         blockName: null,
         blockSortOrder: null,
+        iconName: null,
+        colorTheme: null,
         topicId: null,
         topicName: null,
         topicSortOrder: null,
@@ -409,6 +419,8 @@ describe("tryout-api", () => {
         blockId: "block-1",
         blockName: "Clinical Science",
         blockSortOrder: 2,
+        iconName: null,
+        colorTheme: null,
         topicId: null,
         topicName: null,
         topicSortOrder: null,
@@ -424,6 +436,8 @@ describe("tryout-api", () => {
         blockId: "block-1",
         blockName: "Clinical Science",
         blockSortOrder: 2,
+        iconName: null,
+        colorTheme: null,
         topicId: "topic-1",
         topicName: "Kardiologi",
         topicSortOrder: 4,
@@ -1500,6 +1514,12 @@ describe("tryout-api", () => {
           explanationText: "ACE inhibitor menjadi titik awal titrasi paling rasional.",
           explanationImageUrl: "https://signed.example/explanation/questions/question-1.png",
           isWrong: true,
+          options: [
+            { key: "A", text: "Pilihan A" },
+            { key: "B", text: "Pilihan B" },
+          ],
+          correctOptionKey: "B",
+          selectedOptionKey: "A",
         },
       ],
     });
@@ -1654,6 +1674,12 @@ describe("tryout-api", () => {
           explanationText: "Pembahasan belum ditulis final oleh tim editorial.",
           explanationImageUrl: null,
           isWrong: true,
+          options: [
+            { key: "A", text: "Pilihan A" },
+            { key: "B", text: "Pilihan B" },
+          ],
+          correctOptionKey: "B",
+          selectedOptionKey: "A",
         },
       ],
     });

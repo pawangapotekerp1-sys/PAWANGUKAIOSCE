@@ -50,6 +50,11 @@ export const adminNavItems: AdminNavItem[] = [
     icon: UsersThree,
   },
   {
+    href: "/admin/blocks",
+    label: "Blocks & Topics",
+    icon: ChartLineUp,
+  },
+  {
     href: "/profile",
     label: "Profil",
     icon: UserCircle,

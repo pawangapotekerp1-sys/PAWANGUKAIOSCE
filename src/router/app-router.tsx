@@ -41,6 +41,7 @@ const AdminQuestionGeneratorReviewPage = lazy(() => import("../pages/admin/quest
 const QuestionEditorPage = lazy(() => import("../pages/admin/question-editor-page"));
 const QuestionsPage = lazy(() => import("../pages/admin/questions-page"));
 const UsersPage = lazy(() => import("../pages/admin/users-page"));
+const BlocksManagementPage = lazy(() => import("../pages/admin/blocks-management-page"));
 const MentorQuestionGeneratorPage = lazy(() => import("../pages/app/question-generator-page"));
 const MentorQuestionGeneratorReviewPage = lazy(() => import("../pages/app/question-generator-review-page"));
 const ProfilePage = lazy(() => import("../pages/profile-page"));
@@ -133,6 +134,7 @@ function AppRouter() {
             <Route path="questions/new" element={<QuestionEditorPage />} />
             <Route path="questions/:questionId/edit" element={<QuestionEditorPage />} />
             <Route path="users" element={<UsersPage />} />
+            <Route path="blocks" element={<BlocksManagementPage />} />
             <Route path="*" element={<Navigate replace to="/admin" />} />
           </Route>
         </Route>

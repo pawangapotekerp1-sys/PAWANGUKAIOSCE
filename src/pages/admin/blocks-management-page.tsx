@@ -3,7 +3,11 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2, Plus, Edit2, Trash2, List } from "lucide-react";
+import { Loader2, Plus, Edit2, Trash2, List, icons } from "lucide-react";
+import { Input } from "../../components/ui/input";
+import { Checkbox } from "../../components/ui/checkbox";
+import { Controller } from "react-hook-form";
+import ConfirmDialog from "../../components/ui/confirm-dialog";
 
 import AdminShell from "../../components/layout/admin-shell";
 import { Card } from "../../components/ui/card";
@@ -71,10 +75,17 @@ const THEME_OPTIONS = [
 
 const inputClass = "min-h-11 w-full rounded-[1.15rem] border border-border bg-muted px-4 text-sm text-foreground outline-none transition focus:border-border";
 
+const renderIcon = (iconName: string | null | undefined) => {
+  if (!iconName) return null;
+  const IconComponent = (icons as any)[iconName];
+  return IconComponent ? <IconComponent className="h-4 w-4" /> : null;
+};
+
 function BlocksManagementPage() {
   const queryClient = useQueryClient();
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
   const [editingBlock, setEditingBlock] = useState<AdminBlock | null>(null);
+  const [blockToDelete, setBlockToDelete] = useState<AdminBlock | null>(null);
 
   const [topicsDialogOpenForBlock, setTopicsDialogOpenForBlock] = useState<AdminBlock | null>(null);
   
@@ -198,14 +209,14 @@ function BlocksManagementPage() {
           <form onSubmit={handleBlockSubmit} className="grid gap-4 mt-4">
             <label className="grid gap-2 text-sm font-medium">
               Nama Blok
-              <input type="text" className={inputClass} {...blockForm.register("name")} />
+              <Input {...blockForm.register("name")} />
               {blockForm.formState.errors.name && (
                 <span className="text-destructive text-xs">{blockForm.formState.errors.name.message}</span>
               )}
             </label>
             <label className="grid gap-2 text-sm font-medium">
               Slug
-              <input type="text" className={inputClass} {...blockForm.register("slug")} />
+              <Input {...blockForm.register("slug")} />
             </label>
             <label className="grid gap-2 text-sm font-medium">
               Deskripsi
@@ -214,16 +225,20 @@ function BlocksManagementPage() {
             <div className="grid grid-cols-2 gap-4">
               <label className="grid gap-2 text-sm font-medium">
                 Sort Order
-                <input type="number" className={inputClass} {...blockForm.register("sortOrder")} />
+                <Input type="number" {...blockForm.register("sortOrder")} />
               </label>
               <label className="grid gap-2 text-sm font-medium">
                 Status
-                <select className={inputClass} {...blockForm.register("isActive", {
-                  setValueAs: v => v === "true" || v === true
-                })}>
-                  <option value="true">Aktif</option>
-                  <option value="false">Tidak Aktif</option>
-                </select>
+                <Controller
+                  name="isActive"
+                  control={blockForm.control}
+                  render={({ field }) => (
+                    <div className="flex items-center space-x-2 mt-2">
+                      <Checkbox id="block-active" checked={field.value} onCheckedChange={field.onChange} />
+                      <label htmlFor="block-active" className="text-sm cursor-pointer">Aktif</label>
+                    </div>
+                  )}
+                />
               </label>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -286,7 +301,7 @@ function BlocksManagementPage() {
                   )}
                   <div className="flex items-center gap-3 mt-3 text-xs font-medium text-muted-foreground">
                     <span>Order: {block.sortOrder}</span>
-                    {block.iconName && <span>Icon: {block.iconName}</span>}
+                    {block.iconName && <span className="flex items-center gap-1">Icon: {renderIcon(block.iconName)} {block.iconName}</span>}
                     {block.colorTheme && <span>Warna: {block.colorTheme}</span>}
                   </div>
                 </div>
@@ -298,11 +313,7 @@ function BlocksManagementPage() {
                   <Button variant="secondary" size="sm" onClick={() => openEditBlock(block)}>
                     <Edit2 className="h-4 w-4" />
                   </Button>
-                  <Button variant="destructive" size="sm" onClick={() => {
-                    if (confirm(`Yakin ingin menghapus blok ${block.name}?`)) {
-                      deleteBlockMutation.mutate(block.id);
-                    }
-                  }}>
+                  <Button variant="destructive" size="sm" onClick={() => setBlockToDelete(block)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -311,6 +322,22 @@ function BlocksManagementPage() {
           </div>
         )}
       </Card>
+
+      <ConfirmDialog
+        open={!!blockToDelete}
+        title="Hapus Blok"
+        description={`Yakin ingin menghapus blok ${blockToDelete?.name}?`}
+        confirmLabel="Hapus"
+        isPending={deleteBlockMutation.isPending}
+        onClose={() => setBlockToDelete(null)}
+        onConfirm={() => {
+          if (blockToDelete) {
+            deleteBlockMutation.mutate(blockToDelete.id, {
+              onSuccess: () => setBlockToDelete(null)
+            });
+          }
+        }}
+      />
     </AdminShell>
   );
 }
@@ -318,6 +345,7 @@ function BlocksManagementPage() {
 function TopicsDialog({ block, onClose }: { block: AdminBlock | null, onClose: () => void }) {
   const queryClient = useQueryClient();
   const [editingTopic, setEditingTopic] = useState<AdminTopic | null>(null);
+  const [topicToDelete, setTopicToDelete] = useState<AdminTopic | null>(null);
 
   const topicsQuery = useQuery({
     queryKey: ["admin-topics", block?.id],
@@ -412,11 +440,11 @@ function TopicsDialog({ block, onClose }: { block: AdminBlock | null, onClose: (
             <form onSubmit={handleTopicSubmit} className="grid gap-3">
               <label className="grid gap-1.5 text-xs font-medium">
                 Nama Topik
-                <input type="text" className={inputClass} {...topicForm.register("name")} />
+                <Input {...topicForm.register("name")} />
               </label>
               <label className="grid gap-1.5 text-xs font-medium">
                 Slug
-                <input type="text" className={inputClass} {...topicForm.register("slug")} />
+                <Input {...topicForm.register("slug")} />
               </label>
               <label className="grid gap-1.5 text-xs font-medium">
                 Deskripsi
@@ -425,16 +453,20 @@ function TopicsDialog({ block, onClose }: { block: AdminBlock | null, onClose: (
               <div className="grid grid-cols-2 gap-2">
                 <label className="grid gap-1.5 text-xs font-medium">
                   Sort Order
-                  <input type="number" className={inputClass} {...topicForm.register("sortOrder")} />
+                  <Input type="number" {...topicForm.register("sortOrder")} />
                 </label>
                 <label className="grid gap-1.5 text-xs font-medium">
                   Status
-                  <select className={inputClass} {...topicForm.register("isActive", {
-                    setValueAs: v => v === "true" || v === true
-                  })}>
-                    <option value="true">Aktif</option>
-                    <option value="false">Tidak Aktif</option>
-                  </select>
+                  <Controller
+                    name="isActive"
+                    control={topicForm.control}
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-2 mt-1">
+                        <Checkbox id="topic-active" checked={field.value} onCheckedChange={field.onChange} />
+                        <label htmlFor="topic-active" className="text-xs cursor-pointer">Aktif</label>
+                      </div>
+                    )}
+                  />
                 </label>
               </div>
               <div className="mt-2 flex justify-end gap-2">
@@ -476,11 +508,7 @@ function TopicsDialog({ block, onClose }: { block: AdminBlock | null, onClose: (
                     <Button variant="ghost" size="icon-sm" onClick={() => setEditingTopic(topic)}>
                       <Edit2 className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => {
-                      if (confirm(`Hapus topik ${topic.name}?`)) {
-                        deleteTopicMutation.mutate(topic.id);
-                      }
-                    }}>
+                    <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => setTopicToDelete(topic)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -490,6 +518,22 @@ function TopicsDialog({ block, onClose }: { block: AdminBlock | null, onClose: (
           </div>
         </div>
       </DialogContent>
+
+      <ConfirmDialog
+        open={!!topicToDelete}
+        title="Hapus Topik"
+        description={`Yakin ingin menghapus topik ${topicToDelete?.name}?`}
+        confirmLabel="Hapus"
+        isPending={deleteTopicMutation.isPending}
+        onClose={() => setTopicToDelete(null)}
+        onConfirm={() => {
+          if (topicToDelete) {
+            deleteTopicMutation.mutate(topicToDelete.id, {
+              onSuccess: () => setTopicToDelete(null)
+            });
+          }
+        }}
+      />
     </Dialog>
   );
 }

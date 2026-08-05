@@ -1,0 +1,4 @@
+-- no-op backfill marker
+-- Generator bootstrap was moved to 20260605000039_question_generator_atomic_ops.sql.
+-- This earlier timestamp remains in the chain only to preserve migration ordering
+-- for branches that temporarily introduced an out-of-date generator baseline.

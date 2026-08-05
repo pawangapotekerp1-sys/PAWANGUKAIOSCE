@@ -1,0 +1,996 @@
+{
+  "sourceDocument": "C:\\Users\\ASUS\\Downloads\\Latihan Blok SBA.docx",
+  "questionCount": 30,
+  "questions": [
+    {
+      "sourceRowNumber": 1,
+      "questionNumberLabel": "1",
+      "kisiKisi": "Ilmu Resep",
+      "questionText": "Seorang Apoteker di apotek mendapatkan resep sebagai berikut:\nR/ Vit.C 1/2 tab\nParacetamol 1/2 tab\nDeksametason 1/2 tab\nGuaiafenesin 1/2 tab\nAmoxicillin 250 mg\nM.f.l.a dtd No.X\nS t.dd 1 p.c\nBerdasarkan resep diatas, obat manakah yang seharusnya pemberiannya tidak boleh digabung dalam puyer ?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Vit. C"
+        },
+        {
+          "key": "B",
+          "text": "Parasetamol"
+        },
+        {
+          "key": "C",
+          "text": "Deksametason"
+        },
+        {
+          "key": "D",
+          "text": "Guaiafenesin"
+        },
+        {
+          "key": "E",
+          "text": "Amoxicillin"
+        }
+      ],
+      "correctOptionKey": "E",
+      "explanationText": "Antibiotik sebaiknya tidak dicampur dalam puyer dengan obat kainnya karena Risiko obat tidak habiskan, stabilitas terganggu, dan dapat menyebabkan penggunaan antibiotik tidak rasional.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 2,
+      "questionNumberLabel": "2",
+      "kisiKisi": "Perhitungan Dosis",
+      "questionText": "Suatu industri farmasi akan memproduksi sediaan aerosol salbutamol sulfat. Dalam kemasan tertera MDI 200 dosis. Volume wadah sediaan 10 ml dengan kandungan salbutamol 20 mg.\nBerapa kandungan salbutamol dalam mikro untuk satu kali pakai/ satu kali dosis ?",
+      "options": [
+        {
+          "key": "A",
+          "text": "10 mcg/dosis"
+        },
+        {
+          "key": "B",
+          "text": "50 mcg/dosis"
+        },
+        {
+          "key": "C",
+          "text": "100 mcg/dosis"
+        },
+        {
+          "key": "D",
+          "text": "150 mcg/dosis"
+        },
+        {
+          "key": "E",
+          "text": "200 mcg/dosis"
+        }
+      ],
+      "correctOptionKey": "C",
+      "explanationText": "Kandungan salbutamol 20 mg = 20.000 mcg. Dibagi 200 dosis = 100 mcg/dosis.\nKeterangan :\nMDI (Metered-Dose Inhaler) adalah alat genggam bertekanan yang menyemprotkan dosis obat asma atau PPOK yang terukur langsung ke paru-paru dalam bentuk kabut aerosol\n1 mg = 1000 mcg",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 3,
+      "questionNumberLabel": "3",
+      "kisiKisi": "Perhitungan Dosis",
+      "questionText": "Seorang pria 26 tahun menderita ISPA. Pasien datang dengan membawa resep sebagai berikut:\nR/ Amoxiclav 625 mg No XXI\nS 3dd 1 pc\nR/ PCT 500 mg\nMetilprednisolon 4 mg\nAmbroxol 30 mg\nM.f. caps dtd No.XX\nS.2.dd 1 pc\nJika obat yang tersedia hanya Metilprednisolon 8mg dan paracetamol 625 mg. Berapa banyak tablet yang diambil?",
+      "options": [
+        {
+          "key": "A",
+          "text": "PCT 6 tab dan metilprednisolon 11 tab"
+        },
+        {
+          "key": "B",
+          "text": "PCT 8 tab dan metilprednisolon 5 tab"
+        },
+        {
+          "key": "C",
+          "text": "PCT 11 tab dan metilprednisolon 11 tab"
+        },
+        {
+          "key": "D",
+          "text": "PCT 16 tab dan metilprednisolon 10 tab"
+        },
+        {
+          "key": "E",
+          "text": "PCT 20 tab dan metilprednisolon 20 tab"
+        }
+      ],
+      "correctOptionKey": "D",
+      "explanationText": "Rumus\nx Jumlah kebutuhan\nParacetamol\n= 16 tablet\nMetilprednisolon\n= 10 tablet\n.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 4,
+      "questionNumberLabel": "4",
+      "kisiKisi": "Beyond Use Date",
+      "questionText": "Berapakah suhu penyimpanan vaksin hepatitis B di puskesmas ?",
+      "options": [
+        {
+          "key": "A",
+          "text": "suhu -15 s.d -25 C"
+        },
+        {
+          "key": "B",
+          "text": "suhu 0 - 2 C"
+        },
+        {
+          "key": "C",
+          "text": "suhu 2-8 C"
+        },
+        {
+          "key": "D",
+          "text": "suhu ruang"
+        },
+        {
+          "key": "E",
+          "text": "suhu >34 C"
+        }
+      ],
+      "correctOptionKey": "D",
+      "explanationText": "Vaksin hepatitis B dapat mentoleransi suhu ruang dalam waktu terbatas karena relative stabil terhadap panas, tetapi penyimpanan rutinnya tetap di suhu 2-8 C, untuk memastikan boleh/tidaknya vaksin digunakan, harus melihat kondisi vaksin salah satunya dengan melakukan pengecekan VVM (Vaccine Vial Monitor)",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 5,
+      "questionNumberLabel": "5.",
+      "kisiKisi": "Beyond Use Date",
+      "questionText": "Seorang perawat di salah satu RS, akan melakukan rekonstitusi pada vaksin campak, Vaksin dibuka pukul 08.00 pagi. Kapan batas maksimal penggunaan vaksin setelah di rekonstitusi ?",
+      "options": [
+        {
+          "key": "A",
+          "text": "pukul 11.00"
+        },
+        {
+          "key": "B",
+          "text": "pukul 14.00"
+        },
+        {
+          "key": "C",
+          "text": "08.00 keesokan harinya"
+        },
+        {
+          "key": "D",
+          "text": "2 minggu setelah kemasan dibuka"
+        },
+        {
+          "key": "E",
+          "text": "4 minggu setelah kemasan dibuka"
+        }
+      ],
+      "correctOptionKey": "B",
+      "explanationText": "Vaksin campak yang sudah direkonstitusi/dibuka harus digunakan maksimal 6 jam. Jika dimulai pukul 08.00 maka batas maksimalnya pukul 14.00.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 6,
+      "questionNumberLabel": "6",
+      "kisiKisi": "Bahasa Latin Resep",
+      "questionText": "Seorang apoteker mendapatkan resep dari dokter sebagai berikut:\nR/ Natrium docusat\nS. bdd. II gtt adc.\nBagaimana penggunaan obat tersebut?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Obat tetes telinga, diteteskan 2 kali sehari sebanyak 2 tetes pada telinga kanan dan kiri"
+        },
+        {
+          "key": "B",
+          "text": "Obat tetes telinga, diteteskan 3 kali sehari sebanyak 2 tetes pada telinga kanan"
+        },
+        {
+          "key": "C",
+          "text": "Obat tetes mata, diteteskan 2 kali sehari sebanyak 4 tetes pada telinga kiri dan kanan"
+        },
+        {
+          "key": "D",
+          "text": "Obat tetes mata, diteteskan 2 kali sehari sebanyak 2 tetes pada telinga kanan dan kiri"
+        },
+        {
+          "key": "E",
+          "text": "Obat tetes telinga, diteteskan 2 kali sehari sebanyak 4 tetes pada telinga kanan"
+        }
+      ],
+      "correctOptionKey": "A",
+      "explanationText": "bdd = 2 kali sehari\nII gtt = 2 tetes\nadc (auric dextrae sinister) = telinga kanan dan kiri.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 7,
+      "questionNumberLabel": "7",
+      "kisiKisi": "Karakteristik Pribadi",
+      "questionText": "Seorang pasien di apotek membawa krim optalmik kloramphenikol yang dibelinya di apotek 2 jam yang lalu. Pasien tersebut komplain karena dirasa krim terlalu cair.\nApa yang anda lakukan sebagai apoteker yang sedang bertugas?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Meminta pasien menukar dengan yang baru"
+        },
+        {
+          "key": "B",
+          "text": "Menjelaskan bahwa obat hal tersebut merupakan teknologi terbaru dari produsen krim"
+        },
+        {
+          "key": "C",
+          "text": "Menggali informasi terkait penyimpanan yang dilakukan"
+        },
+        {
+          "key": "D",
+          "text": "Menjelaskan bahwa barang yang sudah dibeli tidak biasa dikembalikan"
+        },
+        {
+          "key": "E",
+          "text": "Mengembalikan uang pasien dan meminta maaf"
+        }
+      ],
+      "correctOptionKey": "C",
+      "explanationText": "Langkah pertama adalah investigasi penyebab keluhan, termasuk cara penyimpanan setelah obat diterima. Sediaan semisolid dapat berubah konsistensi bila terpapar suhu tinggi.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 8,
+      "questionNumberLabel": "8",
+      "kisiKisi": "Bahasa Latin Resep",
+      "questionText": "Seorang pasien mendapat resep Lidokain gel 5% dengan Signa Us. Ext 1-0-1.\nApa arti dari signa tersebut?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Digunakan untuk pemakaian luar pagi dan malam"
+        },
+        {
+          "key": "B",
+          "text": "Digunakan untuk pemakaian luar siang dan malam"
+        },
+        {
+          "key": "C",
+          "text": "Digunakan untuk pemakaian secara oral pagi dan siang"
+        },
+        {
+          "key": "D",
+          "text": "Digunakan untuk pemakaian secara oral pagi dan malam"
+        },
+        {
+          "key": "E",
+          "text": "Digunakan untuk pemakaian oral pagi dan malam"
+        }
+      ],
+      "correctOptionKey": "A",
+      "explanationText": "Us. Ext (Usus Externum) = penggunaan luar.\n1-0-1 (Keterangan waktu) = pagi dan malam.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 9,
+      "questionNumberLabel": "9",
+      "kisiKisi": "Perhitungan Dosis Resep",
+      "questionText": "Seorang ibu menebus resep di FRS untuk anaknya yang berusia 4 bulan. Anak tersebut mengalami diare dan diberikan resep sebagai berikut:\nR/ Zinc 20 mg NO. VII\nS 1 dd 1/2 tab\nPro a.n. X (4 bulan)\nIbu tersebut ingin meminta sediaan sirup. Di IFRS hanya tersedia sediaan bentuk syrup 10 mg/5 ml dalam botol 60 ml.\nBerapa botol yang diberikan ke pada ibu tersebut?",
+      "options": [
+        {
+          "key": "A",
+          "text": "1 botol"
+        },
+        {
+          "key": "B",
+          "text": "2 botol"
+        },
+        {
+          "key": "C",
+          "text": "3 botol"
+        },
+        {
+          "key": "D",
+          "text": "4 botol"
+        },
+        {
+          "key": "E",
+          "text": "5 botol"
+        }
+      ],
+      "correctOptionKey": "B",
+      "explanationText": "Bayi <6 bulan umumnya memerlukan zinc 10 mg/hari selama 10-14 hari.\nDi resep dibutuhkan 20 mg sebanyak 7 tab, tetapi penggunaannya hanya 1/2 tab atau 10 mg. maka penggunaan obat tersebut untuk 14 hari\nSediaan sirup 60 mL memiliki kandungan 10mg/5 mL\n1 botol sirup digunakan untuk 12 hari pemakaian ( = 12), maka untuk 14 hari, butuh 2 botol",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 10,
+      "questionNumberLabel": "10",
+      "kisiKisi": "ITER Resep",
+      "questionText": "Seorang pria membeli obat untuk mengatasi nyeri sendi dan kesemutan. Pasien tersebut hendak membeli setengah resep. Berikut resep pasien:\nITER 2x\nR/ Natrium diklofenak 25 mg\nMetilprednisolon 4 mg\nSianokobalamin 50 mcg\nM.f. caps dtd No.XX\nS.2.dd 1 pc\nBerapa sisa kapsul masih dapat diberikan kepada pasien tersebut?",
+      "options": [
+        {
+          "key": "A",
+          "text": "10 kapsul"
+        },
+        {
+          "key": "B",
+          "text": "20 kapsul"
+        },
+        {
+          "key": "C",
+          "text": "30 kapsul"
+        },
+        {
+          "key": "D",
+          "text": "40 kapsul"
+        },
+        {
+          "key": "E",
+          "text": "50 kapsul"
+        }
+      ],
+      "correctOptionKey": "E",
+      "explanationText": "Resep asli No. XX = 20 kapsul.\nTerdapat Iter 2x artinya resep boleh diulang 2 kali.\nJumlah total yang di dapatkan pasien 20 x 3 (1 dari resep asli dan 2 kali dari pengulangan) = 60 kapsul\nPasien hanya ingin menebus setengahnya dari resep asli,\nResep asli = 20 kapsul, diambil setengahnya jadi tinggal 10 kapsul\nTotal sisa yang masih bisa ditebus = 50 kapsul ( 10 kapsul sisa dari resep asli, 40 kapsul dari pengulangan)",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 11,
+      "questionNumberLabel": "11",
+      "kisiKisi": "RKO (Rencana Kebutuhan Obat)",
+      "questionText": "Sebuah puskesmas melakukan permintaan obat glibenklamid menggunakan LPLPO. Penggunaan glibenklamid pada tahun 2023 sebanyak 36.000 tablet (1 box = 100 tablet). Namun puskesmas mengalami kekosongan selama 2 bulan. Diketahui waktu tunggu selama 10 hari dan diketahui sisa stok sebanyak 17 box (1 tahun = 360 hari). Berapakah stok minimum yang perlu dipersiapkan untuk puskesmas tersebut (box)?",
+      "options": [
+        {
+          "key": "A",
+          "text": "22 box"
+        },
+        {
+          "key": "B",
+          "text": "23 box"
+        },
+        {
+          "key": "C",
+          "text": "24 box"
+        },
+        {
+          "key": "D",
+          "text": "25 box"
+        },
+        {
+          "key": "E",
+          "text": "26 box"
+        }
+      ],
+      "correctOptionKey": "C",
+      "explanationText": "Diketahui\nPemakaian Gliben (PR) = 36.000/1 tahun\nTerjadi kekosongan = 2 bulan\nBuffer stock = 15%\nJika 1 box = 100 tablet\nJika 1 tahun = 360 hari, maka 1 bulan = 30 hari\nSisa stock = 17 box = 1700 tab\nLead Time = 10 hari\nDitanyakan = Stok Minimum\nPR (Pemakaian rata-rata) = = = 120 tab/hari\nAlasan kenapa dikurangi 2 bulan, karena terjadi kekosongan selama 2 bulan, di soal diketahui 1 tahun 360 hari, maka 1 bulan = 30 hari.\nBuffer stock = 15% x SK\nx (PR x LT) = x (120 x 10) = 180 tab\nStok minimum\n= LTS + BS\nKarena di soal tidak diketahui BS maka rumusnya\n= 2 x LTS\n= 2 x (PR x LT)\n= 2 x (120 x 10) = 2400 tab\nKonversi dalam bentuk box (1 box = 100 tab)\n= 2400/100 = 24 box",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 12,
+      "questionNumberLabel": "12",
+      "kisiKisi": "Perencanaan",
+      "questionText": "Seorang apoteker di rumah sakit akan melakukan pengadaan amoksisilin 500 mg. Perhitungan jumlah pemakaian obat dilihat dari pemakaian obat bulan sebelumnya.\nMetode yang digunakan pada apotek tersebut adalah?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Epidemiologi"
+        },
+        {
+          "key": "B",
+          "text": "Konsumsi"
+        },
+        {
+          "key": "C",
+          "text": "Kombinasi"
+        },
+        {
+          "key": "D",
+          "text": "VEN"
+        },
+        {
+          "key": "E",
+          "text": "Morbiditas"
+        }
+      ],
+      "correctOptionKey": "B",
+      "explanationText": "Metode konsumsi digunakan jika perencanaan kebutuhan obat dihitung berdasarkan data pemakaian periode sebelumnya.\nMetode epidemiologi memakai data jumlah penyakit/kasus, sedangkan VEN mengelompokkan obat berdasarkan efek terapi: Vital, Esensial, dan Non-esensial.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 13,
+      "questionNumberLabel": "13",
+      "kisiKisi": "Perencanaan",
+      "questionText": "Seorang apoteker di puskesmas akan melakukan perencanaan OAT-FDC untuk memenuhi kebutuhan selama satu tahun ke depan dengan melihat prevalensi pasien TB di puskesmas tersebut. Metode perencanaan apakah yang digunakan?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Metode konsumsi"
+        },
+        {
+          "key": "B",
+          "text": "Metode epidemiologi"
+        },
+        {
+          "key": "C",
+          "text": "Metode kombinasi"
+        },
+        {
+          "key": "D",
+          "text": "Metode just in time"
+        },
+        {
+          "key": "E",
+          "text": "Metode evaluasi"
+        }
+      ],
+      "correctOptionKey": "B",
+      "explanationText": "Metode epidemiologi digunakan bila kebutuhan obat dihitung berdasarkan jumlah kasus penyakit, prevalensi, atau insidensi penyakit. Karena soal memakai data prevalensi TB, jawabannya adalah metode epidemiologi.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 14,
+      "questionNumberLabel": "14",
+      "kisiKisi": "Penyimpanan",
+      "questionText": "Apoteker penanggung jawab di rumah sakit akan menyusun SOP penyimpanan vaksin BCG untuk puskesmas ABC. Kriteria minimal yang harus ada pada Vaccine Cool Box adalah….",
+      "options": [
+        {
+          "key": "A",
+          "text": "Termometer"
+        },
+        {
+          "key": "B",
+          "text": "Tensimeter"
+        },
+        {
+          "key": "C",
+          "text": "Air handling"
+        },
+        {
+          "key": "D",
+          "text": "Air handling unit"
+        },
+        {
+          "key": "E",
+          "text": "Barometer"
+        }
+      ],
+      "correctOptionKey": "A",
+      "explanationText": "Penyimpanan vaksin harus dipantau suhunya. Karena itu, alat minimal yang perlu ada pada cold box/vaccine cool box adalah termometer untuk memastikan suhu tetap sesuai rantai dingin. Tensimeter, barometer, dan AHU bukan alat utama pemantauan suhu vaksin.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 15,
+      "questionNumberLabel": "15",
+      "kisiKisi": "RKO (Rencana Keburuhan Obat)",
+      "questionText": "Apoteker penanggung jawab di RS Alita akan melakukan perencanaan dan pengadaan tablet paracetamol 500 mg untuk persediaan satu tahun kedepan dengan buffer stock sebanyak 1.500 tablet. Pemakaian tablet paracetamol 500 mg selama setahun adalah 18.000 tablet dan lead time pemesanan selama 7 hari serta sisa stok sebanyak 1.500 tablet. Jika 1 tahun dianggap 360 hari maka berapa jumlah tablet paracetamol 500 mg yang harus dipesan oleh apoteker tersebut?",
+      "options": [
+        {
+          "key": "A",
+          "text": "18.450 tablet"
+        },
+        {
+          "key": "B",
+          "text": "19.350 tablet"
+        },
+        {
+          "key": "C",
+          "text": "19.570 tablet"
+        },
+        {
+          "key": "D",
+          "text": "18.350 tablet"
+        },
+        {
+          "key": "E",
+          "text": "20.550 tablet"
+        }
+      ],
+      "correctOptionKey": "D",
+      "explanationText": "Diketahui\n1 tahun dianggap 360 hari\nPP (Periode pengadaan) = 1 tahun = 360 hari\nPR (Pemakaian rata-rata) = 18.000/tahun = 18.000/360 = 50 tab/hari\nBuffer Stock (BS) = 1.500\nLead time (waktu tunggu) = 7 hari\nSisa stock = 1.500\nDitanyakan = RKO (rencana kebutuhan obat)\nRumus\nRKO = SK + LTS + BS - Sisa stock\nRKO = (PR . PP) + (PR. LTS) + BS - Sisa\nRKO = (50 . 360) + (50 . 7) + 1.500 - 1.500\nRKO = 18.000 + 350\nRKO = 18.350",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 16,
+      "questionNumberLabel": "16",
+      "kisiKisi": "Surat Pesanan",
+      "questionText": "Seorang apoteker penanggung jawab ingin memesan obat berupa:\nKodein 10 mg sebanyak 1 box\nKodein 20 mg sebanyak 2 box\nKodein sirup sebanyak 3 botol\nBerapa SP (surat pesanan) yang harus dibuat?",
+      "options": [
+        {
+          "key": "A",
+          "text": "5"
+        },
+        {
+          "key": "B",
+          "text": "4"
+        },
+        {
+          "key": "C",
+          "text": "3"
+        },
+        {
+          "key": "D",
+          "text": "2"
+        },
+        {
+          "key": "E",
+          "text": "1"
+        }
+      ],
+      "correctOptionKey": "C",
+      "explanationText": "Kodein termasuk obat narkotika. Untuk pemesanan narkotika, surat pesanan dibuat khusus dan dipisahkan berdasarkan jenis/kekuatan/bentuk sediaan. Khususo bat golongan narkotika, 1 SP berlaku hanya untuk 1 sediaan, Karena ada kodein 10 mg, kodein 20 mg, dan kodein sirup, maka dibuat 3 SP.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 17,
+      "questionNumberLabel": "17",
+      "kisiKisi": "Surat Pesanan",
+      "questionText": "Sebuah apotek ingin melakukan pemesanan terhadap obat batuk yang mengandung pseudoefedrin, CTM, Dextrometorphan dan ammonium chloride. Digunakan surat pesanan apa?",
+      "options": [
+        {
+          "key": "A",
+          "text": "SP obat bebas"
+        },
+        {
+          "key": "B",
+          "text": "SP narkotika"
+        },
+        {
+          "key": "C",
+          "text": "SP psikotropika"
+        },
+        {
+          "key": "D",
+          "text": "SP precursor"
+        },
+        {
+          "key": "E",
+          "text": "SP obat-obat tertentu"
+        }
+      ],
+      "correctOptionKey": "D",
+      "explanationText": "Pseudoefedrin termasuk prekursor farmasi, sehingga pemesanannya menggunakan surat pesanan prekursor. Dextrometorphan termasuk obat golongan OOT (Obat obat tertentu) berada dibawah tingkatannya dari precursor, sedangkan CTM dan ammonium chloride bukan penentu kategori surat pesanan khusus.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 18,
+      "questionNumberLabel": "18",
+      "kisiKisi": "Surat Pesanan",
+      "questionText": "Suatu apotek akan melakukan pengadaan perbekalan farmasi berupa obat golongan psikotropika yang akan dipesan ke PBF. Sehingga, apoteker penanggung jawab apotek membuat surat pemesanan.\nBerdasarkan keadaan tersebut, surat pemesanan untuk pengadaan obat golongan psikotropika dibuat dalam berapa rangkap?",
+      "options": [
+        {
+          "key": "A",
+          "text": "5 rangkap"
+        },
+        {
+          "key": "B",
+          "text": "4 rangkap"
+        },
+        {
+          "key": "C",
+          "text": "3 rangkap"
+        },
+        {
+          "key": "D",
+          "text": "2 rangkap"
+        },
+        {
+          "key": "E",
+          "text": "1 rangkap"
+        }
+      ],
+      "correctOptionKey": "C",
+      "explanationText": "Surat pesanan psikotropika dibuat terpisah dan lazimnya dibuat dalam 3 rangkap untuk dokumentasi pihak pemesan, pemasok, dan arsip/pengawasan.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 19,
+      "questionNumberLabel": "19",
+      "kisiKisi": "Farmakoekonomi",
+      "questionText": "Seorang pasien kanker paru stadium lanjut mendapat pilihan dua terapi:\nTerapi A memperpanjang harapan hidup 2 tahun dengan kualitas hidup 0,8.\nTerapi B memperpanjang harapan hidup 3 tahun dengan kualitas hidup 0,5.\nApoteker klinis diminta menghitung nilai QALY masing-masing terapi untuk menentukan mana yang lebih cost-effective. Berapakah QALY untuk terapi B?",
+      "options": [
+        {
+          "key": "A",
+          "text": "1,6"
+        },
+        {
+          "key": "B",
+          "text": "1.5"
+        },
+        {
+          "key": "C",
+          "text": "2,5"
+        },
+        {
+          "key": "D",
+          "text": "2"
+        },
+        {
+          "key": "E",
+          "text": "3"
+        }
+      ],
+      "correctOptionKey": "B",
+      "explanationText": "n:\nQALY = lama hidup × kualitas hidup.\nTerapi B = 3 × 0,5 = 1,5 QALY.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 20,
+      "questionNumberLabel": "20",
+      "kisiKisi": "Farmakoekonomi",
+      "questionText": "Apoteker di rumah sakit ingin melakukan penelitian untuk membandingkan 2 jenis obat pasca stroke, untuk melihat outcome kualitas hidup pasien pasca stroke lebih baik. Pendekatan metode farmakoekonomi manakah yang digunakan untuk penelitian tersebut?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Quality adjusted life year"
+        },
+        {
+          "key": "B",
+          "text": "Cost minimization analysis"
+        },
+        {
+          "key": "C",
+          "text": "Cost effectiveness analysis"
+        },
+        {
+          "key": "D",
+          "text": "Cost utility analysis"
+        },
+        {
+          "key": "E",
+          "text": "Cost benefit analysis"
+        }
+      ],
+      "correctOptionKey": "D",
+      "explanationText": "Jika outcome yang dinilai adalah kualitas hidup atau QALY, metode farmakoekonomi yang digunakan adalah cost utility analysis/ CUA.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 21,
+      "questionNumberLabel": "21",
+      "kisiKisi": "Ilmu Resep",
+      "questionText": "Seorang dokter menuliskan resep berikut.\nR/ Codeini phosphatis 10 mg\nCTM 2 mg\nm.f. pulv.\nd.a. tales doses No. XV\nS. h.s. pulv. I\nMahasiswa diminta menjelaskan arti seluruh instruksi Latin tersebut. Interpretasi yang PALING tepat adalah...",
+      "options": [
+        {
+          "key": "A",
+          "text": "Buat campuran serbuk sebanyak 15 bungkus, tiap bungkus mengandung komposisi di atas, diminum satu bungkus sebelum makan."
+        },
+        {
+          "key": "B",
+          "text": "Campurkan menjadi serbuk, berikan dalam dosis yang sama sebanyak 15 bungkus, diminum satu bungkus sebelum tidur."
+        },
+        {
+          "key": "C",
+          "text": "Campurkan menjadi kapsul sebanyak 15 buah, diminum tiga kali sehari."
+        },
+        {
+          "key": "D",
+          "text": "Campurkan menjadi puyer sebanyak 15 bungkus, diminum bila nyeri."
+        },
+        {
+          "key": "E",
+          "text": "Campurkan menjadi puyer sebanyak 15 bungkus, diminum sesudah makan."
+        }
+      ],
+      "correctOptionKey": "B",
+      "explanationText": "m.f. pulv. = misce fiat pulvis (campurkan menjadi serbuk)\nd.a. tales doses = berikan dosis-dosis yang sama\nNo. XV = 15 bungkus\nh.s. = hora somni = sebelum tidur",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 22,
+      "questionNumberLabel": "22",
+      "kisiKisi": "Surat Pesanan",
+      "questionText": "Diketahui surat pesanan sebagai berikut:\nParacetamol syrup 125 mg: 2 box\nIbuprofen syrup: 5 botol\nErgotamin tablet: 1 box\nCodein 20 mg: 1 box\nLorazepam tab: 1 box\nBerapakah jumlah surat pesanan yang harus dibuat?",
+      "options": [
+        {
+          "key": "A",
+          "text": "1"
+        },
+        {
+          "key": "B",
+          "text": "2"
+        },
+        {
+          "key": "C",
+          "text": "3"
+        },
+        {
+          "key": "D",
+          "text": "4"
+        },
+        {
+          "key": "E",
+          "text": "5"
+        }
+      ],
+      "correctOptionKey": "D",
+      "explanationText": "Paracetamol dan ibuprofen dapat menggunakan SP obat biasa.\nErgotamin termasuk prekursor/obat yang perlu pengawasan khusus.\nCodein termasuk narkotika.\nLorazepam termasuk psikotropika.\nJadi dibuat 4 kelompok SP:\nobat biasa,\nprekursor/khusus,\nnarkotika,\npsikotropika.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 23,
+      "questionNumberLabel": "23",
+      "kisiKisi": "Pendistribusian\nStandar Pelayanan Kefarmasian",
+      "questionText": "Seorang pasien membutuhkan 500 mL infus NaCl 0,9% setiap 6 jam. Kemudian apoteker menyiapkan 4 flask NaCl 0,9% kepada perawat untuk diberikan kepada pasien. Sistem distribusi apa yang sedang diterapkan apoteker?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Sistem distribusi sentralisasi"
+        },
+        {
+          "key": "B",
+          "text": "Sistem distribusi desentralisasi"
+        },
+        {
+          "key": "C",
+          "text": "Floor stock"
+        },
+        {
+          "key": "D",
+          "text": "Daily dose dispensing"
+        },
+        {
+          "key": "E",
+          "text": "Unit dose dispensing"
+        }
+      ],
+      "correctOptionKey": "D",
+      "explanationText": "NaCl 500 mL tiap 6 jam = 4 kali sehari, sehingga apoteker menyiapkan kebutuhan 1 hari. Ini termasuk daily dose dispensing.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 24,
+      "questionNumberLabel": "24",
+      "kisiKisi": "Pendistribusian\nStandar Pelayanan Kefarmasian",
+      "questionText": "Seorang apoteker rawat inap memberikan obat yang harus diminum pasien untuk hari ini. Jenis distribusi apa yang digunakan dalam rumah sakit tersebut?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Unit dose dispensing"
+        },
+        {
+          "key": "B",
+          "text": "One daily dose dispensing"
+        },
+        {
+          "key": "C",
+          "text": "Resep individu"
+        },
+        {
+          "key": "D",
+          "text": "Floor stock"
+        },
+        {
+          "key": "E",
+          "text": "Kombinasi"
+        }
+      ],
+      "correctOptionKey": "B",
+      "explanationText": "n:\nKarena obat disiapkan untuk kebutuhan satu hari pasien, maka sistemnya adalah one daily dose dispensing.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 25,
+      "questionNumberLabel": "25",
+      "kisiKisi": "Penyimpanan",
+      "questionText": "Sebuah obat dengan merk Braxidin memiliki kandungan chlordiazepoxide dan clidinium bromide. Di mana diletakkan obat itu?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Lemari obat bebas"
+        },
+        {
+          "key": "B",
+          "text": "Lemari precursor"
+        },
+        {
+          "key": "C",
+          "text": "Lemari narkotik"
+        },
+        {
+          "key": "D",
+          "text": "Lemari psikotropik"
+        },
+        {
+          "key": "E",
+          "text": "Lemari obat bebas terbatas"
+        }
+      ],
+      "correctOptionKey": "D",
+      "explanationText": "Chlordiazepoxide termasuk benzodiazepin/psikotropika, sehingga disimpan pada lemari psikotropika.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 26,
+      "questionNumberLabel": "26",
+      "kisiKisi": "Vaksin\nStandar Pelayanan Kefarmasian",
+      "questionText": "Seorang apoteker meminta PBF untuk mengirim vaksin lewat jalan darat. Dalam perjalanan, AC mati selama 5 jam dengan suhu 40°C. Apa yang harus dilakukan untuk memastikan vaksin masih layak digunakan?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Mengambil salah satu sampel untuk diuji"
+        },
+        {
+          "key": "B",
+          "text": "Meminta uji validasi ke PBF yang bersangkutan"
+        },
+        {
+          "key": "C",
+          "text": "Indikator VVM"
+        },
+        {
+          "key": "D",
+          "text": "Mengembalikan ke PBF"
+        },
+        {
+          "key": "E",
+          "text": "Retur barang ke supplier"
+        }
+      ],
+      "correctOptionKey": "C",
+      "explanationText": "VVM/Vaccine Vial Monitor digunakan untuk melihat paparan panas kumulatif pada vaksin. Ini membantu menentukan apakah vaksin masih dapat digunakan.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 27,
+      "questionNumberLabel": "27",
+      "kisiKisi": "Penerimaan",
+      "questionText": "Seorang salesman dari PBF resmi hendak ke apotek mengantarkan pesanan obat. Dalam faktur berisi obat alprazolam 1 mg sebanyak 2 box. Siapa yang berwenang menerima faktur tersebut?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Petugas bagian Gudang"
+        },
+        {
+          "key": "B",
+          "text": "Kasir"
+        },
+        {
+          "key": "C",
+          "text": "Apoteker pengelola apotek"
+        },
+        {
+          "key": "D",
+          "text": "Tenaga teknik kefarmasian"
+        },
+        {
+          "key": "E",
+          "text": "Asisten apoteker"
+        }
+      ],
+      "correctOptionKey": "C",
+      "explanationText": "Alprazolam termasuk psikotropika. Penerimaan dan pengelolaan psikotropika menjadi tanggung jawab apoteker pengelola/penanggung jawab.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 28,
+      "questionNumberLabel": "28",
+      "kisiKisi": "Penyimpanan",
+      "questionText": "Seorang apoteker bekerja menjadi penanggung jawab sarana distribusi. Salah satu tanggung jawabnya adalah melakukan penempatan barang sesuai dengan prinsip FIFO. Apakah tujuan sistem penempatan berdasarkan FIFO?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Barang yang pertama kali masuk akan keluar lebih dahulu"
+        },
+        {
+          "key": "B",
+          "text": "Barang yang terakhir kali masuk akan keluar lebih dahulu"
+        },
+        {
+          "key": "C",
+          "text": "Barang yang pertama kali kadaluwarsa akan keluar lebih dahulu"
+        },
+        {
+          "key": "D",
+          "text": "Barang yang pertama kali keluar akan masuk lebih dahulu"
+        },
+        {
+          "key": "E",
+          "text": "Barang yang terakhir kali kadaluwarsa akan keluar lebih dahulu"
+        }
+      ],
+      "correctOptionKey": "A",
+      "explanationText": "FIFO = First In First Out, artinya barang yang masuk lebih awal dikeluarkan lebih dahulu.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 29,
+      "questionNumberLabel": "29",
+      "kisiKisi": "Penyimpanan",
+      "questionText": "Seorang apoteker yang bekerja di bagian instalasi farmasi rumah sakit menerima obat ciprofloxacin 500 mg dan levofloxacin 500 mg yang baru saja dipesan sebelumnya. Apoteker tersebut ingin membuat SOP tentang penyimpanan obat tersebut. Salah satu alasannya untuk mencegah kesalahan pengambilan. Apakah tindakan yang sebaiknya dilakukan apoteker tersebut?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Menyimpan obat sesuai dengan sediaan"
+        },
+        {
+          "key": "B",
+          "text": "Menyimpan obat pada rak khusus antibiotic"
+        },
+        {
+          "key": "C",
+          "text": "Menyimpan obat dengan suhu ruangan terkendali"
+        },
+        {
+          "key": "D",
+          "text": "Menyimpan obat dengan stiker LASA"
+        },
+        {
+          "key": "E",
+          "text": "Hanya menyimpan di ICU"
+        }
+      ],
+      "correctOptionKey": "D",
+      "explanationText": "Ciprofloxacin dan levofloxacin berisiko tertukar karena sama-sama antibiotik fluorokuinolon dan mirip penggunaannya. Untuk mencegah medication error, diberi penandaan LASA.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 30,
+      "questionNumberLabel": "30",
+      "kisiKisi": "Penyimpanan",
+      "questionText": "Tim IFRS yang dipimpin oleh seorang apoteker sedang menyusun tempat penyimpanan sediaan. Salah satunya ialah injeksi insulin. Bagaimana cara penyimpanan injeksi insulin yang tepat?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Suhu >2°C"
+        },
+        {
+          "key": "B",
+          "text": "Suhu 9-2°C"
+        },
+        {
+          "key": "C",
+          "text": "Suhu 2-8°C"
+        },
+        {
+          "key": "D",
+          "text": "Suhu <2°C"
+        },
+        {
+          "key": "E",
+          "text": "Suhu kamar"
+        }
+      ],
+      "correctOptionKey": "C",
+      "explanationText": "Insulin yang belum digunakan disimpan di lemari pendingin suhu 2-8°C dan tidak boleh dibekukan.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    }
+  ]
+}

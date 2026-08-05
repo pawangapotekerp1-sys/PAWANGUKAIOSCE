@@ -1,0 +1,996 @@
+{
+  "sourceDocument": "C:\\Users\\ASUS\\Downloads\\LATIHAN SOAL BLOK CS(1).docx",
+  "questionCount": 30,
+  "questions": [
+    {
+      "sourceRowNumber": 1,
+      "questionNumberLabel": "41",
+      "kisiKisi": "KARDIOVASKULAR",
+      "questionText": "Seorang pria (65 thn) dengan riwayat sakit jantung mengalami penurunan fungsi ginjal mendadak (kreatinin naik) dan kelebihan kalium (kalium 5,8 mmol/L). Obat mana yang paling mungkin menyebabkan efek samping tersebut?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Bisoprolol"
+        },
+        {
+          "key": "B",
+          "text": "Amlodipin"
+        },
+        {
+          "key": "C",
+          "text": "Lisinopril"
+        },
+        {
+          "key": "D",
+          "text": "Simvastatin"
+        },
+        {
+          "key": "E",
+          "text": "Furosemid"
+        }
+      ],
+      "correctOptionKey": "C",
+      "explanationText": "Lisinopril adalah ACE inhibitor. Obat ini dapat meningkatkan kreatinin dan menyebabkan hiperkalemia karena menurunkan aktivitas sistem renin-angiotensin-aldosteron.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 2,
+      "questionNumberLabel": "42",
+      "kisiKisi": "KARDIOVASKULAR",
+      "questionText": "Seorang pria (55 thn) mengonsumsi Hidralazin untuk darah tingginya. Ia mengeluh wajah memerah dan jantung berdebar. Dokter mewaspadai efek samping khas jangka panjang dari obat ini. Monitoring apa yang paling penting dilakukan secara rutin pada pasien yang menggunakan hidralazin?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Pemeriksaan fungsi hati (LFT)"
+        },
+        {
+          "key": "B",
+          "text": "Pemeriksaan kadar asam urat"
+        },
+        {
+          "key": "C",
+          "text": "Pemeriksaan kadar kalsium"
+        },
+        {
+          "key": "D",
+          "text": "Pemeriksaan tekanan darah dan denyut jantung"
+        },
+        {
+          "key": "E",
+          "text": "Pemeriksaan fungsi tiroid"
+        }
+      ],
+      "correctOptionKey": "D",
+      "explanationText": "Hidralazin adalah vasodilator. Efek yang sering muncul adalah flushing/wajah merah, palpitasi, dan refleks takikardia, sehingga tekanan darah dan denyut jantung perlu dipantau.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 3,
+      "questionNumberLabel": "43",
+      "kisiKisi": "KARDIOVASKULAR",
+      "questionText": "Seorang pasien dengan hiperlipidemia (kolesterol total 280mg/dl, LDL 190mg/dl) dan anemiadefisiensi besi (Hb 9g/gl, feritin rendah) membutuhkan terapi. Manakah obat penurun lipid yang paling aman tanpa memperburuk anemia?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Kolestiramin"
+        },
+        {
+          "key": "B",
+          "text": "Ezetimibe"
+        },
+        {
+          "key": "C",
+          "text": "Atorvastatin"
+        },
+        {
+          "key": "D",
+          "text": "Gemfibrozil"
+        },
+        {
+          "key": "E",
+          "text": "Asam nikotinat (Niasin)"
+        }
+      ],
+      "correctOptionKey": "C",
+      "explanationText": "LDL 190 mg/dL termasuk indikasi kuat untuk terapi statin intensitas tinggi. Atorvastatin menurunkan LDL secara kuat dan tidak mengganggu absorpsi zat besi secara bermakna.\nKolestiramin dapat mengganggu absorpsi beberapa obat/vitamin. Ezetimibe biasanya tambahan, bukan pilihan utama untuk LDL sangat tinggi. Gemfibrozil lebih untuk trigliserida. Niasin banyak efek samping dan bukan lini utama.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 4,
+      "questionNumberLabel": "44",
+      "kisiKisi": "KARDIOVASKULAR",
+      "questionText": "Seorang pasien (64 thn) mengonsumsi Verapamil dan Atorvastatin. Ia mengeluh nyeri otot (paha dan betis) dan hasil lab menunjukkan kadar Kreatin Kinase naik. Dokter mencurigai adanya interaksi antar obat tersebut. Interaksi obat manakah yang paling mungkin menjelaskan gejala miopati pada pasien ini?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Lisinopril + aspirin"
+        },
+        {
+          "key": "B",
+          "text": "Furosemid + aspirin"
+        },
+        {
+          "key": "C",
+          "text": "Atorvastatin + furosemid"
+        },
+        {
+          "key": "D",
+          "text": "Verapamil + atorvastatin"
+        },
+        {
+          "key": "E",
+          "text": "Amlodipin + aspirin"
+        }
+      ],
+      "correctOptionKey": "D",
+      "explanationText": "Atorvastatin dapat menyebabkan miopati/rhabdomiolisis, ditandai nyeri otot dan CK meningkat. Risiko meningkat bila kadar statin naik akibat interaksi, misalnya dengan penghambat CYP3A4 seperti verapamil..",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 5,
+      "questionNumberLabel": "45",
+      "kisiKisi": "KARDIOVASKULAR",
+      "questionText": "Seorang pria (58 thn) penderita gagal ginjal mengalami anemia dengan Hb 7,5 g/dL. Hasil lab menunjukkan cadangan zat besi (Ferritin 200 ng/mL), namun penggunaan besi rendah (TSAT 17%). Terapi mana yang paling tepat diberikan pada pasien ini?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Epoetin alfa"
+        },
+        {
+          "key": "B",
+          "text": "Sianokobalamin"
+        },
+        {
+          "key": "C",
+          "text": "Asam folat"
+        },
+        {
+          "key": "D",
+          "text": "Vitamin B9"
+        },
+        {
+          "key": "E",
+          "text": "Tablet besi"
+        }
+      ],
+      "correctOptionKey": "A",
+      "explanationText": "Pada CKD, anemia sering terjadi karena produksi eritropoietin ginjal menurun. Hb 7,5 g/dL termasuk rendah, sehingga terapi ESA seperti epoetin alfa dapat dipertimbangkan, sambil tetap memantau status besi seperti ferritin dan TSAT. KDIGO menyebut Hb, ferritin, dan TSAT sebagai parameter penting dalam pemantauan anemia CKD.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 6,
+      "questionNumberLabel": "46",
+      "kisiKisi": "KARDIOVASKULAR",
+      "questionText": "Pasien 52 tahun datang ke puskesmas dengan keluhan sering sakit kepala terutama di pagi hari dan mudah lelah. Tekanan darah diukur dua kali dengan hasil konsisten 140/90 mmHg. Riwayat penyakit sebelumnya tidak ada diabetes maupun penyakit ginjal kronis. Dokter ingin memberikan terapi untuk menurunkan tekanan darah pasien. Obat antihipertensi lini pertama yang paling tepat untuk pasien ini adalah...",
+      "options": [
+        {
+          "key": "A",
+          "text": "Furosemid"
+        },
+        {
+          "key": "B",
+          "text": "Propranolol"
+        },
+        {
+          "key": "C",
+          "text": "Captopril"
+        },
+        {
+          "key": "D",
+          "text": "Spironolakton"
+        },
+        {
+          "key": "E",
+          "text": "Minoksidil"
+        }
+      ],
+      "correctOptionKey": "C",
+      "explanationText": "Pada hipertensi tanpa komorbid khusus, lini pertama dapat berupa ACE inhibitor/ARB, CCB dihidropiridin, atau diuretik tiazid. Dari pilihan yang tersedia, captopril paling sesuai sebagai ACE inhibitor.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 7,
+      "questionNumberLabel": "47",
+      "kisiKisi": "KARDIOVASKULAR",
+      "questionText": "Pasien laki-laki usia 50 tahun memiliki riwayat DM tipe 2 dilarikan ke UGD karena keadaan tidak sadar dengan TD 180/170. Hasil CT Scan dan pemeriksaan menunjukkan bahwa pasien mengalami hipertensi ensefalopati. Obat antihipertensi apa yang direkomendasikan diberikan pada pasien tersebut yang memiliki mekanisme kerja sebagai vasodilator?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Verapamil"
+        },
+        {
+          "key": "B",
+          "text": "Nitroglicerin"
+        },
+        {
+          "key": "C",
+          "text": "Furosemid"
+        },
+        {
+          "key": "D",
+          "text": "Hidroklortiazid"
+        },
+        {
+          "key": "E",
+          "text": "Diltiazem"
+        }
+      ],
+      "correctOptionKey": "B",
+      "explanationText": "Nitroglicerin bekerja sebagai vasodilator melalui pelepasan nitric oxide. Pada kondisi hipertensi emergensi diperlukan obat yang bekerja cepat dan dapat dikontrol.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 8,
+      "questionNumberLabel": "48",
+      "kisiKisi": "KARDIOVASKULAR",
+      "questionText": "Seorang pria berusia 52 tahun datang berkonsultasi dengan dokter di klinik dekat rumahnya dan didiagnosis hipertensi. Diketahui riwayat pasien setahun terakhir memiliki asam urat. Dokter hendak memilih antihipertensi yang sesuai dengan kondisi pasien tersebut. Obat hipertensi golongan apa yang dikontraindikasikan dengan pasien hiperurisemia?",
+      "options": [
+        {
+          "key": "A",
+          "text": "ACE inhibitor"
+        },
+        {
+          "key": "B",
+          "text": "ARB"
+        },
+        {
+          "key": "C",
+          "text": "CCB dihidropiridin"
+        },
+        {
+          "key": "D",
+          "text": "Diuretik"
+        },
+        {
+          "key": "E",
+          "text": "Beta Blocker"
+        }
+      ],
+      "correctOptionKey": "D",
+      "explanationText": "Diuretik, terutama tiazid, dapat meningkatkan kadar asam urat sehingga kurang sesuai pada pasien hiperurisemia/gout.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 9,
+      "questionNumberLabel": "49",
+      "kisiKisi": "KARDIOVASKULAR",
+      "questionText": "Manakah obat antihipertensi yang dapat menyebabkan efek samping hipotensi postural pada administrasi awal, sehingga perlu dilakukan monitoring terhadap tekanan darah?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Chlorthalidone"
+        },
+        {
+          "key": "B",
+          "text": "Prazosin"
+        },
+        {
+          "key": "C",
+          "text": "Bisoprolol"
+        },
+        {
+          "key": "D",
+          "text": "Indapamide"
+        },
+        {
+          "key": "E",
+          "text": "Metildopa"
+        }
+      ],
+      "correctOptionKey": "B",
+      "explanationText": "Prazosin adalah alfa-1 blocker. Efek khasnya adalah \"first dose phenomenon\", yaitu hipotensi postural/sinkop setelah dosis awal.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 10,
+      "questionNumberLabel": "50",
+      "kisiKisi": "KARDIOVASKULAR",
+      "questionText": "Seorang pasien mengeluh pusing dan nyeri di kepala bagian belakang, rasa nyeri seperti diikat dan berat. Hasil pengukuran TD adalah 160/100 mmHg. Diketahui pasien saat ini juga menjalani pengobatan DM dengan glimepiride dan insulin aspart, dokter berdiskusi tentang pemilihan obat yang sesuai dengan kondisi pasien tersebut. Apakah obat yang anda rekomendasikan?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Kaptopril"
+        },
+        {
+          "key": "B",
+          "text": "Furosemide"
+        },
+        {
+          "key": "C",
+          "text": "Spironolakton"
+        },
+        {
+          "key": "D",
+          "text": "Amlodipine"
+        },
+        {
+          "key": "E",
+          "text": "Doxazosin"
+        }
+      ],
+      "correctOptionKey": "A",
+      "explanationText": "Pada pasien hipertensi dengan DM, ACE inhibitor seperti kaptopril sering dipilih karena memberi manfaat proteksi ginjal dan kardiovaskular.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 11,
+      "questionNumberLabel": "51",
+      "kisiKisi": "ENDOKRIN",
+      "questionText": "Seorang wanita (50 thn) penderita Gagal Ginjal Kronis Stadium 5 yang rutin hemodialisis juga menderita hipotiroidisme dan mengonsumsi Levotiroksin. Perawat menanyakan parameter pemantauan yang krusial pada pasien dengan kondisi gabungan ini. Apa parameter yang perlu dipantau secara ketat pada pasien CKD dengan gangguan tiroid yang sedang menjalani terapi?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Fosfat dan TSH"
+        },
+        {
+          "key": "B",
+          "text": "Magnesium"
+        },
+        {
+          "key": "C",
+          "text": "Kalsitonin"
+        },
+        {
+          "key": "D",
+          "text": "Albumin urin"
+        },
+        {
+          "key": "E",
+          "text": "Aldosteron"
+        }
+      ],
+      "correctOptionKey": "A",
+      "explanationText": "Pada CKD stadium lanjut perlu memantau gangguan mineral seperti fosfat, sedangkan efektivitas levotiroksin terutama dipantau dengan TSH.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 12,
+      "questionNumberLabel": "52",
+      "kisiKisi": "ENDOKRIN",
+      "questionText": "Seorang pasien wanita 45 tahun dengan DM tipe 2 mengeluhkan perut sering kembung, buang angin berlebih, pusing, berat badan naik, hingga diare ringan setelah mengonsumsi obatnya. Ia sudah minum metformin dan glibenklamid selama 2 minggu. Mana yang merupakan efek samping umum penggunaan metformin?",
+      "options": [
+        {
+          "key": "A",
+          "text": "GIT disturbance"
+        },
+        {
+          "key": "B",
+          "text": "Berat badan naik"
+        },
+        {
+          "key": "C",
+          "text": "Pusing"
+        },
+        {
+          "key": "D",
+          "text": "Retinopati"
+        },
+        {
+          "key": "E",
+          "text": "Hipoglikemik berat"
+        }
+      ],
+      "correctOptionKey": "A",
+      "explanationText": "Efek samping metformin yang paling sering adalah gangguan saluran cerna seperti mual, diare, kembung, dan nyeri perut. Metformin juga tidak lazim menyebabkan kenaikan berat badan atau hipoglikemia berat bila digunakan sendiri.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 13,
+      "questionNumberLabel": "53",
+      "kisiKisi": "ENDOKRIN",
+      "questionText": "Seorang ibu hamil 29 tahun dengan diabetes mellitus tipe 1 sedang hamil 24 minggu. Ibu tersebut kemudian berkonsultasi apakah ia perlu mengubah terapinya. Dokter merencanakan pengaturan terapi insulin untuk menjaga kadar glukosa darah tetap stabil. Jenis insulin apa yang menjadi pilihan lini pertama untuk ibu hamil dengan DM tipe 1?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Detemir"
+        },
+        {
+          "key": "B",
+          "text": "Glargin"
+        },
+        {
+          "key": "C",
+          "text": "Degludec"
+        },
+        {
+          "key": "D",
+          "text": "Short acting"
+        },
+        {
+          "key": "E",
+          "text": "Lispro"
+        }
+      ],
+      "correctOptionKey": "A",
+      "explanationText": "Pada DM tipe 1 saat hamil, insulin tetap menjadi terapi utama. Detemir termasuk basal insulin yang memiliki data keamanan kehamilan lebih baik dibanding beberapa basal analog lain.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 14,
+      "questionNumberLabel": "54",
+      "kisiKisi": "ENDOKRIN",
+      "questionText": "Seorang pria (45 thn) dengan Diabetes Tipe 1 rutin menyuntikkan insulin di titik yang sama pada perut bagian kanan. Muncul benjolan kecil di area tersebut, mengakibatkan penyerapan insulin terganggu dan gula darah tidak stabil. Apa alasan utama penyuntikan insulin tidak boleh selalu di tempat yang sama?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Menyebabkan urtikaria"
+        },
+        {
+          "key": "B",
+          "text": "Menimbulkan lipodistrofi"
+        },
+        {
+          "key": "C",
+          "text": "Mengurangi efektivitas insulin secara kimiawi"
+        },
+        {
+          "key": "D",
+          "text": "Menimbulkan infeksi lokal"
+        },
+        {
+          "key": "E",
+          "text": "Mempercepat absorpsi insulin berlebihan"
+        }
+      ],
+      "correctOptionKey": "B",
+      "explanationText": "Suntikan berulang pada titik yang sama dapat menyebabkan lipodistrofi/lipohipertrofi, sehingga absorpsi insulin tidak stabil. Karena itu lokasi suntikan harus dirotasi.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 15,
+      "questionNumberLabel": "55",
+      "kisiKisi": "ENDOKRIN",
+      "questionText": "Seorang wanita hamil berusia 8 minggu, sedang dalam pengobatan untuk hipertiroidisme dengan Propylthiouracil (PTU) 3x100 mg. Pasien juga memiliki riwayat asma dan membutuhkan pilihan terapi tambahan untuk mengelola gejala takikardia akibat hipertiroidisme-nya. Apa pilihan obat yang paling tepat untuk pasien tersebut?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Propranolol"
+        },
+        {
+          "key": "B",
+          "text": "Nadolol"
+        },
+        {
+          "key": "C",
+          "text": "Esmolol"
+        },
+        {
+          "key": "D",
+          "text": "Labetalol"
+        },
+        {
+          "key": "E",
+          "text": "Timolol"
+        }
+      ],
+      "correctOptionKey": "C",
+      "explanationText": "Untuk gejala takikardia, beta-blocker dapat digunakan. Namun pada pasien asma, beta-blocker nonselektif seperti propranolol/timolol lebih berisiko memicu bronkospasme. Esmolol lebih selektif beta-1 dan kerja singkat, sehingga lebih rasional pada opsi yang tersedia.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 16,
+      "questionNumberLabel": "56",
+      "kisiKisi": "ENDOKRIN",
+      "questionText": "Seorang pria (63 thn) didiagnosis Diabetes Melitus Tipe 2 dengan kadar HbA1c 7,8%. Dokter meresepkan terapi kombinasi Metformin dan insulin Lantus. Namun, stok Insulin Lantus di apotek sedang kosong. Insulin apakah yang dapat menggantikan stok yang kosong?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Novorapid"
+        },
+        {
+          "key": "B",
+          "text": "Humalog"
+        },
+        {
+          "key": "C",
+          "text": "Apidra"
+        },
+        {
+          "key": "D",
+          "text": "Levemir"
+        },
+        {
+          "key": "E",
+          "text": "Humulin R"
+        }
+      ],
+      "correctOptionKey": "D",
+      "explanationText": "Lantus adalah insulin glargine, yaitu insulin basal kerja panjang. Pengganti yang paling sesuai di opsi adalah Levemir/insulin detemir, karena sama-sama basal insulin.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 17,
+      "questionNumberLabel": "57",
+      "kisiKisi": "ENDOKRIN",
+      "questionText": "Seorang wanita berusia 50 tahun menderita Diabetes Melitus tipe 2 dan sedang mendapatkan obat acarbose 25 mg dengan aturan pakai 3 kali sehari. Setelah mengonsumsi Acarbose, pasien mengeluh mengalami flatulen. Tidak nyaman dengan kondisinya, pasien berkonsultasi dengan apoteker terkait efek samping obat yang sedang dikonsumsinya. Bagaimanakah mekanisme acarbose menyebabkan keluhan tersebut?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Meningkatkan sekresi asam lambung yang memicu produksi gas berlebih di lambung"
+        },
+        {
+          "key": "B",
+          "text": "Memperlambat motilitas usus sehingga meningkatkan produksi gas oleh bakteri usus halus"
+        },
+        {
+          "key": "C",
+          "text": "Menghambat absorpsi karbohidrat sehingga terfermentasi oleh bakteri di usus dan menghasilkan gas"
+        },
+        {
+          "key": "D",
+          "text": "Menghambat enzim amilase di lambung sehingga menyebabkan fermentasi karbohidrat di lambung"
+        },
+        {
+          "key": "E",
+          "text": "Menghambat penyerapan air di usus besar sehingga meningkatkan volume gas dalam usus"
+        }
+      ],
+      "correctOptionKey": "C",
+      "explanationText": "Acarbose menghambat alfa-glukosidase sehingga pemecahan/absorpsi karbohidrat tertunda. Karbohidrat yang tidak tercerna difermentasi bakteri usus dan menghasilkan gas, menyebabkan flatulen.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 18,
+      "questionNumberLabel": "58",
+      "kisiKisi": "ENDOKRIN",
+      "questionText": "Seorang wanita (50 thn) menderita Diabetes Tipe 2 dengan kondisi obesitas. Meskipun sudah menggunakan Metformin, gula darahnya tetap tinggi. Dokter ingin menambahkan obat yang efektif menurunkan gula darah sekaligus membantu penurunan berat badan. Obat apakah yang dapat direkomendasikan pada pasien tersebut?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Glimepirid"
+        },
+        {
+          "key": "B",
+          "text": "Nateglinide"
+        },
+        {
+          "key": "C",
+          "text": "Pioglitazone"
+        },
+        {
+          "key": "D",
+          "text": "Liraglutide"
+        },
+        {
+          "key": "E",
+          "text": "Insulin lispro"
+        }
+      ],
+      "correctOptionKey": "D",
+      "explanationText": "Liraglutide adalah agonis reseptor GLP-1 yang membantu menurunkan glukosa dan dapat membantu penurunan berat badan, cocok pada DM tipe 2 dengan obesitas.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 19,
+      "questionNumberLabel": "59",
+      "kisiKisi": "ENDOKRIN",
+      "questionText": "Pasien usia 40 tahun datang ke apotek anda menanyakan ketidaknyamanan dari terapi yang dikonsumsinya selama 4 bulan terakhir. Diketahui pasien tersebut baru didiagnosis DM dan mendapat terapi acarbose. Efek samping yang mungkin menyebabkan ketidaknyamanan pada terapi tersebut adalah?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Infeksi saluran kemih"
+        },
+        {
+          "key": "B",
+          "text": "Flatulen"
+        },
+        {
+          "key": "C",
+          "text": "Hipoglikemik"
+        },
+        {
+          "key": "D",
+          "text": "Defisiensi Vit. B12"
+        },
+        {
+          "key": "E",
+          "text": "Fraktur"
+        }
+      ],
+      "correctOptionKey": "B",
+      "explanationText": "Acarbose sering menimbulkan efek samping gastrointestinal, terutama kembung dan flatulen, akibat fermentasi karbohidrat yang tidak tercerna.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 20,
+      "questionNumberLabel": "60",
+      "kisiKisi": "ENDOKRIN",
+      "questionText": "Seorang wanita hamil (18 minggu) didiagnosis Hipertiroid dengan gejala tremor, jantung berdebar, dan bengkak kelenjar leher. Hasil lab menunjukkan TSH rendah dan T4 sangat tinggi. Dokter perlu memberikan terapi antitiroid yang aman untuk ibu dan janin pada usia kehamilan tersebut. Apakah terapi yang disarankan untuk mengatasi kondisi wanita tersebut?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Methimazole"
+        },
+        {
+          "key": "B",
+          "text": "Bisoprolol"
+        },
+        {
+          "key": "C",
+          "text": "PTU"
+        },
+        {
+          "key": "D",
+          "text": "Liothironin"
+        },
+        {
+          "key": "E",
+          "text": "Larutan lugol"
+        }
+      ],
+      "correctOptionKey": "A",
+      "explanationText": "Pada trimester pertama, PTU lebih dipilih. Setelah melewati trimester pertama, methimazole umumnya lebih dipilih karena risiko hepatotoksisitas PTU. Kehamilan 18 minggu termasuk trimester kedua.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 21,
+      "questionNumberLabel": "61",
+      "kisiKisi": "BIOLOGI SEL DAN MOLEKULER",
+      "questionText": "Ciri utama yang membedakan sel eukariotik dengan sel prokariotik adalah...",
+      "options": [
+        {
+          "key": "A",
+          "text": "Sel eukariotik tidak memiliki ribosom"
+        },
+        {
+          "key": "B",
+          "text": "Sel eukariotik memiliki membran inti"
+        },
+        {
+          "key": "C",
+          "text": "Sel prokariotik memiliki mitokondria"
+        },
+        {
+          "key": "D",
+          "text": "Sel prokariotik memiliki badan Golgi"
+        },
+        {
+          "key": "E",
+          "text": "Sel eukariotik tidak memiliki DNA"
+        }
+      ],
+      "correctOptionKey": "B",
+      "explanationText": "Sel eukariotik memiliki inti sel yang dibatasi oleh membran inti. Contohnya sel manusia, hewan, tumbuhan, dan jamur. Sedangkan sel prokariotik seperti bakteri tidak memiliki membran inti, sehingga DNA-nya berada bebas di sitoplasma pada daerah yang disebut nukleoid.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 22,
+      "questionNumberLabel": "62",
+      "kisiKisi": "BIOLOGI SEL DAN MOLEKULER",
+      "questionText": "Organel yang berperan utama dalam sintesis protein yang akan disekresikan keluar sel adalah...",
+      "options": [
+        {
+          "key": "A",
+          "text": "Mitokondria"
+        },
+        {
+          "key": "B",
+          "text": "Lisosom"
+        },
+        {
+          "key": "C",
+          "text": "Retikulum endoplasma kasar"
+        },
+        {
+          "key": "D",
+          "text": "Sentriol"
+        },
+        {
+          "key": "E",
+          "text": "Peroksisom"
+        }
+      ],
+      "correctOptionKey": "C",
+      "explanationText": "Retikulum endoplasma kasar memiliki ribosom yang menempel pada permukaannya. Ribosom ini berfungsi untuk membuat protein, terutama protein yang akan disekresikan keluar sel atau dikirim ke membran sel.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 23,
+      "questionNumberLabel": "63",
+      "kisiKisi": "BIOLOGI SEL DAN MOLEKULER",
+      "questionText": "Organel yang disebut sebagai \"pembangkit energi\" sel karena menghasilkan ATP adalah...",
+      "options": [
+        {
+          "key": "A",
+          "text": "Nukleus"
+        },
+        {
+          "key": "B",
+          "text": "Mitokondria"
+        },
+        {
+          "key": "C",
+          "text": "Lisosom"
+        },
+        {
+          "key": "D",
+          "text": "Ribosom"
+        },
+        {
+          "key": "E",
+          "text": "Badan Golgi"
+        }
+      ],
+      "correctOptionKey": "B",
+      "explanationText": "Mitokondria menghasilkan ATP melalui proses respirasi seluler, terutama melalui fosforilasi oksidatif. ATP digunakan sebagai sumber energi utama untuk berbagai aktivitas sel.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 24,
+      "questionNumberLabel": "64",
+      "kisiKisi": "BIOLOGI SEL DAN MOLEKULER",
+      "questionText": "Lisosom berfungsi untuk...",
+      "options": [
+        {
+          "key": "A",
+          "text": "Menyimpan informasi genetik"
+        },
+        {
+          "key": "B",
+          "text": "Menghasilkan ATP"
+        },
+        {
+          "key": "C",
+          "text": "Mencerna zat sisa dan organel yang rusak"
+        },
+        {
+          "key": "D",
+          "text": "Membentuk benang spindel"
+        },
+        {
+          "key": "E",
+          "text": "Menyintesis lipid"
+        }
+      ],
+      "correctOptionKey": "C",
+      "explanationText": "Lisosom mengandung enzim hidrolitik yang bekerja pada pH asam. Fungsinya adalah mencerna zat asing, sisa metabolisme, dan organel yang sudah rusak melalui proses autofagi",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 25,
+      "questionNumberLabel": "65",
+      "kisiKisi": "BIOLOGI SEL DAN MOLEKULER",
+      "questionText": "Struktur dasar membran sel tersusun atas...",
+      "options": [
+        {
+          "key": "A",
+          "text": "Lapisan DNA dan RNA"
+        },
+        {
+          "key": "B",
+          "text": "Fosfolipid bilayer dan protein"
+        },
+        {
+          "key": "C",
+          "text": "Karbohidrat murni"
+        },
+        {
+          "key": "D",
+          "text": "Protein murni"
+        },
+        {
+          "key": "E",
+          "text": "Kolesterol tanpa lipid"
+        }
+      ],
+      "correctOptionKey": "B",
+      "explanationText": "Membran sel tersusun atas dua lapis fosfolipid atau fosfolipid bilayer. Selain itu terdapat protein membran, kolesterol, dan karbohidrat. Struktur ini dikenal dengan model mosaik fluida.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 26,
+      "questionNumberLabel": "66",
+      "kisiKisi": "BIOLOGI SEL DAN MOLEKULER",
+      "questionText": "Bagian fosfolipid yang bersifat hidrofilik adalah...",
+      "options": [
+        {
+          "key": "A",
+          "text": "Ekor asam lemak"
+        },
+        {
+          "key": "B",
+          "text": "Kepala fosfat"
+        },
+        {
+          "key": "C",
+          "text": "Rantai karbon"
+        },
+        {
+          "key": "D",
+          "text": "Kolesterol"
+        },
+        {
+          "key": "E",
+          "text": "Protein integral"
+        }
+      ],
+      "correctOptionKey": "B",
+      "explanationText": "Fosfolipid memiliki kepala fosfat yang bersifat hidrofilik atau suka air, sedangkan ekor asam lemak bersifat hidrofobik atau tidak suka air. Sifat ini menyebabkan fosfolipid membentuk bilayer pada membran sel.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 27,
+      "questionNumberLabel": "67",
+      "kisiKisi": "BIOLOGI SEL DAN MOLEKULER",
+      "questionText": "Reseptor yang bekerja melalui protein G dan second messenger seperti cAMP disebut...",
+      "options": [
+        {
+          "key": "A",
+          "text": "Reseptor kanal ion"
+        },
+        {
+          "key": "B",
+          "text": "Reseptor tirosin kinase"
+        },
+        {
+          "key": "C",
+          "text": "G protein-coupled receptor"
+        },
+        {
+          "key": "D",
+          "text": "Reseptor intraseluler"
+        },
+        {
+          "key": "E",
+          "text": "Reseptor nuklear"
+        }
+      ],
+      "correctOptionKey": "C",
+      "explanationText": "G protein-coupled receptor atau GPCR adalah reseptor membran yang bekerja melalui protein G. Aktivasi GPCR dapat memicu terbentuknya second messenger seperti cAMP, IP3, atau DAG. Contoh obat yang bekerja pada GPCR adalah agonis beta-2 seperti salbutamol.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 28,
+      "questionNumberLabel": "68",
+      "kisiKisi": "BIOLOGI SEL DAN MOLEKULER",
+      "questionText": "Proses pembentukan RNA dari cetakan DNA disebut...",
+      "options": [
+        {
+          "key": "A",
+          "text": "Translasi"
+        },
+        {
+          "key": "B",
+          "text": "Transkripsi"
+        },
+        {
+          "key": "C",
+          "text": "Replikasi"
+        },
+        {
+          "key": "D",
+          "text": "Mutasi"
+        },
+        {
+          "key": "E",
+          "text": "Denaturasi"
+        }
+      ],
+      "correctOptionKey": "B",
+      "explanationText": "Transkripsi adalah proses pembentukan RNA menggunakan DNA sebagai cetakan. Pada sel eukariotik, proses ini terjadi di dalam nukleus",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 29,
+      "questionNumberLabel": "69",
+      "kisiKisi": "BIOLOGI SEL DAN MOLEKULER",
+      "questionText": "Proses pembentukan protein berdasarkan kode pada mRNA disebut...",
+      "options": [
+        {
+          "key": "A",
+          "text": "Transkripsi"
+        },
+        {
+          "key": "B",
+          "text": "Translasi"
+        },
+        {
+          "key": "C",
+          "text": "Replikasi"
+        },
+        {
+          "key": "D",
+          "text": "Glikolisis"
+        },
+        {
+          "key": "E",
+          "text": "Apoptosis"
+        }
+      ],
+      "correctOptionKey": "B",
+      "explanationText": "Translasi adalah proses penerjemahan kode genetik pada mRNA menjadi urutan asam amino untuk membentuk protein. Proses ini terjadi di ribosom.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    },
+    {
+      "sourceRowNumber": 30,
+      "questionNumberLabel": "70",
+      "kisiKisi": "BIOLOGI SEL DAN MOLEKULER",
+      "questionText": "Urutan aliran informasi genetik yang benar menurut dogma sentral biologi molekuler adalah...",
+      "options": [
+        {
+          "key": "A",
+          "text": "Protein → RNA → DNA"
+        },
+        {
+          "key": "B",
+          "text": "RNA → DNA → Protein"
+        },
+        {
+          "key": "C",
+          "text": "DNA → RNA → Protein"
+        },
+        {
+          "key": "D",
+          "text": "DNA → Protein → RNA"
+        },
+        {
+          "key": "E",
+          "text": "Protein → DNA → RNA"
+        }
+      ],
+      "correctOptionKey": "C",
+      "explanationText": "Dogma sentral menjelaskan bahwa informasi genetik mengalir dari DNA ke RNA melalui transkripsi, kemudian dari RNA ke protein melalui translasi.",
+      "blockId": null,
+      "topicId": null,
+      "parsingNotes": []
+    }
+  ]
+}

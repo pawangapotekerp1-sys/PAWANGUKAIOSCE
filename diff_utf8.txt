@@ -1,0 +1,669 @@
+﻿diff --git a/src/components/DriveExplorer/ActionMenu.tsx b/src/components/DriveExplorer/ActionMenu.tsx
+new file mode 100644
+index 0000000..31626ec
+--- /dev/null
++++ b/src/components/DriveExplorer/ActionMenu.tsx
+@@ -0,0 +1,62 @@
++import React from 'react';
++import { DotsThree, Trash, Copy, ArrowRight } from '@phosphor-icons/react';
++
++interface ActionMenuProps<T> {
++  item: T;
++  isOpen: boolean;
++  onToggle: () => void;
++  onClone?: (item: T) => void;
++  onMove?: (item: T) => void;
++  onDelete?: (item: T) => void;
++  menuHoverClass?: string;
++}
++
++export function ActionMenu<T>({ item, isOpen, onToggle, onClone, onMove, onDelete, menuHoverClass = 'hover:text-blue-600' }: ActionMenuProps<T>) {
++  return (
++    <>
++      <button
++        onClick={(e) => {
++          e.stopPropagation();
++          onToggle();
++        }}
++        className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
++      >
++        <DotsThree weight="bold" className="w-5 h-5" />
++      </button>
++
++      {isOpen && (
++        <div
++          className="absolute right-0 top-full mt-1 w-48 bg-white border border-slate-200 rounded-lg shadow-xl z-10 py-1"
++        >
++          {onClone && (
++            <button
++              onClick={(e) => { e.stopPropagation(); onToggle(); onClone(item); }}
++              className={`w-full flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 ${menuHoverClass}`}
++            >
++              <Copy className="w-4 h-4 mr-2" /> Clone
++            </button>
++          )}
++          {onMove && (
++            <button
++              onClick={(e) => { e.stopPropagation(); onToggle(); onMove(item); }}
++              className={`w-full flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 ${menuHoverClass}`}
++            >
++              <ArrowRight className="w-4 h-4 mr-2" /> Move
++            </button>
++          )}
++          {(onClone || onMove) && onDelete && (
++            <div className="h-px bg-slate-100 my-1" />
++          )}
++          {onDelete && (
++            <button
++              onClick={(e) => { e.stopPropagation(); onToggle(); onDelete(item); }}
++              className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50"
++            >
++              <Trash className="w-4 h-4 mr-2" /> Delete
++            </button>
++          )}
++        </div>
++      )}
++    </>
++  );
++}
+diff --git a/src/components/DriveExplorer/Breadcrumb.tsx b/src/components/DriveExplorer/Breadcrumb.tsx
+new file mode 100644
+index 0000000..4e41a0d
+--- /dev/null
++++ b/src/components/DriveExplorer/Breadcrumb.tsx
+@@ -0,0 +1,53 @@
++import React from 'react';
++import { CaretRight, House } from '@phosphor-icons/react';
++
++export interface BreadcrumbItem {
++  id: string | null; // null for Root
++  name: string;
++}
++
++interface BreadcrumbProps {
++  items: BreadcrumbItem[];
++  onNavigate: (id: string | null) => void;
++}
++
++export function Breadcrumb({ items, onNavigate }: BreadcrumbProps) {
++  return (
++    <nav className="flex items-center space-x-2 text-sm text-slate-500 mb-6 bg-slate-50 p-3 rounded-lg border border-slate-100 shadow-sm">
++      <button
++        onClick={() => onNavigate(null)}
++        className="flex items-center hover:text-blue-600 transition-colors p-1 rounded hover:bg-slate-200"
++        title="Root Folder"
++      >
++        <House weight="fill" className="w-4 h-4 mr-1" />
++        <span className="font-medium">Home</span>
++      </button>
++
++      {items.length > 0 && (
++        <CaretRight weight="bold" className="w-3 h-3 text-slate-300" />
++      )}
++
++      {items.map((item, index) => {
++        const isLast = index === items.length - 1;
++
++        return (
++          <React.Fragment key={item.id ?? 'root'}>
++            <button
++              onClick={() => onNavigate(item.id)}
++              className={`px-2 py-1 rounded transition-colors truncate max-w-[150px] ${
++                isLast
++                  ? 'text-slate-800 font-semibold bg-white shadow-sm border border-slate-200'
++                  : 'hover:text-blue-600 hover:bg-slate-200 font-medium'
++              }`}
++            >
++              {item.name}
++            </button>
++            {!isLast && (
++              <CaretRight weight="bold" className="w-3 h-3 text-slate-300 flex-shrink-0" />
++            )}
++          </React.Fragment>
++        );
++      })}
++    </nav>
++  );
++}
+diff --git a/src/components/DriveExplorer/DriveExplorer.test.tsx b/src/components/DriveExplorer/DriveExplorer.test.tsx
+new file mode 100644
+index 0000000..9510f81
+--- /dev/null
++++ b/src/components/DriveExplorer/DriveExplorer.test.tsx
+@@ -0,0 +1,107 @@
++import React from 'react';
++import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
++import { describe, expect, it, vi, afterEach } from 'vitest';
++import { DriveExplorer } from './DriveExplorer';
++import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
++import { getFolders, getLinks } from '@/lib/api/material-api';
++
++vi.mock('@/lib/api/material-api', () => ({
++  getFolders: vi.fn().mockResolvedValue([]),
++  getLinks: vi.fn().mockResolvedValue([]),
++  createFolder: vi.fn(),
++  createLink: vi.fn(),
++  deleteFolder: vi.fn(),
++  deleteLink: vi.fn(),
++  cloneItem: vi.fn(),
++  moveItem: vi.fn(),
++}));
++
++const queryClient = new QueryClient({
++  defaultOptions: {
++    queries: {
++      retry: false,
++    },
++  },
++});
++
++function renderWithProviders(ui: React.ReactElement) {
++  return render(
++    <QueryClientProvider client={queryClient}>
++      {ui}
++    </QueryClientProvider>
++  );
++}
++
++describe('DriveExplorer', () => {
++  afterEach(() => {
++    cleanup();
++    queryClient.clear();
++    vi.clearAllMocks();
++  });
++
++  it('renders loading state initially', () => {
++    renderWithProviders(<DriveExplorer driveType="rekaman" isMentorOrAdmin={false} />);
++    expect(screen.getByText('Loading files...')).toBeInTheDocument();
++  });
++
++  it('renders title for VIDEO drive', async () => {
++    renderWithProviders(<DriveExplorer driveType="rekaman" isMentorOrAdmin={false} />);
++    const headings = await screen.findAllByText('Video Library');
++    expect(headings.length).toBeGreaterThan(0);
++  });
++
++  it('renders title for PPT drive', async () => {
++    renderWithProviders(<DriveExplorer driveType="ppt" isMentorOrAdmin={false} />);
++    const headings = await screen.findAllByText('Presentations');
++    expect(headings.length).toBeGreaterThan(0);
++  });
++
++  it('does not render admin buttons when isMentorOrAdmin is false', async () => {
++    renderWithProviders(<DriveExplorer driveType="rekaman" isMentorOrAdmin={false} />);
++    await waitFor(() => {
++      expect(screen.queryByText('New Folder')).not.toBeInTheDocument();
++      expect(screen.queryByText('New Link')).not.toBeInTheDocument();
++    });
++  });
++
++  it('renders admin buttons when isMentorOrAdmin is true', async () => {
++    renderWithProviders(<DriveExplorer driveType="rekaman" isMentorOrAdmin={true} />);
++    await waitFor(() => {
++      expect(screen.getByText('New Folder')).toBeInTheDocument();
++      expect(screen.getByText('New Link')).toBeInTheDocument();
++    });
++  });
++
++  it('navigates into a folder when clicked and updates breadcrumbs', async () => {
++    (getFolders as any).mockResolvedValueOnce([
++      { id: 'folder-1', name: 'Folder 1', type: 'folder', created_at: '', updated_at: '' }
++    ]).mockResolvedValueOnce([]); // Mock for the second query when navigating inside
++
++    renderWithProviders(<DriveExplorer driveType="rekaman" isMentorOrAdmin={false} />);
++
++    // Wait for the folder to be rendered
++    const folderElement = await screen.findByText('Folder 1');
++    expect(folderElement).toBeInTheDocument();
++
++    // Click the folder
++    fireEvent.click(folderElement);
++
++    // Breadcrumb should now show the folder name
++    const breadcrumbElement = await screen.findByText('Folder 1', { selector: 'button.text-slate-800' });
++    expect(breadcrumbElement).toBeInTheDocument();
++    
++    // Breadcrumb 'Home' should be clickable
++    const homeBreadcrumb = screen.getByRole('button', { name: /home/i });
++    expect(homeBreadcrumb).toBeInTheDocument();
++    
++    // Click Home to navigate back
++    fireEvent.click(homeBreadcrumb);
++    
++    // The query for the root folder should have been called again (which now returns [])
++    // Because we mocked the second call to return [], 'No items found' will appear if links is also empty
++    // Let's just assert that breadcrumb is gone or back to normal
++    await waitFor(() => {
++      expect(screen.queryByText('Folder 1', { selector: 'button.text-slate-800' })).not.toBeInTheDocument();
++    });
++  });
++});
+diff --git a/src/components/DriveExplorer/DriveExplorer.tsx b/src/components/DriveExplorer/DriveExplorer.tsx
+new file mode 100644
+index 0000000..f60101e
+--- /dev/null
++++ b/src/components/DriveExplorer/DriveExplorer.tsx
+@@ -0,0 +1,284 @@
++import React, { useState, useEffect } from 'react';
++import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
++import {
++  MaterialDriveType,
++  MaterialFolder,
++  MaterialLink,
++  getFolders,
++  getLinks,
++  createFolder,
++  createLink,
++  deleteFolder,
++  deleteLink,
++  cloneItem,
++  moveItem,
++} from '@/lib/api/material-api';
++import { Breadcrumb, BreadcrumbItem } from './Breadcrumb';
++import { FolderItem } from './FolderItem';
++import { LinkItem } from './LinkItem';
++import { FolderPlus, Link as LinkIcon, Spinner } from '@phosphor-icons/react';
++
++interface DriveExplorerProps {
++  driveType: 'rekaman' | 'ppt';
++  isMentorOrAdmin: boolean;
++}
++
++export function DriveExplorer({ driveType, isMentorOrAdmin }: DriveExplorerProps) {
++  const queryClient = useQueryClient();
++  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
++  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
++  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
++
++  useEffect(() => {
++    function handleClickOutside() {
++      setActiveMenuId(null);
++    }
++    document.addEventListener('mousedown', handleClickOutside);
++    return () => document.removeEventListener('mousedown', handleClickOutside);
++  }, []);
++
++  const apiType = driveType === 'rekaman' ? 'VIDEO' : 'PPT';
++
++  // Fetch Folders
++  const {
++    data: folders = [],
++    isLoading: isFoldersLoading,
++    isError: isFoldersError,
++    error: foldersError,
++  } = useQuery({
++    queryKey: ['material-folders', apiType, currentFolderId],
++    queryFn: () => getFolders({ driveType: apiType, parentId: currentFolderId }),
++  });
++
++  // Fetch Links
++  const {
++    data: links = [],
++    isLoading: isLinksLoading,
++    isError: isLinksError,
++    error: linksError,
++  } = useQuery({
++    queryKey: ['material-links', apiType, currentFolderId],
++    queryFn: () => getLinks({ driveType: apiType, folderId: currentFolderId }),
++  });
++
++  const isLoading = isFoldersLoading || isLinksLoading;
++
++  // Mutations
++  const createFolderMutation = useMutation({
++    mutationFn: (name: string) => createFolder({ name, driveType: apiType, parentId: currentFolderId }),
++    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['material-folders', apiType, currentFolderId] }),
++    onError: (err) => window.alert(`Failed to create folder: ${err instanceof Error ? err.message : 'Unknown error'}`),
++  });
++
++  const createLinkMutation = useMutation({
++    mutationFn: (params: { title: string; url: string; embedUrl: string }) =>
++      createLink({ ...params, driveType: apiType, folderId: currentFolderId }),
++    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['material-links', apiType, currentFolderId] }),
++    onError: (err) => window.alert(`Failed to create link: ${err instanceof Error ? err.message : 'Unknown error'}`),
++  });
++
++  const deleteFolderMutation = useMutation({
++    mutationFn: (id: string) => deleteFolder({ id }),
++    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['material-folders', apiType, currentFolderId] }),
++    onError: (err) => window.alert(`Failed to delete folder: ${err instanceof Error ? err.message : 'Unknown error'}`),
++  });
++
++  const deleteLinkMutation = useMutation({
++    mutationFn: (id: string) => deleteLink({ id }),
++    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['material-links', apiType, currentFolderId] }),
++    onError: (err) => window.alert(`Failed to delete link: ${err instanceof Error ? err.message : 'Unknown error'}`),
++  });
++
++  const cloneMutation = useMutation({
++    mutationFn: (params: { id: string; type: 'folder' | 'link' }) =>
++      cloneItem({ itemId: params.id, itemType: params.type, newParentId: currentFolderId, isRoot: currentFolderId === null }),
++    onSuccess: () => {
++      queryClient.invalidateQueries({ queryKey: ['material-folders', apiType, currentFolderId] });
++      queryClient.invalidateQueries({ queryKey: ['material-links', apiType, currentFolderId] });
++    },
++    onError: (err) => window.alert(`Failed to clone item: ${err instanceof Error ? err.message : 'Unknown error'}`),
++  });
++  
++  const moveMutation = useMutation({
++    mutationFn: (params: { id: string; type: 'folder' | 'link', targetId: string | null }) =>
++      moveItem({ itemId: params.id, itemType: params.type, newParentId: params.targetId }),
++    onSuccess: () => {
++      queryClient.invalidateQueries({ queryKey: ['material-folders', apiType, currentFolderId] });
++      queryClient.invalidateQueries({ queryKey: ['material-links', apiType, currentFolderId] });
++    },
++    onError: (err) => window.alert(`Failed to move item: ${err instanceof Error ? err.message : 'Unknown error'}`),
++  });
++
++  // Handlers
++  const handleNavigate = (folderId: string | null) => {
++    setCurrentFolderId(folderId);
++    if (folderId === null) {
++      setBreadcrumbs([]);
++    } else {
++      const index = breadcrumbs.findIndex((b) => b.id === folderId);
++      if (index !== -1) {
++        setBreadcrumbs(breadcrumbs.slice(0, index + 1));
++      }
++    }
++  };
++
++  const handleFolderClick = (folder: MaterialFolder) => {
++    setCurrentFolderId(folder.id);
++    setBreadcrumbs([...breadcrumbs, { id: folder.id, name: folder.name }]);
++  };
++
++  const handleCreateFolder = () => {
++    const name = window.prompt('Enter folder name:');
++    if (name && name.trim()) {
++      createFolderMutation.mutate(name.trim());
++    }
++  };
++
++  const handleCreateLink = () => {
++    const title = window.prompt('Enter link title:');
++    if (!title?.trim()) return;
++    
++    const url = window.prompt('Enter link URL:');
++    if (!url?.trim()) return;
++
++    createLinkMutation.mutate({
++      title: title.trim(),
++      url: url.trim(),
++      embedUrl: url.trim(), // Assuming same for MVP
++    });
++  };
++
++  const handleDeleteFolder = (folder: MaterialFolder) => {
++    if (window.confirm(`Are you sure you want to delete folder "${folder.name}"? This will delete all contents inside it.`)) {
++      deleteFolderMutation.mutate(folder.id);
++    }
++  };
++
++  const handleDeleteLink = (link: MaterialLink) => {
++    if (window.confirm(`Are you sure you want to delete link "${link.title}"?`)) {
++      deleteLinkMutation.mutate(link.id);
++    }
++  };
++
++  const handleCloneFolder = (folder: MaterialFolder) => {
++    cloneMutation.mutate({ id: folder.id, type: 'folder' });
++  };
++
++  const handleCloneLink = (link: MaterialLink) => {
++    cloneMutation.mutate({ id: link.id, type: 'link' });
++  };
++
++  const handleMoveFolder = (folder: MaterialFolder) => {
++    const targetId = window.prompt('Enter target Folder ID (leave empty for Root):');
++    if (targetId !== null) { // User didn't cancel
++      moveMutation.mutate({ id: folder.id, type: 'folder', targetId: targetId.trim() === '' ? null : targetId.trim() });
++    }
++  };
++  
++  const handleMoveLink = (link: MaterialLink) => {
++    const targetId = window.prompt('Enter target Folder ID (leave empty for Root):');
++    if (targetId !== null) { // User didn't cancel
++      moveMutation.mutate({ id: link.id, type: 'link', targetId: targetId.trim() === '' ? null : targetId.trim() });
++    }
++  };
++
++  const isEmpty = !isLoading && folders.length === 0 && links.length === 0;
++
++  return (
++    <div className="w-full max-w-6xl mx-auto p-4 md:p-6 bg-white rounded-2xl shadow-sm border border-slate-200">
++      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
++        <h2 className="text-2xl font-bold text-slate-800">
++          {driveType === 'rekaman' ? 'Video Library' : 'Presentations'}
++        </h2>
++        
++        <div className="flex items-center gap-3 w-full md:w-auto">
++          {isMentorOrAdmin && (
++            <div className="flex items-center gap-2 flex-shrink-0">
++              <button
++                onClick={handleCreateFolder}
++                className="flex items-center justify-center gap-2 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 px-4 py-2 rounded-lg font-medium transition-colors border border-blue-200"
++              >
++                <FolderPlus weight="bold" className="w-5 h-5" />
++                <span className="hidden sm:inline">New Folder</span>
++              </button>
++              <button
++                onClick={handleCreateLink}
++                className="flex items-center justify-center gap-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 px-4 py-2 rounded-lg font-medium transition-colors border border-emerald-200"
++              >
++                <LinkIcon weight="bold" className="w-5 h-5" />
++                <span className="hidden sm:inline">New Link</span>
++              </button>
++            </div>
++          )}
++        </div>
++      </div>
++
++      <Breadcrumb items={breadcrumbs} onNavigate={handleNavigate} />
++
++      <div className="min-h-[400px] relative rounded-xl border border-slate-100 bg-slate-50/50 p-4">
++        {isLoading ? (
++          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
++            <Spinner className="w-8 h-8 animate-spin text-blue-500 mb-4" />
++            <p className="font-medium text-slate-500">Loading files...</p>
++          </div>
++        ) : isFoldersError || isLinksError ? (
++          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
++            <p className="font-medium text-red-500">Failed to load content.</p>
++            <p className="text-sm text-slate-500">
++              {foldersError instanceof Error ? foldersError.message : ''}
++              {linksError instanceof Error ? linksError.message : ''}
++            </p>
++          </div>
++        ) : isEmpty ? (
++          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
++            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4 border-4 border-white shadow-sm">
++              <FolderPlus weight="duotone" className="w-10 h-10 text-slate-300" />
++            </div>
++            <h3 className="text-lg font-semibold text-slate-700 mb-2">No items found</h3>
++            <p className="text-slate-500 max-w-sm mb-6">
++              This folder is empty. Create a new folder or add a link to get started.
++            </p>
++            {isMentorOrAdmin && (
++              <div className="flex gap-3">
++                <button
++                  onClick={handleCreateFolder}
++                  className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium shadow-sm transition-colors"
++                >
++                  Create Folder
++                </button>
++              </div>
++            )}
++          </div>
++        ) : (
++          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
++            {folders.map((folder) => (
++              <FolderItem
++                key={folder.id}
++                folder={folder}
++                onClick={handleFolderClick}
++                isMentorOrAdmin={isMentorOrAdmin}
++                isOpen={activeMenuId === folder.id}
++                onToggle={() => setActiveMenuId(activeMenuId === folder.id ? null : folder.id)}
++                onClone={handleCloneFolder}
++                onDelete={handleDeleteFolder}
++                onMove={handleMoveFolder}
++              />
++            ))}
++            {links.map((link) => (
++              <LinkItem
++                key={link.id}
++                link={link}
++                isMentorOrAdmin={isMentorOrAdmin}
++                isOpen={activeMenuId === link.id}
++                onToggle={() => setActiveMenuId(activeMenuId === link.id ? null : link.id)}
++                onClone={handleCloneLink}
++                onDelete={handleDeleteLink}
++                onMove={handleMoveLink}
++              />
++            ))}
++          </div>
++        )}
++      </div>
++    </div>
++  );
++}
+diff --git a/src/components/DriveExplorer/FolderItem.tsx b/src/components/DriveExplorer/FolderItem.tsx
+new file mode 100644
+index 0000000..e8123e1
+--- /dev/null
++++ b/src/components/DriveExplorer/FolderItem.tsx
+@@ -0,0 +1,56 @@
++import React from 'react';
++import { Folder } from '@phosphor-icons/react';
++import { MaterialFolder } from '@/lib/api/material-api';
++import { ActionMenu } from './ActionMenu';
++
++interface FolderItemProps {
++  folder: MaterialFolder;
++  onClick: (folder: MaterialFolder) => void;
++  isMentorOrAdmin: boolean;
++  isOpen: boolean;
++  onToggle: () => void;
++  onClone?: (folder: MaterialFolder) => void;
++  onMove?: (folder: MaterialFolder) => void;
++  onDelete?: (folder: MaterialFolder) => void;
++}
++
++export function FolderItem({
++  folder,
++  onClick,
++  isMentorOrAdmin,
++  isOpen,
++  onToggle,
++  onClone,
++  onMove,
++  onDelete,
++}: FolderItemProps) {
++  return (
++    <div className="relative group">
++      <div
++        onClick={() => onClick(folder)}
++        className="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:border-blue-300 hover:shadow-md hover:bg-blue-50/50 transition-all cursor-pointer bg-white"
++      >
++        <div className="flex items-center space-x-3 overflow-hidden">
++          <div className="bg-blue-100 p-2 rounded-lg text-blue-600 flex-shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
++            <Folder weight="fill" className="w-6 h-6" />
++          </div>
++          <span className="font-medium text-slate-700 truncate group-hover:text-blue-900 transition-colors">
++            {folder.name}
++          </span>
++        </div>
++
++        {isMentorOrAdmin && (
++          <ActionMenu
++            item={folder}
++            isOpen={isOpen}
++            onToggle={onToggle}
++            onClone={onClone}
++            onMove={onMove}
++            onDelete={onDelete}
++            menuHoverClass="hover:text-blue-600"
++          />
++        )}
++      </div>
++    </div>
++  );
++}
+diff --git a/src/components/DriveExplorer/LinkItem.tsx b/src/components/DriveExplorer/LinkItem.tsx
+new file mode 100644
+index 0000000..77bc599
+--- /dev/null
++++ b/src/components/DriveExplorer/LinkItem.tsx
+@@ -0,0 +1,71 @@
++import React from 'react';
++import { Link as LinkIcon, VideoCamera, FilePpt } from '@phosphor-icons/react';
++import { MaterialLink } from '@/lib/api/material-api';
++import { ActionMenu } from './ActionMenu';
++
++interface LinkItemProps {
++  link: MaterialLink;
++  isMentorOrAdmin: boolean;
++  isOpen: boolean;
++  onToggle: () => void;
++  onClone?: (link: MaterialLink) => void;
++  onMove?: (link: MaterialLink) => void;
++  onDelete?: (link: MaterialLink) => void;
++}
++
++export function LinkItem({
++  link,
++  isMentorOrAdmin,
++  isOpen,
++  onToggle,
++  onClone,
++  onMove,
++  onDelete,
++}: LinkItemProps) {
++  const handleClick = () => {
++    window.open(link.url, '_blank', 'noopener,noreferrer');
++  };
++
++  const IconComponent = link.drive_type === 'VIDEO' ? VideoCamera : link.drive_type === 'PPT' ? FilePpt : LinkIcon;
++
++  return (
++    <div className="relative group">
++      <div
++        onClick={handleClick}
++        className="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:border-emerald-300 hover:shadow-md hover:bg-emerald-50/50 transition-all cursor-pointer bg-white"
++      >
++        <div className="flex items-center space-x-3 overflow-hidden">
++          <div className={`p-2 rounded-lg flex-shrink-0 transition-colors ${
++            link.drive_type === 'VIDEO' 
++              ? 'bg-rose-100 text-rose-600 group-hover:bg-rose-600 group-hover:text-white'
++              : link.drive_type === 'PPT'
++              ? 'bg-orange-100 text-orange-600 group-hover:bg-orange-600 group-hover:text-white'
++              : 'bg-emerald-100 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white'
++          }`}>
++            <IconComponent weight="fill" className="w-6 h-6" />
++          </div>
++          <div className="flex flex-col overflow-hidden">
++            <span className="font-medium text-slate-700 truncate group-hover:text-slate-900 transition-colors">
++              {link.title}
++            </span>
++            <span className="text-xs text-slate-400 truncate mt-0.5">
++              {link.url}
++            </span>
++          </div>
++        </div>
++
++        {isMentorOrAdmin && (
++          <ActionMenu
++            item={link}
++            isOpen={isOpen}
++            onToggle={onToggle}
++            onClone={onClone}
++            onMove={onMove}
++            onDelete={onDelete}
++            menuHoverClass="hover:text-emerald-600"
++          />
++        )}
++      </div>
++    </div>
++  );
++}

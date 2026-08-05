@@ -1,0 +1,157 @@
+source_row_number,question_number_label,kisi_kisi,question_text,option_a,option_b,option_c,option_d,option_e,correct_answer,explanation,block,topic,parsing_notes
+1,1,Ilmu Resep,"Seorang Apoteker di apotek mendapatkan resep sebagai berikut:
+R/ Vit.C 1/2 tab
+Paracetamol 1/2 tab
+Deksametason 1/2 tab
+Guaiafenesin 1/2 tab
+Amoxicillin 250 mg
+M.f.l.a dtd No.X
+S t.dd 1 p.c
+Berdasarkan resep diatas, obat manakah yang seharusnya pemberiannya tidak boleh digabung dalam puyer ?",Vit. C,Parasetamol,Deksametason,Guaiafenesin,Amoxicillin,E,"Antibiotik sebaiknya tidak dicampur dalam puyer dengan obat kainnya karena Risiko obat tidak habiskan, stabilitas terganggu, dan dapat menyebabkan penggunaan antibiotik tidak rasional.",,,
+2,2,Perhitungan Dosis,"Suatu industri farmasi akan memproduksi sediaan aerosol salbutamol sulfat. Dalam kemasan tertera MDI 200 dosis. Volume wadah sediaan 10 ml dengan kandungan salbutamol 20 mg.
+Berapa kandungan salbutamol dalam mikro untuk satu kali pakai/ satu kali dosis ?",10 mcg/dosis,50 mcg/dosis,100 mcg/dosis,150 mcg/dosis,200 mcg/dosis,C,"Kandungan salbutamol 20 mg = 20.000 mcg. Dibagi 200 dosis = 100 mcg/dosis.
+Keterangan :
+MDI (Metered-Dose Inhaler) adalah alat genggam bertekanan yang menyemprotkan dosis obat asma atau PPOK yang terukur langsung ke paru-paru dalam bentuk kabut aerosol
+1 mg = 1000 mcg",,,
+3,3,Perhitungan Dosis,"Seorang pria 26 tahun menderita ISPA. Pasien datang dengan membawa resep sebagai berikut:
+R/ Amoxiclav 625 mg No XXI
+S 3dd 1 pc
+R/ PCT 500 mg
+Metilprednisolon 4 mg
+Ambroxol 30 mg
+M.f. caps dtd No.XX
+S.2.dd 1 pc
+Jika obat yang tersedia hanya Metilprednisolon 8mg dan paracetamol 625 mg. Berapa banyak tablet yang diambil?",PCT 6 tab dan metilprednisolon 11 tab,PCT 8 tab dan metilprednisolon 5 tab,PCT 11 tab dan metilprednisolon 11 tab,PCT 16 tab dan metilprednisolon 10 tab,PCT 20 tab dan metilprednisolon 20 tab,D,"Rumus
+x Jumlah kebutuhan
+Paracetamol
+= 16 tablet
+Metilprednisolon
+= 10 tablet
+.",,,
+4,4,Beyond Use Date,Berapakah suhu penyimpanan vaksin hepatitis B di puskesmas ?,suhu -15 s.d -25 C,suhu 0 - 2 C,suhu 2-8 C,suhu ruang,suhu >34 C,D,"Vaksin hepatitis B dapat mentoleransi suhu ruang dalam waktu terbatas karena relative stabil terhadap panas, tetapi penyimpanan rutinnya tetap di suhu 2-8 C, untuk memastikan boleh/tidaknya vaksin digunakan, harus melihat kondisi vaksin salah satunya dengan melakukan pengecekan VVM (Vaccine Vial Monitor)",,,
+5,5.,Beyond Use Date,"Seorang perawat di salah satu RS, akan melakukan rekonstitusi pada vaksin campak, Vaksin dibuka pukul 08.00 pagi. Kapan batas maksimal penggunaan vaksin setelah di rekonstitusi ?",pukul 11.00,pukul 14.00,08.00 keesokan harinya,2 minggu setelah kemasan dibuka,4 minggu setelah kemasan dibuka,B,Vaksin campak yang sudah direkonstitusi/dibuka harus digunakan maksimal 6 jam. Jika dimulai pukul 08.00 maka batas maksimalnya pukul 14.00.,,,
+6,6,Bahasa Latin Resep,"Seorang apoteker mendapatkan resep dari dokter sebagai berikut:
+R/ Natrium docusat
+S. bdd. II gtt adc.
+Bagaimana penggunaan obat tersebut?","Obat tetes telinga, diteteskan 2 kali sehari sebanyak 2 tetes pada telinga kanan dan kiri","Obat tetes telinga, diteteskan 3 kali sehari sebanyak 2 tetes pada telinga kanan","Obat tetes mata, diteteskan 2 kali sehari sebanyak 4 tetes pada telinga kiri dan kanan","Obat tetes mata, diteteskan 2 kali sehari sebanyak 2 tetes pada telinga kanan dan kiri","Obat tetes telinga, diteteskan 2 kali sehari sebanyak 4 tetes pada telinga kanan",A,"bdd = 2 kali sehari
+II gtt = 2 tetes
+adc (auric dextrae sinister) = telinga kanan dan kiri.",,,
+7,7,Karakteristik Pribadi,"Seorang pasien di apotek membawa krim optalmik kloramphenikol yang dibelinya di apotek 2 jam yang lalu. Pasien tersebut komplain karena dirasa krim terlalu cair.
+Apa yang anda lakukan sebagai apoteker yang sedang bertugas?",Meminta pasien menukar dengan yang baru,Menjelaskan bahwa obat hal tersebut merupakan teknologi terbaru dari produsen krim,Menggali informasi terkait penyimpanan yang dilakukan,Menjelaskan bahwa barang yang sudah dibeli tidak biasa dikembalikan,Mengembalikan uang pasien dan meminta maaf,C,"Langkah pertama adalah investigasi penyebab keluhan, termasuk cara penyimpanan setelah obat diterima. Sediaan semisolid dapat berubah konsistensi bila terpapar suhu tinggi.",,,
+8,8,Bahasa Latin Resep,"Seorang pasien mendapat resep Lidokain gel 5% dengan Signa Us. Ext 1-0-1.
+Apa arti dari signa tersebut?",Digunakan untuk pemakaian luar pagi dan malam,Digunakan untuk pemakaian luar siang dan malam,Digunakan untuk pemakaian secara oral pagi dan siang,Digunakan untuk pemakaian secara oral pagi dan malam,Digunakan untuk pemakaian oral pagi dan malam,A,"Us. Ext (Usus Externum) = penggunaan luar.
+1-0-1 (Keterangan waktu) = pagi dan malam.",,,
+9,9,Perhitungan Dosis Resep,"Seorang ibu menebus resep di FRS untuk anaknya yang berusia 4 bulan. Anak tersebut mengalami diare dan diberikan resep sebagai berikut:
+R/ Zinc 20 mg NO. VII
+S 1 dd 1/2 tab
+Pro a.n. X (4 bulan)
+Ibu tersebut ingin meminta sediaan sirup. Di IFRS hanya tersedia sediaan bentuk syrup 10 mg/5 ml dalam botol 60 ml.
+Berapa botol yang diberikan ke pada ibu tersebut?",1 botol,2 botol,3 botol,4 botol,5 botol,B,"Bayi <6 bulan umumnya memerlukan zinc 10 mg/hari selama 10-14 hari.
+Di resep dibutuhkan 20 mg sebanyak 7 tab, tetapi penggunaannya hanya 1/2 tab atau 10 mg. maka penggunaan obat tersebut untuk 14 hari
+Sediaan sirup 60 mL memiliki kandungan 10mg/5 mL
+1 botol sirup digunakan untuk 12 hari pemakaian ( = 12), maka untuk 14 hari, butuh 2 botol",,,
+10,10,ITER Resep,"Seorang pria membeli obat untuk mengatasi nyeri sendi dan kesemutan. Pasien tersebut hendak membeli setengah resep. Berikut resep pasien:
+ITER 2x
+R/ Natrium diklofenak 25 mg
+Metilprednisolon 4 mg
+Sianokobalamin 50 mcg
+M.f. caps dtd No.XX
+S.2.dd 1 pc
+Berapa sisa kapsul masih dapat diberikan kepada pasien tersebut?",10 kapsul,20 kapsul,30 kapsul,40 kapsul,50 kapsul,E,"Resep asli No. XX = 20 kapsul.
+Terdapat Iter 2x artinya resep boleh diulang 2 kali.
+Jumlah total yang di dapatkan pasien 20 x 3 (1 dari resep asli dan 2 kali dari pengulangan) = 60 kapsul
+Pasien hanya ingin menebus setengahnya dari resep asli,
+Resep asli = 20 kapsul, diambil setengahnya jadi tinggal 10 kapsul
+Total sisa yang masih bisa ditebus = 50 kapsul ( 10 kapsul sisa dari resep asli, 40 kapsul dari pengulangan)",,,
+11,11,RKO (Rencana Kebutuhan Obat),Sebuah puskesmas melakukan permintaan obat glibenklamid menggunakan LPLPO. Penggunaan glibenklamid pada tahun 2023 sebanyak 36.000 tablet (1 box = 100 tablet). Namun puskesmas mengalami kekosongan selama 2 bulan. Diketahui waktu tunggu selama 10 hari dan diketahui sisa stok sebanyak 17 box (1 tahun = 360 hari). Berapakah stok minimum yang perlu dipersiapkan untuk puskesmas tersebut (box)?,22 box,23 box,24 box,25 box,26 box,C,"Diketahui
+Pemakaian Gliben (PR) = 36.000/1 tahun
+Terjadi kekosongan = 2 bulan
+Buffer stock = 15%
+Jika 1 box = 100 tablet
+Jika 1 tahun = 360 hari, maka 1 bulan = 30 hari
+Sisa stock = 17 box = 1700 tab
+Lead Time = 10 hari
+Ditanyakan = Stok Minimum
+PR (Pemakaian rata-rata) = = = 120 tab/hari
+Alasan kenapa dikurangi 2 bulan, karena terjadi kekosongan selama 2 bulan, di soal diketahui 1 tahun 360 hari, maka 1 bulan = 30 hari.
+Buffer stock = 15% x SK
+x (PR x LT) = x (120 x 10) = 180 tab
+Stok minimum
+= LTS + BS
+Karena di soal tidak diketahui BS maka rumusnya
+= 2 x LTS
+= 2 x (PR x LT)
+= 2 x (120 x 10) = 2400 tab
+Konversi dalam bentuk box (1 box = 100 tab)
+= 2400/100 = 24 box",,,
+12,12,Perencanaan,"Seorang apoteker di rumah sakit akan melakukan pengadaan amoksisilin 500 mg. Perhitungan jumlah pemakaian obat dilihat dari pemakaian obat bulan sebelumnya.
+Metode yang digunakan pada apotek tersebut adalah?",Epidemiologi,Konsumsi,Kombinasi,VEN,Morbiditas,B,"Metode konsumsi digunakan jika perencanaan kebutuhan obat dihitung berdasarkan data pemakaian periode sebelumnya.
+Metode epidemiologi memakai data jumlah penyakit/kasus, sedangkan VEN mengelompokkan obat berdasarkan efek terapi: Vital, Esensial, dan Non-esensial.",,,
+13,13,Perencanaan,Seorang apoteker di puskesmas akan melakukan perencanaan OAT-FDC untuk memenuhi kebutuhan selama satu tahun ke depan dengan melihat prevalensi pasien TB di puskesmas tersebut. Metode perencanaan apakah yang digunakan?,Metode konsumsi,Metode epidemiologi,Metode kombinasi,Metode just in time,Metode evaluasi,B,"Metode epidemiologi digunakan bila kebutuhan obat dihitung berdasarkan jumlah kasus penyakit, prevalensi, atau insidensi penyakit. Karena soal memakai data prevalensi TB, jawabannya adalah metode epidemiologi.",,,
+14,14,Penyimpanan,Apoteker penanggung jawab di rumah sakit akan menyusun SOP penyimpanan vaksin BCG untuk puskesmas ABC. Kriteria minimal yang harus ada pada Vaccine Cool Box adalah….,Termometer,Tensimeter,Air handling,Air handling unit,Barometer,A,"Penyimpanan vaksin harus dipantau suhunya. Karena itu, alat minimal yang perlu ada pada cold box/vaccine cool box adalah termometer untuk memastikan suhu tetap sesuai rantai dingin. Tensimeter, barometer, dan AHU bukan alat utama pemantauan suhu vaksin.",,,
+15,15,RKO (Rencana Keburuhan Obat),Apoteker penanggung jawab di RS Alita akan melakukan perencanaan dan pengadaan tablet paracetamol 500 mg untuk persediaan satu tahun kedepan dengan buffer stock sebanyak 1.500 tablet. Pemakaian tablet paracetamol 500 mg selama setahun adalah 18.000 tablet dan lead time pemesanan selama 7 hari serta sisa stok sebanyak 1.500 tablet. Jika 1 tahun dianggap 360 hari maka berapa jumlah tablet paracetamol 500 mg yang harus dipesan oleh apoteker tersebut?,18.450 tablet,19.350 tablet,19.570 tablet,18.350 tablet,20.550 tablet,D,"Diketahui
+1 tahun dianggap 360 hari
+PP (Periode pengadaan) = 1 tahun = 360 hari
+PR (Pemakaian rata-rata) = 18.000/tahun = 18.000/360 = 50 tab/hari
+Buffer Stock (BS) = 1.500
+Lead time (waktu tunggu) = 7 hari
+Sisa stock = 1.500
+Ditanyakan = RKO (rencana kebutuhan obat)
+Rumus
+RKO = SK + LTS + BS - Sisa stock
+RKO = (PR . PP) + (PR. LTS) + BS - Sisa
+RKO = (50 . 360) + (50 . 7) + 1.500 - 1.500
+RKO = 18.000 + 350
+RKO = 18.350",,,
+16,16,Surat Pesanan,"Seorang apoteker penanggung jawab ingin memesan obat berupa:
+Kodein 10 mg sebanyak 1 box
+Kodein 20 mg sebanyak 2 box
+Kodein sirup sebanyak 3 botol
+Berapa SP (surat pesanan) yang harus dibuat?",5,4,3,2,1,C,"Kodein termasuk obat narkotika. Untuk pemesanan narkotika, surat pesanan dibuat khusus dan dipisahkan berdasarkan jenis/kekuatan/bentuk sediaan. Khususo bat golongan narkotika, 1 SP berlaku hanya untuk 1 sediaan, Karena ada kodein 10 mg, kodein 20 mg, dan kodein sirup, maka dibuat 3 SP.",,,
+17,17,Surat Pesanan,"Sebuah apotek ingin melakukan pemesanan terhadap obat batuk yang mengandung pseudoefedrin, CTM, Dextrometorphan dan ammonium chloride. Digunakan surat pesanan apa?",SP obat bebas,SP narkotika,SP psikotropika,SP precursor,SP obat-obat tertentu,D,"Pseudoefedrin termasuk prekursor farmasi, sehingga pemesanannya menggunakan surat pesanan prekursor. Dextrometorphan termasuk obat golongan OOT (Obat obat tertentu) berada dibawah tingkatannya dari precursor, sedangkan CTM dan ammonium chloride bukan penentu kategori surat pesanan khusus.",,,
+18,18,Surat Pesanan,"Suatu apotek akan melakukan pengadaan perbekalan farmasi berupa obat golongan psikotropika yang akan dipesan ke PBF. Sehingga, apoteker penanggung jawab apotek membuat surat pemesanan.
+Berdasarkan keadaan tersebut, surat pemesanan untuk pengadaan obat golongan psikotropika dibuat dalam berapa rangkap?",5 rangkap,4 rangkap,3 rangkap,2 rangkap,1 rangkap,C,"Surat pesanan psikotropika dibuat terpisah dan lazimnya dibuat dalam 3 rangkap untuk dokumentasi pihak pemesan, pemasok, dan arsip/pengawasan.",,,
+19,19,Farmakoekonomi,"Seorang pasien kanker paru stadium lanjut mendapat pilihan dua terapi:
+Terapi A memperpanjang harapan hidup 2 tahun dengan kualitas hidup 0,8.
+Terapi B memperpanjang harapan hidup 3 tahun dengan kualitas hidup 0,5.
+Apoteker klinis diminta menghitung nilai QALY masing-masing terapi untuk menentukan mana yang lebih cost-effective. Berapakah QALY untuk terapi B?","1,6",1.5,"2,5",2,3,B,"n:
+QALY = lama hidup × kualitas hidup.
+Terapi B = 3 × 0,5 = 1,5 QALY.",,,
+20,20,Farmakoekonomi,"Apoteker di rumah sakit ingin melakukan penelitian untuk membandingkan 2 jenis obat pasca stroke, untuk melihat outcome kualitas hidup pasien pasca stroke lebih baik. Pendekatan metode farmakoekonomi manakah yang digunakan untuk penelitian tersebut?",Quality adjusted life year,Cost minimization analysis,Cost effectiveness analysis,Cost utility analysis,Cost benefit analysis,D,"Jika outcome yang dinilai adalah kualitas hidup atau QALY, metode farmakoekonomi yang digunakan adalah cost utility analysis/ CUA.",,,
+21,21,Ilmu Resep,"Seorang dokter menuliskan resep berikut.
+R/ Codeini phosphatis 10 mg
+CTM 2 mg
+m.f. pulv.
+d.a. tales doses No. XV
+S. h.s. pulv. I
+Mahasiswa diminta menjelaskan arti seluruh instruksi Latin tersebut. Interpretasi yang PALING tepat adalah...","Buat campuran serbuk sebanyak 15 bungkus, tiap bungkus mengandung komposisi di atas, diminum satu bungkus sebelum makan.","Campurkan menjadi serbuk, berikan dalam dosis yang sama sebanyak 15 bungkus, diminum satu bungkus sebelum tidur.","Campurkan menjadi kapsul sebanyak 15 buah, diminum tiga kali sehari.","Campurkan menjadi puyer sebanyak 15 bungkus, diminum bila nyeri.","Campurkan menjadi puyer sebanyak 15 bungkus, diminum sesudah makan.",B,"m.f. pulv. = misce fiat pulvis (campurkan menjadi serbuk)
+d.a. tales doses = berikan dosis-dosis yang sama
+No. XV = 15 bungkus
+h.s. = hora somni = sebelum tidur",,,
+22,22,Surat Pesanan,"Diketahui surat pesanan sebagai berikut:
+Paracetamol syrup 125 mg: 2 box
+Ibuprofen syrup: 5 botol
+Ergotamin tablet: 1 box
+Codein 20 mg: 1 box
+Lorazepam tab: 1 box
+Berapakah jumlah surat pesanan yang harus dibuat?",1,2,3,4,5,D,"Paracetamol dan ibuprofen dapat menggunakan SP obat biasa.
+Ergotamin termasuk prekursor/obat yang perlu pengawasan khusus.
+Codein termasuk narkotika.
+Lorazepam termasuk psikotropika.
+Jadi dibuat 4 kelompok SP:
+obat biasa,
+prekursor/khusus,
+narkotika,
+psikotropika.",,,
+23,23,"Pendistribusian
+Standar Pelayanan Kefarmasian","Seorang pasien membutuhkan 500 mL infus NaCl 0,9% setiap 6 jam. Kemudian apoteker menyiapkan 4 flask NaCl 0,9% kepada perawat untuk diberikan kepada pasien. Sistem distribusi apa yang sedang diterapkan apoteker?",Sistem distribusi sentralisasi,Sistem distribusi desentralisasi,Floor stock,Daily dose dispensing,Unit dose dispensing,D,"NaCl 500 mL tiap 6 jam = 4 kali sehari, sehingga apoteker menyiapkan kebutuhan 1 hari. Ini termasuk daily dose dispensing.",,,
+24,24,"Pendistribusian
+Standar Pelayanan Kefarmasian",Seorang apoteker rawat inap memberikan obat yang harus diminum pasien untuk hari ini. Jenis distribusi apa yang digunakan dalam rumah sakit tersebut?,Unit dose dispensing,One daily dose dispensing,Resep individu,Floor stock,Kombinasi,B,"n:
+Karena obat disiapkan untuk kebutuhan satu hari pasien, maka sistemnya adalah one daily dose dispensing.",,,
+25,25,Penyimpanan,Sebuah obat dengan merk Braxidin memiliki kandungan chlordiazepoxide dan clidinium bromide. Di mana diletakkan obat itu?,Lemari obat bebas,Lemari precursor,Lemari narkotik,Lemari psikotropik,Lemari obat bebas terbatas,D,"Chlordiazepoxide termasuk benzodiazepin/psikotropika, sehingga disimpan pada lemari psikotropika.",,,
+26,26,"Vaksin
+Standar Pelayanan Kefarmasian","Seorang apoteker meminta PBF untuk mengirim vaksin lewat jalan darat. Dalam perjalanan, AC mati selama 5 jam dengan suhu 40°C. Apa yang harus dilakukan untuk memastikan vaksin masih layak digunakan?",Mengambil salah satu sampel untuk diuji,Meminta uji validasi ke PBF yang bersangkutan,Indikator VVM,Mengembalikan ke PBF,Retur barang ke supplier,C,VVM/Vaccine Vial Monitor digunakan untuk melihat paparan panas kumulatif pada vaksin. Ini membantu menentukan apakah vaksin masih dapat digunakan.,,,
+27,27,Penerimaan,Seorang salesman dari PBF resmi hendak ke apotek mengantarkan pesanan obat. Dalam faktur berisi obat alprazolam 1 mg sebanyak 2 box. Siapa yang berwenang menerima faktur tersebut?,Petugas bagian Gudang,Kasir,Apoteker pengelola apotek,Tenaga teknik kefarmasian,Asisten apoteker,C,Alprazolam termasuk psikotropika. Penerimaan dan pengelolaan psikotropika menjadi tanggung jawab apoteker pengelola/penanggung jawab.,,,
+28,28,Penyimpanan,Seorang apoteker bekerja menjadi penanggung jawab sarana distribusi. Salah satu tanggung jawabnya adalah melakukan penempatan barang sesuai dengan prinsip FIFO. Apakah tujuan sistem penempatan berdasarkan FIFO?,Barang yang pertama kali masuk akan keluar lebih dahulu,Barang yang terakhir kali masuk akan keluar lebih dahulu,Barang yang pertama kali kadaluwarsa akan keluar lebih dahulu,Barang yang pertama kali keluar akan masuk lebih dahulu,Barang yang terakhir kali kadaluwarsa akan keluar lebih dahulu,A,"FIFO = First In First Out, artinya barang yang masuk lebih awal dikeluarkan lebih dahulu.",,,
+29,29,Penyimpanan,Seorang apoteker yang bekerja di bagian instalasi farmasi rumah sakit menerima obat ciprofloxacin 500 mg dan levofloxacin 500 mg yang baru saja dipesan sebelumnya. Apoteker tersebut ingin membuat SOP tentang penyimpanan obat tersebut. Salah satu alasannya untuk mencegah kesalahan pengambilan. Apakah tindakan yang sebaiknya dilakukan apoteker tersebut?,Menyimpan obat sesuai dengan sediaan,Menyimpan obat pada rak khusus antibiotic,Menyimpan obat dengan suhu ruangan terkendali,Menyimpan obat dengan stiker LASA,Hanya menyimpan di ICU,D,"Ciprofloxacin dan levofloxacin berisiko tertukar karena sama-sama antibiotik fluorokuinolon dan mirip penggunaannya. Untuk mencegah medication error, diberi penandaan LASA.",,,
+30,30,Penyimpanan,Tim IFRS yang dipimpin oleh seorang apoteker sedang menyusun tempat penyimpanan sediaan. Salah satunya ialah injeksi insulin. Bagaimana cara penyimpanan injeksi insulin yang tepat?,Suhu >2°C,Suhu 9-2°C,Suhu 2-8°C,Suhu <2°C,Suhu kamar,C,Insulin yang belum digunakan disimpan di lemari pendingin suhu 2-8°C dan tidak boleh dibekukan.,,,

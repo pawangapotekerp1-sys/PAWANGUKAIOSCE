@@ -1,0 +1,23 @@
+node_modules/
+dist/
+test-results/
+.worktrees/
+.superpowers/
+backups/
+supabase/.temp/
+testsprite_tests/
+
+*.tsbuildinfo
+vite-dev.log
+vite-preview.log
+vite-preview.err.log
+
+.env.local
+
+# Generated config outputs from local TypeScript builds
+vite.config.js
+vite.config.d.ts
+vitest.config.js
+vitest.config.d.ts
+
+.vercel

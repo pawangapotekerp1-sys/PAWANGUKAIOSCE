@@ -6,6 +6,8 @@ import * as z from "zod";
 import { Loader2, Plus, Edit2, Trash2, List, icons } from "lucide-react";
 import { Input } from "../../components/ui/input";
 import { Checkbox } from "../../components/ui/checkbox";
+import { Textarea } from "../../components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Controller } from "react-hook-form";
 import ConfirmDialog from "../../components/ui/confirm-dialog";
 
@@ -220,7 +222,7 @@ function BlocksManagementPage() {
             </label>
             <label className="grid gap-2 text-sm font-medium">
               Deskripsi
-              <textarea className={inputClass + " min-h-20 py-2"} {...blockForm.register("description")} />
+              <Textarea className="min-h-20" {...blockForm.register("description")} />
             </label>
             <div className="grid grid-cols-2 gap-4">
               <label className="grid gap-2 text-sm font-medium">
@@ -244,15 +246,45 @@ function BlocksManagementPage() {
             <div className="grid grid-cols-2 gap-4">
               <label className="grid gap-2 text-sm font-medium">
                 Icon
-                <select className={inputClass} {...blockForm.register("iconName")}>
-                  {ICON_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                </select>
+                <Controller
+                  name="iconName"
+                  control={blockForm.control}
+                  render={({ field }) => (
+                    <Select onValueChange={(val) => field.onChange(val === "none" ? "" : val)} value={field.value || "none"}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih Icon" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ICON_OPTIONS.map(opt => (
+                          <SelectItem key={opt.value} value={opt.value || "none"}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </label>
               <label className="grid gap-2 text-sm font-medium">
                 Tema Warna
-                <select className={inputClass} {...blockForm.register("colorTheme")}>
-                  {THEME_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                </select>
+                <Controller
+                  name="colorTheme"
+                  control={blockForm.control}
+                  render={({ field }) => (
+                    <Select onValueChange={(val) => field.onChange(val === "none" ? "" : val)} value={field.value || "none"}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih Tema" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {THEME_OPTIONS.map(opt => (
+                          <SelectItem key={opt.value} value={opt.value || "none"}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </label>
             </div>
             <div className="mt-4 flex justify-end gap-2">
@@ -448,7 +480,7 @@ function TopicsDialog({ block, onClose }: { block: AdminBlock | null, onClose: (
               </label>
               <label className="grid gap-1.5 text-xs font-medium">
                 Deskripsi
-                <textarea className={inputClass + " min-h-16 py-2"} {...topicForm.register("description")} />
+                <Textarea className="min-h-16" {...topicForm.register("description")} />
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <label className="grid gap-1.5 text-xs font-medium">

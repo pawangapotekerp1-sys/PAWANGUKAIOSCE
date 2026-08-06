@@ -25,7 +25,7 @@ export function ModularWorkspace({ config }: ModularWorkspaceProps) {
         {/* Attachments Tab Bar would go here */}
         <div className="bg-white px-6 py-3 border-b border-slate-200 text-sm font-medium text-slate-600 flex gap-6">
            <span className="text-emerald-600 border-b-2 border-emerald-600 pb-3 -mb-3">Workspace Utama</span>
-           {config.attachments.length > 0 && <span>Lampiran ({config.attachments.length})</span>}
+           {(config.attachments?.length ?? 0) > 0 && <span>Lampiran ({config.attachments?.length})</span>}
         </div>
         
         {/* Dynamic Widgets */}

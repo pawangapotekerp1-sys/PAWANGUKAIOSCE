@@ -23,7 +23,7 @@ export default defineConfig({
         extends: true,
         test: {
           name: "src",
-          include: ["src/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
+          include: ["src/**/*.{test,spec}.?(c|m)[jt]s?(x)", "tests/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
           environment: "jsdom",
           setupFiles: ["./src/test/setup.ts"],
           exclude: sharedExclude,

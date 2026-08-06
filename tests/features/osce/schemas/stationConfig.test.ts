@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { StationConfigSchema } from '../../../src/features/osce/schemas/stationConfig';
+import { StationConfigSchema } from '../../../../src/features/osce/schemas/stationConfig';
 
 describe('StationConfigSchema', () => {
   it('validates a correct communication station config', () => {

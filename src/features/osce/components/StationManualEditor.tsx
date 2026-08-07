@@ -10,7 +10,7 @@ interface Props {
 export function StationManualEditor({ initialConfig, onSave }: Props) {
   const [config, setConfig] = useState<StationConfig>(initialConfig);
 
-  const handleChange = (field: keyof StationConfig, value: any) => {
+  const handleChange = <K extends keyof StationConfig>(field: K, value: StationConfig[K]) => {
     setConfig(prev => ({ ...prev, [field]: value }));
   };
 
@@ -43,7 +43,7 @@ export function StationManualEditor({ initialConfig, onSave }: Props) {
             id="station-duration"
             type="number" 
             value={config.durationMinutes}
-            onChange={(e) => handleChange('durationMinutes', parseInt(e.target.value) || 0)}
+            onChange={(e) => handleChange('durationMinutes', Math.max(1, parseInt(e.target.value, 10) || 1))}
             className="w-full p-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-800"
           />
         </div>

@@ -64,7 +64,7 @@ describe('StationManualEditor', () => {
     fireEvent.click(saveButton);
 
     expect(handleSave).toHaveBeenCalledWith(expect.objectContaining({
-      durationMinutes: 0
+      durationMinutes: 1
     }));
   });
 });

@@ -53,18 +53,26 @@ describe('StationManualEditor', () => {
     });
   });
 
-  it('handles empty or non-numeric duration gracefully when parsed', () => {
+  it('allows temporary empty duration when backspacing and clamps to 1 on blur or save', () => {
     const handleSave = vi.fn();
     render(<StationManualEditor initialConfig={mockConfig} onSave={handleSave} />);
 
     const durationInput = screen.getByLabelText(/Durasi \(Menit\)/i);
     const saveButton = screen.getByRole('button', { name: /Simpan Konfigurasi/i });
 
+    // Clearing input field temporarily sets empty string / 0 without immediate reset to 1
     fireEvent.change(durationInput, { target: { value: '' } });
-    fireEvent.click(saveButton);
+    expect(durationInput).toHaveValue(null);
 
+    // Saving when field is empty clamps durationMinutes to 1
+    fireEvent.click(saveButton);
     expect(handleSave).toHaveBeenCalledWith(expect.objectContaining({
       durationMinutes: 1
     }));
+
+    // Blurring field when empty clamps value back to 1 in input
+    fireEvent.blur(durationInput);
+    expect(durationInput).toHaveValue(1);
   });
 });
+

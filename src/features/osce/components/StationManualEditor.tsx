@@ -14,12 +14,25 @@ export function StationManualEditor({ initialConfig, onSave }: Props) {
     setConfig(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleSave = () => {
+    const sanitizedConfig: StationConfig = {
+      ...config,
+      durationMinutes: Math.max(1, config.durationMinutes)
+    };
+    setConfig(sanitizedConfig);
+    onSave(sanitizedConfig);
+  };
+
+  const handleDurationBlur = () => {
+    handleChange('durationMinutes', Math.max(1, config.durationMinutes));
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
       <div className="flex justify-between items-center border-b border-slate-100 pb-4">
         <h2 className="text-xl font-bold text-slate-800">Editor Manual (Draft)</h2>
         <button 
-          onClick={() => onSave(config)}
+          onClick={handleSave}
           className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
         >
           <Save size={18} /> Simpan Konfigurasi
@@ -42,8 +55,9 @@ export function StationManualEditor({ initialConfig, onSave }: Props) {
           <input 
             id="station-duration"
             type="number" 
-            value={config.durationMinutes}
-            onChange={(e) => handleChange('durationMinutes', Math.max(1, parseInt(e.target.value, 10) || 1))}
+            value={config.durationMinutes || ''}
+            onChange={(e) => handleChange('durationMinutes', parseInt(e.target.value, 10) || 0)}
+            onBlur={handleDurationBlur}
             className="w-full p-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-800"
           />
         </div>
@@ -61,3 +75,4 @@ export function StationManualEditor({ initialConfig, onSave }: Props) {
     </div>
   );
 }
+

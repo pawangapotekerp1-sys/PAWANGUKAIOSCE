@@ -92,3 +92,43 @@ Error: Failed to resolve import "../../../../src/features/osce/components/Statio
       Tests  15 passed (15)
 ```
 
+---
+
+## Code Review Fixes (Iteration 2)
+
+### Issues Addressed
+1. **Duration Editing Clamping Fix**: Fixed immediate clamping on `onChange` in `src/features/osce/components/StationManualEditor.tsx`. Previously, `Math.max(1, parseInt(e.target.value, 10) || 1)` immediately reset empty inputs to `1` during editing/backspacing. Updated `onChange` to parse `parseInt(e.target.value, 10) || 0` and display `value={config.durationMinutes || ''}` so users can clear or edit numbers smoothly. Clamping (`Math.max(1, ...)` ) is now performed upon `onSave` invocation and input `onBlur`.
+2. **Updated Unit Tests**: Updated `tests/features/osce/components/StationManualEditor.test.tsx` to verify temporary empty input during editing, clamping on blur, and clamping on save.
+
+### Files Modified
+- `src/features/osce/components/StationManualEditor.tsx`
+- `tests/features/osce/components/StationManualEditor.test.tsx`
+
+### Test Verification
+- **Command:** `npx vitest run tests/features/osce/components/StationManualEditor.test.tsx`
+- **Output:**
+```
+ RUN  v4.1.5 E:/Projek OSCE
+
+ ✓  src  tests/features/osce/components/StationManualEditor.test.tsx (3 tests) 480ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+```
+
+- **Full Feature Suite Command:** `npx vitest run tests/features`
+- **Output:**
+```
+ RUN  v4.1.5 E:/Projek OSCE
+
+ ✓  src  tests/features/osce/components/StationBuilderForm.test.tsx (6 tests) 427ms
+ ✓  src  tests/features/osce/components/StationManualEditor.test.tsx (3 tests) 114ms
+ ✓  src  tests/features/osce/components/ModularWorkspace.test.tsx (3 tests) 28ms
+ ✓  src  tests/features/osce/components/OsceShell.test.tsx (1 test) 9ms
+ ✓  src  tests/features/osce/schemas/stationConfig.test.ts (2 tests) 11ms
+
+ Test Files  5 passed (5)
+      Tests  15 passed (15)
+```
+
+

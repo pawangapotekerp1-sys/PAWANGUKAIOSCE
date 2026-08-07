@@ -50,6 +50,8 @@ const StudyAreaPage = lazy(() => import("../pages/app/study-area-page"));
 const ScheduledEventEditorPage = lazy(() => import("../pages/scheduled-ops/scheduled-event-editor-page"));
 const ScheduledOpsEventsPage = lazy(() => import("../pages/scheduled-ops/scheduled-events-page"));
 const SubscriptionPage = lazy(() => import("../pages/subscription-page"));
+const OsceDemoPage = lazy(() => import("../pages/app/osce-demo-page"));
+const OsceBuilderPage = lazy(() => import("../pages/app/osce-builder-page"));
 
 function RouteLoadingState() {
   return <FullPageLoader />;
@@ -90,6 +92,7 @@ function AppRouter() {
             <Route path="scheduled-tryout/leaderboard" element={<ScheduledTryoutLeaderboardPage />} />
             <Route path="scheduled-tryout/session" element={<ScheduledTryoutSessionPage />} />
             <Route path="scheduled-tryout/result" element={<ScheduledTryoutResultPage />} />
+            <Route path="osce-demo" element={<OsceDemoPage />} />
             <Route path="*" element={<Navigate replace to="/app" />} />
           </Route>
         </Route>
@@ -122,6 +125,7 @@ function AppRouter() {
 
         <Route element={<MentorAreaRouteGuard />}>
           <Route path="/app/area-mentor" element={<MentorAreaPage />} />
+          <Route path="/app/mentor/osce-builder" element={<OsceBuilderPage />} />
         </Route>
 
         <Route element={<AdminRouteGuard />}>

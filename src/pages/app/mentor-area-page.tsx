@@ -8,6 +8,7 @@ import {
   Video,
   Presentation,
   ArrowRight,
+  Settings2,
 } from "lucide-react";
 import ProductShell from "../../components/layout/product-shell";
 import { productShellMeta } from "../../mocks/student-dashboard";
@@ -72,6 +73,14 @@ const MENTOR_FEATURES: MentorFeatureCard[] = [
     href: "/app/flash-card-generator",
     buttonText: "Pilih Penyusun Flash Card",
     icon: Layers,
+  },
+  {
+    id: "pengatur-osce",
+    title: "Pengatur OSCE",
+    description: "Buat dan sesuaikan stase OSCE, atur rubric penilaian, dan siapkan prompt persona AI pasien/dokter.",
+    href: "/app/mentor/osce-builder",
+    buttonText: "Pilih Pengatur OSCE",
+    icon: Settings2,
   },
 ];
 

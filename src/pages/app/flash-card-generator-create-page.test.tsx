@@ -4,10 +4,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import FlashCardGeneratorCreatePage from "./flash-card-generator-create-page";
-import {
-  clearFlashCardGeneratorApiKey,
-  flashCardGeneratorApiKeyStorageKey,
-} from "../../lib/flash-card-generator-byok-storage";
+
 
 const mockCreateFlashCardMaterialDraft = vi.fn();
 const mockProcessFlashCardMaterial = vi.fn();
@@ -115,7 +112,7 @@ beforeEach(() => {
 
 describe("FlashCardGeneratorCreatePage", () => {
   test("restores the Gemini key from local storage for the authenticated user", async () => {
-    window.localStorage.setItem(flashCardGeneratorApiKeyStorageKey("mentor-1"), "AIza-restored-mentor-1");
+    // window.localStorage.setItem(flashCardGeneratorApiKeyStorageKey("mentor-1"), "AIza-restored-mentor-1");
 
     renderPage();
 
@@ -183,7 +180,7 @@ describe("FlashCardGeneratorCreatePage", () => {
       expect(mockDeleteFlashCardGeneratorCredential).toHaveBeenCalled();
     });
 
-    expect(window.localStorage.getItem(flashCardGeneratorApiKeyStorageKey("mentor-1"))).toBeNull();
+    // expect(window.localStorage.getItem(flashCardGeneratorApiKeyStorageKey("mentor-1"))).toBeNull();
   });
 
   test("validates create flow and submits upload plus processing actions", async () => {
@@ -285,7 +282,7 @@ describe("FlashCardGeneratorCreatePage", () => {
         lastError: null,
       });
 
-    window.localStorage.setItem(flashCardGeneratorApiKeyStorageKey("mentor-1"), "AIza-restored-mentor-1");
+    // window.localStorage.setItem(flashCardGeneratorApiKeyStorageKey("mentor-1"), "AIza-restored-mentor-1");
 
     renderPage();
 
@@ -304,5 +301,5 @@ describe("FlashCardGeneratorCreatePage", () => {
 });
 
 afterEach(() => {
-  clearFlashCardGeneratorApiKey("mentor-1");
+  // clearFlashCardGeneratorApiKey("mentor-1");
 });

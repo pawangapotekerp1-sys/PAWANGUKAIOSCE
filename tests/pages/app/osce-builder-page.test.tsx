@@ -13,6 +13,15 @@ vi.mock('react-router', async () => {
   };
 });
 
+const mockInvoke = vi.fn();
+vi.mock('../../../src/lib/supabase/browser-client', () => ({
+  getSupabaseBrowserClient: () => ({
+    functions: {
+      invoke: mockInvoke,
+    },
+  }),
+}));
+
 vi.mock('../../../src/pages/app/use-student-shell', () => ({
   useStudentShell: () => ({
     navItems: [],
@@ -23,16 +32,25 @@ vi.mock('../../../src/pages/app/use-student-shell', () => ({
 
 describe('OsceBuilderPage', () => {
   beforeEach(() => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
     mockNavigate.mockReset();
+    mockInvoke.mockReset();
+    mockInvoke.mockResolvedValue({
+      data: {
+        id: 'stase-123',
+        title: 'Mock Stase',
+        type: 'komunikasi',
+        durationMinutes: 10,
+        instructions: 'Mock instructions',
+        aiPersona: { role: 'patient', prompt: 'Mock prompt' },
+        attachments: [],
+      },
+      error: null
+    });
     vi.spyOn(window, 'alert').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    vi.runOnlyPendingTimers();
-    vi.useRealTimers();
     cleanup();
-    vi.restoreAllMocks();
   });
 
   it('renders StationBuilderForm initially in build mode', () => {
@@ -61,13 +79,11 @@ describe('OsceBuilderPage', () => {
 
     expect(screen.getByRole('button', { name: /Memproses.../i })).toBeInTheDocument();
 
-    act(() => {
-      vi.advanceTimersByTime(2000);
-    });
+    expect(screen.getByRole('button', { name: /Memproses.../i })).toBeInTheDocument();
 
+    const titleInput = await screen.findByLabelText(/Judul Stase/i) as HTMLInputElement;
     expect(screen.getByText(/Editor Manual \(Draft\)/i)).toBeInTheDocument();
-    const titleInput = screen.getByLabelText(/Judul Stase/i) as HTMLInputElement;
-    expect(titleInput.value).toContain('Pasien datang dengan keluhan batuk');
+    expect(titleInput.value).toContain('Mock Stase');
   });
 
   it('handles document upload scenario generation workflow', async () => {
@@ -89,13 +105,11 @@ describe('OsceBuilderPage', () => {
 
     expect(screen.getByRole('button', { name: /Mengekstrak Dokumen.../i })).toBeInTheDocument();
 
-    act(() => {
-      vi.advanceTimersByTime(2000);
-    });
+    expect(screen.getByRole('button', { name: /Mengekstrak Dokumen.../i })).toBeInTheDocument();
 
+    const titleInput = await screen.findByLabelText(/Judul Stase/i) as HTMLInputElement;
     expect(screen.getByText(/Editor Manual \(Draft\)/i)).toBeInTheDocument();
-    const titleInput = screen.getByLabelText(/Judul Stase/i) as HTMLInputElement;
-    expect(titleInput.value).toContain('skenario_osce.pdf');
+    expect(titleInput.value).toContain('Mock Stase');
   });
 
   it('saves station configuration and navigates back to mentor area page', async () => {
@@ -109,11 +123,7 @@ describe('OsceBuilderPage', () => {
     fireEvent.change(textarea, { target: { value: 'Stase Penanganan Asma' } });
     fireEvent.click(screen.getByRole('button', { name: /^Generate Skenario$/i }));
 
-    act(() => {
-      vi.advanceTimersByTime(2000);
-    });
-
-    const saveBtn = screen.getByRole('button', { name: /Simpan Konfigurasi/i });
+    const saveBtn = await screen.findByRole('button', { name: /Simpan Konfigurasi/i });
     fireEvent.click(saveBtn);
 
     expect(window.alert).toHaveBeenCalledWith(expect.stringContaining('berhasil disimpan'));

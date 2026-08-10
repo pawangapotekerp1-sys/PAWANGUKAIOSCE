@@ -103,7 +103,7 @@ function BlocksManagementPage() {
   const blocks = blocksQuery.data ?? [];
 
   const blockForm = useForm<BlockFormData>({
-    resolver: zodResolver(blockSchema),
+    resolver: zodResolver(blockSchema) as any,
     defaultValues: {
       name: "",
       slug: "",
@@ -178,7 +178,7 @@ function BlocksManagementPage() {
     }
   });
 
-  const handleBlockSubmit = blockForm.handleSubmit((data) => {
+  const handleBlockSubmit = blockForm.handleSubmit((data: BlockFormData) => {
     blockMutation.mutate(data);
   });
 
@@ -375,7 +375,7 @@ function TopicsDialog({ block, onClose }: { block: AdminBlock | null, onClose: (
   const topics = topicsQuery.data ?? [];
 
   const topicForm = useForm<TopicFormData>({
-    resolver: zodResolver(topicSchema),
+    resolver: zodResolver(topicSchema) as any,
     defaultValues: {
       name: "",
       slug: "",
@@ -440,7 +440,7 @@ function TopicsDialog({ block, onClose }: { block: AdminBlock | null, onClose: (
     }
   });
 
-  const handleTopicSubmit = topicForm.handleSubmit((data) => {
+  const handleTopicSubmit = topicForm.handleSubmit((data: TopicFormData) => {
     topicMutation.mutate(data);
   });
 

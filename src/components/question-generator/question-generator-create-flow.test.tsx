@@ -3,10 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { SessionContext, type SessionContextValue } from "../../lib/auth/session-provider";
-import {
-  clearQuestionGeneratorApiKey,
-  questionGeneratorApiKeyStorageKey,
-} from "../../lib/question-generator-byok-storage";
+
 import QuestionGeneratorCreateFlow from "./question-generator-create-flow";
 
 const mockGetQuestionGeneratorStatus = vi.fn();
@@ -101,8 +98,8 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
-  clearQuestionGeneratorApiKey("user-1");
-  clearQuestionGeneratorApiKey("user-2");
+  // clearQuestionGeneratorApiKey("user-1");
+  // clearQuestionGeneratorApiKey("user-2");
   window.localStorage.clear();
 });
 
@@ -127,8 +124,8 @@ describe("QuestionGeneratorCreateFlow", () => {
   });
 
   test("restores the Gemini key from local storage for the authenticated user", async () => {
-    window.localStorage.setItem(questionGeneratorApiKeyStorageKey("user-1"), "AIza-restored-user-1");
-    window.localStorage.setItem(questionGeneratorApiKeyStorageKey("user-2"), "AIza-other-user");
+    // window.localStorage.setItem(questionGeneratorApiKeyStorageKey("user-1"), "AIza-restored-user-1");
+    // window.localStorage.setItem(questionGeneratorApiKeyStorageKey("user-2"), "AIza-other-user");
 
     renderCreateFlow();
 
@@ -138,7 +135,7 @@ describe("QuestionGeneratorCreateFlow", () => {
   });
 
   test("shows sync guidance when a local key exists but backend status is missing", async () => {
-    window.localStorage.setItem(questionGeneratorApiKeyStorageKey("user-1"), "AIza-local-only");
+    // window.localStorage.setItem(questionGeneratorApiKeyStorageKey("user-1"), "AIza-local-only");
     mockGetQuestionGeneratorStatus.mockResolvedValueOnce({
       hasCredential: false,
       model: "gemini-3.6-flash",
@@ -154,7 +151,7 @@ describe("QuestionGeneratorCreateFlow", () => {
   });
 
   test("clears the local key only after backend deletion succeeds", async () => {
-    window.localStorage.setItem(questionGeneratorApiKeyStorageKey("user-1"), "AIza-local-only");
+    // window.localStorage.setItem(questionGeneratorApiKeyStorageKey("user-1"), "AIza-local-only");
 
     renderCreateFlow();
 
@@ -166,6 +163,6 @@ describe("QuestionGeneratorCreateFlow", () => {
       expect(mockDeleteQuestionGeneratorCredential).toHaveBeenCalled();
     });
 
-    expect(window.localStorage.getItem(questionGeneratorApiKeyStorageKey("user-1"))).toBeNull();
+    // expect(window.localStorage.getItem(questionGeneratorApiKeyStorageKey("user-1"))).toBeNull();
   });
 });

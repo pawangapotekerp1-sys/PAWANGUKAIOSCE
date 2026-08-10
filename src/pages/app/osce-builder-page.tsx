@@ -45,6 +45,7 @@ export default function OsceBuilderPage() {
             instructions: data.instructions,
             actorInstructions: data.actor_instructions,
             rubrics: data.rubrics || [],
+            attachments: [],
           });
           setMode("edit");
         } catch (err: any) {

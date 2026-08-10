@@ -97,7 +97,7 @@ function ReviewPage() {
   const reviewSummary = reviewQuery.data?.summary;
   const items = reviewQuery.data?.items ?? [];
   const currentItem = items[currentIndex] ?? items[0] ?? null;
-  const osceData = reviewQuery.data?.osce_data;
+  const osceData = (reviewQuery.data as any)?.osce_data;
 
   return (
     <ProductShell

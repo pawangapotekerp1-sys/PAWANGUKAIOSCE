@@ -256,9 +256,7 @@ function QuestionEditorPage() {
     if (
       trimmedStem.length === 0 ||
       normalizedOptions.length < 2 ||
-      !hasCorrectOption ||
-      formState.blockId.length === 0 ||
-      formState.topicId.length === 0
+      !hasCorrectOption
     ) {
       return null;
     }
@@ -286,7 +284,7 @@ function QuestionEditorPage() {
     const input = buildQuestionInput();
 
     if (!input) {
-      setSaveError("Lengkapi soal, minimal dua opsi jawaban, kunci jawaban, blok, dan materi.");
+      setSaveError("Lengkapi soal, minimal dua opsi jawaban, dan kunci jawaban.");
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }

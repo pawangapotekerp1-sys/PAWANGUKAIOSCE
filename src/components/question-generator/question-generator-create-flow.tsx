@@ -6,19 +6,10 @@ import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Badge } from "../ui/badge";
 import { AlertCircle, Key, Cpu, Zap, Plus, Sparkles, CheckCircle2, ShieldAlert } from "lucide-react";
 import {
-  deleteQuestionGeneratorCredential,
   generateQuestionBatch,
-  getQuestionGeneratorStatus,
   type QuestionGeneratorReferenceInput,
-  saveQuestionGeneratorCredential,
-  testQuestionGeneratorCredential,
 } from "../../lib/api/question-generator-api";
-import { SessionContext } from "../../lib/auth/session-provider";
-import {
-  clearQuestionGeneratorApiKey,
-  readQuestionGeneratorApiKey,
-  writeQuestionGeneratorApiKey,
-} from "../../lib/question-generator-byok-storage";
+import { getGlobalAiCredentialStatus } from "../../lib/api/global-ai-credential-api";
 import ReferenceQuestionForm, { type ReferenceQuestionValue } from "./reference-question-form";
 
 type QuestionGeneratorCreateFlowProps = {
@@ -68,62 +59,13 @@ function splitQuestionCount(targetQuestionCount: number) {
 function QuestionGeneratorCreateFlow({ basePath }: QuestionGeneratorCreateFlowProps) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const sessionState = useContext(SessionContext);
-  const storageUserId = sessionState?.user?.id?.trim() ?? "";
-  const [apiKey, setApiKey] = useState(() => storageUserId ? readQuestionGeneratorApiKey(storageUserId) : "");
-  const [hasLocalStoredKey, setHasLocalStoredKey] = useState(() =>
-    Boolean(storageUserId && readQuestionGeneratorApiKey(storageUserId)),
-  );
   const [references, setReferences] = useState<ReferenceQuestionValue[]>([createEmptyReference()]);
   const [targetQuestionCount, setTargetQuestionCount] = useState(3);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [credentialFeedback, setCredentialFeedback] = useState<string | null>(null);
+  
   const statusQuery = useQuery({
-    queryKey: ["question-generator-status"],
-    queryFn: () => getQuestionGeneratorStatus(),
-  });
-  const saveCredentialMutation = useMutation({
-    mutationFn: (input: { apiKey: string; model: string }) => saveQuestionGeneratorCredential(input),
-    onSuccess: (status, variables) => {
-      queryClient.setQueryData(["question-generator-status"], status);
-      const trimmedApiKey = variables.apiKey.trim();
-
-      if (storageUserId) {
-        writeQuestionGeneratorApiKey(storageUserId, trimmedApiKey);
-        setHasLocalStoredKey(true);
-      }
-
-      setCredentialFeedback("API key Gemini berhasil disimpan.");
-      setApiKey(trimmedApiKey);
-    },
-    onError: (error) => {
-      setCredentialFeedback(error instanceof Error ? error.message : "API key Gemini belum berhasil disimpan.");
-    },
-  });
-  const testCredentialMutation = useMutation({
-    mutationFn: () => testQuestionGeneratorCredential(),
-    onSuccess: ({ status, testResult }) => {
-      queryClient.setQueryData(["question-generator-status"], status);
-      setCredentialFeedback(testResult.message);
-    },
-    onError: (error) => {
-      setCredentialFeedback(error instanceof Error ? error.message : "Koneksi Gemini belum berhasil dicek.");
-    },
-  });
-  const deleteCredentialMutation = useMutation({
-    mutationFn: () => deleteQuestionGeneratorCredential(),
-    onSuccess: (status) => {
-      queryClient.setQueryData(["question-generator-status"], status);
-      if (storageUserId) {
-        clearQuestionGeneratorApiKey(storageUserId);
-      }
-      setHasLocalStoredKey(false);
-      setApiKey("");
-      setCredentialFeedback("API key Gemini berhasil dihapus.");
-    },
-    onError: (error) => {
-      setCredentialFeedback(error instanceof Error ? error.message : "API key Gemini belum berhasil dihapus.");
-    },
+    queryKey: ["global-ai-credential-status"],
+    queryFn: () => getGlobalAiCredentialStatus(),
   });
   const generateMutation = useMutation({
     mutationFn: (input: { references: QuestionGeneratorReferenceInput[]; targetQuestionCount: number }) =>
@@ -141,17 +83,7 @@ function QuestionGeneratorCreateFlow({ basePath }: QuestionGeneratorCreateFlowPr
     setReferences((current) => current.map((reference, currentIndex) => currentIndex === index ? nextValue : reference));
   }
 
-  useEffect(() => {
-    if (!storageUserId) {
-      setApiKey("");
-      setHasLocalStoredKey(false);
-      return;
-    }
-
-    const restoredApiKey = readQuestionGeneratorApiKey(storageUserId);
-    setApiKey(restoredApiKey);
-    setHasLocalStoredKey(Boolean(restoredApiKey));
-  }, [storageUserId]);
+  // Removed useEffect for storageUserId
 
   function addReference() {
     setReferences((current) => current.length >= 3 ? current : [...current, createEmptyReference()]);
@@ -190,9 +122,6 @@ function QuestionGeneratorCreateFlow({ basePath }: QuestionGeneratorCreateFlowPr
     reverseReasoningCount,
   } = splitQuestionCount(safeTargetQuestionCount);
   const hasCredential = statusQuery.data?.hasCredential ?? false;
-  const credentialMutationPending = saveCredentialMutation.isPending
-    || testCredentialMutation.isPending
-    || deleteCredentialMutation.isPending;
 
   return (
     <div className="space-y-6">
@@ -235,92 +164,24 @@ function QuestionGeneratorCreateFlow({ basePath }: QuestionGeneratorCreateFlowPr
           </Alert>
         ) : null}
 
-        {!statusQuery.isLoading && statusQuery.data?.hasCredential === false ? (
-          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs font-semibold text-amber-800 dark:text-amber-300 flex items-center gap-2">
-            <ShieldAlert className="h-4 w-4 shrink-0" />
-            Simpan dan tes API key Gemini sebelum membuat soal.
-          </div>
-        ) : null}
-
-        {hasLocalStoredKey && !statusQuery.isLoading && statusQuery.data?.hasCredential === false ? (
-          <div className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-xs text-muted-foreground">
-            API key ini sudah tersimpan di perangkat, tetapi belum tersambung ke akun Anda. Klik Simpan untuk menyinkronkan.
-          </div>
-        ) : null}
-
-        <div className="grid gap-4 rounded-xl border border-border/80 bg-background/50 p-4 lg:grid-cols-[minmax(0,1fr)_auto]">
-          <div className="space-y-3">
-            <div className="grid gap-1.5 text-sm font-semibold text-foreground">
-              <label htmlFor="gemini-api-key-input" className="flex items-center gap-1.5">
-                <Key className="h-4 w-4 text-primary" />
-                API key Gemini
-              </label>
-              <input
-                id="gemini-api-key-input"
-                autoComplete="off"
-                className="h-11 rounded-xl border border-border/80 bg-background px-4 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                onChange={(event) => setApiKey(event.target.value)}
-                placeholder="Masukkan API key Gemini"
-                type="password"
-                value={apiKey}
-              />
+        {!statusQuery.isLoading && !hasCredential ? (
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-6 flex flex-col gap-3">
+            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-bold">
+              <ShieldAlert className="h-5 w-5 shrink-0" />
+              Kredensial AI Belum Diatur
             </div>
-            <p className="text-xs text-muted-foreground">
-              Model bawaan (<code className="font-mono text-primary font-bold">gemini-3.6-flash</code>) sudah ditetapkan agar hasil soal tetap konsisten.
+            <p className="text-sm text-amber-800/80 dark:text-amber-300/80">
+              Anda membutuhkan kunci API Gemini untuk dapat membuat soal. 
+              Sistem menggunakan skema Bring Your Own Key (BYOK) secara global.
             </p>
-            {statusQuery.data?.lastValidatedAt ? (
-              <p className="text-[11px] font-mono font-semibold uppercase tracking-wider text-muted-foreground">
-                Tervalidasi terakhir: {new Date(statusQuery.data.lastValidatedAt).toLocaleString("id-ID")}
-              </p>
-            ) : null}
-            {statusQuery.data?.lastError ? (
-              <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-2.5 text-xs text-destructive">
-                {statusQuery.data.lastError}
-              </div>
-            ) : null}
-            {credentialFeedback ? (
-              <div className="rounded-xl border border-border bg-muted/50 px-3.5 py-2.5 text-xs text-foreground font-medium">
-                {credentialFeedback}
-              </div>
-            ) : null}
+            <button
+              onClick={() => navigate("/app/settings/ai-config")}
+              className="mt-2 w-fit px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer"
+            >
+              Atur Kredensial AI Sekarang
+            </button>
           </div>
-
-          <div className="flex flex-wrap items-start gap-2.5 lg:flex-col lg:justify-center">
-            <Button
-              disabled={!apiKey.trim() || credentialMutationPending}
-              loading={saveCredentialMutation.isPending}
-              loadingLabel="Menyimpan..."
-              onClick={() =>
-                saveCredentialMutation.mutate({
-                  apiKey: apiKey.trim(),
-                  model: "gemini-3.6-flash",
-                })}
-              className="text-xs font-semibold h-9 px-4"
-            >
-              Simpan API key
-            </Button>
-            <Button
-              disabled={!hasCredential || credentialMutationPending}
-              loading={testCredentialMutation.isPending}
-              loadingLabel="Mengetes..."
-              onClick={() => testCredentialMutation.mutate()}
-              variant="outline"
-              className="text-xs font-semibold h-9 px-4"
-            >
-              Tes koneksi
-            </Button>
-            <Button
-              disabled={!hasCredential || credentialMutationPending}
-              loading={deleteCredentialMutation.isPending}
-              loadingLabel="Menghapus..."
-              onClick={() => deleteCredentialMutation.mutate()}
-              variant="destructive"
-              className="text-xs font-semibold h-9 px-4"
-            >
-              Hapus API key
-            </Button>
-          </div>
-        </div>
+        ) : null}
       </div>
 
       {/* References Section */}

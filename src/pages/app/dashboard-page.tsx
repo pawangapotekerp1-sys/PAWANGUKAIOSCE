@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Activity, ArrowUpRight, TrendingUp, CheckCircle, AlertTriangle, Loader2, Package } from "lucide-react";
-import { Link } from "react-router";
+import { Link, Navigate } from "react-router";
 import ProductShell from "../../components/layout/product-shell";
 import { getButtonStyleProps } from "../../components/ui/button";
 import { getDashboardSummary } from "../../lib/api/analytics-api";
@@ -14,6 +14,9 @@ import { useStudentShell } from "./use-student-shell";
 function DashboardPage() {
   const { user } = useSession();
   const studentShell = useStudentShell("/app");
+  if (studentShell.role === "osce_pro") {
+    return <Navigate to="/app/scheduled-tryout" replace />;
+  }
   const summaryView = usePreviewRouteState("summaryView");
   const dashboardQuery = useQuery({
     queryKey: ["student-dashboard", user?.id],

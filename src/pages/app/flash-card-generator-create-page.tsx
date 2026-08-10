@@ -7,20 +7,13 @@ import Button from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "../../components/ui/alert";
 import { Loader2, AlertCircle } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 import {
   createFlashCardMaterialDraft,
-  deleteFlashCardGeneratorCredential,
-  getFlashCardGeneratorStatus,
   processFlashCardMaterial,
-  saveFlashCardGeneratorCredential,
-  testFlashCardGeneratorCredential,
 } from "../../lib/api/flash-card-api";
+import { getGlobalAiCredentialStatus } from "../../lib/api/global-ai-credential-api";
 import { useSession } from "../../lib/auth/use-session";
-import {
-  clearFlashCardGeneratorApiKey,
-  readFlashCardGeneratorApiKey,
-  writeFlashCardGeneratorApiKey,
-} from "../../lib/flash-card-generator-byok-storage";
 import { productShellMeta } from "../../mocks/student-dashboard";
 import { useStudentShell } from "./use-student-shell";
 
@@ -29,73 +22,13 @@ function FlashCardGeneratorCreatePage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { user } = useSession();
-  const storageUserId = user?.id?.trim() ?? "";
-  const [apiKey, setApiKey] = useState(() => storageUserId ? readFlashCardGeneratorApiKey(storageUserId) : "");
-  const [hasLocalStoredKey, setHasLocalStoredKey] = useState(() =>
-    Boolean(storageUserId && readFlashCardGeneratorApiKey(storageUserId)),
-  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
-  const [credentialFeedback, setCredentialFeedback] = useState<string | null>(null);
+
   const statusQuery = useQuery({
-    queryKey: ["flash-card-generator-status"],
-    queryFn: () => getFlashCardGeneratorStatus(),
+    queryKey: ["global-ai-credential-status"],
+    queryFn: () => getGlobalAiCredentialStatus(),
   });
-  const saveCredentialMutation = useMutation({
-    mutationFn: (input: { apiKey: string; model: string }) => saveFlashCardGeneratorCredential(input),
-    onSuccess: (status, variables) => {
-      queryClient.setQueryData(["flash-card-generator-status"], status);
-      const trimmedApiKey = variables.apiKey.trim();
-
-      if (storageUserId) {
-        writeFlashCardGeneratorApiKey(storageUserId, trimmedApiKey);
-        setHasLocalStoredKey(true);
-      }
-
-      setCredentialFeedback("API key Gemini berhasil disimpan.");
-      setApiKey(trimmedApiKey);
-    },
-    onError: (error) => {
-      setCredentialFeedback(error instanceof Error ? error.message : "API key Gemini belum berhasil disimpan.");
-    },
-  });
-  const testCredentialMutation = useMutation({
-    mutationFn: () => testFlashCardGeneratorCredential(),
-    onSuccess: ({ status, testResult }) => {
-      queryClient.setQueryData(["flash-card-generator-status"], status);
-      setCredentialFeedback(testResult.message);
-    },
-    onError: (error) => {
-      setCredentialFeedback(error instanceof Error ? error.message : "Koneksi Gemini belum berhasil dicek.");
-    },
-  });
-  const deleteCredentialMutation = useMutation({
-    mutationFn: () => deleteFlashCardGeneratorCredential(),
-    onSuccess: (status) => {
-      queryClient.setQueryData(["flash-card-generator-status"], status);
-      if (storageUserId) {
-        clearFlashCardGeneratorApiKey(storageUserId);
-      }
-      setHasLocalStoredKey(false);
-      setApiKey("");
-      setCredentialFeedback("API key Gemini berhasil dihapus.");
-    },
-    onError: (error) => {
-      setCredentialFeedback(error instanceof Error ? error.message : "API key Gemini belum berhasil dihapus.");
-    },
-  });
-
-  useEffect(() => {
-    if (!storageUserId) {
-      setApiKey("");
-      setHasLocalStoredKey(false);
-      return;
-    }
-
-    const restoredApiKey = readFlashCardGeneratorApiKey(storageUserId);
-    setApiKey(restoredApiKey);
-    setHasLocalStoredKey(Boolean(restoredApiKey));
-  }, [storageUserId]);
 
   async function handleSubmit(input: {
     title: string;
@@ -115,31 +48,37 @@ function FlashCardGeneratorCreatePage() {
     setIsSubmitting(true);
     setSubmissionError(null);
 
+    let createdDraft;
     try {
-      const createdDraft = await createFlashCardMaterialDraft({
+      createdDraft = await createFlashCardMaterialDraft({
         ownerId: user.id,
         title: input.title,
         academicGroup: input.academicGroup,
         transcriptFile: input.transcriptFile,
         slidePdfFile: input.slidePdfFile,
       });
+    } catch (error) {
+      setSubmissionError(error instanceof Error ? error.message : "Materi flash card belum bisa dibuat.");
+      setIsSubmitting(false);
+      return;
+    }
 
+    try {
       await processFlashCardMaterial({
         materialId: createdDraft.materialId,
       });
-      navigate(`/app/flash-card-generator/${createdDraft.materialId}`);
     } catch (error) {
-      setSubmissionError(error instanceof Error ? error.message : "Materi flash card belum bisa dibuat.");
+      // Log error but continue to navigation to prevent duplicate drafts
+      console.error("Processing failed or timed out:", error);
     } finally {
       setIsSubmitting(false);
     }
+    
+    navigate(`/app/flash-card-generator/${createdDraft.materialId}`);
   }
 
   const hasCredential = statusQuery.data?.hasCredential ?? false;
-  const credentialMutationPending = saveCredentialMutation.isPending
-    || testCredentialMutation.isPending
-    || deleteCredentialMutation.isPending;
-  const isSubmitDisabled = isSubmitting || statusQuery.isLoading || credentialMutationPending || !hasCredential;
+  const isSubmitDisabled = isSubmitting || statusQuery.isLoading || !hasCredential;
 
   return (
     <ProductShell
@@ -174,88 +113,24 @@ function FlashCardGeneratorCreatePage() {
           </Alert>
         ) : null}
 
-        {!statusQuery.isLoading && statusQuery.data?.hasCredential === false ? (
-          <div className="rounded-[1.2rem] border border-destructive/20 bg-destructive/10 px-4 py-4 text-sm leading-7 text-foreground">
-            Simpan dan tes API key Gemini sebelum memproses materi.
-          </div>
-        ) : null}
-
-        {hasLocalStoredKey && !statusQuery.isLoading && statusQuery.data?.hasCredential === false ? (
-          <div className="rounded-[1.2rem] border border-border bg-muted px-4 py-4 text-sm leading-7 text-foreground">
-            API key ini sudah tersimpan di perangkat, tetapi belum tersambung ke akun Anda. Klik Simpan untuk menyinkronkan.
-          </div>
-        ) : null}
-
-        <div className="grid gap-4 rounded-[1.2rem] border border-border bg-white/72 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_auto]">
-          <div className="space-y-3">
-            <label className="grid gap-2 text-sm font-medium text-muted-foreground">
-              API key Gemini
-              <input
-                autoComplete="off"
-                className="min-h-11 rounded-2xl border border-input bg-white px-4 text-sm text-foreground"
-                onChange={(event) => setApiKey(event.target.value)}
-                placeholder="Masukkan API key Gemini"
-                type="password"
-                value={apiKey}
-              />
-            </label>
-            <p className="text-sm leading-7 text-muted-foreground">
-              Model bawaan sudah ditetapkan agar hasil flash card tetap stabil.
+        {!statusQuery.isLoading && !hasCredential ? (
+          <div className="rounded-[1.2rem] border border-amber-500/30 bg-amber-500/10 px-6 py-6 flex flex-col gap-3">
+            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-bold">
+              <ShieldAlert className="h-5 w-5 shrink-0" />
+              Kredensial AI Belum Diatur
+            </div>
+            <p className="text-sm text-amber-800/80 dark:text-amber-300/80">
+              Anda membutuhkan kunci API Gemini untuk dapat membuat Flash Card. 
+              Sistem menggunakan skema Bring Your Own Key (BYOK) secara global.
             </p>
-            {statusQuery.data?.lastValidatedAt ? (
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                Tervalidasi terakhir: {new Date(statusQuery.data.lastValidatedAt).toLocaleString("id-ID")}
-              </p>
-            ) : null}
-            {statusQuery.data?.lastError ? (
-              <div className="rounded-[1rem] border border-destructive/20 bg-destructive/10 px-3 py-3 text-sm text-foreground">
-                {statusQuery.data.lastError}
-              </div>
-            ) : null}
-            {credentialFeedback ? (
-              <div className="rounded-[1rem] border border-border bg-muted px-3 py-3 text-sm text-foreground">
-                {credentialFeedback}
-              </div>
-            ) : null}
+            <button
+              onClick={() => navigate("/app/settings/ai-config")}
+              className="mt-2 w-fit px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer"
+            >
+              Atur Kredensial AI Sekarang
+            </button>
           </div>
-
-          <div className="flex flex-wrap items-start gap-3 lg:flex-col">
-            <Button
-              disabled={!apiKey.trim() || credentialMutationPending}
-              loading={saveCredentialMutation.isPending}
-              loadingLabel="Menyimpan..."
-              onClick={() =>
-                saveCredentialMutation.mutate({
-                  apiKey: apiKey.trim(),
-                  model: "gemini-2.5-flash",
-                })}
-              type="button"
-              variant="primary"
-            >
-              Simpan API key
-            </Button>
-            <Button
-              disabled={!hasCredential || credentialMutationPending}
-              loading={testCredentialMutation.isPending}
-              loadingLabel="Mengetes..."
-              onClick={() => testCredentialMutation.mutate()}
-              type="button"
-              variant="outline"
-            >
-              Tes koneksi
-            </Button>
-            <Button
-              disabled={!hasCredential || credentialMutationPending}
-              loading={deleteCredentialMutation.isPending}
-              loadingLabel="Menghapus..."
-              onClick={() => deleteCredentialMutation.mutate()}
-              type="button"
-              variant="destructive"
-            >
-              Hapus API key
-            </Button>
-          </div>
-        </div>
+        ) : null}
       </Card>
 
       <Card className="space-y-3 px-5 py-5">

@@ -51,7 +51,9 @@ const ScheduledEventEditorPage = lazy(() => import("../pages/scheduled-ops/sched
 const ScheduledOpsEventsPage = lazy(() => import("../pages/scheduled-ops/scheduled-events-page"));
 const SubscriptionPage = lazy(() => import("../pages/subscription-page"));
 const OsceDemoPage = lazy(() => import("../pages/app/osce-demo-page"));
+const OsceListPage = lazy(() => import("../pages/app/osce-list-page"));
 const OsceBuilderPage = lazy(() => import("../pages/app/osce-builder-page"));
+const AiConfigPage = lazy(() => import("../pages/app/ai-config-page"));
 
 function RouteLoadingState() {
   return <FullPageLoader />;
@@ -93,6 +95,7 @@ function AppRouter() {
             <Route path="scheduled-tryout/session" element={<ScheduledTryoutSessionPage />} />
             <Route path="scheduled-tryout/result" element={<ScheduledTryoutResultPage />} />
             <Route path="osce-demo" element={<OsceDemoPage />} />
+            <Route path="settings/ai-config" element={<AiConfigPage />} />
             <Route path="*" element={<Navigate replace to="/app" />} />
           </Route>
         </Route>
@@ -125,6 +128,7 @@ function AppRouter() {
 
         <Route element={<MentorAreaRouteGuard />}>
           <Route path="/app/area-mentor" element={<MentorAreaPage />} />
+          <Route path="/app/mentor/osce" element={<OsceListPage />} />
           <Route path="/app/mentor/osce-builder" element={<OsceBuilderPage />} />
         </Route>
 

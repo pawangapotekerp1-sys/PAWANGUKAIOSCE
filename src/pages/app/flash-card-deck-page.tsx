@@ -46,6 +46,14 @@ function FlashCardDeckPage() {
         ...current,
         [activeCard.id]: difficulty,
       }));
+
+      const cards = deckQuery.data?.cards ?? [];
+      const currentIndex = cards.findIndex((c) => c.id === activeCard.id);
+      if (currentIndex >= 0 && currentIndex < cards.length - 1) {
+        setTimeout(() => {
+          setActiveCardId(cards[currentIndex + 1].id);
+        }, 300);
+      }
     } finally {
       setIsSavingDifficulty(false);
     }

@@ -27,7 +27,9 @@ type FlashCardReviewEditorProps = {
   };
   isPublishing?: boolean;
   isSaving?: boolean;
+  isRetrying?: boolean;
   onPublish: () => Promise<void> | void;
+  onRetryProcessing?: () => Promise<void> | void;
   onSave: (input: {
     title: string;
     globalSummary: string;
@@ -72,7 +74,9 @@ function FlashCardReviewEditor({
   detail,
   isPublishing = false,
   isSaving = false,
+  isRetrying = false,
   onPublish,
+  onRetryProcessing,
   onSave,
 }: FlashCardReviewEditorProps) {
   const isPublished = detail.material.status === "published";
@@ -261,7 +265,7 @@ function FlashCardReviewEditor({
                   cards: [
                     ...current.cards,
                     {
-                      id: `${current.id}-card-${current.cards.length + 1}`,
+                      id: crypto.randomUUID(),
                       frontText: "",
                       backText: "",
                     },
@@ -289,14 +293,29 @@ function FlashCardReviewEditor({
           </Button>
         ) : null}
 
-        {detail.material.status === "ready_for_review" ? (
+        {detail.material.status === "failed" && onRetryProcessing ? (
           <Button
-            loading={isPublishing}
-            loadingLabel="Menerbitkan..."
+            loading={isRetrying}
+            loadingLabel="Memproses..."
             type="button"
             variant="outline"
             onClick={() => {
-              void onPublish();
+              void onRetryProcessing();
+            }}
+          >
+            Coba Proses Ulang
+          </Button>
+        ) : null}
+
+        {detail.material.status === "ready_for_review" ? (
+          <Button
+            loading={isPublishing || isSaving}
+            loadingLabel="Menerbitkan..."
+            type="button"
+            variant="outline"
+            onClick={async () => {
+              await handleSave();
+              await onPublish();
             }}
           >
             Terbitkan untuk siswa

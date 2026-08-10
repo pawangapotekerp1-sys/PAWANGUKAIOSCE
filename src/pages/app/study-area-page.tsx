@@ -5,12 +5,16 @@ import {
   Presentation,
   Sparkles,
   ArrowRight,
+  Stethoscope,
+  Lock,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import ProductShell from "../../components/layout/product-shell";
 import { productShellMeta } from "../../mocks/student-dashboard";
 import { useStudentShell } from "./use-student-shell";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/ui/card";
 import { getButtonStyleProps } from "../../components/ui/button";
+import { getGlobalAiCredentialStatus } from "../../lib/api/global-ai-credential-api";
 
 interface StudyFeatureCard {
   id: string;
@@ -46,11 +50,24 @@ const STUDY_FEATURES: StudyFeatureCard[] = [
     buttonText: "Pilih Flash Card",
     icon: Sparkles,
   },
+  {
+    id: "osce-simulator",
+    title: "Simulasi OSCE",
+    description: "Latih kemampuan komunikasi klinis dan peracikan obat melalui simulasi kasus interaktif bersama AI.",
+    href: "/app/osce-demo",
+    buttonText: "Mulai Simulasi OSCE",
+    icon: Stethoscope,
+  },
 ];
 
 export default function StudyAreaPage() {
   const currentHref = "/app/area-belajar";
   const studentShell = useStudentShell(currentHref);
+
+  const aiStatus = useQuery({
+    queryKey: ["global-ai-credential-status"],
+    queryFn: () => getGlobalAiCredentialStatus(),
+  });
 
   return (
     <ProductShell
@@ -77,15 +94,25 @@ export default function StudyAreaPage() {
         {/* Cards Grid Layout */}
         <div className="grid gap-6 md:grid-cols-3 w-full">
           {STUDY_FEATURES.map((item) => {
+            if (studentShell.role === "osce_pro" && item.id === "flash-card") {
+              return null;
+            }
             const Icon = item.icon;
+            const isAiFeature = item.id === "flash-card" || item.id === "osce-simulator";
+            const isLocked = isAiFeature && aiStatus.data && !aiStatus.data.hasCredential;
+
             return (
               <Card
                 key={item.id}
-                className="group relative flex flex-col justify-between overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-primary/10 border-border hover:border-primary/40 bg-card rounded-2xl"
+                className={`group relative flex flex-col justify-between overflow-hidden transition-all duration-300 border-border bg-card rounded-2xl ${
+                  isLocked ? "opacity-70 grayscale-[0.3]" : "hover:-translate-y-1.5 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/40"
+                }`}
               >
                 <CardHeader className="pb-4">
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground shrink-0">
+                    <div className={`flex h-14 w-14 items-center justify-center rounded-2xl shrink-0 transition-colors ${
+                      isLocked ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground"
+                    }`}>
                       <Icon className="h-7 w-7" />
                     </div>
                     <CardTitle className="text-2xl font-extrabold tracking-tight">
@@ -95,19 +122,36 @@ export default function StudyAreaPage() {
                   <CardDescription className="text-sm leading-relaxed text-muted-foreground">
                     {item.description}
                   </CardDescription>
+                  {isLocked && (
+                    <div className="mt-4 flex items-center gap-2 text-sm font-medium text-destructive bg-destructive/10 px-3 py-2 rounded-lg">
+                      <Lock className="h-4 w-4" />
+                      Butuh Pengaturan API Key (BYOK)
+                    </div>
+                  )}
                 </CardHeader>
-                <CardFooter className="pt-4 border-t-0 bg-transparent mt-auto">
-                  <Link
-                    {...getButtonStyleProps({
-                      variant: "outline",
-                      className:
-                        "w-full group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all font-semibold rounded-xl py-2.5",
-                    })}
-                    to={item.href}
-                  >
-                    <span className="absolute inset-0" aria-hidden="true" />
-                    {item.buttonText} <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
+                <CardFooter className="pt-4 border-t-0 bg-transparent mt-auto relative">
+                  {isLocked ? (
+                    <div
+                      {...getButtonStyleProps({
+                        variant: "outline",
+                        className: "w-full font-semibold rounded-xl py-2.5 opacity-50 cursor-not-allowed",
+                      })}
+                    >
+                      {item.buttonText} <Lock className="ml-2 h-4 w-4" />
+                    </div>
+                  ) : (
+                    <Link
+                      {...getButtonStyleProps({
+                        variant: "outline",
+                        className:
+                          "w-full group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all font-semibold rounded-xl py-2.5",
+                      })}
+                      to={item.href}
+                    >
+                      <span className="absolute inset-0" aria-hidden="true" />
+                      {item.buttonText} <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  )}
                 </CardFooter>
               </Card>
             );

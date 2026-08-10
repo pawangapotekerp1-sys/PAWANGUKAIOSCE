@@ -11,6 +11,7 @@ import {
   Video,
   Presentation,
   ShieldCheck,
+  Settings2,
 } from "lucide-react";
 import type { UserRole } from "../lib/auth/permissions";
 
@@ -92,6 +93,11 @@ export const productNavItems: ProductNavItem[] = [
     label: "Profil",
     icon: IdCard,
   },
+  {
+    href: "/app/settings/ai-config",
+    label: "Pengaturan AI",
+    icon: Settings2,
+  },
 ] as const;
 
 const mentorScheduledEventManagerHref = "/scheduled-ops/events";
@@ -117,6 +123,19 @@ export function createProductNavItems(
         icon: ShieldCheck,
       },
       productNavItems[5], // Profil
+      productNavItems[6], // Pengaturan AI
+    ]
+    : role === "osce_pro"
+    ? [
+      {
+        href: "/app/scheduled-tryout",
+        label: "Try Out Terjadwal",
+        icon: CalendarDays,
+      },
+      productNavItems[1], // Review
+      productNavItems[4], // Area Belajar
+      productNavItems[5], // Profil
+      productNavItems[6], // Pengaturan AI
     ]
     : [...productNavItems];
 
@@ -125,7 +144,7 @@ export function createProductNavItems(
     if (item.href === "/app/tryout-selection" && (activeHref.startsWith("/app/tryout") || activeHref.startsWith("/app/scheduled-tryout"))) {
       isActive = true;
     }
-    if (item.href === "/app/area-belajar" && (activeHref.startsWith("/app/area-belajar") || activeHref === "/app/rekaman-kelas" || activeHref === "/app/materi-ppt" || activeHref.startsWith("/app/flash-cards"))) {
+    if (item.href === "/app/area-belajar" && (activeHref.startsWith("/app/area-belajar") || activeHref === "/app/rekaman-kelas" || activeHref === "/app/materi-ppt" || activeHref.startsWith("/app/flash-cards") || activeHref.startsWith("/app/osce-demo"))) {
       isActive = true;
     }
     return { ...item, active: isActive };
@@ -133,7 +152,9 @@ export function createProductNavItems(
 }
 
 export function resolveStudentTierLabel(role: UserRole | null | undefined) {
-  return role === "mentor" ? "Mentor" : productShellMeta.tierLabel;
+  if (role === "mentor") return "Mentor";
+  if (role === "osce_pro") return "Osce Pro";
+  return productShellMeta.tierLabel;
 }
 
 export const progressCards: DashboardMetric[] = [

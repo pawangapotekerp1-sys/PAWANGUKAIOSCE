@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, Navigate } from "react-router";
 import DiagnosisHeroCard from "../../components/diagnosis/diagnosis-hero-card";
 import GlobalBehaviorPanel from "../../components/diagnosis/global-behavior-panel";
 import DiagnosisRangeControls from "../../components/diagnosis/diagnosis-range-controls";
@@ -29,7 +29,13 @@ function AnalyticsPage() {
   const analyticsView = usePreviewRouteState("analyticsView");
   const [draftRange, setDraftRange] = useState(createDefaultDiagnosisRange);
   const [appliedRange, setAppliedRange] = useState(createDefaultDiagnosisRange);
+  const queryClient = useQueryClient();
   const timezone = resolveUserTimezone();
+
+  if (studentShell.role === "osce_pro") {
+    return <Navigate to="/app/scheduled-tryout" replace />;
+  }
+
   const diagnosisQuery = useQuery({
     queryKey: [
       "personal-weakness-diagnosis",

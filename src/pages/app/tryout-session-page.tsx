@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Timer } from "lucide-react";
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams, Navigate } from "react-router";
 import ProductShell from "../../components/layout/product-shell";
 import Button, { getButtonStyleProps } from "../../components/ui/button";
 import {
@@ -489,6 +489,10 @@ function TryoutSessionPage() {
   const resumeErrorMessage = resumeMutation.error instanceof Error
     ? resumeMutation.error.message
     : "Sesi yang tertunda belum bisa dilanjutkan.";
+
+  if (studentShell.role === "osce_pro") {
+    return <Navigate to="/app/scheduled-tryout" replace />;
+  }
 
   return (
     <ProductShell

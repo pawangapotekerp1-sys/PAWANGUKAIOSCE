@@ -60,19 +60,24 @@ type TopicFormData = z.infer<typeof topicSchema>;
 
 const ICON_OPTIONS = [
   { value: "", label: "Tidak Ada" },
-  { value: "Stethoscope", label: "Stethoscope" },
-  { value: "FlaskConical", label: "FlaskConical" },
-  { value: "Scale", label: "Scale" },
+  { value: "Stethoscope", label: "Stetoskop" },
+  { value: "FlaskConical", label: "Lab Flask" },
+  { value: "Scale", label: "Timbangan" },
   { value: "Layers", label: "Layers" },
-];
-
-const THEME_OPTIONS = [
-  { value: "", label: "Default" },
-  { value: "teal", label: "Teal" },
-  { value: "indigo", label: "Indigo" },
-  { value: "amber", label: "Amber" },
-  { value: "slate", label: "Slate" },
-  { value: "fuchsia", label: "Fuchsia" },
+  { value: "Activity", label: "Activity" },
+  { value: "Pill", label: "Obat (Pill)" },
+  { value: "Microscope", label: "Mikroskop" },
+  { value: "Syringe", label: "Jarum Suntik" },
+  { value: "HeartPulse", label: "Detak Jantung" },
+  { value: "Bone", label: "Tulang" },
+  { value: "Brain", label: "Otak" },
+  { value: "BookOpen", label: "Buku Terbuka" },
+  { value: "GraduationCap", label: "Toga" },
+  { value: "Library", label: "Perpustakaan" },
+  { value: "BriefcaseMedical", label: "Koper Medis" },
+  { value: "TestTube", label: "Tabung Reaksi" },
+  { value: "Dna", label: "DNA" },
+  { value: "Bandage", label: "Perban" },
 ];
 
 const inputClass = "min-h-11 w-full rounded-[1.15rem] border border-border bg-muted px-4 text-sm text-foreground outline-none transition focus:border-border";
@@ -159,6 +164,7 @@ function BlocksManagementPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-blocks"] });
+      queryClient.invalidateQueries({ queryKey: ["question-taxonomy"] });
       setIsBlockDialogOpen(false);
       setEditingBlock(null);
     }
@@ -168,6 +174,7 @@ function BlocksManagementPage() {
     mutationFn: (id: string) => deleteAdminBlock(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-blocks"] });
+      queryClient.invalidateQueries({ queryKey: ["question-taxonomy"] });
     }
   });
 
@@ -243,7 +250,7 @@ function BlocksManagementPage() {
                 />
               </label>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <label className="grid gap-2 text-sm font-medium">
                 Icon
                 <Controller
@@ -257,28 +264,10 @@ function BlocksManagementPage() {
                       <SelectContent>
                         {ICON_OPTIONS.map(opt => (
                           <SelectItem key={opt.value} value={opt.value || "none"}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </label>
-              <label className="grid gap-2 text-sm font-medium">
-                Tema Warna
-                <Controller
-                  name="colorTheme"
-                  control={blockForm.control}
-                  render={({ field }) => (
-                    <Select onValueChange={(val) => field.onChange(val === "none" ? "" : val)} value={field.value || "none"}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih Tema" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {THEME_OPTIONS.map(opt => (
-                          <SelectItem key={opt.value} value={opt.value || "none"}>
-                            {opt.label}
+                            <div className="flex items-center gap-2">
+                              {opt.value && renderIcon(opt.value)}
+                              <span>{opt.label}</span>
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -300,8 +289,8 @@ function BlocksManagementPage() {
         onClose={() => setTopicsDialogOpenForBlock(null)} 
       />
 
-      <Card className="mt-6 px-5 py-5">
-        <h2 className="text-xl font-semibold mb-4">Daftar Blok</h2>
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-6 text-foreground">Daftar Blok</h2>
         
         {blocksQuery.isLoading ? (
           <div className="flex flex-col items-center justify-center p-8 space-y-4">
@@ -321,7 +310,7 @@ function BlocksManagementPage() {
         ) : (
           <div className="grid gap-4 mt-4">
             {blocks.map((block) => (
-              <Card key={block.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border">
+              <Card key={block.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-5 border-border bg-card shadow-sm">
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-lg">{block.name}</h3>
@@ -334,7 +323,6 @@ function BlocksManagementPage() {
                   <div className="flex items-center gap-3 mt-3 text-xs font-medium text-muted-foreground">
                     <span>Order: {block.sortOrder}</span>
                     {block.iconName && <span className="flex items-center gap-1">Icon: {renderIcon(block.iconName)} {block.iconName}</span>}
-                    {block.colorTheme && <span>Warna: {block.colorTheme}</span>}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -353,7 +341,7 @@ function BlocksManagementPage() {
             ))}
           </div>
         )}
-      </Card>
+      </div>
 
       <ConfirmDialog
         open={!!blockToDelete}
@@ -439,6 +427,7 @@ function TopicsDialog({ block, onClose }: { block: AdminBlock | null, onClose: (
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-topics", block?.id] });
+      queryClient.invalidateQueries({ queryKey: ["question-taxonomy"] });
       setEditingTopic(null);
     }
   });
@@ -447,6 +436,7 @@ function TopicsDialog({ block, onClose }: { block: AdminBlock | null, onClose: (
     mutationFn: (id: string) => deleteAdminTopic(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-topics", block?.id] });
+      queryClient.invalidateQueries({ queryKey: ["question-taxonomy"] });
     }
   });
 
@@ -465,7 +455,7 @@ function TopicsDialog({ block, onClose }: { block: AdminBlock | null, onClose: (
         </DialogHeader>
 
         <div className="grid md:grid-cols-[300px_1fr] gap-6 mt-4">
-          <Card className="p-4 h-fit">
+          <Card className="p-5 h-fit border-border bg-card shadow-sm">
             <h3 className="font-medium text-sm mb-3">
               {editingTopic ? "Edit Topik" : "Tambah Topik Baru"}
             </h3>
@@ -525,7 +515,7 @@ function TopicsDialog({ block, onClose }: { block: AdminBlock | null, onClose: (
               </Alert>
             ) : (
               topics.map(topic => (
-                <div key={topic.id} className="p-3 border rounded-[1.15rem] flex items-start justify-between gap-2">
+                <div key={topic.id} className="p-4 border rounded-[1.15rem] flex items-start justify-between gap-2 border-border bg-card">
                   <div>
                     <h4 className="font-medium text-sm">{topic.name}</h4>
                     <p className="text-xs text-muted-foreground">/{topic.slug}</p>

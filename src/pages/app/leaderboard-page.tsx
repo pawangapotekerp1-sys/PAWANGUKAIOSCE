@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Loader2, AlertCircle, Info, Trophy, Crown, Medal, Award, Clock } from "lucide-react";
+import { Navigate } from "react-router";
 import ProductShell from "../../components/layout/product-shell";
 import Button from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
@@ -96,6 +97,10 @@ function LeaderboardPage() {
       }),
   });
   const rows = (leaderboardQuery.data ?? []).slice(0, 10);
+
+  if (studentShell.role === "osce_pro") {
+    return <Navigate to="/app/scheduled-tryout" replace />;
+  }
 
   return (
     <ProductShell

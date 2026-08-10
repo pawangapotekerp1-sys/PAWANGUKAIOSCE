@@ -213,7 +213,7 @@ Deno.serve(async (req) => {
       const writePayload = {
         user_id: user.id,
         provider: "gemini",
-        model: typeof payload.model === "string" && payload.model ? payload.model : "gemini-2.5-flash",
+        model: typeof payload.model === "string" && payload.model ? payload.model : "gemini-3.6-flash",
         secret_id: nextSecretId,
         secret_hint: `••••${payload.apiKey.trim().slice(-4)}`,
         last_error: null,

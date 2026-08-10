@@ -7,7 +7,7 @@ import {
   LayoutGrid,
   icons
 } from "lucide-react";
-import { Link } from "react-router";
+import { Link, Navigate } from "react-router";
 import ProductShell from "../../components/layout/product-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
@@ -60,6 +60,10 @@ function TryoutBlockSelectionPage() {
   });
 
   const blockOptions = (catalogEntries || []).filter((entry) => entry.mode === "block" || entry.mode === "full");
+
+  if (studentShell.role === "osce_pro") {
+    return <Navigate to="/app/scheduled-tryout" replace />;
+  }
 
   return (
     <ProductShell

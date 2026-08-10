@@ -273,7 +273,7 @@ export type QuestionFormOptionInput = {
 
 export type QuestionFormInput = {
   stem: string;
-  blockId: string;
+  blockId: string | null;
   topicId: string | null;
   status: "draft" | "published" | "archived";
   questionImagePath?: string | null;
@@ -570,8 +570,8 @@ export async function createQuestion(
     .from("questions")
     .insert({
       stem: input.stem,
-      block_id: input.blockId,
-      topic_id: input.topicId,
+      block_id: input.blockId || null,
+      topic_id: input.topicId || null,
       status: input.status,
       question_image_path: input.questionImagePath ?? null,
       created_by: input.createdBy ?? null,
@@ -633,8 +633,8 @@ export async function updateQuestion(
     .from("questions")
     .update({
       stem: input.stem,
-      block_id: input.blockId,
-      topic_id: input.topicId,
+      block_id: input.blockId || null,
+      topic_id: input.topicId || null,
       status: input.status,
       question_image_path: input.questionImagePath ?? null,
       updated_by: input.updatedBy ?? null,

@@ -149,7 +149,15 @@ export function mapPublishedFlashCardLibraryRows(rows: PublishedLibraryRow[]) {
       cardCount: row.flashcard_cards?.length ?? 0,
       sortOrder: row.sort_order,
       publishedAt: row.flashcard_materials!.published_at,
-    }));
+    }))
+    .sort((a, b) => {
+      const dateA = a.publishedAt ?? "";
+      const dateB = b.publishedAt ?? "";
+      if (dateA !== dateB) {
+        return dateB.localeCompare(dateA);
+      }
+      return a.sortOrder - b.sortOrder;
+    });
 }
 
 export function mapPublishedFlashCardDeck({

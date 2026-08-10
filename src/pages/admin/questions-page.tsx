@@ -321,16 +321,12 @@ function QuestionsPage() {
                             >
                               {question.statusLabel}
                             </Badge>
-                            {question.blockName ? (
-                              <Badge variant="secondary" className="text-[10px] font-semibold text-muted-foreground px-2 py-0.5">
-                                {question.blockName}
-                              </Badge>
-                            ) : null}
-                            {question.topicName ? (
-                              <Badge variant="secondary" className="text-[10px] font-semibold text-muted-foreground px-2 py-0.5">
-                                {question.topicName}
-                              </Badge>
-                            ) : null}
+                            <Badge variant="secondary" className={`text-[10px] font-semibold px-2 py-0.5 ${!question.blockName ? "text-destructive/80 border-destructive/20 bg-destructive/10" : "text-muted-foreground"}`}>
+                              {question.blockName || "Tidak memiliki blok"}
+                            </Badge>
+                            <Badge variant="secondary" className={`text-[10px] font-semibold px-2 py-0.5 ${!question.topicName ? "text-destructive/80 border-destructive/20 bg-destructive/10" : "text-muted-foreground"}`}>
+                              {question.topicName || "Tidak memiliki materi"}
+                            </Badge>
                           </div>
                         </div>
 

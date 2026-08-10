@@ -8,6 +8,7 @@ import {
   getFlashCardMaterialDetail,
   publishFlashCardMaterial,
   saveFlashCardMaterialReview,
+  retryFlashCardMaterialProcessing,
 } from "../../lib/api/flash-card-api";
 import { productShellMeta } from "../../mocks/student-dashboard";
 import { useStudentShell } from "./use-student-shell";
@@ -19,6 +20,7 @@ function FlashCardGeneratorReviewPage() {
   const studentShell = useStudentShell(`/app/flash-card-generator/${materialId}`);
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const detailQuery = useQuery({
     queryKey: ["mentor-flash-card-material", materialId],
@@ -72,6 +74,22 @@ function FlashCardGeneratorReviewPage() {
     }
   }
 
+  async function handleRetry() {
+    setIsRetrying(true);
+    setActionError(null);
+
+    try {
+      await retryFlashCardMaterialProcessing({
+        materialId,
+      });
+      await detailQuery.refetch();
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "Gagal mencoba ulang pemrosesan.");
+    } finally {
+      setIsRetrying(false);
+    }
+  }
+
   return (
     <ProductShell
       brand={productShellMeta.brand}
@@ -95,7 +113,9 @@ function FlashCardGeneratorReviewPage() {
           detail={detailQuery.data}
           isPublishing={isPublishing}
           isSaving={isSaving}
+          isRetrying={isRetrying}
           onPublish={handlePublish}
+          onRetryProcessing={handleRetry}
           onSave={handleSave}
         />
       )}

@@ -90,7 +90,7 @@ function encodeBase64(bytes: Uint8Array) {
 function mapFlashCardGeneratorStatus(credential: UserAiCredentialRow | null) {
   return {
     hasCredential: Boolean(credential?.secret_id),
-    model: credential?.model ?? "gemini-2.5-flash",
+    model: credential?.model ?? "gemini-3.6-flash",
     lastValidatedAt: credential?.last_validated_at ?? null,
     lastError: credential?.last_error ?? null,
   };
@@ -532,6 +532,16 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (payload.action === "export-credential") {
+      if (!credential?.secret_id) {
+        throw new HttpError(400, "BYOK_MISSING", "Belum ada BYOK yang bisa di-export.");
+      }
+      const apiKey = await readVaultSecret(service, credential.secret_id);
+      return jsonResponse({
+        apiKey,
+      });
+    }
+
     if (payload.action === "save-credential") {
       if (typeof payload.apiKey !== "string" || payload.apiKey.trim().length === 0) {
         throw new HttpError(400, "BYOK_REQUIRED", "Gemini API key pribadi wajib diisi.");
@@ -676,6 +686,7 @@ Deno.serve(async (req) => {
       assertFlashCardMaterialEditable(material.status);
       const title = typeof payload.title === "string" ? payload.title.trim() : "";
 
+
       if (!title) {
         throw new HttpError(400, "FLASHCARD_TITLE_REQUIRED", "Judul materi flash card wajib diisi.");
       }
@@ -690,6 +701,7 @@ Deno.serve(async (req) => {
         .from("flashcard_materials")
         .update({
           title,
+          status: "ready_for_review",
           global_summary: validatedOutput.global_summary,
           processing_error: null,
         })
@@ -738,6 +750,38 @@ Deno.serve(async (req) => {
       return jsonResponse({
         materialId: material.id,
         status: "published",
+      });
+    }
+
+    if (payload.action === "delete-material") {
+      const materialId = typeof payload.materialId === "string" ? payload.materialId : "";
+      const material = await loadOwnedMaterial(service, materialId, user.id);
+      const children = await loadMaterialChildren(service, material.id);
+
+      const bucketToPaths = new Map<string, string[]>();
+      for (const sourceFile of children.sourceFiles) {
+        bucketToPaths.set(sourceFile.storage_bucket, [
+          ...(bucketToPaths.get(sourceFile.storage_bucket) ?? []),
+          sourceFile.storage_path,
+        ]);
+      }
+
+      for (const [bucket, paths] of bucketToPaths.entries()) {
+        await service.storage.from(bucket).remove(paths);
+      }
+
+      const { error } = await service
+        .from("flashcard_materials")
+        .delete()
+        .eq("id", material.id);
+
+      if (error) {
+        throw new HttpError(500, "FLASHCARD_DELETE_FAILED", error.message);
+      }
+
+      return jsonResponse({
+        materialId: material.id,
+        status: "deleted",
       });
     }
 

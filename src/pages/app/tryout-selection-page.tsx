@@ -8,6 +8,7 @@ import { useStudentShell } from "./use-student-shell";
 import { getButtonStyleProps } from "../../components/ui/button";
 import { useSession } from "../../lib/auth/use-session";
 import { findActiveAttemptForUser } from "../../lib/api/tryout-api";
+import { Navigate } from "react-router";
 
 function TryoutSelectionPage() {
   const studentShell = useStudentShell("/app/tryout-selection");
@@ -22,6 +23,10 @@ function TryoutSelectionPage() {
     },
     enabled: !!userId,
   });
+
+  if (studentShell.role === "osce_pro") {
+    return <Navigate to="/app/scheduled-tryout" replace />;
+  }
 
   return (
     <ProductShell

@@ -122,7 +122,7 @@ function mapGeneratedReferenceValidationError(error: GeneratedReferenceValidatio
 function mapGeneratorStatus(credential: GeneratorCredentialRow | null) {
   return {
     hasCredential: Boolean(credential?.secret_id),
-    model: credential?.model ?? "gemini-2.5-flash",
+    model: credential?.model ?? "gemini-3.6-flash",
     lastValidatedAt: credential?.last_validated_at ?? null,
     lastError: credential?.last_error ?? null,
   };
@@ -130,7 +130,7 @@ function mapGeneratorStatus(credential: GeneratorCredentialRow | null) {
 
 async function readGeneratorCredential(service: ServiceClient, userId: string) {
   const { data, error } = await service
-    .from("generator_user_settings")
+    .from("user_ai_credentials")
     .select("id, model, secret_id, last_validated_at, last_error")
     .eq("user_id", userId)
     .maybeSingle();
@@ -142,25 +142,7 @@ async function readGeneratorCredential(service: ServiceClient, userId: string) {
   return (data as GeneratorCredentialRow | null) ?? null;
 }
 
-async function createVaultSecret(
-  service: ServiceClient,
-  apiKey: string,
-  name: string,
-  description: string,
-) {
-  const { data, error } = await service
-    .rpc("create_vault_secret", {
-      secret: apiKey,
-      name,
-      description,
-    });
-
-  if (error) {
-    throw new HttpError(500, "VAULT_WRITE_FAILED", error.message);
-  }
-
-  return data as string;
-}
+// Deprecated: Credential management is now handled centrally by global-ai-credential-api
 
 async function readVaultSecret(service: ServiceClient, secretId: string) {
   const { data, error } = await service
@@ -175,70 +157,6 @@ async function readVaultSecret(service: ServiceClient, secretId: string) {
   return data;
 }
 
-async function deleteVaultSecret(service: ServiceClient, secretId: string) {
-  const { error } = await service
-    .rpc("delete_vault_secret", {
-      target_secret_id: secretId,
-    });
-
-  if (error) {
-    throw new HttpError(500, "VAULT_DELETE_FAILED", error.message);
-  }
-}
-
-async function upsertGeneratorCredential(
-  service: ServiceClient,
-  {
-    credential,
-    userId,
-    apiKey,
-    model,
-  }: {
-    credential: GeneratorCredentialRow | null;
-    userId: string;
-    apiKey: string;
-    model?: string;
-  },
-) {
-  const previousSecretId = credential?.secret_id ?? null;
-  const nextSecretId = await createVaultSecret(
-    service,
-    apiKey.trim(),
-    `question-generator-byok-${userId}-${Date.now()}`,
-    `Question Generator BYOK for ${userId}`,
-  );
-  const writePayload = {
-    ...buildGeneratorCredentialWritePayload({
-      apiKey,
-      model: model ?? "",
-      userId,
-    }),
-    secret_id: nextSecretId,
-  };
-
-  if (credential?.id) {
-    const { error } = await service
-      .from("generator_user_settings")
-      .update(writePayload)
-      .eq("id", credential.id);
-
-    if (error) {
-      throw new HttpError(500, "BYOK_WRITE_FAILED", error.message);
-    }
-  } else {
-    const { error } = await service
-      .from("generator_user_settings")
-      .insert(writePayload);
-
-    if (error) {
-      throw new HttpError(500, "BYOK_WRITE_FAILED", error.message);
-    }
-  }
-
-  if (previousSecretId && previousSecretId !== nextSecretId) {
-    await deleteVaultSecret(service, previousSecretId);
-  }
-}
 
 function isPostgresDomainError(error: { code?: string | null } | null | undefined) {
   return error?.code === "P0001" || error?.code === "P0002" || error?.code === "23505";
@@ -509,87 +427,8 @@ Deno.serve(async (req) => {
     const payload = await req.json();
     const credential = await readGeneratorCredential(service, user.id);
 
-    if (payload.action === "get-status") {
-      return jsonResponse({
-        status: mapGeneratorStatus(credential),
-      });
-    }
+    // Endpoint for testing credential removed since it's centrally managed.
 
-    if (payload.action === "save-credential") {
-      if (typeof payload.apiKey !== "string" || payload.apiKey.trim().length === 0) {
-        throw new HttpError(400, "BYOK_REQUIRED", "Gemini API key pribadi wajib diisi.");
-      }
-
-      await upsertGeneratorCredential(service, {
-        credential,
-        userId: user.id,
-        apiKey: payload.apiKey,
-        model: typeof payload.model === "string" ? payload.model : undefined,
-      });
-
-      return jsonResponse({
-        status: mapGeneratorStatus(await readGeneratorCredential(service, user.id)),
-      });
-    }
-
-    if (payload.action === "delete-credential") {
-      if (credential?.secret_id) {
-        await deleteVaultSecret(service, credential.secret_id);
-      }
-
-      if (credential?.id) {
-        const { error } = await service
-          .from("generator_user_settings")
-          .delete()
-          .eq("id", credential.id);
-
-        if (error) {
-          throw new HttpError(500, "BYOK_DELETE_FAILED", error.message);
-        }
-      }
-
-      return jsonResponse({
-        status: mapGeneratorStatus(null),
-      });
-    }
-
-    if (payload.action === "test-credential") {
-      if (!credential?.secret_id) {
-        throw new HttpError(400, "BYOK_MISSING", "Belum ada BYOK yang bisa dites.");
-      }
-
-      const apiKey = await readVaultSecret(service, credential.secret_id);
-
-      try {
-        const testResult = await testGeminiConnection(apiKey, credential.model);
-        await service
-          .from("generator_user_settings")
-          .update({
-            last_validated_at: new Date().toISOString(),
-            last_error: null,
-          })
-          .eq("id", credential.id);
-
-        return jsonResponse({
-          status: mapGeneratorStatus(await readGeneratorCredential(service, user.id)),
-          testResult,
-        });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "BYOK test failed.";
-        await service
-          .from("generator_user_settings")
-          .update({
-            last_error: message,
-          })
-          .eq("id", credential.id);
-
-        if (isGeminiCredentialError(error)) {
-          throw new HttpError(400, "BYOK_INVALID", message);
-        }
-
-        throw error;
-      }
-    }
 
     if (payload.action === "generate") {
       if (!credential?.secret_id) {

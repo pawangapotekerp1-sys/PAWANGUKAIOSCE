@@ -350,8 +350,7 @@ export async function testGeminiConnection(apiKey: string, model: string) {
     apiKey,
     model,
     prompt: "Balas dengan kata OK saja.",
-    maxOutputTokens: 16,
-    thinkingBudget: 0,
+    maxOutputTokens: 8192,
   });
 
   return {

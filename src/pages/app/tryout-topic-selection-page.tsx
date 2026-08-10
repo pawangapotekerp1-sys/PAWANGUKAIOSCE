@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Filter, ArrowRight, ArrowLeft, AlertCircle } from "lucide-react";
-import { Link, useSearchParams } from "react-router";
+import { Link, useSearchParams, Navigate } from "react-router";
 import ProductShell from "../../components/layout/product-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
@@ -34,6 +34,10 @@ function TryoutTopicSelectionPage() {
   const filteredTopics = activeFilter === "ALL"
     ? topicOptions
     : topicOptions.filter((item) => item.blockId === activeFilter);
+
+  if (studentShell.role === "osce_pro") {
+    return <Navigate to="/app/scheduled-tryout" replace />;
+  }
 
   return (
     <ProductShell

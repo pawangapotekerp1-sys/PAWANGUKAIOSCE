@@ -375,6 +375,21 @@ export async function publishFlashCardMaterial(
   }, client);
 }
 
+export async function deleteFlashCardMaterial(
+  input: {
+    materialId: string;
+  },
+  client: FlashCardApiClient = getSupabaseBrowserClient(),
+) {
+  return invokeFlashCardGenerator<{
+    materialId: string;
+    status: string;
+  }>({
+    action: "delete-material",
+    materialId: input.materialId,
+  }, client);
+}
+
 export async function listPublishedFlashCardSubtopics(
   client: FlashCardApiClient = getSupabaseBrowserClient(),
 ) {

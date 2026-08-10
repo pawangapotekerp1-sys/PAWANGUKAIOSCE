@@ -28,7 +28,18 @@ function mapProfileRow(row: ProfileRow): AppProfile {
   };
 }
 
-export function normalizeAuthErrorMessage(message: string) {
+export function normalizeAuthErrorMessage(message: string, statusCode?: number) {
+  // Prefer status codes when available (resilient to message changes)
+  if (statusCode === 400) {
+    if (/invalid login credentials/i.test(message)) {
+      return "Email atau kata sandi belum cocok.";
+    }
+    if (/email not confirmed/i.test(message)) {
+      return "Email ini belum dikonfirmasi. Cek inbox sebelum mencoba lagi.";
+    }
+  }
+
+  // Fallback to message matching for backward compatibility
   if (/invalid login credentials/i.test(message)) {
     return "Email atau kata sandi belum cocok.";
   }
@@ -57,7 +68,7 @@ export async function loginWithPassword(
   });
 
   if (error) {
-    throw new Error(normalizeAuthErrorMessage(error.message));
+    throw new Error(normalizeAuthErrorMessage(error.message, (error as any).status));
   }
 
   if (data.user) {
@@ -126,7 +137,7 @@ export async function requestPasswordReset(
   });
 
   if (error) {
-    throw new Error(normalizeAuthErrorMessage(error.message));
+    throw new Error(normalizeAuthErrorMessage(error.message, (error as any).status));
   }
 }
 
@@ -144,6 +155,6 @@ export async function updatePasswordAfterRecovery(
   });
 
   if (error) {
-    throw new Error(normalizeAuthErrorMessage(error.message));
+    throw new Error(normalizeAuthErrorMessage(error.message, (error as any).status));
   }
 }

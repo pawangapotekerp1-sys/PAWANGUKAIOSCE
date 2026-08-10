@@ -1,58 +1,135 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { useNavigate, useSearchParams } from "react-router";
 import ProductShell from "../../components/layout/product-shell";
 import { productShellMeta } from "../../mocks/student-dashboard";
 import { useStudentShell } from "./use-student-shell";
 import { StationBuilderForm } from "../../features/osce/components/StationBuilderForm";
 import { StationManualEditor } from "../../features/osce/components/StationManualEditor";
-import type { StationConfig } from "../../features/osce/schemas/stationConfig";
-import { Settings2, ArrowLeft } from "lucide-react";
+import { StationConfig } from "../../features/osce/schemas/stationConfig";
+import { Settings2, ArrowLeft, ShieldAlert } from "lucide-react";
+import { getSupabaseBrowserClient } from "../../lib/supabase/browser-client";
+import { useQuery } from "@tanstack/react-query";
+import { getGlobalAiCredentialStatus } from "../../lib/api/global-ai-credential-api";
 
 export default function OsceBuilderPage() {
   const navigate = useNavigate();
   const studentShell = useStudentShell("/app/area-mentor");
 
+  const [searchParams] = useSearchParams();
+  const stationId = searchParams.get("id");
+
   const [mode, setMode] = useState<"build" | "edit">("build");
   const [isGenerating, setIsGenerating] = useState(false);
   const [config, setConfig] = useState<StationConfig | null>(null);
 
-  const handleGenerate = (prompt?: string, file?: File) => {
-    setIsGenerating(true);
-    setTimeout(() => {
-      const generatedTitle = prompt
-        ? `Stase OSCE: ${prompt}`
-        : file
-        ? `Stase OSCE dari ${file.name}`
-        : "Stase OSCE Baru";
+  useEffect(() => {
+    if (stationId) {
+      const fetchStation = async () => {
+        try {
+          const supabase = getSupabaseBrowserClient();
+          const { data, error } = await supabase
+            .from('osce_stations')
+            .select('*')
+            .eq('id', stationId)
+            .single();
 
-      const mockConfig: StationConfig = {
-        id: `stase-${Date.now()}`,
-        title: generatedTitle,
-        type: "komunikasi",
-        durationMinutes: 10,
-        instructions: prompt
-          ? `Instruksi berdasarkan prompt: ${prompt}`
-          : file
-          ? `Instruksi diekstrak dari file: ${file.name}`
-          : "Lakukan konseling dan edukasi pada pasien.",
-        aiPersona: {
-          role: "patient",
-          prompt: prompt
-            ? `Persona AI: ${prompt}`
-            : "Anda adalah pasien yang membutuhkan pelayanan konsultasi farmasi.",
-        },
-        attachments: [],
+          if (error) throw error;
+          
+          setConfig({
+            id: data.id,
+            title: data.title,
+            type: data.type,
+            durationMinutes: data.duration_minutes,
+            objective: data.objective,
+            instructions: data.instructions,
+            actorInstructions: data.actor_instructions,
+            rubrics: data.rubrics || [],
+          });
+          setMode("edit");
+        } catch (err: any) {
+          console.error(err);
+          toast.error("Gagal memuat stase OSCE: " + err.message);
+        }
       };
+      fetchStation();
+    }
+  }, [stationId]);
 
-      setConfig(mockConfig);
-      setIsGenerating(false);
+  const statusQuery = useQuery({
+    queryKey: ["global-ai-credential-status"],
+    queryFn: () => getGlobalAiCredentialStatus(),
+  });
+  
+  const hasCredential = statusQuery.data?.hasCredential ?? false;
+
+  const handleGenerate = async (prompt?: string, file?: File) => {
+    setIsGenerating(true);
+    
+    try {
+      const supabase = getSupabaseBrowserClient();
+      
+      let body: Record<string, unknown> = { prompt, mode: prompt ? "prompt" : "file" };
+      
+      if (file) {
+        const buffer = await file.arrayBuffer();
+        const base64 = btoa(
+          new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
+        body = { ...body, fileName: file.name, fileBase64: base64, fileType: file.type };
+      }
+      
+      const { data, error } = await supabase.functions.invoke("generate-osce", {
+        body
+      });
+
+      if (error) {
+        throw new Error(error.message || "Gagal menghubungi AI");
+      }
+      
+      setConfig(data);
       setMode("edit");
-    }, 2000);
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Terjadi kesalahan saat memproses skenario dengan AI: " + err.message);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
-  const handleSave = (_savedConfig: StationConfig) => {
-    window.alert("Konfigurasi OSCE berhasil disimpan!");
-    navigate("/app/area-mentor");
+  const handleSave = async (savedConfig: StationConfig) => {
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const payload = {
+        title: savedConfig.title,
+        type: savedConfig.type,
+        duration_minutes: savedConfig.durationMinutes,
+        objective: savedConfig.objective,
+        instructions: savedConfig.instructions,
+        actor_instructions: savedConfig.actorInstructions,
+        rubrics: savedConfig.rubrics,
+      };
+
+      if (stationId || savedConfig.id) {
+        const idToUpdate = stationId || savedConfig.id;
+        const { error } = await supabase.from('osce_stations').update(payload).eq('id', idToUpdate);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('osce_stations').insert({
+          ...payload,
+          created_by: user?.id
+        });
+        if (error) throw error;
+      }
+
+      toast.success("Konfigurasi OSCE berhasil disimpan!");
+      navigate("/app/mentor/osce");
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Gagal menyimpan konfigurasi: " + err.message);
+    }
   };
 
   return (
@@ -68,10 +145,10 @@ export default function OsceBuilderPage() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => navigate("/app/area-mentor")}
+                onClick={() => navigate("/app/mentor/osce")}
                 className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors cursor-pointer"
               >
-                <ArrowLeft size={14} /> Kembali ke Area Mentor
+                <ArrowLeft size={14} /> Kembali ke Daftar Stase
               </button>
             </div>
             <div className="flex items-center gap-3 mt-2">
@@ -100,9 +177,31 @@ export default function OsceBuilderPage() {
           )}
         </div>
 
+        {/* API Key Settings (BYOK) Alert */}
+        {mode === "build" && !statusQuery.isLoading && !hasCredential && (
+          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 flex flex-col gap-3">
+            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-bold">
+              <ShieldAlert className="h-5 w-5 shrink-0" />
+              Kredensial AI Belum Diatur
+            </div>
+            <p className="text-sm text-amber-800/80 dark:text-amber-300/80">
+              Anda membutuhkan kunci API Gemini untuk dapat membuat skenario OSCE. 
+              Sistem menggunakan skema Bring Your Own Key (BYOK) secara global.
+            </p>
+            <button
+              onClick={() => navigate("/app/settings/ai-config")}
+              className="mt-2 w-fit px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer"
+            >
+              Atur Kredensial AI Sekarang
+            </button>
+          </div>
+        )}
+
         {/* Dynamic Content */}
         {mode === "build" ? (
-          <StationBuilderForm onGenerate={handleGenerate} isGenerating={isGenerating} />
+          <div className={!hasCredential ? "opacity-50 pointer-events-none transition-opacity" : "transition-opacity"}>
+            <StationBuilderForm onGenerate={handleGenerate} isGenerating={isGenerating} />
+          </div>
         ) : (
           config && <StationManualEditor initialConfig={config} onSave={handleSave} />
         )}

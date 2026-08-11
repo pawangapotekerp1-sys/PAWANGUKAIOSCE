@@ -141,7 +141,7 @@ function LoginPage() {
           </div>
           <h2 className="text-5xl font-bold mb-6 font-display tracking-tight text-white shadow-sm">Pawang Apoteker</h2>
           <p className="text-lg opacity-95 font-sans font-medium leading-relaxed text-white/90 whitespace-nowrap">
-            Sistem pembelajaran terpadu untuk calon siswa PSPPA
+            Sistem pembelajaran terpadu untuk siswa PSPPA
           </p>
         </div>
       </div>

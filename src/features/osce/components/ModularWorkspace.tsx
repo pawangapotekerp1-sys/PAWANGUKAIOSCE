@@ -5,22 +5,33 @@ import { LiveCallWidget } from './LiveCallWidget';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+import { marked } from 'marked';
+
 function FormWidget({ value, onChange, template }: { value: string; onChange: (v: string) => void; template?: string }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const isInitialized = useRef(false);
+
+  useEffect(() => {
+    if (!isInitialized.current && template && contentRef.current) {
+      const html = marked.parse(template) as string;
+      contentRef.current.innerHTML = html;
+      onChange(html);
+      isInitialized.current = true;
+    }
+  }, [template, onChange]);
+
   return (
     <div className="p-4 h-full bg-white rounded-xl m-4 shadow-sm border border-slate-200 text-slate-800 flex flex-col">
-      <h3 className="font-bold mb-4">Lembar Kerja / Dokumen</h3>
-      {template && (
-        <div className="prose prose-sm text-slate-700 max-w-none mb-4 p-4 bg-slate-50 border rounded-lg overflow-x-auto">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {template}
-          </ReactMarkdown>
-        </div>
-      )}
-      <textarea 
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Ketik jawaban tertulis, perhitungan, atau rencana asuhan di sini..."
-        className="w-full flex-grow p-3 border rounded-lg resize-none outline-none focus:border-blue-500"
+      <h3 className="font-bold mb-2">Lembar Kerja / Dokumen</h3>
+      <p className="text-xs text-slate-500 mb-4">Silakan klik dan ketik jawaban Anda langsung di dalam tabel atau dokumen di bawah ini.</p>
+      
+      <div 
+        ref={contentRef}
+        contentEditable={true}
+        suppressContentEditableWarning={true}
+        onInput={(e) => onChange(e.currentTarget.innerHTML)}
+        onBlur={(e) => onChange(e.currentTarget.innerHTML)}
+        className="prose prose-sm text-slate-700 max-w-none flex-grow p-4 bg-slate-50 border rounded-lg overflow-y-auto outline-none focus:border-blue-500 focus:bg-white transition-colors"
       />
     </div>
   );

@@ -1,36 +1,27 @@
-# Task 3 Report: Update App Router
+# Task 3 Report: Admin UI - Blocks Management API
 
 ## What Was Implemented
-- Updated `src/router/app-router.tsx`:
-  - Added lazy import for `TryoutSelectionPage`: `const TryoutSelectionPage = lazy(() => import("../pages/app/tryout-selection-page"));`
-  - Added route inside `<Route path="/app">` right before `tryout`: `<Route path="tryout-selection" element={<TryoutSelectionPage />} />`
-- Updated `src/router/route-guards.tsx`:
-  - Added `role="alert"` attribute to `GuardErrorState` container div to satisfy accessibility contract for error states.
-- Added and updated tests in `src/router/app-router.test.tsx`:
-  - Added unit test verifying `/app/tryout-selection` renders `TryoutSelectionPage` ("Pilih Mode Try Out") for authenticated pro users.
-  - Updated legacy test assertions for student dashboard heading matchers and sidebar nav link targets following the Tryout Selection Page integration.
-
-## What Was Tested and Test Results
-- Focused TDD test: `renders the tryout selection route for active pro users` (1/1 PASSED, ~335ms)
-- Complete App Router test suite: `npx vitest run src/router/app-router.test.tsx --reporter=verbose`
-  - Output: 63/63 passing (63 passed, 0 failed)
-
-### TDD Evidence
-- **RED:** `npx vitest run src/router/app-router.test.tsx -t "renders the tryout selection route" --reporter=verbose`
-  - Output: Failed as expected with `TestingLibraryElementError: Unable to find an element with the text: /pilih mode try out/i` because the route was not yet registered in `app-router.tsx`.
-- **GREEN:** `npx vitest run src/router/app-router.test.tsx -t "renders the tryout selection route" --reporter=verbose`
-  - Output: `✓ src/router/app-router.test.tsx > App router > renders the tryout selection route for active pro users (335ms)` - PASSED cleanly after adding lazy import and route to `app-router.tsx`.
+- Created `src/lib/api/admin-blocks-api.ts` implementing complete CRUD operations for Admin Blocks and Topics:
+  - `getAdminBlocks()`: Fetches all blocks sorted by `sort_order` and `created_at`.
+  - `createAdminBlock(data)`: Creates a new block mapping camelCase input to DB snake_case (`icon_name`, `color_theme`, etc.).
+  - `updateAdminBlock(id, data)`: Partial update for existing block fields.
+  - `deleteAdminBlock(id)`: Deletes block by ID.
+  - `getAdminTopics(blockId)`: Fetches sub-topics for a specific block ID sorted by `sort_order` and `created_at`.
+  - `createAdminTopic(data)`: Creates a new topic under a block.
+  - `updateAdminTopic(id, data)`: Partial update for topic fields.
+  - `deleteAdminTopic(id)`: Deletes topic by ID.
+  - Exported mapping helpers `mapAdminBlock` and `mapAdminTopic`.
+- Added complete unit test suite `src/lib/api/admin-blocks-api.test.ts` covering all functions, mapping, sorting, filtering, and CRUD operations (10 tests passing).
 
 ## Files Changed
-- `src/router/app-router.tsx`
-- `src/router/app-router.test.tsx`
-- `src/router/route-guards.tsx`
+- `src/lib/api/admin-blocks-api.ts` (created)
+- `src/lib/api/admin-blocks-api.test.ts` (created)
 
 ## Self-Review Findings
-- **Completeness:** All steps from Task 3 brief implemented exactly as specified.
-- **Quality:** Code follows established routing patterns and lazy loading conventions in `app-router.tsx`.
-- **Discipline:** Only requested changes were made; existing route guards and lazy loading flow preserved.
-- **Testing:** 63/63 tests passing cleanly in `app-router.test.tsx`.
+- **Typecheck**: `npx tsc --noEmit` passed with 0 errors.
+- **Unit Tests**: `npx vitest run src/lib/api/admin-blocks-api.test.ts` passed (10/10 tests passing).
+- **Interface Compatibility**: Functions accept camelCase and fallback snake_case inputs for maximum flexibility with existing forms/callers, while returning standard camelCase domain objects (`AdminBlock`, `AdminTopic`).
+- **Code Quality**: Followed existing API module patterns in `admin-api.ts` and `tryout-api.ts`, taking an optional `client` parameter with `getSupabaseBrowserClient()` as default.
 
-## Status
-DONE
+## Issues or Concerns
+- None. Everything implemented cleanly and verified.

@@ -1,31 +1,30 @@
-### Task 3: Update App Router
+### Task 3: Admin UI - Blocks Management API
 
 **Files:**
-- Modify: `src/router/app-router.tsx`
+- Create: `src/lib/api/admin-blocks-api.ts`
 
 **Interfaces:**
-- Consumes: `TryoutSelectionPage`
+- Produces: Functions to fetch, create, update, and delete blocks and topics for the Admin panel.
 
-- [ ] **Step 1: Modify app-router.tsx**
+- [ ] **Step 1: Write CRUD functions**
+Create the following exported functions using `getSupabaseBrowserClient()`:
+- `getAdminBlocks()`: Returns all blocks (including `icon_name` and `color_theme`) sorted by `sort_order` or `created_at`.
+- `createAdminBlock(data: { name: string, slug: string, description?: string, sort_order?: number, icon_name?: string, color_theme?: string })`
+- `updateAdminBlock(id: string, data: Partial<...>)`
+- `deleteAdminBlock(id: string)`
 
-Update `src/router/app-router.tsx` to lazy load the new page and add the route:
-1. Add lazy import near the other page imports:
-```typescript
-const TryoutSelectionPage = lazy(() => import("../pages/app/tryout-selection-page"));
-```
-2. Add the route inside `<Route path="/app">` right before the `tryout` route:
-```tsx
-            <Route path="tryout-selection" element={<TryoutSelectionPage />} />
-```
+And for topics (materi):
+- `getAdminTopics(blockId: string)`: Returns topics for a specific block.
+- `createAdminTopic(data: { block_id: string, name: string, slug: string, description?: string, sort_order?: number })`
+- `updateAdminTopic(id: string, data: Partial<...>)`
+- `deleteAdminTopic(id: string)`
 
-- [ ] **Step 2: Typecheck modifications**
+Use existing `supabase/browser-client` patterns (like `src/lib/api/tryout-api.ts`).
+Remember that the database columns use snake_case (`icon_name`, `color_theme`). Let the functions accept camelCase inputs and map them to snake_case for the database insertion/update if necessary, or just accept the mapped objects. It's best to return mapped objects in camelCase (e.g., `iconName`, `colorTheme`).
 
-Run: `npx tsc --noEmit`
-Expected: PASS
-
-- [ ] **Step 3: Commit**
+- [ ] **Step 2: Commit**
 
 ```bash
-git add src/router/app-router.tsx
-git commit -m "feat: add tryout-selection route"
+git add src/lib/api/admin-blocks-api.ts
+git commit -m "feat: add admin blocks and topics api methods"
 ```

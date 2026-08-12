@@ -1,58 +1,26 @@
-### Task 1: Update Sidebar Navigation
+### Task 1: Database Migration & Schema Update
 
 **Files:**
-- Modify: `src/mocks/student-dashboard.ts`
+- Create: `supabase/migrations/20260805000000_custom_blocks_visuals.sql` (use current date if needed)
 
 **Interfaces:**
-- Produces: Updated `productNavItems` with a single `Try Out` menu pointing to `/app/tryout-selection`.
+- Produces: `public.blocks` now has `icon_name` (text, nullable) and `color_theme` (text, nullable).
 
-- [ ] **Step 1: Modify student-dashboard.ts**
+- [ ] **Step 1: Write the migration file**
 
-Update `productNavItems` in `src/mocks/student-dashboard.ts` to look exactly like this:
-```typescript
-export const productNavItems: ProductNavItem[] = [
-  {
-    href: "/app/tryout-selection",
-    label: "Try Out",
-    icon: FileCheck2,
-  },
-  {
-    href: "/app/analytics",
-    label: "Analisis",
-    icon: ChartColumnBig,
-  },
-  {
-    href: "/app/review",
-    label: "Review",
-    icon: BookOpenCheck,
-  },
-  {
-    href: "/app/questions",
-    label: "Bank Soal",
-    icon: FileCheck2,
-  },
-  {
-    href: "/app/leaderboard",
-    label: "Leaderboard",
-    icon: Trophy,
-  },
-  {
-    href: "/profile",
-    label: "Profil",
-    icon: IdCard,
-  },
-] as const;
+```sql
+-- 1. Tambahkan kolom visual ke tabel blocks
+ALTER TABLE public.blocks
+ADD COLUMN icon_name text,
+ADD COLUMN color_theme text;
+
+-- 2. Hapus data lama
+-- (Note from Controller: We decided not to delete the existing blocks/questions to avoid data loss. Just add the columns.)
 ```
-Note: Ensure you keep all other content in `src/mocks/student-dashboard.ts` intact.
 
-- [ ] **Step 2: Typecheck modifications**
-
-Run: `npx tsc --noEmit`
-Expected: PASS without type errors.
-
-- [ ] **Step 3: Commit**
+- [ ] **Step 2: Commit**
 
 ```bash
-git add src/mocks/student-dashboard.ts
-git commit -m "feat: merge try out sidebar menus"
+git add supabase/migrations
+git commit -m "feat: add icon and color columns to blocks table"
 ```

@@ -135,7 +135,7 @@ Tidak boleh ada teks penjelasan sebelum atau sesudah JSON, pastikan JSON valid d
 
     // Default id untuk frontend
     if (!resultConfig.id) {
-       resultConfig.id = 'stase-' + Date.now();
+       resultConfig.id = crypto.randomUUID();
     }
 
     return jsonResponse(resultConfig);

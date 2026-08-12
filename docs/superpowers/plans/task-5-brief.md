@@ -1,16 +1,24 @@
-# Task 5: Implement dynamic fetch for TryoutBlockSelectionPage
+### Task 5: App UI - Block Selection Refactor
 
-## Requirements
-Modify `src/pages/app/tryout-block-selection-page.tsx` to no longer use hardcoded `blockOptions`. Instead:
-1. Use `useQuery` from `@tanstack/react-query` to fetch data via `listTryoutCatalogEntries` (from `src/lib/api/tryout-api.ts`).
-2. Filter the entries where `mode === "block"`.
-3. Render the UI using the fetched data. Since the backend doesn't provide visual properties (icon, background color), create a small mapping function that adds these based on `blockId` or `blockName`.
-4. Include a loading state (e.g., using Lucide icons like `Loader2` or skeleton placeholders) and an error state.
-5. The visual design, card layout, and interaction must remain identical or very similar to the previous version (using Shadcn/ui and `frontend-design` guidelines).
+**Files:**
+- Modify: `src/pages/app/tryout-block-selection-page.tsx`
 
-## Context
-This fixes an issue where the hardcoded UI did not match the backend's data configuration for blocks.
+**Interfaces:**
+- Consumes: The `TryoutTemplate` data with `iconName` and `colorTheme` from the API response.
 
-## Global Constraints
-- Use `shadcn/ui` where applicable.
-- No placeholders in code.
+- [ ] **Step 1: Create Visuals Mapper**
+In `src/pages/app/tryout-block-selection-page.tsx` (or in a new UI utility file), create a function `mapBlockVisuals(iconName?: string | null, colorTheme?: string | null)`.
+This function should map string names (e.g. `'Stethoscope'`) to the actual Lucide React icon components.
+It should map `colorTheme` string names (e.g. `'teal'`) to the correct Tailwind classes (e.g. `border-teal-500/20 bg-teal-500/10 text-teal-600` for active state).
+Provide safe fallbacks (e.g., a default `LayoutGrid` icon and `slate` color theme) if the database value is null/unknown.
+
+- [ ] **Step 2: Apply in Component**
+Refactor the UI component mapping in `src/pages/app/tryout-block-selection-page.tsx`. Remove the hardcoded `getBlockVisuals` function (which relies on `block.name`).
+Instead, in the `renderBlockCard` or block loop, call `mapBlockVisuals(block.iconName, block.colorTheme)` to get the `icon: Icon` and `colorClass` to render.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add src/pages/app/tryout-block-selection-page.tsx
+git commit -m "refactor: use dynamic block visuals from api in block selection"
+```

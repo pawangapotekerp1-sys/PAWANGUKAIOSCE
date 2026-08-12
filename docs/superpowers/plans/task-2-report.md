@@ -1,39 +1,26 @@
-# Task 2 Report: Create TryoutSelectionPage
+# Task 2 Report: API & Types Update
 
-## Summary of Implementation
-Created `TryoutSelectionPage` component and its corresponding unit test file:
-- `src/pages/app/tryout-selection-page.tsx`: Component rendering the mode selection options ("Try Out Unlimited" and "Try Out Terjadwal") wrapped in `ProductShell`.
-- `src/pages/app/tryout-selection-page.test.tsx`: Unit test suite ensuring `TryoutSelectionPage` renders the selection title and card options properly.
+## Executive Summary
+Task 2 updated the frontend API client types and mapping logic in `src/lib/api/tryout-api.ts` to surface the newly added `icon_name` and `color_theme` block database columns.
 
-## TDD Evidence
+## What Was Implemented
+1. **TypeScript Row & Entity Type Updates**:
+   - Added `icon_name?: string | null` and `color_theme?: string | null` to `ExamTemplateRow`, `TryoutCatalogEntryRow`, and `TaxonomyBlockRow`.
+   - Added `iconName?: string | null` and `colorTheme?: string | null` to `TryoutTemplate` (which `TryoutCatalogEntry` inherits).
 
-### RED Phase
-- **Command:** `npx vitest run src/pages/app/tryout-selection-page.test.tsx`
-- **Output:**
-  ```
-  FAIL src/pages/app/tryout-selection-page.test.tsx [ src/pages/app/tryout-selection-page.test.tsx ]
-  Error: Failed to resolve import "./tryout-selection-page" from "src/pages/app/tryout-selection-page.test.tsx". Does the file exist?
-  ```
-- **Rationale:** Failed as expected because `./tryout-selection-page` component file did not exist yet.
-
-### GREEN Phase
-- **Command:** `npx vitest run src/pages/app/tryout-selection-page.test.tsx`
-- **Output:**
-  ```
-  ✓ src/pages/app/tryout-selection-page.test.tsx (1 test) 114ms
-  Test Files  1 passed (1)
-       Tests  1 passed (1)
-  ```
-- **Rationale:** Test passed successfully after implementing `TryoutSelectionPage`.
+2. **Data Mappers & Queries**:
+   - Updated `mapTemplate` to map `iconName` and `colorTheme` from `relatedBlock` or `ExamTemplateRow`.
+   - Updated `mapCatalogEntry` to map `iconName` and `colorTheme` from `TryoutCatalogEntryRow`.
+   - Updated `listPublishedExamTemplates` query selection string to request `icon_name` and `color_theme` from `block:blocks`.
+   - Updated `listTryoutCatalogEntriesFallback` query selection string and fallback mapping logic for `full`, `block`, and `topic` catalog fallback entries.
 
 ## Files Changed
-- `src/pages/app/tryout-selection-page.tsx` (Created)
-- `src/pages/app/tryout-selection-page.test.tsx` (Created)
+- `src/lib/api/tryout-api.ts`
 
-## Self-Review & Verification
-- **Completeness:** Implemented `TryoutSelectionPage` matching exact design and route navigation spec (`/app/tryout` and `/app/scheduled-tryout`).
-- **Discipline:** Followed established codebase patterns (`ProductShell`, `useStudentShell`, `getButtonStyleProps`, `Card`).
-- **Testing:** Followed strict TDD cycle with RED/GREEN evidence.
+## Self-Review Findings & Verification
+- Ran TypeScript compilation (`npx tsc --noEmit`) — Passed with 0 errors.
+- Verified `git diff` to confirm exact compliance with `task-2-brief.md`.
+- Staged and committed changes with commit SHA `2fc89ef`.
 
-## Status & Commits
-- **Commit:** `ea5d21d` - `feat: create tryout selection page`
+## Issues / Concerns
+- None. All type definitions and data mappers match database schema and downstream requirements.

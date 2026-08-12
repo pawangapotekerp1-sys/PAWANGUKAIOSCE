@@ -1,669 +1,1672 @@
-﻿diff --git a/src/components/DriveExplorer/ActionMenu.tsx b/src/components/DriveExplorer/ActionMenu.tsx
+﻿diff --git a/docs/superpowers/specs/2026-08-05-custom-blocks-materials-design.md b/docs/superpowers/specs/2026-08-05-custom-blocks-materials-design.md
 new file mode 100644
-index 0000000..31626ec
+index 0000000..71aea09
 --- /dev/null
-+++ b/src/components/DriveExplorer/ActionMenu.tsx
-@@ -0,0 +1,62 @@
-+import React from 'react';
-+import { DotsThree, Trash, Copy, ArrowRight } from '@phosphor-icons/react';
++++ b/docs/superpowers/specs/2026-08-05-custom-blocks-materials-design.md
+@@ -0,0 +1,41 @@
++# Custom Blocks and Materials Management Design
 +
-+interface ActionMenuProps<T> {
-+  item: T;
-+  isOpen: boolean;
-+  onToggle: () => void;
-+  onClone?: (item: T) => void;
-+  onMove?: (item: T) => void;
-+  onDelete?: (item: T) => void;
-+  menuHoverClass?: string;
-+}
++## Objective
++Mengganti sistem blok dan materi (topik) yang saat ini bersifat statis (hardcoded) menjadi sistem dinamis yang dapat dikelola sepenuhnya (CRUD) oleh Admin dan Mentor. Tampilan visual blok pada sisi siswa juga akan mengikuti pengaturan yang dibuat oleh Admin/Mentor, alih-alih hardcoded di komponen UI.
 +
-+export function ActionMenu<T>({ item, isOpen, onToggle, onClone, onMove, onDelete, menuHoverClass = 'hover:text-blue-600' }: ActionMenuProps<T>) {
-+  return (
-+    <>
-+      <button
-+        onClick={(e) => {
-+          e.stopPropagation();
-+          onToggle();
-+        }}
-+        className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-+      >
-+        <DotsThree weight="bold" className="w-5 h-5" />
-+      </button>
++## Scope & Access
++- **Admin & Mentor**: Memiliki akses ke halaman baru di dashboard Admin untuk mengelola (Menambah, Mengubah, Menghapus) Blok dan Materi (Sub-topik).
++- **Siswa (App)**: Hanya melihat dan menggunakan blok/materi yang telah dibuat oleh Admin/Mentor di halaman latihan/Try Out.
++- **Visual Blok**: Admin/Mentor dapat memilih *icon* dan *tema warna* saat membuat blok baru dari pilihan yang disediakan.
 +
-+      {isOpen && (
-+        <div
-+          className="absolute right-0 top-full mt-1 w-48 bg-white border border-slate-200 rounded-lg shadow-xl z-10 py-1"
-+        >
-+          {onClone && (
-+            <button
-+              onClick={(e) => { e.stopPropagation(); onToggle(); onClone(item); }}
-+              className={`w-full flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 ${menuHoverClass}`}
-+            >
-+              <Copy className="w-4 h-4 mr-2" /> Clone
-+            </button>
-+          )}
-+          {onMove && (
-+            <button
-+              onClick={(e) => { e.stopPropagation(); onToggle(); onMove(item); }}
-+              className={`w-full flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 ${menuHoverClass}`}
-+            >
-+              <ArrowRight className="w-4 h-4 mr-2" /> Move
-+            </button>
-+          )}
-+          {(onClone || onMove) && onDelete && (
-+            <div className="h-px bg-slate-100 my-1" />
-+          )}
-+          {onDelete && (
-+            <button
-+              onClick={(e) => { e.stopPropagation(); onToggle(); onDelete(item); }}
-+              className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-+            >
-+              <Trash className="w-4 h-4 mr-2" /> Delete
-+            </button>
-+          )}
-+        </div>
-+      )}
-+    </>
-+  );
-+}
-diff --git a/src/components/DriveExplorer/Breadcrumb.tsx b/src/components/DriveExplorer/Breadcrumb.tsx
++## Architecture & Data Changes
++
++### 1. Database Schema (Supabase)
++Kita akan membuat migrasi baru untuk mengubah tabel `public.blocks`:
++- Tambahkan kolom `icon_name` (text, default ke icon standar, nullable).
++- Tambahkan kolom `color_theme` (text, merepresentasikan preset warna seperti 'blue', 'teal', 'fuchsia', dll).
++- Hapus semua data statis awal (seeder) jika diperlukan (berdasarkan instruksi user: "menghapus seluruh jenis blok dan materi").
++- Kolom yang sudah ada (`slug`, `name`, `description`, `sort_order`, `is_active`) akan tetap digunakan.
++
++### 2. Admin UI (Dashboard)
++Membuat halaman baru di rute Admin:
++- **`src/pages/admin/blocks-page.tsx`**: Halaman utama manajemen blok.
++  - Tabel/Daftar blok yang ada.
++  - Tombol "Tambah Blok" yang membuka Dialog/Modal form (Nama, Deskripsi, Pilihan Icon, Pilihan Warna, Urutan).
++  - Aksi "Edit" dan "Hapus".
++- **`src/pages/admin/topics-page.tsx`** (Atau dikelola di dalam detail blok): Halaman/modal manajemen materi/topik yang terikat dengan relasi `block_id`.
++
++### 3. App UI (Siswa)
++- Memodifikasi **`tryout-block-selection-page.tsx`** dan halaman relevan lainnya.
++- Menghapus fungsi `getBlockVisuals` yang melakukan pengecekan hardcoded (misal `name.includes("clinical")`).
++- Mengganti logika visual dengan menggunakan data `icon_name` dan `color_theme` yang dikembalikan dari API. Kita akan menyediakan *mapping* warna (Tailwind classes) dan icon berdasarkan data dari database.
++
++## Trade-offs & Alternatives Considered
++1. **Menyimpan Visual Config di Kolom `metadata` JSONB**: Lebih fleksibel untuk ekstensi masa depan, tapi berpotensi menyulitkan pengetikan (typing) di frontend.
++2. **(Rekomendasi Terpilih) Menambah Kolom Eksplisit `icon_name` & `color_theme`**: Relasional dan *type-safe*, cukup untuk kebutuhan saat ini di mana visual bergantung pada sepasang konfigurasi tetap.
++
++## Verification
++- Admin/Mentor dapat membuat blok baru dengan icon "Stethoscope" dan tema warna "Teal".
++- Data masuk ke Supabase dengan benar.
++- Saat siswa login dan masuk ke "Latihan Per Blok", blok baru tersebut muncul dengan desain yang sesuai.
++- Blok lama yang sudah dihapus tidak lagi muncul.
+diff --git a/src/lib/api/admin-blocks-api.test.ts b/src/lib/api/admin-blocks-api.test.ts
 new file mode 100644
-index 0000000..4e41a0d
+index 0000000..7662647
 --- /dev/null
-+++ b/src/components/DriveExplorer/Breadcrumb.tsx
-@@ -0,0 +1,53 @@
-+import React from 'react';
-+import { CaretRight, House } from '@phosphor-icons/react';
-+
-+export interface BreadcrumbItem {
-+  id: string | null; // null for Root
-+  name: string;
-+}
-+
-+interface BreadcrumbProps {
-+  items: BreadcrumbItem[];
-+  onNavigate: (id: string | null) => void;
-+}
-+
-+export function Breadcrumb({ items, onNavigate }: BreadcrumbProps) {
-+  return (
-+    <nav className="flex items-center space-x-2 text-sm text-slate-500 mb-6 bg-slate-50 p-3 rounded-lg border border-slate-100 shadow-sm">
-+      <button
-+        onClick={() => onNavigate(null)}
-+        className="flex items-center hover:text-blue-600 transition-colors p-1 rounded hover:bg-slate-200"
-+        title="Root Folder"
-+      >
-+        <House weight="fill" className="w-4 h-4 mr-1" />
-+        <span className="font-medium">Home</span>
-+      </button>
-+
-+      {items.length > 0 && (
-+        <CaretRight weight="bold" className="w-3 h-3 text-slate-300" />
-+      )}
-+
-+      {items.map((item, index) => {
-+        const isLast = index === items.length - 1;
-+
-+        return (
-+          <React.Fragment key={item.id ?? 'root'}>
-+            <button
-+              onClick={() => onNavigate(item.id)}
-+              className={`px-2 py-1 rounded transition-colors truncate max-w-[150px] ${
-+                isLast
-+                  ? 'text-slate-800 font-semibold bg-white shadow-sm border border-slate-200'
-+                  : 'hover:text-blue-600 hover:bg-slate-200 font-medium'
-+              }`}
-+            >
-+              {item.name}
-+            </button>
-+            {!isLast && (
-+              <CaretRight weight="bold" className="w-3 h-3 text-slate-300 flex-shrink-0" />
-+            )}
-+          </React.Fragment>
-+        );
-+      })}
-+    </nav>
-+  );
-+}
-diff --git a/src/components/DriveExplorer/DriveExplorer.test.tsx b/src/components/DriveExplorer/DriveExplorer.test.tsx
-new file mode 100644
-index 0000000..9510f81
---- /dev/null
-+++ b/src/components/DriveExplorer/DriveExplorer.test.tsx
-@@ -0,0 +1,107 @@
-+import React from 'react';
-+import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
-+import { describe, expect, it, vi, afterEach } from 'vitest';
-+import { DriveExplorer } from './DriveExplorer';
-+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-+import { getFolders, getLinks } from '@/lib/api/material-api';
-+
-+vi.mock('@/lib/api/material-api', () => ({
-+  getFolders: vi.fn().mockResolvedValue([]),
-+  getLinks: vi.fn().mockResolvedValue([]),
-+  createFolder: vi.fn(),
-+  createLink: vi.fn(),
-+  deleteFolder: vi.fn(),
-+  deleteLink: vi.fn(),
-+  cloneItem: vi.fn(),
-+  moveItem: vi.fn(),
-+}));
-+
-+const queryClient = new QueryClient({
-+  defaultOptions: {
-+    queries: {
-+      retry: false,
-+    },
-+  },
-+});
-+
-+function renderWithProviders(ui: React.ReactElement) {
-+  return render(
-+    <QueryClientProvider client={queryClient}>
-+      {ui}
-+    </QueryClientProvider>
-+  );
-+}
-+
-+describe('DriveExplorer', () => {
-+  afterEach(() => {
-+    cleanup();
-+    queryClient.clear();
-+    vi.clearAllMocks();
-+  });
-+
-+  it('renders loading state initially', () => {
-+    renderWithProviders(<DriveExplorer driveType="rekaman" isMentorOrAdmin={false} />);
-+    expect(screen.getByText('Loading files...')).toBeInTheDocument();
-+  });
-+
-+  it('renders title for VIDEO drive', async () => {
-+    renderWithProviders(<DriveExplorer driveType="rekaman" isMentorOrAdmin={false} />);
-+    const headings = await screen.findAllByText('Video Library');
-+    expect(headings.length).toBeGreaterThan(0);
-+  });
-+
-+  it('renders title for PPT drive', async () => {
-+    renderWithProviders(<DriveExplorer driveType="ppt" isMentorOrAdmin={false} />);
-+    const headings = await screen.findAllByText('Presentations');
-+    expect(headings.length).toBeGreaterThan(0);
-+  });
-+
-+  it('does not render admin buttons when isMentorOrAdmin is false', async () => {
-+    renderWithProviders(<DriveExplorer driveType="rekaman" isMentorOrAdmin={false} />);
-+    await waitFor(() => {
-+      expect(screen.queryByText('New Folder')).not.toBeInTheDocument();
-+      expect(screen.queryByText('New Link')).not.toBeInTheDocument();
-+    });
-+  });
-+
-+  it('renders admin buttons when isMentorOrAdmin is true', async () => {
-+    renderWithProviders(<DriveExplorer driveType="rekaman" isMentorOrAdmin={true} />);
-+    await waitFor(() => {
-+      expect(screen.getByText('New Folder')).toBeInTheDocument();
-+      expect(screen.getByText('New Link')).toBeInTheDocument();
-+    });
-+  });
-+
-+  it('navigates into a folder when clicked and updates breadcrumbs', async () => {
-+    (getFolders as any).mockResolvedValueOnce([
-+      { id: 'folder-1', name: 'Folder 1', type: 'folder', created_at: '', updated_at: '' }
-+    ]).mockResolvedValueOnce([]); // Mock for the second query when navigating inside
-+
-+    renderWithProviders(<DriveExplorer driveType="rekaman" isMentorOrAdmin={false} />);
-+
-+    // Wait for the folder to be rendered
-+    const folderElement = await screen.findByText('Folder 1');
-+    expect(folderElement).toBeInTheDocument();
-+
-+    // Click the folder
-+    fireEvent.click(folderElement);
-+
-+    // Breadcrumb should now show the folder name
-+    const breadcrumbElement = await screen.findByText('Folder 1', { selector: 'button.text-slate-800' });
-+    expect(breadcrumbElement).toBeInTheDocument();
-+    
-+    // Breadcrumb 'Home' should be clickable
-+    const homeBreadcrumb = screen.getByRole('button', { name: /home/i });
-+    expect(homeBreadcrumb).toBeInTheDocument();
-+    
-+    // Click Home to navigate back
-+    fireEvent.click(homeBreadcrumb);
-+    
-+    // The query for the root folder should have been called again (which now returns [])
-+    // Because we mocked the second call to return [], 'No items found' will appear if links is also empty
-+    // Let's just assert that breadcrumb is gone or back to normal
-+    await waitFor(() => {
-+      expect(screen.queryByText('Folder 1', { selector: 'button.text-slate-800' })).not.toBeInTheDocument();
-+    });
-+  });
-+});
-diff --git a/src/components/DriveExplorer/DriveExplorer.tsx b/src/components/DriveExplorer/DriveExplorer.tsx
-new file mode 100644
-index 0000000..f60101e
---- /dev/null
-+++ b/src/components/DriveExplorer/DriveExplorer.tsx
-@@ -0,0 +1,284 @@
-+import React, { useState, useEffect } from 'react';
-+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
++++ b/src/lib/api/admin-blocks-api.test.ts
+@@ -0,0 +1,331 @@
++import { describe, expect, test, vi } from "vitest";
 +import {
-+  MaterialDriveType,
-+  MaterialFolder,
-+  MaterialLink,
-+  getFolders,
-+  getLinks,
-+  createFolder,
-+  createLink,
-+  deleteFolder,
-+  deleteLink,
-+  cloneItem,
-+  moveItem,
-+} from '@/lib/api/material-api';
-+import { Breadcrumb, BreadcrumbItem } from './Breadcrumb';
-+import { FolderItem } from './FolderItem';
-+import { LinkItem } from './LinkItem';
-+import { FolderPlus, Link as LinkIcon, Spinner } from '@phosphor-icons/react';
++  createAdminBlock,
++  createAdminTopic,
++  deleteAdminBlock,
++  deleteAdminTopic,
++  getAdminBlocks,
++  getAdminTopics,
++  mapAdminBlock,
++  mapAdminTopic,
++  updateAdminBlock,
++  updateAdminTopic,
++} from "./admin-blocks-api";
 +
-+interface DriveExplorerProps {
-+  driveType: 'rekaman' | 'ppt';
-+  isMentorOrAdmin: boolean;
++describe("admin-blocks-api", () => {
++  test("mapAdminBlock maps DB row to camelCase AdminBlock", () => {
++    const row = {
++      id: "block-1",
++      name: "Farmakologi",
++      slug: "farmakologi",
++      description: "Blok farmakologi",
++      sort_order: 1,
++      is_active: true,
++      icon_name: "Pill",
++      color_theme: "teal",
++      created_at: "2026-08-05T00:00:00Z",
++      updated_at: "2026-08-05T00:00:00Z",
++    };
++
++    const mapped = mapAdminBlock(row);
++    expect(mapped).toEqual({
++      id: "block-1",
++      name: "Farmakologi",
++      slug: "farmakologi",
++      description: "Blok farmakologi",
++      sortOrder: 1,
++      isActive: true,
++      iconName: "Pill",
++      colorTheme: "teal",
++      createdAt: "2026-08-05T00:00:00Z",
++      updatedAt: "2026-08-05T00:00:00Z",
++    });
++  });
++
++  test("mapAdminTopic maps DB row to camelCase AdminTopic", () => {
++    const row = {
++      id: "topic-1",
++      block_id: "block-1",
++      name: "Kardiovaskular",
++      slug: "kardiovaskular",
++      description: "Topik kardiovaskular",
++      sort_order: 2,
++      is_active: true,
++      created_at: "2026-08-05T00:00:00Z",
++      updated_at: "2026-08-05T00:00:00Z",
++    };
++
++    const mapped = mapAdminTopic(row);
++    expect(mapped).toEqual({
++      id: "topic-1",
++      blockId: "block-1",
++      name: "Kardiovaskular",
++      slug: "kardiovaskular",
++      description: "Topik kardiovaskular",
++      sortOrder: 2,
++      isActive: true,
++      createdAt: "2026-08-05T00:00:00Z",
++      updatedAt: "2026-08-05T00:00:00Z",
++    });
++  });
++
++  test("getAdminBlocks fetches and maps blocks sorted by sort_order and created_at", async () => {
++    const orderFn2 = vi.fn().mockResolvedValue({
++      data: [
++        {
++          id: "b-1",
++          name: "Block A",
++          slug: "block-a",
++          description: null,
++          sort_order: 1,
++          is_active: true,
++          icon_name: "Heart",
++          color_theme: "rose",
++          created_at: "2026-01-01T00:00:00Z",
++          updated_at: "2026-01-01T00:00:00Z",
++        },
++      ],
++      error: null,
++    });
++    const orderFn1 = vi.fn().mockReturnValue({ order: orderFn2 });
++    const selectFn = vi.fn().mockReturnValue({ order: orderFn1 });
++
++    const client = {
++      from: vi.fn().mockReturnValue({ select: selectFn }),
++    };
++
++    const result = await getAdminBlocks(client as never);
++    expect(client.from).toHaveBeenCalledWith("blocks");
++    expect(result).toHaveLength(1);
++    expect(result[0].iconName).toBe("Heart");
++  });
++
++  test("createAdminBlock inserts block and maps return payload", async () => {
++    const singleFn = vi.fn().mockResolvedValue({
++      data: {
++        id: "b-2",
++        name: "Block B",
++        slug: "block-b",
++        description: "Desc",
++        sort_order: 10,
++        is_active: true,
++        icon_name: "Book",
++        color_theme: "blue",
++        created_at: "2026-01-01T00:00:00Z",
++        updated_at: "2026-01-01T00:00:00Z",
++      },
++      error: null,
++    });
++    const selectFn = vi.fn().mockReturnValue({ single: singleFn });
++    const insertFn = vi.fn().mockReturnValue({ select: selectFn });
++
++    const client = {
++      from: vi.fn().mockReturnValue({ insert: insertFn }),
++    };
++
++    const result = await createAdminBlock(
++      {
++        name: "Block B",
++        slug: "block-b",
++        description: "Desc",
++        sortOrder: 10,
++        iconName: "Book",
++        colorTheme: "blue",
++      },
++      client as never,
++    );
++
++    expect(insertFn).toHaveBeenCalledWith({
++      name: "Block B",
++      slug: "block-b",
++      description: "Desc",
++      sort_order: 10,
++      icon_name: "Book",
++      color_theme: "blue",
++      is_active: true,
++    });
++    expect(result.id).toBe("b-2");
++  });
++
++  test("updateAdminBlock updates block fields", async () => {
++    const singleFn = vi.fn().mockResolvedValue({
++      data: {
++        id: "b-1",
++        name: "Updated Block",
++        slug: "block-a",
++        description: null,
++        sort_order: 5,
++        is_active: false,
++        icon_name: "Shield",
++        color_theme: "indigo",
++        created_at: "2026-01-01T00:00:00Z",
++        updated_at: "2026-01-02T00:00:00Z",
++      },
++      error: null,
++    });
++    const selectFn = vi.fn().mockReturnValue({ single: singleFn });
++    const eqFn = vi.fn().mockReturnValue({ select: selectFn });
++    const updateFn = vi.fn().mockReturnValue({ eq: eqFn });
++
++    const client = {
++      from: vi.fn().mockReturnValue({ update: updateFn }),
++    };
++
++    const result = await updateAdminBlock(
++      "b-1",
++      {
++        name: "Updated Block",
++        sortOrder: 5,
++        iconName: "Shield",
++        colorTheme: "indigo",
++        isActive: false,
++      },
++      client as never,
++    );
++
++    expect(updateFn).toHaveBeenCalledWith({
++      name: "Updated Block",
++      sort_order: 5,
++      icon_name: "Shield",
++      color_theme: "indigo",
++      is_active: false,
++    });
++    expect(eqFn).toHaveBeenCalledWith("id", "b-1");
++    expect(result.name).toBe("Updated Block");
++  });
++
++  test("deleteAdminBlock removes block by id", async () => {
++    const eqFn = vi.fn().mockResolvedValue({ error: null });
++    const deleteFn = vi.fn().mockReturnValue({ eq: eqFn });
++    const client = {
++      from: vi.fn().mockReturnValue({ delete: deleteFn }),
++    };
++
++    await deleteAdminBlock("b-1", client as never);
++    expect(client.from).toHaveBeenCalledWith("blocks");
++    expect(eqFn).toHaveBeenCalledWith("id", "b-1");
++  });
++
++  test("getAdminTopics filters by block_id", async () => {
++    const orderFn2 = vi.fn().mockResolvedValue({
++      data: [
++        {
++          id: "t-1",
++          block_id: "b-1",
++          name: "Topic 1",
++          slug: "topic-1",
++          description: null,
++          sort_order: 1,
++          is_active: true,
++          created_at: "2026-01-01T00:00:00Z",
++          updated_at: "2026-01-01T00:00:00Z",
++        },
++      ],
++      error: null,
++    });
++    const orderFn1 = vi.fn().mockReturnValue({ order: orderFn2 });
++    const eqFn = vi.fn().mockReturnValue({ order: orderFn1 });
++    const selectFn = vi.fn().mockReturnValue({ eq: eqFn });
++
++    const client = {
++      from: vi.fn().mockReturnValue({ select: selectFn }),
++    };
++
++    const topics = await getAdminTopics("b-1", client as never);
++    expect(eqFn).toHaveBeenCalledWith("block_id", "b-1");
++    expect(topics).toHaveLength(1);
++    expect(topics[0].blockId).toBe("b-1");
++  });
++
++  test("createAdminTopic inserts topic for block", async () => {
++    const singleFn = vi.fn().mockResolvedValue({
++      data: {
++        id: "t-2",
++        block_id: "b-1",
++        name: "Topic 2",
++        slug: "topic-2",
++        description: "Desc",
++        sort_order: 3,
++        is_active: true,
++        created_at: "2026-01-01T00:00:00Z",
++        updated_at: "2026-01-01T00:00:00Z",
++      },
++      error: null,
++    });
++    const selectFn = vi.fn().mockReturnValue({ single: singleFn });
++    const insertFn = vi.fn().mockReturnValue({ select: selectFn });
++
++    const client = {
++      from: vi.fn().mockReturnValue({ insert: insertFn }),
++    };
++
++    const topic = await createAdminTopic(
++      {
++        blockId: "b-1",
++        name: "Topic 2",
++        slug: "topic-2",
++        description: "Desc",
++        sortOrder: 3,
++      },
++      client as never,
++    );
++
++    expect(insertFn).toHaveBeenCalledWith({
++      block_id: "b-1",
++      name: "Topic 2",
++      slug: "topic-2",
++      description: "Desc",
++      sort_order: 3,
++      is_active: true,
++    });
++    expect(topic.name).toBe("Topic 2");
++  });
++
++  test("updateAdminTopic updates topic by id", async () => {
++    const singleFn = vi.fn().mockResolvedValue({
++      data: {
++        id: "t-1",
++        block_id: "b-1",
++        name: "Updated Topic",
++        slug: "topic-1",
++        description: "New desc",
++        sort_order: 1,
++        is_active: true,
++        created_at: "2026-01-01T00:00:00Z",
++        updated_at: "2026-01-02T00:00:00Z",
++      },
++      error: null,
++    });
++    const selectFn = vi.fn().mockReturnValue({ single: singleFn });
++    const eqFn = vi.fn().mockReturnValue({ select: selectFn });
++    const updateFn = vi.fn().mockReturnValue({ eq: eqFn });
++
++    const client = {
++      from: vi.fn().mockReturnValue({ update: updateFn }),
++    };
++
++    const topic = await updateAdminTopic(
++      "t-1",
++      {
++        name: "Updated Topic",
++        description: "New desc",
++      },
++      client as never,
++    );
++
++    expect(eqFn).toHaveBeenCalledWith("id", "t-1");
++    expect(topic.name).toBe("Updated Topic");
++  });
++
++  test("deleteAdminTopic deletes topic by id", async () => {
++    const eqFn = vi.fn().mockResolvedValue({ error: null });
++    const deleteFn = vi.fn().mockReturnValue({ eq: eqFn });
++    const client = {
++      from: vi.fn().mockReturnValue({ delete: deleteFn }),
++    };
++
++    await deleteAdminTopic("t-1", client as never);
++    expect(client.from).toHaveBeenCalledWith("topics");
++    expect(eqFn).toHaveBeenCalledWith("id", "t-1");
++  });
++});
+diff --git a/src/lib/api/admin-blocks-api.ts b/src/lib/api/admin-blocks-api.ts
+new file mode 100644
+index 0000000..f6b617d
+--- /dev/null
++++ b/src/lib/api/admin-blocks-api.ts
+@@ -0,0 +1,314 @@
++import { getSupabaseBrowserClient } from "../supabase/browser-client";
++
++export type AdminBlocksClient = Pick<ReturnType<typeof getSupabaseBrowserClient>, "from">;
++
++export type AdminBlockRow = {
++  id: string;
++  name: string;
++  slug: string;
++  description: string | null;
++  sort_order: number;
++  is_active: boolean;
++  icon_name: string | null;
++  color_theme: string | null;
++  created_at: string;
++  updated_at: string;
++};
++
++export type AdminTopicRow = {
++  id: string;
++  block_id: string;
++  name: string;
++  slug: string;
++  description: string | null;
++  sort_order: number;
++  is_active: boolean;
++  created_at: string;
++  updated_at: string;
++};
++
++export type AdminBlock = {
++  id: string;
++  name: string;
++  slug: string;
++  description: string | null;
++  sortOrder: number;
++  isActive: boolean;
++  iconName: string | null;
++  colorTheme: string | null;
++  createdAt: string;
++  updatedAt: string;
++};
++
++export type AdminTopic = {
++  id: string;
++  blockId: string;
++  name: string;
++  slug: string;
++  description: string | null;
++  sortOrder: number;
++  isActive: boolean;
++  createdAt: string;
++  updatedAt: string;
++};
++
++export type CreateAdminBlockInput = {
++  name: string;
++  slug: string;
++  description?: string | null;
++  sortOrder?: number;
++  sort_order?: number;
++  iconName?: string | null;
++  icon_name?: string | null;
++  colorTheme?: string | null;
++  color_theme?: string | null;
++  isActive?: boolean;
++  is_active?: boolean;
++};
++
++export type UpdateAdminBlockInput = {
++  name?: string;
++  slug?: string;
++  description?: string | null;
++  sortOrder?: number;
++  sort_order?: number;
++  iconName?: string | null;
++  icon_name?: string | null;
++  colorTheme?: string | null;
++  color_theme?: string | null;
++  isActive?: boolean;
++  is_active?: boolean;
++};
++
++export type CreateAdminTopicInput = {
++  blockId?: string;
++  block_id?: string;
++  name: string;
++  slug: string;
++  description?: string | null;
++  sortOrder?: number;
++  sort_order?: number;
++  isActive?: boolean;
++  is_active?: boolean;
++};
++
++export type UpdateAdminTopicInput = {
++  name?: string;
++  slug?: string;
++  description?: string | null;
++  sortOrder?: number;
++  sort_order?: number;
++  isActive?: boolean;
++  is_active?: boolean;
++};
++
++export function mapAdminBlock(row: AdminBlockRow): AdminBlock {
++  return {
++    id: row.id,
++    name: row.name,
++    slug: row.slug,
++    description: row.description ?? null,
++    sortOrder: row.sort_order ?? 0,
++    isActive: row.is_active ?? true,
++    iconName: row.icon_name ?? null,
++    colorTheme: row.color_theme ?? null,
++    createdAt: row.created_at,
++    updatedAt: row.updated_at,
++  };
 +}
 +
-+export function DriveExplorer({ driveType, isMentorOrAdmin }: DriveExplorerProps) {
++export function mapAdminTopic(row: AdminTopicRow): AdminTopic {
++  return {
++    id: row.id,
++    blockId: row.block_id,
++    name: row.name,
++    slug: row.slug,
++    description: row.description ?? null,
++    sortOrder: row.sort_order ?? 0,
++    isActive: row.is_active ?? true,
++    createdAt: row.created_at,
++    updatedAt: row.updated_at,
++  };
++}
++
++export async function getAdminBlocks(
++  client: AdminBlocksClient = getSupabaseBrowserClient(),
++): Promise<AdminBlock[]> {
++  const { data, error } = await client
++    .from("blocks")
++    .select("id, name, slug, description, sort_order, is_active, icon_name, color_theme, created_at, updated_at")
++    .order("sort_order", { ascending: true })
++    .order("created_at", { ascending: true });
++
++  if (error) {
++    throw new Error(error.message);
++  }
++
++  return (data as AdminBlockRow[]).map(mapAdminBlock);
++}
++
++export async function createAdminBlock(
++  data: CreateAdminBlockInput,
++  client: AdminBlocksClient = getSupabaseBrowserClient(),
++): Promise<AdminBlock> {
++  const payload = {
++    name: data.name,
++    slug: data.slug,
++    description: data.description ?? null,
++    sort_order: data.sortOrder ?? data.sort_order ?? 0,
++    icon_name: data.iconName ?? data.icon_name ?? null,
++    color_theme: data.colorTheme ?? data.color_theme ?? null,
++    is_active: data.isActive ?? data.is_active ?? true,
++  };
++
++  const { data: result, error } = await client
++    .from("blocks")
++    .insert(payload)
++    .select("id, name, slug, description, sort_order, is_active, icon_name, color_theme, created_at, updated_at")
++    .single();
++
++  if (error) {
++    throw new Error(error.message);
++  }
++
++  return mapAdminBlock(result as AdminBlockRow);
++}
++
++export async function updateAdminBlock(
++  id: string,
++  data: UpdateAdminBlockInput,
++  client: AdminBlocksClient = getSupabaseBrowserClient(),
++): Promise<AdminBlock> {
++  const payload: Record<string, unknown> = {};
++
++  if (data.name !== undefined) payload.name = data.name;
++  if (data.slug !== undefined) payload.slug = data.slug;
++  if (data.description !== undefined) payload.description = data.description;
++  if (data.sortOrder !== undefined) payload.sort_order = data.sortOrder;
++  else if (data.sort_order !== undefined) payload.sort_order = data.sort_order;
++  if (data.iconName !== undefined) payload.icon_name = data.iconName;
++  else if (data.icon_name !== undefined) payload.icon_name = data.icon_name;
++  if (data.colorTheme !== undefined) payload.color_theme = data.colorTheme;
++  else if (data.color_theme !== undefined) payload.color_theme = data.color_theme;
++  if (data.isActive !== undefined) payload.is_active = data.isActive;
++  else if (data.is_active !== undefined) payload.is_active = data.is_active;
++
++  const { data: result, error } = await client
++    .from("blocks")
++    .update(payload)
++    .eq("id", id)
++    .select("id, name, slug, description, sort_order, is_active, icon_name, color_theme, created_at, updated_at")
++    .single();
++
++  if (error) {
++    throw new Error(error.message);
++  }
++
++  return mapAdminBlock(result as AdminBlockRow);
++}
++
++export async function deleteAdminBlock(
++  id: string,
++  client: AdminBlocksClient = getSupabaseBrowserClient(),
++): Promise<void> {
++  const { error } = await client
++    .from("blocks")
++    .delete()
++    .eq("id", id);
++
++  if (error) {
++    throw new Error(error.message);
++  }
++}
++
++export async function getAdminTopics(
++  blockId: string,
++  client: AdminBlocksClient = getSupabaseBrowserClient(),
++): Promise<AdminTopic[]> {
++  const { data, error } = await client
++    .from("topics")
++    .select("id, block_id, name, slug, description, sort_order, is_active, created_at, updated_at")
++    .eq("block_id", blockId)
++    .order("sort_order", { ascending: true })
++    .order("created_at", { ascending: true });
++
++  if (error) {
++    throw new Error(error.message);
++  }
++
++  return (data as AdminTopicRow[]).map(mapAdminTopic);
++}
++
++export async function createAdminTopic(
++  data: CreateAdminTopicInput,
++  client: AdminBlocksClient = getSupabaseBrowserClient(),
++): Promise<AdminTopic> {
++  const blockId = data.blockId ?? data.block_id;
++  if (!blockId) {
++    throw new Error("blockId (or block_id) is required to create a topic.");
++  }
++
++  const payload = {
++    block_id: blockId,
++    name: data.name,
++    slug: data.slug,
++    description: data.description ?? null,
++    sort_order: data.sortOrder ?? data.sort_order ?? 0,
++    is_active: data.isActive ?? data.is_active ?? true,
++  };
++
++  const { data: result, error } = await client
++    .from("topics")
++    .insert(payload)
++    .select("id, block_id, name, slug, description, sort_order, is_active, created_at, updated_at")
++    .single();
++
++  if (error) {
++    throw new Error(error.message);
++  }
++
++  return mapAdminTopic(result as AdminTopicRow);
++}
++
++export async function updateAdminTopic(
++  id: string,
++  data: UpdateAdminTopicInput,
++  client: AdminBlocksClient = getSupabaseBrowserClient(),
++): Promise<AdminTopic> {
++  const payload: Record<string, unknown> = {};
++
++  if (data.name !== undefined) payload.name = data.name;
++  if (data.slug !== undefined) payload.slug = data.slug;
++  if (data.description !== undefined) payload.description = data.description;
++  if (data.sortOrder !== undefined) payload.sort_order = data.sortOrder;
++  else if (data.sort_order !== undefined) payload.sort_order = data.sort_order;
++  if (data.isActive !== undefined) payload.is_active = data.isActive;
++  else if (data.is_active !== undefined) payload.is_active = data.is_active;
++
++  const { data: result, error } = await client
++    .from("topics")
++    .update(payload)
++    .eq("id", id)
++    .select("id, block_id, name, slug, description, sort_order, is_active, created_at, updated_at")
++    .single();
++
++  if (error) {
++    throw new Error(error.message);
++  }
++
++  return mapAdminTopic(result as AdminTopicRow);
++}
++
++export async function deleteAdminTopic(
++  id: string,
++  client: AdminBlocksClient = getSupabaseBrowserClient(),
++): Promise<void> {
++  const { error } = await client
++    .from("topics")
++    .delete()
++    .eq("id", id);
++
++  if (error) {
++    throw new Error(error.message);
++  }
++}
+diff --git a/src/lib/api/tryout-api.test.ts b/src/lib/api/tryout-api.test.ts
+index f699a10..acc65cb 100644
+--- a/src/lib/api/tryout-api.test.ts
++++ b/src/lib/api/tryout-api.test.ts
+@@ -115,10 +115,12 @@ describe("tryout-api", () => {
+       })),
+     ];
+     const questionsSelect = vi.fn(() => ({
+-      eq: vi.fn().mockResolvedValue({
+-        data: publishedQuestionRows,
+-        error: null,
+-      }),
++      eq: vi.fn(() => ({
++        limit: vi.fn().mockResolvedValue({
++          data: publishedQuestionRows,
++          error: null,
++        }),
++      })),
+     }));
+     const client = {
+       rpc,
+@@ -165,6 +167,8 @@ describe("tryout-api", () => {
+         blockId: null,
+         blockName: null,
+         blockSortOrder: null,
++        iconName: null,
++        colorTheme: null,
+         topicId: null,
+         topicName: null,
+         topicSortOrder: null,
+@@ -185,6 +189,8 @@ describe("tryout-api", () => {
+         blockId: "block-1",
+         blockName: "Clinical Science",
+         blockSortOrder: 1,
++        iconName: null,
++        colorTheme: null,
+         topicId: null,
+         topicName: null,
+         topicSortOrder: null,
+@@ -205,6 +211,8 @@ describe("tryout-api", () => {
+         blockId: "block-1",
+         blockName: "Clinical Science",
+         blockSortOrder: 1,
++        iconName: null,
++        colorTheme: null,
+         topicId: "topic-1",
+         topicName: "Kardiologi",
+         topicSortOrder: 2,
+@@ -394,6 +402,8 @@ describe("tryout-api", () => {
+         blockId: null,
+         blockName: null,
+         blockSortOrder: null,
++        iconName: null,
++        colorTheme: null,
+         topicId: null,
+         topicName: null,
+         topicSortOrder: null,
+@@ -409,6 +419,8 @@ describe("tryout-api", () => {
+         blockId: "block-1",
+         blockName: "Clinical Science",
+         blockSortOrder: 2,
++        iconName: null,
++        colorTheme: null,
+         topicId: null,
+         topicName: null,
+         topicSortOrder: null,
+@@ -424,6 +436,8 @@ describe("tryout-api", () => {
+         blockId: "block-1",
+         blockName: "Clinical Science",
+         blockSortOrder: 2,
++        iconName: null,
++        colorTheme: null,
+         topicId: "topic-1",
+         topicName: "Kardiologi",
+         topicSortOrder: 4,
+@@ -1500,6 +1514,12 @@ describe("tryout-api", () => {
+           explanationText: "ACE inhibitor menjadi titik awal titrasi paling rasional.",
+           explanationImageUrl: "https://signed.example/explanation/questions/question-1.png",
+           isWrong: true,
++          options: [
++            { key: "A", text: "Pilihan A" },
++            { key: "B", text: "Pilihan B" },
++          ],
++          correctOptionKey: "B",
++          selectedOptionKey: "A",
+         },
+       ],
+     });
+@@ -1654,6 +1674,12 @@ describe("tryout-api", () => {
+           explanationText: "Pembahasan belum ditulis final oleh tim editorial.",
+           explanationImageUrl: null,
+           isWrong: true,
++          options: [
++            { key: "A", text: "Pilihan A" },
++            { key: "B", text: "Pilihan B" },
++          ],
++          correctOptionKey: "B",
++          selectedOptionKey: "A",
+         },
+       ],
+     });
+diff --git a/src/lib/api/tryout-api.ts b/src/lib/api/tryout-api.ts
+index 166d796..7087592 100644
+--- a/src/lib/api/tryout-api.ts
++++ b/src/lib/api/tryout-api.ts
+@@ -21,12 +21,18 @@ type ExamTemplateRow = {
+   block_id: string | null;
+   topic_id: string | null;
+   block_name?: string | null;
++  icon_name?: string | null;
++  color_theme?: string | null;
+   block?: {
+     name: string;
+     sort_order?: number | null;
++    icon_name?: string | null;
++    color_theme?: string | null;
+   } | Array<{
+     name: string;
+     sort_order?: number | null;
++    icon_name?: string | null;
++    color_theme?: string | null;
+   }> | null;
+   topic?: {
+     name: string;
+@@ -45,6 +51,8 @@ type TryoutCatalogEntryRow = {
+   block_id: string | null;
+   block_name: string | null;
+   block_sort_order: number | null;
++  icon_name?: string | null;
++  color_theme?: string | null;
+   topic_id: string | null;
+   topic_name: string | null;
+   topic_sort_order: number | null;
+@@ -61,6 +69,8 @@ type TaxonomyBlockRow = {
+   name: string;
+   slug: string;
+   sort_order: number | null;
++  icon_name?: string | null;
++  color_theme?: string | null;
+   topics?: Array<{
+     id: string;
+     name: string;
+@@ -204,6 +214,8 @@ export type TryoutTemplate = {
+   blockId: string | null;
+   blockName: string | null;
+   blockSortOrder: number | null;
++  iconName?: string | null;
++  colorTheme?: string | null;
+   topicId: string | null;
+   topicName: string | null;
+   topicSortOrder: number | null;
+@@ -297,6 +309,8 @@ function mapTemplate(row: ExamTemplateRow): TryoutTemplate {
+     blockId: row.block_id,
+     blockName: relatedBlock?.name ?? row.block_name ?? null,
+     blockSortOrder: relatedBlock?.sort_order ?? null,
++    iconName: relatedBlock?.icon_name ?? row.icon_name ?? null,
++    colorTheme: relatedBlock?.color_theme ?? row.color_theme ?? null,
+     topicId: row.topic_id,
+     topicName: relatedTopic?.name ?? null,
+     topicSortOrder: relatedTopic?.sort_order ?? null,
+@@ -319,6 +333,8 @@ function mapCatalogEntry(row: TryoutCatalogEntryRow): TryoutCatalogEntry {
+     blockId: row.block_id,
+     blockName: row.block_name,
+     blockSortOrder: row.block_sort_order,
++    iconName: row.icon_name ?? null,
++    colorTheme: row.color_theme ?? null,
+     topicId: row.topic_id,
+     topicName: row.topic_name,
+     topicSortOrder: row.topic_sort_order,
+@@ -362,7 +378,7 @@ async function listTryoutCatalogEntriesFallback(
+     listPublishedExamTemplates(client),
+     client
+       .from("blocks")
+-      .select("id, name, slug, sort_order, topics:topics(id, name, slug, sort_order, is_active)")
++      .select("id, name, slug, sort_order, icon_name, color_theme, topics:topics(id, name, slug, sort_order, is_active)")
+       .eq("is_active", true)
+       .order("created_at", { ascending: true }),
+     client
+@@ -429,6 +445,8 @@ async function listTryoutCatalogEntriesFallback(
+       blockId: null,
+       blockName: null,
+       blockSortOrder: null,
++      iconName: fullTemplate?.iconName ?? null,
++      colorTheme: fullTemplate?.colorTheme ?? null,
+       topicId: null,
+       topicName: null,
+       topicSortOrder: null,
+@@ -459,6 +477,8 @@ async function listTryoutCatalogEntriesFallback(
+       blockId: block.id,
+       blockName: block.name,
+       blockSortOrder: template?.blockSortOrder ?? block.sort_order,
++      iconName: template?.iconName ?? block.icon_name ?? null,
++      colorTheme: template?.colorTheme ?? block.color_theme ?? null,
+       topicId: null,
+       topicName: null,
+       topicSortOrder: null,
+@@ -488,6 +508,8 @@ async function listTryoutCatalogEntriesFallback(
+         blockId: block.id,
+         blockName: block.name,
+         blockSortOrder: topicTemplate?.blockSortOrder ?? block.sort_order,
++        iconName: topicTemplate?.iconName ?? block.icon_name ?? null,
++        colorTheme: topicTemplate?.colorTheme ?? block.color_theme ?? null,
+         topicId: topic.id,
+         topicName: topicTemplate?.topicName ?? topic.name,
+         topicSortOrder: topicTemplate?.topicSortOrder ?? topic.sort_order,
+@@ -706,7 +728,7 @@ export async function listPublishedExamTemplates(
+ ): Promise<TryoutTemplate[]> {
+   const { data, error } = await client
+     .from("exam_templates")
+-    .select("id, slug, title, description, mode, question_count, duration_minutes, block_id, topic_id, block:blocks(name, sort_order), topic:topics(name, sort_order)")
++    .select("id, slug, title, description, mode, question_count, duration_minutes, block_id, topic_id, block:blocks(name, sort_order, icon_name, color_theme), topic:topics(name, sort_order)")
+     .eq("status", "published")
+     .order("created_at", { ascending: true });
+ 
+diff --git a/src/mocks/admin-content.ts b/src/mocks/admin-content.ts
+index 1a60bd0..ce787b0 100644
+--- a/src/mocks/admin-content.ts
++++ b/src/mocks/admin-content.ts
+@@ -49,6 +49,11 @@ export const adminNavItems: AdminNavItem[] = [
+     label: "Pengguna",
+     icon: UsersThree,
+   },
++  {
++    href: "/admin/blocks",
++    label: "Blocks & Topics",
++    icon: ChartLineUp,
++  },
+   {
+     href: "/profile",
+     label: "Profil",
+diff --git a/src/pages/admin/blocks-management-page.tsx b/src/pages/admin/blocks-management-page.tsx
+new file mode 100644
+index 0000000..587aecd
+--- /dev/null
++++ b/src/pages/admin/blocks-management-page.tsx
+@@ -0,0 +1,573 @@
++import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
++import { useState, useEffect } from "react";
++import { useForm } from "react-hook-form";
++import { zodResolver } from "@hookform/resolvers/zod";
++import * as z from "zod";
++import { Loader2, Plus, Edit2, Trash2, List, icons } from "lucide-react";
++import { Input } from "../../components/ui/input";
++import { Checkbox } from "../../components/ui/checkbox";
++import { Textarea } from "../../components/ui/textarea";
++import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
++import { Controller } from "react-hook-form";
++import ConfirmDialog from "../../components/ui/confirm-dialog";
++
++import AdminShell from "../../components/layout/admin-shell";
++import { Card } from "../../components/ui/card";
++import Button from "../../components/ui/button";
++import { Badge } from "../../components/ui/badge";
++import { createAdminNavItems } from "../../mocks/admin-content";
++import { Alert, AlertTitle, AlertDescription } from "../../components/ui/alert";
++import {
++  Dialog,
++  DialogContent,
++  DialogDescription,
++  DialogHeader,
++  DialogTitle,
++} from "../../components/ui/dialog";
++
++import {
++  getAdminBlocks,
++  createAdminBlock,
++  updateAdminBlock,
++  deleteAdminBlock,
++  getAdminTopics,
++  createAdminTopic,
++  updateAdminTopic,
++  deleteAdminTopic,
++  type AdminBlock,
++  type AdminTopic
++} from "../../lib/api/admin-blocks-api";
++
++const blockSchema = z.object({
++  name: z.string().min(1, "Nama wajib diisi"),
++  slug: z.string().min(1, "Slug wajib diisi"),
++  description: z.string().optional().nullable(),
++  sortOrder: z.coerce.number().int().default(0),
++  iconName: z.string().optional().nullable(),
++  colorTheme: z.string().optional().nullable(),
++  isActive: z.boolean().default(true),
++});
++type BlockFormData = z.infer<typeof blockSchema>;
++
++const topicSchema = z.object({
++  name: z.string().min(1, "Nama wajib diisi"),
++  slug: z.string().min(1, "Slug wajib diisi"),
++  description: z.string().optional().nullable(),
++  sortOrder: z.coerce.number().int().default(0),
++  isActive: z.boolean().default(true),
++});
++type TopicFormData = z.infer<typeof topicSchema>;
++
++const ICON_OPTIONS = [
++  { value: "", label: "Tidak Ada" },
++  { value: "Stethoscope", label: "Stethoscope" },
++  { value: "FlaskConical", label: "FlaskConical" },
++  { value: "Scale", label: "Scale" },
++  { value: "Layers", label: "Layers" },
++];
++
++const THEME_OPTIONS = [
++  { value: "", label: "Default" },
++  { value: "teal", label: "Teal" },
++  { value: "indigo", label: "Indigo" },
++  { value: "amber", label: "Amber" },
++  { value: "slate", label: "Slate" },
++  { value: "fuchsia", label: "Fuchsia" },
++];
++
++const inputClass = "min-h-11 w-full rounded-[1.15rem] border border-border bg-muted px-4 text-sm text-foreground outline-none transition focus:border-border";
++
++const renderIcon = (iconName: string | null | undefined) => {
++  if (!iconName) return null;
++  const IconComponent = (icons as any)[iconName];
++  return IconComponent ? <IconComponent className="h-4 w-4" /> : null;
++};
++
++function BlocksManagementPage() {
 +  const queryClient = useQueryClient();
-+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
-+  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
-+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
++  const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
++  const [editingBlock, setEditingBlock] = useState<AdminBlock | null>(null);
++  const [blockToDelete, setBlockToDelete] = useState<AdminBlock | null>(null);
++
++  const [topicsDialogOpenForBlock, setTopicsDialogOpenForBlock] = useState<AdminBlock | null>(null);
++  
++  const blocksQuery = useQuery({
++    queryKey: ["admin-blocks"],
++    queryFn: () => getAdminBlocks(),
++  });
++  const blocks = blocksQuery.data ?? [];
++
++  const blockForm = useForm<BlockFormData>({
++    resolver: zodResolver(blockSchema),
++    defaultValues: {
++      name: "",
++      slug: "",
++      description: "",
++      sortOrder: 0,
++      iconName: "",
++      colorTheme: "",
++      isActive: true,
++    }
++  });
 +
 +  useEffect(() => {
-+    function handleClickOutside() {
-+      setActiveMenuId(null);
-+    }
-+    document.addEventListener('mousedown', handleClickOutside);
-+    return () => document.removeEventListener('mousedown', handleClickOutside);
-+  }, []);
-+
-+  const apiType = driveType === 'rekaman' ? 'VIDEO' : 'PPT';
-+
-+  // Fetch Folders
-+  const {
-+    data: folders = [],
-+    isLoading: isFoldersLoading,
-+    isError: isFoldersError,
-+    error: foldersError,
-+  } = useQuery({
-+    queryKey: ['material-folders', apiType, currentFolderId],
-+    queryFn: () => getFolders({ driveType: apiType, parentId: currentFolderId }),
-+  });
-+
-+  // Fetch Links
-+  const {
-+    data: links = [],
-+    isLoading: isLinksLoading,
-+    isError: isLinksError,
-+    error: linksError,
-+  } = useQuery({
-+    queryKey: ['material-links', apiType, currentFolderId],
-+    queryFn: () => getLinks({ driveType: apiType, folderId: currentFolderId }),
-+  });
-+
-+  const isLoading = isFoldersLoading || isLinksLoading;
-+
-+  // Mutations
-+  const createFolderMutation = useMutation({
-+    mutationFn: (name: string) => createFolder({ name, driveType: apiType, parentId: currentFolderId }),
-+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['material-folders', apiType, currentFolderId] }),
-+    onError: (err) => window.alert(`Failed to create folder: ${err instanceof Error ? err.message : 'Unknown error'}`),
-+  });
-+
-+  const createLinkMutation = useMutation({
-+    mutationFn: (params: { title: string; url: string; embedUrl: string }) =>
-+      createLink({ ...params, driveType: apiType, folderId: currentFolderId }),
-+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['material-links', apiType, currentFolderId] }),
-+    onError: (err) => window.alert(`Failed to create link: ${err instanceof Error ? err.message : 'Unknown error'}`),
-+  });
-+
-+  const deleteFolderMutation = useMutation({
-+    mutationFn: (id: string) => deleteFolder({ id }),
-+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['material-folders', apiType, currentFolderId] }),
-+    onError: (err) => window.alert(`Failed to delete folder: ${err instanceof Error ? err.message : 'Unknown error'}`),
-+  });
-+
-+  const deleteLinkMutation = useMutation({
-+    mutationFn: (id: string) => deleteLink({ id }),
-+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['material-links', apiType, currentFolderId] }),
-+    onError: (err) => window.alert(`Failed to delete link: ${err instanceof Error ? err.message : 'Unknown error'}`),
-+  });
-+
-+  const cloneMutation = useMutation({
-+    mutationFn: (params: { id: string; type: 'folder' | 'link' }) =>
-+      cloneItem({ itemId: params.id, itemType: params.type, newParentId: currentFolderId, isRoot: currentFolderId === null }),
-+    onSuccess: () => {
-+      queryClient.invalidateQueries({ queryKey: ['material-folders', apiType, currentFolderId] });
-+      queryClient.invalidateQueries({ queryKey: ['material-links', apiType, currentFolderId] });
-+    },
-+    onError: (err) => window.alert(`Failed to clone item: ${err instanceof Error ? err.message : 'Unknown error'}`),
-+  });
-+  
-+  const moveMutation = useMutation({
-+    mutationFn: (params: { id: string; type: 'folder' | 'link', targetId: string | null }) =>
-+      moveItem({ itemId: params.id, itemType: params.type, newParentId: params.targetId }),
-+    onSuccess: () => {
-+      queryClient.invalidateQueries({ queryKey: ['material-folders', apiType, currentFolderId] });
-+      queryClient.invalidateQueries({ queryKey: ['material-links', apiType, currentFolderId] });
-+    },
-+    onError: (err) => window.alert(`Failed to move item: ${err instanceof Error ? err.message : 'Unknown error'}`),
-+  });
-+
-+  // Handlers
-+  const handleNavigate = (folderId: string | null) => {
-+    setCurrentFolderId(folderId);
-+    if (folderId === null) {
-+      setBreadcrumbs([]);
++    if (editingBlock) {
++      blockForm.reset({
++        name: editingBlock.name,
++        slug: editingBlock.slug,
++        description: editingBlock.description ?? "",
++        sortOrder: editingBlock.sortOrder,
++        iconName: editingBlock.iconName ?? "",
++        colorTheme: editingBlock.colorTheme ?? "",
++        isActive: editingBlock.isActive,
++      });
 +    } else {
-+      const index = breadcrumbs.findIndex((b) => b.id === folderId);
-+      if (index !== -1) {
-+        setBreadcrumbs(breadcrumbs.slice(0, index + 1));
++      blockForm.reset({
++        name: "",
++        slug: "",
++        description: "",
++        sortOrder: 0,
++        iconName: "",
++        colorTheme: "",
++        isActive: true,
++      });
++    }
++  }, [editingBlock, blockForm]);
++
++  const blockMutation = useMutation({
++    mutationFn: (data: BlockFormData) => {
++      if (editingBlock) {
++        return updateAdminBlock(editingBlock.id, {
++          name: data.name,
++          slug: data.slug,
++          description: data.description,
++          sort_order: data.sortOrder,
++          icon_name: data.iconName || null,
++          color_theme: data.colorTheme || null,
++          is_active: data.isActive,
++        });
 +      }
++      return createAdminBlock({
++        name: data.name,
++        slug: data.slug,
++        description: data.description,
++        sort_order: data.sortOrder,
++        icon_name: data.iconName || null,
++        color_theme: data.colorTheme || null,
++        is_active: data.isActive,
++      });
++    },
++    onSuccess: () => {
++      queryClient.invalidateQueries({ queryKey: ["admin-blocks"] });
++      setIsBlockDialogOpen(false);
++      setEditingBlock(null);
 +    }
-+  };
++  });
 +
-+  const handleFolderClick = (folder: MaterialFolder) => {
-+    setCurrentFolderId(folder.id);
-+    setBreadcrumbs([...breadcrumbs, { id: folder.id, name: folder.name }]);
-+  };
-+
-+  const handleCreateFolder = () => {
-+    const name = window.prompt('Enter folder name:');
-+    if (name && name.trim()) {
-+      createFolderMutation.mutate(name.trim());
++  const deleteBlockMutation = useMutation({
++    mutationFn: (id: string) => deleteAdminBlock(id),
++    onSuccess: () => {
++      queryClient.invalidateQueries({ queryKey: ["admin-blocks"] });
 +    }
-+  };
++  });
 +
-+  const handleCreateLink = () => {
-+    const title = window.prompt('Enter link title:');
-+    if (!title?.trim()) return;
-+    
-+    const url = window.prompt('Enter link URL:');
-+    if (!url?.trim()) return;
++  const handleBlockSubmit = blockForm.handleSubmit((data) => {
++    blockMutation.mutate(data);
++  });
 +
-+    createLinkMutation.mutate({
-+      title: title.trim(),
-+      url: url.trim(),
-+      embedUrl: url.trim(), // Assuming same for MVP
-+    });
-+  };
++  function openCreateBlock() {
++    setEditingBlock(null);
++    setIsBlockDialogOpen(true);
++  }
 +
-+  const handleDeleteFolder = (folder: MaterialFolder) => {
-+    if (window.confirm(`Are you sure you want to delete folder "${folder.name}"? This will delete all contents inside it.`)) {
-+      deleteFolderMutation.mutate(folder.id);
-+    }
-+  };
-+
-+  const handleDeleteLink = (link: MaterialLink) => {
-+    if (window.confirm(`Are you sure you want to delete link "${link.title}"?`)) {
-+      deleteLinkMutation.mutate(link.id);
-+    }
-+  };
-+
-+  const handleCloneFolder = (folder: MaterialFolder) => {
-+    cloneMutation.mutate({ id: folder.id, type: 'folder' });
-+  };
-+
-+  const handleCloneLink = (link: MaterialLink) => {
-+    cloneMutation.mutate({ id: link.id, type: 'link' });
-+  };
-+
-+  const handleMoveFolder = (folder: MaterialFolder) => {
-+    const targetId = window.prompt('Enter target Folder ID (leave empty for Root):');
-+    if (targetId !== null) { // User didn't cancel
-+      moveMutation.mutate({ id: folder.id, type: 'folder', targetId: targetId.trim() === '' ? null : targetId.trim() });
-+    }
-+  };
-+  
-+  const handleMoveLink = (link: MaterialLink) => {
-+    const targetId = window.prompt('Enter target Folder ID (leave empty for Root):');
-+    if (targetId !== null) { // User didn't cancel
-+      moveMutation.mutate({ id: link.id, type: 'link', targetId: targetId.trim() === '' ? null : targetId.trim() });
-+    }
-+  };
-+
-+  const isEmpty = !isLoading && folders.length === 0 && links.length === 0;
++  function openEditBlock(block: AdminBlock) {
++    setEditingBlock(block);
++    setIsBlockDialogOpen(true);
++  }
 +
 +  return (
-+    <div className="w-full max-w-6xl mx-auto p-4 md:p-6 bg-white rounded-2xl shadow-sm border border-slate-200">
-+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-+        <h2 className="text-2xl font-bold text-slate-800">
-+          {driveType === 'rekaman' ? 'Video Library' : 'Presentations'}
-+        </h2>
-+        
-+        <div className="flex items-center gap-3 w-full md:w-auto">
-+          {isMentorOrAdmin && (
-+            <div className="flex items-center gap-2 flex-shrink-0">
-+              <button
-+                onClick={handleCreateFolder}
-+                className="flex items-center justify-center gap-2 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 px-4 py-2 rounded-lg font-medium transition-colors border border-blue-200"
-+              >
-+                <FolderPlus weight="bold" className="w-5 h-5" />
-+                <span className="hidden sm:inline">New Folder</span>
-+              </button>
-+              <button
-+                onClick={handleCreateLink}
-+                className="flex items-center justify-center gap-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 px-4 py-2 rounded-lg font-medium transition-colors border border-emerald-200"
-+              >
-+                <LinkIcon weight="bold" className="w-5 h-5" />
-+                <span className="hidden sm:inline">New Link</span>
-+              </button>
-+            </div>
-+          )}
++    <AdminShell
++      title="Kelola Blocks & Topics"
++      description="Kelola daftar block dan topik yang tersedia di aplikasi."
++      navItems={createAdminNavItems("/admin/blocks")}
++    >
++      <div className="flex flex-wrap items-center justify-between gap-3">
++        <div className="flex flex-wrap gap-3">
++          <Badge variant="default">Total {blocks.length} Blocks</Badge>
 +        </div>
++        <Button variant="primary" onClick={openCreateBlock}>
++          <Plus className="mr-2 h-4 w-4" /> Tambah Blok
++        </Button>
 +      </div>
 +
-+      <Breadcrumb items={breadcrumbs} onNavigate={handleNavigate} />
-+
-+      <div className="min-h-[400px] relative rounded-xl border border-slate-100 bg-slate-50/50 p-4">
-+        {isLoading ? (
-+          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
-+            <Spinner className="w-8 h-8 animate-spin text-blue-500 mb-4" />
-+            <p className="font-medium text-slate-500">Loading files...</p>
-+          </div>
-+        ) : isFoldersError || isLinksError ? (
-+          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
-+            <p className="font-medium text-red-500">Failed to load content.</p>
-+            <p className="text-sm text-slate-500">
-+              {foldersError instanceof Error ? foldersError.message : ''}
-+              {linksError instanceof Error ? linksError.message : ''}
-+            </p>
-+          </div>
-+        ) : isEmpty ? (
-+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-+            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4 border-4 border-white shadow-sm">
-+              <FolderPlus weight="duotone" className="w-10 h-10 text-slate-300" />
++      <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
++        <DialogContent className="sm:max-w-[500px]">
++          <DialogHeader>
++            <DialogTitle>{editingBlock ? "Edit Blok" : "Tambah Blok Baru"}</DialogTitle>
++            <DialogDescription>
++              Isi form di bawah untuk {editingBlock ? "menyimpan perubahan blok" : "membuat blok baru"}.
++            </DialogDescription>
++          </DialogHeader>
++          <form onSubmit={handleBlockSubmit} className="grid gap-4 mt-4">
++            <label className="grid gap-2 text-sm font-medium">
++              Nama Blok
++              <Input {...blockForm.register("name")} />
++              {blockForm.formState.errors.name && (
++                <span className="text-destructive text-xs">{blockForm.formState.errors.name.message}</span>
++              )}
++            </label>
++            <label className="grid gap-2 text-sm font-medium">
++              Slug
++              <Input {...blockForm.register("slug")} />
++            </label>
++            <label className="grid gap-2 text-sm font-medium">
++              Deskripsi
++              <Textarea className="min-h-20" {...blockForm.register("description")} />
++            </label>
++            <div className="grid grid-cols-2 gap-4">
++              <label className="grid gap-2 text-sm font-medium">
++                Sort Order
++                <Input type="number" {...blockForm.register("sortOrder")} />
++              </label>
++              <label className="grid gap-2 text-sm font-medium">
++                Status
++                <Controller
++                  name="isActive"
++                  control={blockForm.control}
++                  render={({ field }) => (
++                    <div className="flex items-center space-x-2 mt-2">
++                      <Checkbox id="block-active" checked={field.value} onCheckedChange={field.onChange} />
++                      <label htmlFor="block-active" className="text-sm cursor-pointer">Aktif</label>
++                    </div>
++                  )}
++                />
++              </label>
 +            </div>
-+            <h3 className="text-lg font-semibold text-slate-700 mb-2">No items found</h3>
-+            <p className="text-slate-500 max-w-sm mb-6">
-+              This folder is empty. Create a new folder or add a link to get started.
-+            </p>
-+            {isMentorOrAdmin && (
-+              <div className="flex gap-3">
-+                <button
-+                  onClick={handleCreateFolder}
-+                  className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium shadow-sm transition-colors"
-+                >
-+                  Create Folder
-+                </button>
++            <div className="grid grid-cols-2 gap-4">
++              <label className="grid gap-2 text-sm font-medium">
++                Icon
++                <Controller
++                  name="iconName"
++                  control={blockForm.control}
++                  render={({ field }) => (
++                    <Select onValueChange={(val) => field.onChange(val === "none" ? "" : val)} value={field.value || "none"}>
++                      <SelectTrigger>
++                        <SelectValue placeholder="Pilih Icon" />
++                      </SelectTrigger>
++                      <SelectContent>
++                        {ICON_OPTIONS.map(opt => (
++                          <SelectItem key={opt.value} value={opt.value || "none"}>
++                            {opt.label}
++                          </SelectItem>
++                        ))}
++                      </SelectContent>
++                    </Select>
++                  )}
++                />
++              </label>
++              <label className="grid gap-2 text-sm font-medium">
++                Tema Warna
++                <Controller
++                  name="colorTheme"
++                  control={blockForm.control}
++                  render={({ field }) => (
++                    <Select onValueChange={(val) => field.onChange(val === "none" ? "" : val)} value={field.value || "none"}>
++                      <SelectTrigger>
++                        <SelectValue placeholder="Pilih Tema" />
++                      </SelectTrigger>
++                      <SelectContent>
++                        {THEME_OPTIONS.map(opt => (
++                          <SelectItem key={opt.value} value={opt.value || "none"}>
++                            {opt.label}
++                          </SelectItem>
++                        ))}
++                      </SelectContent>
++                    </Select>
++                  )}
++                />
++              </label>
++            </div>
++            <div className="mt-4 flex justify-end gap-2">
++              <Button type="button" variant="outline" onClick={() => setIsBlockDialogOpen(false)}>Batal</Button>
++              <Button type="submit" variant="primary" loading={blockMutation.isPending}>Simpan</Button>
++            </div>
++          </form>
++        </DialogContent>
++      </Dialog>
++
++      <TopicsDialog 
++        block={topicsDialogOpenForBlock} 
++        onClose={() => setTopicsDialogOpenForBlock(null)} 
++      />
++
++      <Card className="mt-6 px-5 py-5">
++        <h2 className="text-xl font-semibold mb-4">Daftar Blok</h2>
++        
++        {blocksQuery.isLoading ? (
++          <div className="flex flex-col items-center justify-center p-8 space-y-4">
++            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
++            <p className="text-sm text-muted-foreground">Memuat daftar blok...</p>
++          </div>
++        ) : blocksQuery.isError ? (
++          <Alert variant="destructive">
++            <AlertTitle>Gagal memuat blok</AlertTitle>
++            <AlertDescription>Terjadi kesalahan saat memuat daftar blok.</AlertDescription>
++          </Alert>
++        ) : blocks.length === 0 ? (
++          <Alert>
++            <AlertTitle>Tidak ada blok</AlertTitle>
++            <AlertDescription>Belum ada data blok yang dibuat.</AlertDescription>
++          </Alert>
++        ) : (
++          <div className="grid gap-4 mt-4">
++            {blocks.map((block) => (
++              <Card key={block.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border">
++                <div>
++                  <div className="flex items-center gap-2">
++                    <h3 className="font-semibold text-lg">{block.name}</h3>
++                    {!block.isActive && <Badge variant="secondary">Tidak Aktif</Badge>}
++                  </div>
++                  <p className="text-sm text-muted-foreground mt-1">/{block.slug}</p>
++                  {block.description && (
++                    <p className="text-sm mt-2">{block.description}</p>
++                  )}
++                  <div className="flex items-center gap-3 mt-3 text-xs font-medium text-muted-foreground">
++                    <span>Order: {block.sortOrder}</span>
++                    {block.iconName && <span className="flex items-center gap-1">Icon: {renderIcon(block.iconName)} {block.iconName}</span>}
++                    {block.colorTheme && <span>Warna: {block.colorTheme}</span>}
++                  </div>
++                </div>
++                <div className="flex items-center gap-2">
++                  <Button variant="outline" size="sm" onClick={() => setTopicsDialogOpenForBlock(block)}>
++                    <List className="h-4 w-4 mr-2" />
++                    Kelola Materi
++                  </Button>
++                  <Button variant="secondary" size="sm" onClick={() => openEditBlock(block)}>
++                    <Edit2 className="h-4 w-4" />
++                  </Button>
++                  <Button variant="destructive" size="sm" onClick={() => setBlockToDelete(block)}>
++                    <Trash2 className="h-4 w-4" />
++                  </Button>
++                </div>
++              </Card>
++            ))}
++          </div>
++        )}
++      </Card>
++
++      <ConfirmDialog
++        open={!!blockToDelete}
++        title="Hapus Blok"
++        description={`Yakin ingin menghapus blok ${blockToDelete?.name}?`}
++        confirmLabel="Hapus"
++        isPending={deleteBlockMutation.isPending}
++        onClose={() => setBlockToDelete(null)}
++        onConfirm={() => {
++          if (blockToDelete) {
++            deleteBlockMutation.mutate(blockToDelete.id, {
++              onSuccess: () => setBlockToDelete(null)
++            });
++          }
++        }}
++      />
++    </AdminShell>
++  );
++}
++
++function TopicsDialog({ block, onClose }: { block: AdminBlock | null, onClose: () => void }) {
++  const queryClient = useQueryClient();
++  const [editingTopic, setEditingTopic] = useState<AdminTopic | null>(null);
++  const [topicToDelete, setTopicToDelete] = useState<AdminTopic | null>(null);
++
++  const topicsQuery = useQuery({
++    queryKey: ["admin-topics", block?.id],
++    queryFn: () => getAdminTopics(block!.id),
++    enabled: !!block?.id,
++  });
++  const topics = topicsQuery.data ?? [];
++
++  const topicForm = useForm<TopicFormData>({
++    resolver: zodResolver(topicSchema),
++    defaultValues: {
++      name: "",
++      slug: "",
++      description: "",
++      sortOrder: 0,
++      isActive: true,
++    }
++  });
++
++  useEffect(() => {
++    if (editingTopic) {
++      topicForm.reset({
++        name: editingTopic.name,
++        slug: editingTopic.slug,
++        description: editingTopic.description ?? "",
++        sortOrder: editingTopic.sortOrder,
++        isActive: editingTopic.isActive,
++      });
++    } else {
++      topicForm.reset({
++        name: "",
++        slug: "",
++        description: "",
++        sortOrder: 0,
++        isActive: true,
++      });
++    }
++  }, [editingTopic, topicForm]);
++
++  const topicMutation = useMutation({
++    mutationFn: (data: TopicFormData) => {
++      if (editingTopic) {
++        return updateAdminTopic(editingTopic.id, {
++          name: data.name,
++          slug: data.slug,
++          description: data.description,
++          sort_order: data.sortOrder,
++          is_active: data.isActive,
++        });
++      }
++      return createAdminTopic({
++        block_id: block!.id,
++        name: data.name,
++        slug: data.slug,
++        description: data.description,
++        sort_order: data.sortOrder,
++        is_active: data.isActive,
++      });
++    },
++    onSuccess: () => {
++      queryClient.invalidateQueries({ queryKey: ["admin-topics", block?.id] });
++      setEditingTopic(null);
++    }
++  });
++
++  const deleteTopicMutation = useMutation({
++    mutationFn: (id: string) => deleteAdminTopic(id),
++    onSuccess: () => {
++      queryClient.invalidateQueries({ queryKey: ["admin-topics", block?.id] });
++    }
++  });
++
++  const handleTopicSubmit = topicForm.handleSubmit((data) => {
++    topicMutation.mutate(data);
++  });
++
++  return (
++    <Dialog open={!!block} onOpenChange={(open) => !open && onClose()}>
++      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
++        <DialogHeader>
++          <DialogTitle>Kelola Materi untuk Blok {block?.name}</DialogTitle>
++          <DialogDescription>
++            Tambah, ubah, atau hapus topik materi dalam blok ini.
++          </DialogDescription>
++        </DialogHeader>
++
++        <div className="grid md:grid-cols-[300px_1fr] gap-6 mt-4">
++          <Card className="p-4 h-fit">
++            <h3 className="font-medium text-sm mb-3">
++              {editingTopic ? "Edit Topik" : "Tambah Topik Baru"}
++            </h3>
++            <form onSubmit={handleTopicSubmit} className="grid gap-3">
++              <label className="grid gap-1.5 text-xs font-medium">
++                Nama Topik
++                <Input {...topicForm.register("name")} />
++              </label>
++              <label className="grid gap-1.5 text-xs font-medium">
++                Slug
++                <Input {...topicForm.register("slug")} />
++              </label>
++              <label className="grid gap-1.5 text-xs font-medium">
++                Deskripsi
++                <Textarea className="min-h-16" {...topicForm.register("description")} />
++              </label>
++              <div className="grid grid-cols-2 gap-2">
++                <label className="grid gap-1.5 text-xs font-medium">
++                  Sort Order
++                  <Input type="number" {...topicForm.register("sortOrder")} />
++                </label>
++                <label className="grid gap-1.5 text-xs font-medium">
++                  Status
++                  <Controller
++                    name="isActive"
++                    control={topicForm.control}
++                    render={({ field }) => (
++                      <div className="flex items-center space-x-2 mt-1">
++                        <Checkbox id="topic-active" checked={field.value} onCheckedChange={field.onChange} />
++                        <label htmlFor="topic-active" className="text-xs cursor-pointer">Aktif</label>
++                      </div>
++                    )}
++                  />
++                </label>
 +              </div>
++              <div className="mt-2 flex justify-end gap-2">
++                {editingTopic && (
++                  <Button type="button" variant="outline" size="sm" onClick={() => setEditingTopic(null)}>
++                    Batal
++                  </Button>
++                )}
++                <Button type="submit" variant="primary" size="sm" loading={topicMutation.isPending}>
++                  {editingTopic ? "Update" : "Tambah"}
++                </Button>
++              </div>
++            </form>
++          </Card>
++
++          <div className="flex flex-col gap-3 max-h-[400px] overflow-y-auto pr-2">
++            {topicsQuery.isLoading ? (
++              <div className="flex flex-col items-center justify-center p-4">
++                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
++              </div>
++            ) : topics.length === 0 ? (
++              <Alert>
++                <AlertDescription>Belum ada topik di blok ini.</AlertDescription>
++              </Alert>
++            ) : (
++              topics.map(topic => (
++                <div key={topic.id} className="p-3 border rounded-[1.15rem] flex items-start justify-between gap-2">
++                  <div>
++                    <h4 className="font-medium text-sm">{topic.name}</h4>
++                    <p className="text-xs text-muted-foreground">/{topic.slug}</p>
++                    <div className="flex gap-2 mt-2 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
++                      <span>Order: {topic.sortOrder}</span>
++                      <span className={topic.isActive ? "text-green-600" : "text-destructive"}>
++                        {topic.isActive ? "Aktif" : "Tidak Aktif"}
++                      </span>
++                    </div>
++                  </div>
++                  <div className="flex gap-1">
++                    <Button variant="ghost" size="icon-sm" onClick={() => setEditingTopic(topic)}>
++                      <Edit2 className="h-4 w-4" />
++                    </Button>
++                    <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => setTopicToDelete(topic)}>
++                      <Trash2 className="h-4 w-4" />
++                    </Button>
++                  </div>
++                </div>
++              ))
 +            )}
 +          </div>
-+        ) : (
-+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-+            {folders.map((folder) => (
-+              <FolderItem
-+                key={folder.id}
-+                folder={folder}
-+                onClick={handleFolderClick}
-+                isMentorOrAdmin={isMentorOrAdmin}
-+                isOpen={activeMenuId === folder.id}
-+                onToggle={() => setActiveMenuId(activeMenuId === folder.id ? null : folder.id)}
-+                onClone={handleCloneFolder}
-+                onDelete={handleDeleteFolder}
-+                onMove={handleMoveFolder}
-+              />
-+            ))}
-+            {links.map((link) => (
-+              <LinkItem
-+                key={link.id}
-+                link={link}
-+                isMentorOrAdmin={isMentorOrAdmin}
-+                isOpen={activeMenuId === link.id}
-+                onToggle={() => setActiveMenuId(activeMenuId === link.id ? null : link.id)}
-+                onClone={handleCloneLink}
-+                onDelete={handleDeleteLink}
-+                onMove={handleMoveLink}
-+              />
-+            ))}
-+          </div>
-+        )}
-+      </div>
-+    </div>
-+  );
-+}
-diff --git a/src/components/DriveExplorer/FolderItem.tsx b/src/components/DriveExplorer/FolderItem.tsx
-new file mode 100644
-index 0000000..e8123e1
---- /dev/null
-+++ b/src/components/DriveExplorer/FolderItem.tsx
-@@ -0,0 +1,56 @@
-+import React from 'react';
-+import { Folder } from '@phosphor-icons/react';
-+import { MaterialFolder } from '@/lib/api/material-api';
-+import { ActionMenu } from './ActionMenu';
-+
-+interface FolderItemProps {
-+  folder: MaterialFolder;
-+  onClick: (folder: MaterialFolder) => void;
-+  isMentorOrAdmin: boolean;
-+  isOpen: boolean;
-+  onToggle: () => void;
-+  onClone?: (folder: MaterialFolder) => void;
-+  onMove?: (folder: MaterialFolder) => void;
-+  onDelete?: (folder: MaterialFolder) => void;
-+}
-+
-+export function FolderItem({
-+  folder,
-+  onClick,
-+  isMentorOrAdmin,
-+  isOpen,
-+  onToggle,
-+  onClone,
-+  onMove,
-+  onDelete,
-+}: FolderItemProps) {
-+  return (
-+    <div className="relative group">
-+      <div
-+        onClick={() => onClick(folder)}
-+        className="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:border-blue-300 hover:shadow-md hover:bg-blue-50/50 transition-all cursor-pointer bg-white"
-+      >
-+        <div className="flex items-center space-x-3 overflow-hidden">
-+          <div className="bg-blue-100 p-2 rounded-lg text-blue-600 flex-shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-+            <Folder weight="fill" className="w-6 h-6" />
-+          </div>
-+          <span className="font-medium text-slate-700 truncate group-hover:text-blue-900 transition-colors">
-+            {folder.name}
-+          </span>
 +        </div>
++      </DialogContent>
 +
-+        {isMentorOrAdmin && (
-+          <ActionMenu
-+            item={folder}
-+            isOpen={isOpen}
-+            onToggle={onToggle}
-+            onClone={onClone}
-+            onMove={onMove}
-+            onDelete={onDelete}
-+            menuHoverClass="hover:text-blue-600"
-+          />
-+        )}
-+      </div>
-+    </div>
++      <ConfirmDialog
++        open={!!topicToDelete}
++        title="Hapus Topik"
++        description={`Yakin ingin menghapus topik ${topicToDelete?.name}?`}
++        confirmLabel="Hapus"
++        isPending={deleteTopicMutation.isPending}
++        onClose={() => setTopicToDelete(null)}
++        onConfirm={() => {
++          if (topicToDelete) {
++            deleteTopicMutation.mutate(topicToDelete.id, {
++              onSuccess: () => setTopicToDelete(null)
++            });
++          }
++        }}
++      />
++    </Dialog>
 +  );
 +}
-diff --git a/src/components/DriveExplorer/LinkItem.tsx b/src/components/DriveExplorer/LinkItem.tsx
++
++export default BlocksManagementPage;
+diff --git a/src/pages/app/tryout-block-selection-page.tsx b/src/pages/app/tryout-block-selection-page.tsx
+index 4e70ee7..ac8f896 100644
+--- a/src/pages/app/tryout-block-selection-page.tsx
++++ b/src/pages/app/tryout-block-selection-page.tsx
+@@ -2,13 +2,10 @@ import { useQuery } from "@tanstack/react-query";
+ import {
+   ArrowLeft,
+   ArrowRight,
+-  FlaskConical,
+-  Scale,
+-  Stethoscope,
+-  Layers,
+   BookOpen,
+   AlertCircle,
+-  Infinity as InfinityIcon
++  LayoutGrid,
++  icons
+ } from "lucide-react";
+ import { Link } from "react-router";
+ import ProductShell from "../../components/layout/product-shell";
+@@ -19,57 +16,38 @@ import { productShellMeta } from "../../mocks/student-dashboard";
+ import { useStudentShell } from "./use-student-shell";
+ import { listTryoutCatalogEntries } from "../../lib/api/tryout-api";
+ import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
++import type { ElementType } from "react";
+ 
+-const getBlockVisuals = (blockId: string | null, blockName: string | null, mode?: string) => {
+-  if (mode === "full") {
+-    return {
+-      icon: InfinityIcon,
+-      accentBg: "bg-gradient-to-br from-fuchsia-500/20 to-purple-500/20 text-fuchsia-600 dark:text-fuchsia-400",
+-      badgeBg: "bg-gradient-to-r from-fuchsia-500/10 to-purple-500/10 text-fuchsia-700 dark:text-fuchsia-300 border-fuchsia-500/20",
+-      proportionLabel: "Komprehensif",
+-      subtitle: "Seluruh Materi Blok",
+-    };
+-  }
++export const mapBlockVisuals = (iconName?: string | null, colorTheme?: string | null) => {
++  const IconComponent = iconName && iconName in icons 
++    ? icons[iconName as keyof typeof icons] 
++    : LayoutGrid;
+ 
+-  const name = (blockName || "").toLowerCase();
+-  const id = (blockId || "").toLowerCase();
++  const theme = (colorTheme || "slate").toLowerCase();
+   
+-  if (name.includes("clinical") || name.includes("klinis") || id.includes("cs")) {
+-    return {
+-      icon: Stethoscope,
+-      accentBg: "bg-teal-500/10 text-teal-600 dark:bg-teal-500/20 dark:text-teal-400",
+-      badgeBg: "bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20",
+-      proportionLabel: "50% Proporsi UKAI",
+-      subtitle: "Klinis & Terapetika",
+-    };
+-  }
++  let accentBg = "bg-slate-500/10 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400";
+   
+-  if (name.includes("pharmaceutical") || name.includes("teknologi") || id.includes("ps")) {
+-    return {
+-      icon: FlaskConical,
+-      accentBg: "bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400",
+-      badgeBg: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20",
+-      proportionLabel: "35% Proporsi UKAI",
+-      subtitle: "Teknologi & Formulasi",
+-    };
+-  }
+-  
+-  if (name.includes("social") || name.includes("sba") || name.includes("regulasi") || id.includes("sba")) {
+-    return {
+-      icon: Scale,
+-      accentBg: "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
+-      badgeBg: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20",
+-      proportionLabel: "15% Proporsi UKAI",
+-      subtitle: "Regulasi & Manajemen",
+-    };
++  if (theme === "teal") {
++    accentBg = "bg-teal-500/10 text-teal-600 dark:bg-teal-500/20 dark:text-teal-400";
++  } else if (theme === "indigo") {
++    accentBg = "bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400";
++  } else if (theme === "amber" || theme === "yellow") {
++    accentBg = "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400";
++  } else if (theme === "fuchsia" || theme === "purple") {
++    accentBg = "bg-gradient-to-br from-fuchsia-500/20 to-purple-500/20 text-fuchsia-600 dark:text-fuchsia-400";
++  } else if (theme === "blue") {
++    accentBg = "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400";
++  } else if (theme === "green") {
++    accentBg = "bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400";
++  } else if (theme === "rose" || theme === "red") {
++    accentBg = "bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400";
++  } else if (theme === "cyan") {
++    accentBg = "bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400";
+   }
+   
+   return {
+-    icon: Layers,
+-    accentBg: "bg-slate-500/10 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400",
+-    badgeBg: "bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/20",
+-    proportionLabel: "Proporsi UKAI",
+-    subtitle: "Materi Khusus",
++    icon: IconComponent as ElementType,
++    accentBg,
+   };
+ };
+ 
+@@ -150,9 +128,10 @@ function TryoutBlockSelectionPage() {
+               </div>
+             ) : (
+               blockOptions.map((block) => {
+-                const visuals = getBlockVisuals(block.blockId, block.blockName, block.mode);
++                const visuals = mapBlockVisuals(block.iconName, block.colorTheme);
+                 const Icon = visuals.icon;
+                 const buttonText = block.mode === "full" ? "Mulai Try Out Besar" : "Mulai Try Out Blok Ini";
++                const subtitle = block.mode === "full" ? "Seluruh Materi Blok" : block.mode === "block" ? "Latihan Per Blok" : "Materi Khusus";
+                 
+                 return (
+                   <Card
+@@ -169,7 +148,7 @@ function TryoutBlockSelectionPage() {
+                         {block.title}
+                       </CardTitle>
+                       <CardDescription className="text-sm font-medium text-muted-foreground mt-1">
+-                        {visuals.subtitle}
++                        {subtitle}
+                       </CardDescription>
+                       <p className="text-sm text-muted-foreground/90 mt-3 leading-relaxed">
+                         {block.description}
+@@ -229,3 +208,4 @@ function TryoutBlockSelectionPage() {
+ }
+ 
+ export default TryoutBlockSelectionPage;
++
+diff --git a/src/router/app-router.tsx b/src/router/app-router.tsx
+index f93ab93..cdeeeeb 100644
+--- a/src/router/app-router.tsx
++++ b/src/router/app-router.tsx
+@@ -41,6 +41,7 @@ const AdminQuestionGeneratorReviewPage = lazy(() => import("../pages/admin/quest
+ const QuestionEditorPage = lazy(() => import("../pages/admin/question-editor-page"));
+ const QuestionsPage = lazy(() => import("../pages/admin/questions-page"));
+ const UsersPage = lazy(() => import("../pages/admin/users-page"));
++const BlocksManagementPage = lazy(() => import("../pages/admin/blocks-management-page"));
+ const MentorQuestionGeneratorPage = lazy(() => import("../pages/app/question-generator-page"));
+ const MentorQuestionGeneratorReviewPage = lazy(() => import("../pages/app/question-generator-review-page"));
+ const ProfilePage = lazy(() => import("../pages/profile-page"));
+@@ -133,6 +134,7 @@ function AppRouter() {
+             <Route path="questions/new" element={<QuestionEditorPage />} />
+             <Route path="questions/:questionId/edit" element={<QuestionEditorPage />} />
+             <Route path="users" element={<UsersPage />} />
++            <Route path="blocks" element={<BlocksManagementPage />} />
+             <Route path="*" element={<Navigate replace to="/admin" />} />
+           </Route>
+         </Route>
+diff --git a/supabase/migrations/20260805000000_custom_blocks_visuals.sql b/supabase/migrations/20260805000000_custom_blocks_visuals.sql
 new file mode 100644
-index 0000000..77bc599
+index 0000000..a0fc35d
 --- /dev/null
-+++ b/src/components/DriveExplorer/LinkItem.tsx
-@@ -0,0 +1,71 @@
-+import React from 'react';
-+import { Link as LinkIcon, VideoCamera, FilePpt } from '@phosphor-icons/react';
-+import { MaterialLink } from '@/lib/api/material-api';
-+import { ActionMenu } from './ActionMenu';
-+
-+interface LinkItemProps {
-+  link: MaterialLink;
-+  isMentorOrAdmin: boolean;
-+  isOpen: boolean;
-+  onToggle: () => void;
-+  onClone?: (link: MaterialLink) => void;
-+  onMove?: (link: MaterialLink) => void;
-+  onDelete?: (link: MaterialLink) => void;
-+}
-+
-+export function LinkItem({
-+  link,
-+  isMentorOrAdmin,
-+  isOpen,
-+  onToggle,
-+  onClone,
-+  onMove,
-+  onDelete,
-+}: LinkItemProps) {
-+  const handleClick = () => {
-+    window.open(link.url, '_blank', 'noopener,noreferrer');
-+  };
-+
-+  const IconComponent = link.drive_type === 'VIDEO' ? VideoCamera : link.drive_type === 'PPT' ? FilePpt : LinkIcon;
-+
-+  return (
-+    <div className="relative group">
-+      <div
-+        onClick={handleClick}
-+        className="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:border-emerald-300 hover:shadow-md hover:bg-emerald-50/50 transition-all cursor-pointer bg-white"
-+      >
-+        <div className="flex items-center space-x-3 overflow-hidden">
-+          <div className={`p-2 rounded-lg flex-shrink-0 transition-colors ${
-+            link.drive_type === 'VIDEO' 
-+              ? 'bg-rose-100 text-rose-600 group-hover:bg-rose-600 group-hover:text-white'
-+              : link.drive_type === 'PPT'
-+              ? 'bg-orange-100 text-orange-600 group-hover:bg-orange-600 group-hover:text-white'
-+              : 'bg-emerald-100 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white'
-+          }`}>
-+            <IconComponent weight="fill" className="w-6 h-6" />
-+          </div>
-+          <div className="flex flex-col overflow-hidden">
-+            <span className="font-medium text-slate-700 truncate group-hover:text-slate-900 transition-colors">
-+              {link.title}
-+            </span>
-+            <span className="text-xs text-slate-400 truncate mt-0.5">
-+              {link.url}
-+            </span>
-+          </div>
-+        </div>
-+
-+        {isMentorOrAdmin && (
-+          <ActionMenu
-+            item={link}
-+            isOpen={isOpen}
-+            onToggle={onToggle}
-+            onClone={onClone}
-+            onMove={onMove}
-+            onDelete={onDelete}
-+            menuHoverClass="hover:text-emerald-600"
-+          />
-+        )}
-+      </div>
-+    </div>
-+  );
-+}
++++ b/supabase/migrations/20260805000000_custom_blocks_visuals.sql
+@@ -0,0 +1,4 @@
++-- 1. Tambahkan kolom visual ke tabel blocks
++ALTER TABLE public.blocks
++ADD COLUMN icon_name text,
++ADD COLUMN color_theme text;

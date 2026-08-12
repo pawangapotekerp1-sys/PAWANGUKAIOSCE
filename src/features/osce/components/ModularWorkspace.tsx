@@ -2,11 +2,20 @@ import React, { useState, useRef } from 'react';
 import type { StationConfig } from '../schemas/stationConfig';
 import { OsceShell } from './OsceShell';
 import { LiveCallWidget } from './LiveCallWidget';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
-function FormWidget({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function FormWidget({ value, onChange, template }: { value: string; onChange: (v: string) => void; template?: string }) {
   return (
     <div className="p-4 h-full bg-white rounded-xl m-4 shadow-sm border border-slate-200 text-slate-800 flex flex-col">
-      <h3 className="font-bold mb-2">Lembar Kerja / Dokumen</h3>
+      <h3 className="font-bold mb-4">Lembar Kerja / Dokumen</h3>
+      {template && (
+        <div className="prose prose-sm text-slate-700 max-w-none mb-4 p-4 bg-slate-50 border rounded-lg overflow-x-auto">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {template}
+          </ReactMarkdown>
+        </div>
+      )}
       <textarea 
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -46,7 +55,7 @@ export function ModularWorkspace({ config, onExit }: ModularWorkspaceProps) {
               <LiveCallWidget config={config} onTranscriptUpdate={(t) => transcriptRef.current = t} />
             </div>
           )}
-          {isDokumen && <div className="flex-1 overflow-y-auto"><FormWidget value={formData} onChange={setFormData} /></div>}
+          {isDokumen && <div className="flex-1 overflow-y-auto"><FormWidget value={formData} onChange={setFormData} template={config.worksheetTemplate} /></div>}
         </div>
       </div>
     </OsceShell>

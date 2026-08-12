@@ -59,7 +59,7 @@ function ProductShell({
             </div>
 
             {/* Center: Nav — flex-1 evenly spaced links across top bar */}
-            <nav className="hidden md:flex flex-1 items-center justify-evenly gap-2 lg:gap-6 xl:gap-8 overflow-x-auto py-1 px-8">
+            <nav className="hidden md:flex flex-1 items-center justify-center gap-1 lg:gap-4 xl:gap-6 py-1 px-2">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -67,7 +67,7 @@ function ProductShell({
                     key={item.href}
                     to={item.href}
                     className={cn(
-                      "flex items-center gap-2.5 rounded-2xl px-5 py-2.5 text-base font-bold transition-all duration-200 group relative whitespace-nowrap",
+                      "flex items-center gap-1.5 rounded-2xl px-3 py-2 text-sm font-bold transition-all duration-200 group relative whitespace-nowrap",
                       item.active
                         ? "bg-primary/10 text-primary shadow-xs font-black"
                         : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
@@ -75,7 +75,7 @@ function ProductShell({
                   >
                     <Icon
                       className={cn(
-                        "h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110",
+                        "h-4 w-4 shrink-0 transition-transform duration-200 group-hover:scale-110",
                         item.active ? "text-primary" : "text-muted-foreground"
                       )}
                     />

@@ -97,6 +97,17 @@ export function StationManualEditor({ initialConfig, onSave }: Props) {
         />
       </div>
 
+      <div className="space-y-2">
+        <label htmlFor="station-worksheet" className="text-sm font-semibold text-slate-600">Template Lembar Kerja OSCE Internal (Markdown)</label>
+        <textarea 
+          id="station-worksheet"
+          value={config.worksheetTemplate || ''}
+          onChange={(e) => handleChange('worksheetTemplate', e.target.value)}
+          className="w-full h-48 p-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 resize-y font-mono text-sm"
+          placeholder="Tuliskan format markdown tabel, form kosong, dll..."
+        />
+      </div>
+
       {/* Rubrics Section */}
       <div className="space-y-4 pt-4 border-t border-slate-100">
         <div className="flex justify-between items-center">

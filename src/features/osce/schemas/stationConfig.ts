@@ -31,6 +31,7 @@ export const StationConfigSchema = z.object({
   rubrics: z.array(RubricSchema).optional(),
   aiPersona: AiPersonaSchema.optional(),
   requiredForm: z.string().optional(),
+  worksheetTemplate: z.string().optional(),
   attachments: z.array(AttachmentSchema).default([]),
 });
 

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import type { StationConfig } from '../schemas/stationConfig';
 import { Clock, CheckCircle } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface OsceShellProps {
   config: StationConfig;
@@ -52,8 +54,10 @@ export function OsceShell({ config, children, onExit }: OsceShellProps) {
         </div>
         <div className="p-6 flex-grow overflow-y-auto">
           <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Instruksi Kandidat</h2>
-          <div className="prose prose-sm text-slate-700 whitespace-pre-wrap">
-            {config.instructions}
+          <div className="prose prose-sm text-slate-700 max-w-none">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {config.instructions}
+            </ReactMarkdown>
           </div>
         </div>
         <div className="p-4 border-t border-slate-200">

@@ -64,7 +64,7 @@ ${config.actorInstructions || 'Tidak ada instruksi khusus. Jadilah pasien biasa.
           ) : (
             <span className="w-2 h-2 rounded-full bg-slate-400"></span>
           )}
-          Panggilan Langsung (Live Call)
+          Simulasi Langsung
         </h3>
         <span className="text-xs text-emerald-600 bg-emerald-100 px-2 py-1 rounded font-medium border border-emerald-200">
           Voice Mode
@@ -77,7 +77,7 @@ ${config.actorInstructions || 'Tidak ada instruksi khusus. Jadilah pasien biasa.
             <div className="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto">
               <Phone className="w-10 h-10" />
             </div>
-            <h4 className="text-xl font-bold text-slate-800">Mulai Panggilan dengan AI Pasien</h4>
+            <h4 className="text-xl font-bold text-slate-800">Mulai Simulasi</h4>
             <p className="text-slate-500 text-sm">
               Pastikan mikrofon Anda siap. Anda akan terhubung secara *real-time* dengan pasien simulasi untuk stase <strong>{config.title}</strong>.
             </p>
@@ -96,7 +96,7 @@ ${config.actorInstructions || 'Tidak ada instruksi khusus. Jadilah pasien biasa.
               }}
               className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center gap-2 mx-auto transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 mt-4"
             >
-              <Phone className="w-5 h-5" /> Mulai Panggilan
+              <Phone className="w-5 h-5" /> Mulai Simulasi
             </button>
           </div>
         )}
@@ -133,7 +133,7 @@ ${config.actorInstructions || 'Tidak ada instruksi khusus. Jadilah pasien biasa.
                 onClick={endCall}
                 className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl flex items-center gap-2 mx-auto transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
               >
-                <PhoneOff className="w-5 h-5" /> Akhiri Panggilan
+                <PhoneOff className="w-5 h-5" /> Akhiri Simulasi
               </button>
             </div>
           </div>

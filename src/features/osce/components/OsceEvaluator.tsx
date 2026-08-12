@@ -32,6 +32,13 @@ export function OsceEvaluator({ config, payload, onClose }: OsceEvaluatorProps) 
 Nilai performa kandidat HANYA berdasarkan bukti dari Transkrip dan Lembar Kerja.
 Jangan berasumsi. Jika bukti tidak ada, berikan skor 0.
 
+KONTEKS STASE OSCE:
+- Judul: ${config.title}
+- Area Praktik: ${config.practiceArea || '-'}
+- Tujuan: ${config.objective || '-'}
+- Kompetensi Spesifik: ${config.competence || '-'}
+Berdasarkan konteks di atas, pastikan feedback Anda relevan dengan skenario ini (misal: jika ini swamedikasi, jangan beri saran konseling resep).
+
 RUBRIK PENILAIAN:
 ${JSON.stringify(config.rubrics, null, 2)}
 

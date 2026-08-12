@@ -121,12 +121,12 @@ export default function OsceBuilderPage() {
         worksheet_template: savedConfig.worksheetTemplate,
       };
 
-      if (stationId || savedConfig.id) {
-        const idToUpdate = stationId || savedConfig.id;
-        const { error } = await supabase.from('osce_stations').update(payload).eq('id', idToUpdate);
+      if (stationId) {
+        const { error } = await supabase.from('osce_stations').update(payload).eq('id', stationId);
         if (error) throw error;
       } else {
         const { error } = await supabase.from('osce_stations').insert({
+          id: savedConfig.id,
           ...payload,
           created_by: user?.id
         });

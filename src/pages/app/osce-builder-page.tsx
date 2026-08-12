@@ -42,9 +42,13 @@ export default function OsceBuilderPage() {
             type: data.type,
             durationMinutes: data.duration_minutes,
             objective: data.objective,
+            competence: data.competence,
+            practiceArea: data.practice_area,
             instructions: data.instructions,
+            reference: data.reference,
             actorInstructions: data.actor_instructions,
             rubrics: data.rubrics || [],
+            worksheetTemplate: data.worksheet_template,
             attachments: [],
           });
           setMode("edit");
@@ -108,9 +112,13 @@ export default function OsceBuilderPage() {
         type: savedConfig.type,
         duration_minutes: savedConfig.durationMinutes,
         objective: savedConfig.objective,
+        competence: savedConfig.competence,
+        practice_area: savedConfig.practiceArea,
         instructions: savedConfig.instructions,
+        reference: savedConfig.reference,
         actor_instructions: savedConfig.actorInstructions,
         rubrics: savedConfig.rubrics,
+        worksheet_template: savedConfig.worksheetTemplate,
       };
 
       if (stationId || savedConfig.id) {

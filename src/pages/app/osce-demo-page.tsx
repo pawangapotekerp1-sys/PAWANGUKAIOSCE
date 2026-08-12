@@ -29,9 +29,13 @@ export default function OsceDemoPage() {
           type: row.type as any,
           durationMinutes: row.duration_minutes,
           objective: row.objective,
+          competence: row.competence,
+          practiceArea: row.practice_area,
           instructions: row.instructions,
+          reference: row.reference,
           actorInstructions: row.actor_instructions,
           rubrics: row.rubrics,
+          worksheetTemplate: row.worksheet_template,
           attachments: []
         }));
         

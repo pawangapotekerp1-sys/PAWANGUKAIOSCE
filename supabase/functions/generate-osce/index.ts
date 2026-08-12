@@ -53,7 +53,10 @@ serve(async (req) => {
       "type": "komunikasi", // harus "komunikasi" | "dokumen" | "hybrid"
       "durationMinutes": 10,
       "objective": "Tujuan Station (Misal: Menguji kemampuan kandidat dalam pengumpulan data dan konseling...)",
-      "instructions": "Instruksi Peserta Ujian / Skenario Klinik",
+      "competence": "Kompetensi Spesifik (Misal: 1. Pengumpulan data & informasi, 2. Penetapan masalah, dll)",
+      "practiceArea": "Praktek Kefarmasian (Misal: R&D, QC/QA, Pelayanan obat tanpa resep, dll)",
+      "instructions": "Skenario dan Tugas untuk kandidat",
+      "reference": "Referensi (Misal: Farmakope Edisi VI)",
       "actorInstructions": "Instruksi Pemeran/PS (Berisi identitas pasien, riwayat penyakit, dll)",
       "rubrics": [
         {
@@ -75,19 +78,19 @@ Buat rancangan stase OSCE Apoteker secara SANGAT MENDETAIL dan LENGKAP mengikuti
 Gunakan format MARKDOWN (tebal, list, tabel) di dalam field string agar hasilnya rapi.
 
 Standar Pemformatan Konten:
-1. 'objective' (Gunakan Markdown tebal untuk label, pisahkan baris):
-   **Tujuan station:** Menguji kemampuan kandidat dalam...
-   **Kompetensi spesifik:** (1. Pengumpulan data & informasi, 2. Penyelesaian masalah, dll)
-   **Praktek Kefarmasian:** (R&D / Produksi / QC / Pelayanan / Dispensing, dll)
+1. 'objective': Hanya tuliskan tujuan utama stase secara ringkas (Misal: Menguji kemampuan kandidat dalam...).
+2. 'competence': Buat daftar kompetensi spesifik yang diuji (Misal: 1. Pengumpulan data & informasi, 2. Penyelesaian masalah, dll).
+3. 'practiceArea': Sebutkan area praktek kefarmasian (Misal: R&D / Produksi / QC / Pelayanan / Dispensing, dll).
 
-2. 'instructions' (Instruksi Kandidat) (Gunakan Markdown tebal untuk label):
+4. 'instructions' (Instruksi Kandidat) (Gunakan Markdown tebal untuk label):
    **Skenario:** (Latar belakang situasi spesifik)
-   **Tugas:** (Daftar list 1, 2, 3... tugas spesifik)
-   **Tata letak Stasion:** (Misal: Apotek, Ruang Rawat, QC, dll)
-   **Kebutuhan Laboran:** (Ada/Tidak ada)
-   **Referensi:** (Misal: Farmakope Edisi VI)
+   **Tugas:** (Daftar list 1, 2, 3... tugas spesifik untuk kandidat)
+   *(Catatan: TIDAK PERLU menambahkan Tata letak station maupun Kebutuhan laboran)*
 
-3. 'worksheetTemplate' (Lembar Kerja OSCE INTERNAL):
+5. 'reference':
+   - Tuliskan referensi yang digunakan (Misal: Farmakope Indonesia Edisi VI, ISO, DIH).
+
+6. 'worksheetTemplate' (Lembar Kerja OSCE INTERNAL):
    - Jika station butuh perhitungan / dokumen yang harus diisi kandidat (seperti Uji Disolusi, Skrining Resep), buatkan template form isian dalam bentuk MARKDOWN (gunakan tabel markdown atau titik-titik untuk diisi).
    - Contoh format Lembar Kerja:
      **Parameter Uji ...**
@@ -103,10 +106,10 @@ Standar Pemformatan Konten:
      
    - Buatkan secara lengkap menyerupai Lembar Kerja ujian asli yang harus diserahkan oleh kandidat. Jika stase murni komunikasi tanpa tulisan, isi string kosong.
 
-4. 'actorInstructions':
+7. 'actorInstructions':
    - Jabarkan profil, riwayat, dialog spesifik. Jika tidak ada PS, tulis "Tidak ada".
 
-5. 'rubrics':
+8. 'rubrics':
    - Buat matriks rubrik konkret untuk Skor 3 (Sempurna), Skor 2, Skor 1, dan Skor 0 (Tidak mampu).
 
 Kembalikan HANYA dalam format JSON yang valid dan persis sesuai skema berikut:

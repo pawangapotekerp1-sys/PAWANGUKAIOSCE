@@ -1,0 +1,316 @@
+﻿diff --git a/src/components/layout/product-shell.tsx b/src/components/layout/product-shell.tsx
+index f2aeaed..b25ee15 100644
+--- a/src/components/layout/product-shell.tsx
++++ b/src/components/layout/product-shell.tsx
+@@ -59,7 +59,7 @@ function ProductShell({
+             </div>
+ 
+             {/* Center: Nav ΓÇö flex-1 evenly spaced links across top bar */}
+-            <nav className="hidden md:flex flex-1 items-center justify-evenly gap-2 lg:gap-6 xl:gap-8 overflow-x-auto py-1 px-8">
++            <nav className="hidden md:flex flex-1 items-center justify-center gap-1 lg:gap-4 xl:gap-6 py-1 px-2">
+               {navItems.map((item) => {
+                 const Icon = item.icon;
+                 return (
+@@ -67,7 +67,7 @@ function ProductShell({
+                     key={item.href}
+                     to={item.href}
+                     className={cn(
+-                      "flex items-center gap-2.5 rounded-2xl px-5 py-2.5 text-base font-bold transition-all duration-200 group relative whitespace-nowrap",
++                      "flex items-center gap-1.5 rounded-2xl px-3 py-2 text-sm font-bold transition-all duration-200 group relative whitespace-nowrap",
+                       item.active
+                         ? "bg-primary/10 text-primary shadow-xs font-black"
+                         : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+@@ -75,7 +75,7 @@ function ProductShell({
+                   >
+                     <Icon
+                       className={cn(
+-                        "h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110",
++                        "h-4 w-4 shrink-0 transition-transform duration-200 group-hover:scale-110",
+                         item.active ? "text-primary" : "text-muted-foreground"
+                       )}
+                     />
+diff --git a/src/features/osce/components/ModularWorkspace.tsx b/src/features/osce/components/ModularWorkspace.tsx
+index 1dff83e..adc0f4a 100644
+--- a/src/features/osce/components/ModularWorkspace.tsx
++++ b/src/features/osce/components/ModularWorkspace.tsx
+@@ -2,16 +2,36 @@ import React, { useState, useRef } from 'react';
+ import type { StationConfig } from '../schemas/stationConfig';
+ import { OsceShell } from './OsceShell';
+ import { LiveCallWidget } from './LiveCallWidget';
++import ReactMarkdown from 'react-markdown';
++import remarkGfm from 'remark-gfm';
++
++import { marked } from 'marked';
++
++function FormWidget({ value, onChange, template }: { value: string; onChange: (v: string) => void; template?: string }) {
++  const contentRef = useRef<HTMLDivElement>(null);
++  const isInitialized = useRef(false);
++
++  useEffect(() => {
++    if (!isInitialized.current && template && contentRef.current) {
++      const html = marked.parse(template) as string;
++      contentRef.current.innerHTML = html;
++      onChange(html);
++      isInitialized.current = true;
++    }
++  }, [template, onChange]);
+ 
+-function FormWidget({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+   return (
+     <div className="p-4 h-full bg-white rounded-xl m-4 shadow-sm border border-slate-200 text-slate-800 flex flex-col">
+       <h3 className="font-bold mb-2">Lembar Kerja / Dokumen</h3>
+-      <textarea 
+-        value={value}
+-        onChange={(e) => onChange(e.target.value)}
+-        placeholder="Ketik jawaban tertulis, perhitungan, atau rencana asuhan di sini..."
+-        className="w-full flex-grow p-3 border rounded-lg resize-none outline-none focus:border-blue-500"
++      <p className="text-xs text-slate-500 mb-4">Silakan klik dan ketik jawaban Anda langsung di dalam tabel atau dokumen di bawah ini.</p>
++      
++      <div 
++        ref={contentRef}
++        contentEditable={true}
++        suppressContentEditableWarning={true}
++        onInput={(e) => onChange(e.currentTarget.innerHTML)}
++        onBlur={(e) => onChange(e.currentTarget.innerHTML)}
++        className="prose prose-sm text-slate-700 max-w-none flex-grow p-4 bg-slate-50 border rounded-lg overflow-y-auto outline-none focus:border-blue-500 focus:bg-white transition-colors"
+       />
+     </div>
+   );
+@@ -46,7 +66,7 @@ export function ModularWorkspace({ config, onExit }: ModularWorkspaceProps) {
+               <LiveCallWidget config={config} onTranscriptUpdate={(t) => transcriptRef.current = t} />
+             </div>
+           )}
+-          {isDokumen && <div className="flex-1 overflow-y-auto"><FormWidget value={formData} onChange={setFormData} /></div>}
++          {isDokumen && <div className="flex-1 overflow-y-auto"><FormWidget value={formData} onChange={setFormData} template={config.worksheetTemplate} /></div>}
+         </div>
+       </div>
+     </OsceShell>
+diff --git a/src/features/osce/components/OsceShell.tsx b/src/features/osce/components/OsceShell.tsx
+index 889fc6e..fb9f543 100644
+--- a/src/features/osce/components/OsceShell.tsx
++++ b/src/features/osce/components/OsceShell.tsx
+@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
+ import { toast } from "sonner";
+ import type { StationConfig } from '../schemas/stationConfig';
+ import { Clock, CheckCircle } from 'lucide-react';
++import ReactMarkdown from 'react-markdown';
++import remarkGfm from 'remark-gfm';
+ 
+ interface OsceShellProps {
+   config: StationConfig;
+@@ -52,8 +54,10 @@ export function OsceShell({ config, children, onExit }: OsceShellProps) {
+         </div>
+         <div className="p-6 flex-grow overflow-y-auto">
+           <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Instruksi Kandidat</h2>
+-          <div className="prose prose-sm text-slate-700 whitespace-pre-wrap">
+-            {config.instructions}
++          <div className="prose prose-sm text-slate-700 max-w-none">
++            <ReactMarkdown remarkPlugins={[remarkGfm]}>
++              {config.instructions}
++            </ReactMarkdown>
+           </div>
+         </div>
+         <div className="p-4 border-t border-slate-200">
+diff --git a/src/features/osce/components/StationManualEditor.tsx b/src/features/osce/components/StationManualEditor.tsx
+index 43fa1e6..c64991e 100644
+--- a/src/features/osce/components/StationManualEditor.tsx
++++ b/src/features/osce/components/StationManualEditor.tsx
+@@ -97,6 +97,17 @@ export function StationManualEditor({ initialConfig, onSave }: Props) {
+         />
+       </div>
+ 
++      <div className="space-y-2">
++        <label htmlFor="station-worksheet" className="text-sm font-semibold text-slate-600">Template Lembar Kerja OSCE Internal (Markdown)</label>
++        <textarea 
++          id="station-worksheet"
++          value={config.worksheetTemplate || ''}
++          onChange={(e) => handleChange('worksheetTemplate', e.target.value)}
++          className="w-full h-48 p-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 resize-y font-mono text-sm"
++          placeholder="Tuliskan format markdown tabel, form kosong, dll..."
++        />
++      </div>
++
+       {/* Rubrics Section */}
+       <div className="space-y-4 pt-4 border-t border-slate-100">
+         <div className="flex justify-between items-center">
+diff --git a/src/features/osce/schemas/stationConfig.ts b/src/features/osce/schemas/stationConfig.ts
+index 42c6de3..1c9775c 100644
+--- a/src/features/osce/schemas/stationConfig.ts
++++ b/src/features/osce/schemas/stationConfig.ts
+@@ -31,6 +31,7 @@ export const StationConfigSchema = z.object({
+   rubrics: z.array(RubricSchema).optional(),
+   aiPersona: AiPersonaSchema.optional(),
+   requiredForm: z.string().optional(),
++  worksheetTemplate: z.string().optional(),
+   attachments: z.array(AttachmentSchema).default([]),
+ });
+ 
+diff --git a/src/pages/app/osce-builder-page.tsx b/src/pages/app/osce-builder-page.tsx
+index 6ec03a9..e73b9a9 100644
+--- a/src/pages/app/osce-builder-page.tsx
++++ b/src/pages/app/osce-builder-page.tsx
+@@ -42,9 +42,13 @@ export default function OsceBuilderPage() {
+             type: data.type,
+             durationMinutes: data.duration_minutes,
+             objective: data.objective,
++            competence: data.competence,
++            practiceArea: data.practice_area,
+             instructions: data.instructions,
++            reference: data.reference,
+             actorInstructions: data.actor_instructions,
+             rubrics: data.rubrics || [],
++            worksheetTemplate: data.worksheet_template,
+             attachments: [],
+           });
+           setMode("edit");
+@@ -108,9 +112,13 @@ export default function OsceBuilderPage() {
+         type: savedConfig.type,
+         duration_minutes: savedConfig.durationMinutes,
+         objective: savedConfig.objective,
++        competence: savedConfig.competence,
++        practice_area: savedConfig.practiceArea,
+         instructions: savedConfig.instructions,
++        reference: savedConfig.reference,
+         actor_instructions: savedConfig.actorInstructions,
+         rubrics: savedConfig.rubrics,
++        worksheet_template: savedConfig.worksheetTemplate,
+       };
+ 
+       if (stationId || savedConfig.id) {
+diff --git a/src/pages/app/osce-demo-page.tsx b/src/pages/app/osce-demo-page.tsx
+index 2808e1f..043c4b1 100644
+--- a/src/pages/app/osce-demo-page.tsx
++++ b/src/pages/app/osce-demo-page.tsx
+@@ -29,9 +29,13 @@ export default function OsceDemoPage() {
+           type: row.type as any,
+           durationMinutes: row.duration_minutes,
+           objective: row.objective,
++          competence: row.competence,
++          practiceArea: row.practice_area,
+           instructions: row.instructions,
++          reference: row.reference,
+           actorInstructions: row.actor_instructions,
+           rubrics: row.rubrics,
++          worksheetTemplate: row.worksheet_template,
+           attachments: []
+         }));
+         
+diff --git a/supabase/functions/generate-osce/index.ts b/supabase/functions/generate-osce/index.ts
+index 90b3405..76499fc 100644
+--- a/supabase/functions/generate-osce/index.ts
++++ b/supabase/functions/generate-osce/index.ts
+@@ -52,49 +52,66 @@ serve(async (req) => {
+       "title": "Judul Stase",
+       "type": "komunikasi", // harus "komunikasi" | "dokumen" | "hybrid"
+       "durationMinutes": 10,
+-      "objective": "Tujuan Station (Misal: Kandidat mampu melakukan pengumpulan data dan konseling...)",
+-      "instructions": "Instruksi Peserta Ujian / Skenario Klinik (Berisi skenario, keluhan, resep jika ada, dan tugas spesifik untuk kandidat)",
+-      "actorInstructions": "Instruksi Pemeran/PS (Berisi identitas pasien, riwayat penyakit, hal-hal yang harus dikatakan atau dijawab saat ditanya kandidat, respon sikap, dll)",
++      "objective": "Tujuan Station (Misal: Menguji kemampuan kandidat dalam pengumpulan data dan konseling...)",
++      "instructions": "Instruksi Peserta Ujian / Skenario Klinik",
++      "actorInstructions": "Instruksi Pemeran/PS (Berisi identitas pasien, riwayat penyakit, dll)",
+       "rubrics": [
+         {
+           "competency": "Pengumpulan Data dan Informasi Pasien",
+-          "score3": "Deskripsi jika kandidat melakukan dengan sempurna (Skor 3)",
+-          "score2": "Deskripsi untuk Skor 2",
+-          "score1": "Deskripsi untuk Skor 1",
+-          "score0": "Deskripsi untuk Skor 0 (Kandidat tidak melakukan sama sekali)"
++          "score3": "Deskripsi Skor 3",
++          "score2": "Deskripsi Skor 2",
++          "score1": "Deskripsi Skor 1",
++          "score0": "Deskripsi Skor 0"
+         }
+       ],
+-      "attachments": [] // biarkan array kosong
++      "worksheetTemplate": "Markdown template untuk Lembar Kerja OSCE Internal (Misal: Tabel, parameter uji, form kosong, dsb). Biarkan string kosong jika tidak diperlukan.",
++      "attachments": []
+     }
+     `;
+ 
+     const systemPrompt = `Anda adalah asisten ahli pembuat soal UKAI (Uji Kompetensi Apoteker Indonesia) berstandar nasional metode OSCE. 
+ Buat rancangan stase OSCE Apoteker secara SANGAT MENDETAIL dan LENGKAP mengikuti STANDAR FORMAT TERBARU.
+ 
++Gunakan format MARKDOWN (tebal, list, tabel) di dalam field string agar hasilnya rapi.
++
+ Standar Pemformatan Konten:
+-1. 'objective' harus diformat berisi 3 bagian:
+-   - Tujuan station: Menguji kemampuan kandidat dalam...
+-   - Kompetensi spesifik: (Sebutkan poin kompetensi yang diuji, pilih dari: 1. Pengumpulan data & informasi, 2. Penetapan masalah, 3. Penyelesaian masalah, 4. Pencatatan & pelaporan, 5. Komunikasi efektif, 6. Sikap dan perilaku professional)
+-   - Praktek Kefarmasian: (Pilih area yang relevan, misal: R&D, Produksi, QC/QA, Pelayanan obat tanpa resep, Skrining resep, Dispensing/KIE, dll).
+-
+-2. 'instructions' (Instruksi Kandidat) harus diformat berisi:
+-   - Skenario: (Latar belakang situasi klinik/industri yang spesifik)
+-   - Tugas: (Daftar poin tugas 1, 2, 3... untuk kandidat)
+-   - Tata letak Station: (Misal: Apotek, Ruang Rawat, QC, dll)
+-   - Kebutuhan Laboran: (Ada/Tidak ada)
+-   - Referensi: (Misal: Farmakope, ISO, DIH, dll)
+-
+-3. 'actorInstructions' (Instruksi Pemeran Standar):
+-   - Jika ada pemeran, jabarkan detail profil, keluhan, riwayat, dan dialog respons spesifik.
+-   - Jika murni soal perhitungan/dokumen tanpa PS, tulis "Tidak ada".
+-
+-4. 'rubrics':
+-   - Buat matriks rubrik yang berkesinambungan dengan Kompetensi spesifik yang diuji.
+-   - Jabarkan deskripsi perilaku secara konkret untuk Skor 3 (Sempurna), Skor 2, Skor 1, dan Skor 0 (Tidak mampu/Tidak melakukan).
++1. 'objective' (Gunakan Markdown tebal untuk label, pisahkan baris):
++   **Tujuan station:** Menguji kemampuan kandidat dalam...
++   **Kompetensi spesifik:** (1. Pengumpulan data & informasi, 2. Penyelesaian masalah, dll)
++   **Praktek Kefarmasian:** (R&D / Produksi / QC / Pelayanan / Dispensing, dll)
++
++2. 'instructions' (Instruksi Kandidat) (Gunakan Markdown tebal untuk label):
++   **Skenario:** (Latar belakang situasi spesifik)
++   **Tugas:** (Daftar list 1, 2, 3... tugas spesifik)
++   **Tata letak Stasion:** (Misal: Apotek, Ruang Rawat, QC, dll)
++   **Kebutuhan Laboran:** (Ada/Tidak ada)
++   **Referensi:** (Misal: Farmakope Edisi VI)
++
++3. 'worksheetTemplate' (Lembar Kerja OSCE INTERNAL):
++   - Jika station butuh perhitungan / dokumen yang harus diisi kandidat (seperti Uji Disolusi, Skrining Resep), buatkan template form isian dalam bentuk MARKDOWN (gunakan tabel markdown atau titik-titik untuk diisi).
++   - Contoh format Lembar Kerja:
++     **Parameter Uji ...**
++     | Parameter | Keterangan |
++     |-----------|------------|
++     | Jenis Medium | ................... |
++     | Waktu | ................... |
++
++     **Data Tabel Hasil**
++     | Tablet | Perhitungan | % Hasil |
++     |--------|-------------|---------|
++     | 1 | | |
++     
++   - Buatkan secara lengkap menyerupai Lembar Kerja ujian asli yang harus diserahkan oleh kandidat. Jika stase murni komunikasi tanpa tulisan, isi string kosong.
++
++4. 'actorInstructions':
++   - Jabarkan profil, riwayat, dialog spesifik. Jika tidak ada PS, tulis "Tidak ada".
++
++5. 'rubrics':
++   - Buat matriks rubrik konkret untuk Skor 3 (Sempurna), Skor 2, Skor 1, dan Skor 0 (Tidak mampu).
+ 
+ Kembalikan HANYA dalam format JSON yang valid dan persis sesuai skema berikut:
+ ${jsonSchema}
+-Tidak boleh ada teks penjelasan sebelum atau sesudah JSON, pastikan JSON valid dan proper escaping.`;
++Tidak boleh ada teks penjelasan sebelum atau sesudah JSON, pastikan JSON valid dan proper escaping. (Catatan: gunakan \\n untuk newline di dalam nilai string JSON).`;
+ 
+     const modelToUse = credential.model || 'gemini-3.6-flash';
+     
+@@ -118,7 +135,7 @@ Tidak boleh ada teks penjelasan sebelum atau sesudah JSON, pastikan JSON valid d
+ 
+     // Default id untuk frontend
+     if (!resultConfig.id) {
+-       resultConfig.id = 'stase-' + Date.now();
++       resultConfig.id = crypto.randomUUID();
+     }
+ 
+     return jsonResponse(resultConfig);
+diff --git a/supabase/migrations/20260812000000_add_osce_separated_fields.sql b/supabase/migrations/20260812000000_add_osce_separated_fields.sql
+new file mode 100644
+index 0000000..a581b96
+--- /dev/null
++++ b/supabase/migrations/20260812000000_add_osce_separated_fields.sql
+@@ -0,0 +1,5 @@
++ALTER TABLE public.osce_stations
++ADD COLUMN competence TEXT,
++ADD COLUMN practice_area TEXT,
++ADD COLUMN reference TEXT,
++ADD COLUMN worksheet_template TEXT;

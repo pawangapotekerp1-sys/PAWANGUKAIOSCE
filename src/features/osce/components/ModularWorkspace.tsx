@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import type { StationConfig } from '../schemas/stationConfig';
 import { OsceShell } from './OsceShell';
 import { LiveCallWidget } from './LiveCallWidget';
@@ -12,13 +12,18 @@ function FormWidget({ value, onChange, template }: { value: string; onChange: (v
   const isInitialized = useRef(false);
 
   useEffect(() => {
-    if (!isInitialized.current && template && contentRef.current) {
-      const html = marked.parse(template) as string;
-      contentRef.current.innerHTML = html;
-      onChange(html);
-      isInitialized.current = true;
+    if (!isInitialized.current && contentRef.current) {
+      if (value) {
+        contentRef.current.innerHTML = value;
+        isInitialized.current = true;
+      } else if (template) {
+        const html = marked.parse(template) as string;
+        contentRef.current.innerHTML = html;
+        onChange(html);
+        isInitialized.current = true;
+      }
     }
-  }, [template, onChange]);
+  }, [template, value, onChange]);
 
   return (
     <div className="p-4 h-full bg-white rounded-xl m-4 shadow-sm border border-slate-200 text-slate-800 flex flex-col">

@@ -71,18 +71,53 @@ export function StationManualEditor({ initialConfig, onSave }: Props) {
           value={config.objective || ''}
           onChange={(e) => handleChange('objective', e.target.value)}
           className="w-full p-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-800"
-          placeholder="Misal: Kandidat mampu melakukan pengumpulan data dan konseling..."
+          placeholder="Misal: Menguji kemampuan kandidat dalam pengumpulan data..."
         />
       </div>
 
+      <div className="grid grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <label htmlFor="station-competence" className="text-sm font-semibold text-slate-600">Kompetensi Spesifik</label>
+          <textarea 
+            id="station-competence"
+            value={config.competence || ''}
+            onChange={(e) => handleChange('competence', e.target.value)}
+            className="w-full h-24 p-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 resize-y"
+            placeholder="Daftar kompetensi yang diuji..."
+          />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="station-practice-area" className="text-sm font-semibold text-slate-600">Praktek Kefarmasian</label>
+          <textarea 
+            id="station-practice-area"
+            value={config.practiceArea || ''}
+            onChange={(e) => handleChange('practiceArea', e.target.value)}
+            className="w-full h-24 p-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 resize-y"
+            placeholder="Area praktik kefarmasian..."
+          />
+        </div>
+      </div>
+
       <div className="space-y-2">
-        <label htmlFor="station-instructions" className="text-sm font-semibold text-slate-600">Instruksi Kandidat (Skenario Klinik & Tugas)</label>
+        <label htmlFor="station-instructions" className="text-sm font-semibold text-slate-600">Instruksi Kandidat (Skenario & Tugas)</label>
         <textarea 
           id="station-instructions"
           value={config.instructions}
           onChange={(e) => handleChange('instructions', e.target.value)}
           className="w-full h-32 p-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 resize-y"
-          placeholder="Tuliskan skenario untuk dibaca kandidat..."
+          placeholder="Tuliskan skenario dan tugas untuk dibaca kandidat..."
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="station-reference" className="text-sm font-semibold text-slate-600">Referensi</label>
+        <input 
+          id="station-reference"
+          type="text"
+          value={config.reference || ''}
+          onChange={(e) => handleChange('reference', e.target.value)}
+          className="w-full p-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-800"
+          placeholder="Referensi (Misal: Farmakope Indonesia Edisi VI)"
         />
       </div>
 

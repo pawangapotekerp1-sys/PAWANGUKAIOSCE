@@ -52,13 +52,41 @@ export function OsceShell({ config, children, onExit }: OsceShellProps) {
             </span>
           </div>
         </div>
-        <div className="p-6 flex-grow overflow-y-auto">
-          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Instruksi Kandidat</h2>
-          <div className="prose prose-sm text-slate-700 max-w-none">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {config.instructions}
-            </ReactMarkdown>
+        <div className="p-6 flex-grow overflow-y-auto space-y-6">
+          {config.objective && (
+            <div>
+              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Tujuan Station</h2>
+              <p className="text-slate-700 text-sm">{config.objective}</p>
+            </div>
+          )}
+          {config.competence && (
+            <div>
+              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Kompetensi Spesifik</h2>
+              <p className="text-slate-700 text-sm whitespace-pre-line">{config.competence}</p>
+            </div>
+          )}
+          {config.practiceArea && (
+            <div>
+              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Praktek Kefarmasian</h2>
+              <p className="text-slate-700 text-sm">{config.practiceArea}</p>
+            </div>
+          )}
+          
+          <div>
+            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Instruksi Kandidat (Skenario & Tugas)</h2>
+            <div className="prose prose-sm text-slate-700 max-w-none bg-blue-50/50 p-4 rounded-lg border border-blue-100">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {config.instructions}
+              </ReactMarkdown>
+            </div>
           </div>
+
+          {config.reference && (
+            <div>
+              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Referensi</h2>
+              <p className="text-slate-700 text-sm italic">{config.reference}</p>
+            </div>
+          )}
         </div>
         <div className="p-4 border-t border-slate-200">
           <button 

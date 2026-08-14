@@ -78,6 +78,7 @@ function ReviewPage() {
   const historyQuery = useQuery({
     queryKey: ["review-history", user?.id],
     enabled: !isDetailRoute && Boolean(user?.id),
+    staleTime: 1000 * 60 * 60, // 1 hour
     queryFn: () =>
       listReviewHistory({
         userId: user!.id,
@@ -87,6 +88,7 @@ function ReviewPage() {
   const reviewQuery = useQuery({
     queryKey: ["review-detail", attemptId, source],
     enabled: Boolean(attemptId),
+    staleTime: 1000 * 60 * 60, // 1 hour
     queryFn: () =>
       getReviewDetailData({
         attemptId: attemptId!,

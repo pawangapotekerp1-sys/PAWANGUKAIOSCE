@@ -370,7 +370,7 @@ function QuestionsPage() {
                       {question.hasExplanationText ? (
                         <Badge variant="outline" className="text-[10px] font-medium text-muted-foreground bg-muted/30">
                           <FileText className="h-3 w-3 mr-1 text-emerald-500" />
-                          Pembahasan teks
+                          Pembahasan
                         </Badge>
                       ) : null}
                       {question.hasExplanationImage ? (

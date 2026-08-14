@@ -28,6 +28,7 @@ function TryoutResultPage() {
   const resultQuery = useQuery({
     queryKey: ["tryout-result", resolvedAttemptId],
     enabled: Boolean(resolvedAttemptId),
+    staleTime: 1000 * 60 * 60, // 1 hour
     queryFn: () => getAttemptResultPageData({ attemptId: resolvedAttemptId! }),
   });
   

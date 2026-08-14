@@ -170,10 +170,10 @@ type FinalQuestionListRow = {
     name: string;
   }> | null;
   explanation?: {
-    explanation: string | null;
+    id: string;
     explanation_image_path: string | null;
   } | Array<{
-    explanation: string | null;
+    id: string;
     explanation_image_path: string | null;
   }> | null;
 };
@@ -473,7 +473,7 @@ export async function listQuestionBank(
 ): Promise<QuestionBankItemViewModel[]> {
   const { data, error } = await client
     .from("questions")
-    .select("id, stem, status, updated_at, question_image_path, block:blocks(id, name), topic:topics(id, name), explanation:question_explanations(explanation, explanation_image_path)")
+    .select("id, stem, status, updated_at, question_image_path, block:blocks(id, name), topic:topics(id, name), explanation:question_explanations(id, explanation_image_path)")
     .order("updated_at", { ascending: false });
 
   if (error) {
@@ -498,7 +498,9 @@ export async function listQuestionBank(
       topicId: topic?.id ?? null,
       topicName: topic?.name ?? null,
       questionImageUrl,
-      explanationText: explanation?.explanation ?? null,
+      // Pass a dummy string so the UI knows an explanation record exists. 
+      // This is a trade-off to save bandwidth by not downloading the full text.
+      explanationText: explanation ? "exists" : null,
       explanationImageUrl,
       updatedAt: row.updated_at,
     });

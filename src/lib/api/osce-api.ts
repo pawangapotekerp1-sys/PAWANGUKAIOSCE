@@ -57,7 +57,7 @@ export async function listOsceStations() {
   const supabase = getSupabaseBrowserClient();
   
   const { data, error } = await supabase.from('osce_stations')
-    .select('*')
+    .select('id, title, type, duration_minutes, objective')
     .order('created_at', { ascending: false });
 
   if (error) throw error;

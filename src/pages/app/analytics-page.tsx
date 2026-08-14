@@ -7,7 +7,9 @@ import DiagnosisRangeControls from "../../components/diagnosis/diagnosis-range-c
 import SubtopicRankingList from "../../components/diagnosis/subtopic-ranking-list";
 import ProductShell from "../../components/layout/product-shell";
 import { getButtonStyleProps } from "../../components/ui/button";
-import { getPersonalWeaknessDiagnosis } from "../../lib/api/analytics-api";
+import Button from "../../components/ui/button";
+import { getPersonalWeaknessDiagnosis, generateStudentAiRangeInsight } from "../../lib/api/analytics-api";
+import { getGlobalAiCredentialStatus } from "../../lib/api/global-ai-credential-api";
 import { useSession } from "../../lib/auth/use-session";
 import {
   createDefaultDiagnosisRange,
@@ -21,7 +23,7 @@ import { useStudentShell } from "./use-student-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 import { Badge } from "../../components/ui/badge";
-import { Loader2, AlertCircle, PackageSearch, BarChart3 } from "lucide-react";
+import { Loader2, AlertCircle, PackageSearch, BarChart3, Bot, Sparkles, Key } from "lucide-react";
 
 function AnalyticsPage() {
   const { user } = useSession();
@@ -57,6 +59,28 @@ function AnalyticsPage() {
   const diagnosisMode = diagnosis?.summary.diagnosisMode ?? null;
   const weakestSubtopic = diagnosis?.subtopicRankings[0] ?? null;
   const canApplyCustomRange = toAppliedDiagnosisRange(draftRange) !== null;
+
+  const aiCredentialQuery = useQuery({
+    queryKey: ["global-ai-credential-status"],
+    queryFn: () => getGlobalAiCredentialStatus(),
+    enabled: analyticsView === "ready" && diagnosisMode === "full",
+  });
+
+  const aiInsightQuery = useQuery({
+    queryKey: [
+      "student-ai-range-insight",
+      user?.id,
+      appliedRange.dateFrom,
+      appliedRange.dateTo,
+      timezone,
+    ],
+    queryFn: () => generateStudentAiRangeInsight({
+      dateFrom: appliedRange.dateFrom,
+      dateTo: appliedRange.dateTo,
+      timezone,
+    }),
+    enabled: false, // Only run when triggered
+  });
 
   function handlePresetSelect(preset: "7d" | "14d" | "30d") {
     const nextRange = createPresetDiagnosisRange(preset);
@@ -204,6 +228,76 @@ function AnalyticsPage() {
             />
 
             <SubtopicRankingList rankings={diagnosis.subtopicRankings} />
+
+            <Card className="mt-8 border-primary/20 bg-primary/5 shadow-md overflow-hidden relative">
+              <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
+              <CardHeader className="pb-3">
+                 <CardTitle className="text-xl font-bold flex items-center gap-2 text-foreground">
+                   <Sparkles className="h-5 w-5 text-primary" />
+                   Analisis Mendalam AI
+                 </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {!aiCredentialQuery.data?.hasCredential ? (
+                  <div className="flex flex-col items-center justify-center p-6 text-center">
+                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                      <Key className="h-6 w-6 text-primary" />
+                    </div>
+                    <h4 className="text-base font-semibold mb-2">Kredensial AI Belum Diatur</h4>
+                    <p className="text-sm text-muted-foreground max-w-md mb-4">
+                      Fitur analisis cerdas menggunakan sistem Bring Your Own Key (BYOK). Silakan atur API Key Gemini Anda di Pengaturan AI Global untuk mengaktifkan fitur ini.
+                    </p>
+                    <Link
+                      {...getButtonStyleProps({ variant: "primary" })}
+                      to="/app/settings/ai-config"
+                    >
+                      Buka Pengaturan AI
+                    </Link>
+                  </div>
+                ) : !aiInsightQuery.data && !aiInsightQuery.isFetching && !aiInsightQuery.isError ? (
+                  <div className="flex flex-col items-center justify-center p-6 text-center">
+                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                      <Bot className="h-6 w-6 text-primary" />
+                    </div>
+                    <p className="text-sm text-muted-foreground max-w-md mb-4">
+                      Dapatkan rangkuman kelemahan yang lebih spesifik dan saran strategi belajar dari asisten AI cerdas berdasarkan {diagnosis.summary.eligibleAttemptCount} try out Anda.
+                    </p>
+                    <Button 
+                      onClick={() => aiInsightQuery.refetch()}
+                      className="font-semibold"
+                    >
+                      Buat Analisis AI
+                    </Button>
+                  </div>
+                ) : aiInsightQuery.isFetching ? (
+                  <div className="flex flex-col items-center justify-center p-12 text-center space-y-4">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="text-sm font-medium text-muted-foreground">AI sedang menganalisis data try out Anda...</p>
+                  </div>
+                ) : aiInsightQuery.isError ? (
+                  <Alert variant="destructive" className="bg-destructive/5 border-destructive/20">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Gagal memuat analisis AI</AlertTitle>
+                    <AlertDescription className="mt-1 flex flex-col items-start gap-3">
+                      <span>{aiInsightQuery.error instanceof Error ? aiInsightQuery.error.message : "Terjadi kesalahan saat memproses data dengan AI."}</span>
+                      <Button variant="outline" size="sm" onClick={() => aiInsightQuery.refetch()}>
+                        Coba Lagi
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                      {aiInsightQuery.data?.summary}
+                    </div>
+                    <div className="text-[11px] font-mono font-medium text-muted-foreground/60 uppercase tracking-wide flex items-center justify-between border-t border-border/50 pt-4 mt-6">
+                      <span>Model: Gemini 3.6 Flash</span>
+                      <span>Digenerasi: {new Date(aiInsightQuery.data?.generatedAt ?? "").toLocaleString("id-ID")}</span>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </>
         ) : (
           <Card className="mt-6">

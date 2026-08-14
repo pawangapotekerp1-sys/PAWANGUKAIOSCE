@@ -12,7 +12,9 @@ import {
   type PersistedTopicPerformance,
 } from "../mappers/analytics-mappers";
 
-type AnalyticsClient = Pick<ReturnType<typeof getSupabaseBrowserClient>, "from" | "rpc">;
+import { FunctionsHttpError } from "@supabase/supabase-js";
+
+type AnalyticsClient = Pick<ReturnType<typeof getSupabaseBrowserClient>, "from" | "rpc" | "functions">;
 
 type UserBlockPerformanceRow = {
   block_name: string;
@@ -202,4 +204,48 @@ export async function getPersonalWeaknessDiagnosis(
   }
 
   return mapPersonalWeaknessDiagnosisViewModel((data ?? {}) as PersonalWeaknessDiagnosisRow);
+}
+
+export type StudentAiRangeInsight = {
+  source: "ai";
+  generatedAt: string;
+  summary: string;
+};
+
+export async function generateStudentAiRangeInsight(
+  {
+    client = getSupabaseBrowserClient(),
+    dateFrom,
+    dateTo,
+    timezone,
+  }: {
+    client?: AnalyticsClient;
+    dateFrom: string;
+    dateTo: string;
+    timezone: string;
+  }
+): Promise<StudentAiRangeInsight> {
+  const { data, error } = await client.functions.invoke("student-ai-insight", {
+    body: {
+      action: "generate-range-insight",
+      dateFrom,
+      dateTo,
+      timezone,
+    },
+  });
+
+  if (error) {
+    if (error instanceof FunctionsHttpError) {
+      try {
+        const payload = await error.context.json() as { message?: string; error?: string };
+        const message = payload.message?.trim() || payload.error?.trim();
+        if (message) throw new Error(message);
+      } catch {
+        // Fall back
+      }
+    }
+    throw new Error(error instanceof Error ? error.message : "Gagal membangkitkan analisis AI.");
+  }
+
+  return data.insight as StudentAiRangeInsight;
 }

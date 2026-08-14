@@ -37,6 +37,7 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}) {
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const workletNodeRef = useRef<AudioWorkletNode | null>(null);
   const nextPlayTimeRef = useRef<number>(0);
+  const speechRecognitionRef = useRef<any>(null);
 
   const endCall = useCallback(() => {
     if (wsRef.current) {
@@ -54,6 +55,10 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}) {
     if (audioContextRef.current) {
       audioContextRef.current.close();
       audioContextRef.current = null;
+    }
+    if (speechRecognitionRef.current) {
+      speechRecognitionRef.current.stop();
+      speechRecognitionRef.current = null;
     }
     setIsConnected(false);
     setIsConnecting(false);
@@ -112,6 +117,38 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}) {
         (ws as any)._markSetupComplete = () => {
           isSetupComplete = true;
         };
+
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (SpeechRecognition) {
+          const recognition = new SpeechRecognition();
+          recognition.lang = 'id-ID';
+          recognition.interimResults = false;
+          recognition.continuous = true;
+          
+          recognition.onresult = (event: any) => {
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+              if (event.results[i].isFinal) {
+                const text = event.results[i][0].transcript;
+                if (text.trim().length > 0) {
+                  options.onTranscript?.(text, "user");
+                }
+              }
+            }
+          };
+          
+          recognition.onend = () => {
+            if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+              try { recognition.start(); } catch (e) {}
+            }
+          };
+          
+          try {
+            recognition.start();
+            speechRecognitionRef.current = recognition;
+          } catch (err) {
+            console.error("SpeechRecognition error:", err);
+          }
+        }
 
         // 1. Send Setup Message
         const setupMessage = {

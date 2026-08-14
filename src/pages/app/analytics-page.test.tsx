@@ -15,6 +15,18 @@ vi.mock("../../lib/auth/use-session", () => ({
 vi.mock("../../lib/api/analytics-api", () => ({
   getPersonalWeaknessDiagnosis: (...args: unknown[]) => mockGetPersonalWeaknessDiagnosis(...args),
   getStudentAnalytics: vi.fn(),
+  generateStudentAiRangeInsight: vi.fn().mockResolvedValue({
+    source: "ai",
+    generatedAt: "2026-08-14T00:00:00.000Z",
+    summary: "Mock AI insight",
+  }),
+}));
+
+vi.mock("../../lib/api/global-ai-credential-api", () => ({
+  getGlobalAiCredentialStatus: vi.fn().mockResolvedValue({
+    hasCredential: true,
+    model: "gemini-3.6-flash",
+  }),
 }));
 
 vi.mock("../../lib/diagnosis-date-range", () => ({
@@ -235,7 +247,7 @@ describe("Analytics page", () => {
     expect(
       await screen.findByText(/area yang perlu diperbaiki/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/lihat topik yang paling sering menahan skor di rentang ini/i)).toBeInTheDocument();
+    expect(screen.getByText(/lihat topik dan materi yang paling sering menahan/i)).toBeInTheDocument();
     expect(screen.queryByText(/analisis pola belajar/i)).not.toBeInTheDocument();
   });
 

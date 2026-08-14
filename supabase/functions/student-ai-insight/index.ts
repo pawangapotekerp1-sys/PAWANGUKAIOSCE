@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {
   HttpError,
   createServiceClient,
+  createUserClient,
   requireAuthenticatedUser,
 } from "../_shared/auth.ts";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
@@ -192,6 +193,7 @@ Deno.serve(async (req) => {
     const user = await requireAuthenticatedUser(req);
     const payload = await req.json();
     const credential = await readStudentCredential(service, user.id);
+    const userClient = createUserClient(req);
 
     if (payload.action === "get-status") {
       return jsonResponse({
@@ -380,6 +382,130 @@ Deno.serve(async (req) => {
           status: "error",
           errorMessage: message,
         });
+
+        if (isGeminiCredentialError(error)) {
+          throw new HttpError(400, "BYOK_INVALID", message);
+        }
+
+        throw error;
+      }
+    }
+
+    if (payload.action === "generate-range-insight") {
+      if (!credential?.secret_id) {
+        throw new HttpError(400, "BYOK_MISSING", "Belum ada BYOK tersimpan.");
+      }
+
+      if (typeof payload.dateFrom !== "string" || typeof payload.dateTo !== "string") {
+        throw new HttpError(400, "INVALID_DATE_RANGE", "Rentang tanggal tidak valid.");
+      }
+      
+      const apiKey = await readVaultSecret(service, credential.secret_id);
+
+      try {
+        const { data: diagnosis, error: diagnosisError } = await userClient.rpc("get_personal_weakness_diagnosis", {
+          date_from: payload.dateFrom,
+          date_to: payload.dateTo,
+          user_timezone: payload.timezone ?? "UTC",
+        });
+
+        if (diagnosisError) {
+          throw new Error(diagnosisError.message);
+        }
+
+        const eligibleCount = diagnosis?.summary?.eligibleAttemptCount ?? 0;
+        if (eligibleCount < 3) {
+          throw new HttpError(400, "INSUFFICIENT_DATA", "Dibutuhkan minimal 3 try out besar untuk analisis AI.");
+        }
+
+        const { data: failedQuestions, error: failedQuestionsError } = await userClient.rpc("get_frequent_failed_questions", {
+          date_from: payload.dateFrom,
+          date_to: payload.dateTo,
+          user_timezone: payload.timezone ?? "UTC",
+        });
+
+        if (failedQuestionsError) {
+          throw new Error(failedQuestionsError.message);
+        }
+
+        const subtopics = (diagnosis?.subtopicRankings || []).slice(0, 3);
+        const subtopicText = subtopics.map((item: any) => `${item.subtopicName} (${Math.round(item.accuracy)}%)`).join(", ");
+        const patterns = (diagnosis?.globalBehaviorPatterns || []).slice(0, 2);
+        const patternText = patterns.map((p: any) => p.label).join(", ");
+        const failedQuestionsText = (failedQuestions || []).map((q: any) => `- [${q.topic_name}] ${q.question_stem}`).join("\n");
+        
+        const summary = await generateGeminiText({
+          apiKey,
+          model: credential.model,
+          prompt: [
+            "Kamu adalah mentor ahli klinis untuk mahasiswa profesi apoteker.",
+            "Tuliskan laporan analisis mendalam mengenai evaluasi objektif kelemahan mereka.",
+            "PENTING: Gunakan teks-teks soal yang sering dijawab salah di bawah ini untuk mencari pola jebakan spesifik (contoh: tidak teliti pada parameter lab pasien ginjal, salah rumus dosis pediatri, bingung efek samping spesifik).",
+            "Format jawabanmu HARUS menggunakan struktur berikut (gunakan Markdown):",
+            "1. **Ringkasan Eksekutif**: 2-3 kalimat tajam tentang status performa mereka saat ini.",
+            "2. **Pola Kesalahan Utama**: Gunakan *bullet points* untuk membongkar 2-3 pola jebakan soal yang paling sering membuat mereka salah, berdasarkan data teks soal di bawah.",
+            "3. **Evaluasi Perilaku**: Jelaskan kaitan antara kelemahan topik dengan pola perilaku menjawab mereka.",
+            "4. **Rekomendasi Taktis Langkah-demi-Langkah**: Berikan 3 poin arahan studi yang sangat spesifik dan bisa langsung dipraktikkan minggu ini.",
+            `Total Try Out: ${eligibleCount}`,
+            `Akurasi Keseluruhan: ${diagnosis?.summary?.overallAccuracy ?? 0}%`,
+            `Kelemahan Topik Prioritas: ${subtopicText || "Belum ada data sub-topik terperinci"}`,
+            `Pola Perilaku Menjawab: ${patternText || "Tidak ada pola khusus"}`,
+            `Saran otomatis sistem: ${diagnosis?.narrative?.nextReadiness || "Tidak ada"}`,
+            "",
+            "15 SOAL YANG PALING SERING DIJAWAB SALAH (Cari polanya):",
+            failedQuestionsText || "Belum ada data soal yang salah."
+          ].join("\n"),
+          maxOutputTokens: 800,
+        });
+
+        await service
+          .from("user_ai_credentials")
+          .update({
+            last_validated_at: new Date().toISOString(),
+            last_error: null,
+          })
+          .eq("id", credential.id);
+
+        await writeUsageLog(service, {
+          userId: user.id,
+          credentialId: credential.id,
+          model: credential.model,
+          requestKind: "student_insight",
+          status: "success",
+          metadata: {
+            dateFrom: payload.dateFrom,
+            dateTo: payload.dateTo,
+          }
+        });
+
+        return jsonResponse({
+          insight: {
+            source: "ai",
+            generatedAt: new Date().toISOString(),
+            summary,
+          },
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Student AI range insight failed.";
+        await service
+          .from("user_ai_credentials")
+          .update({
+            last_error: message,
+          })
+          .eq("id", credential.id);
+        
+        await writeUsageLog(service, {
+          userId: user.id,
+          credentialId: credential.id,
+          model: credential.model,
+          requestKind: "student_insight",
+          status: "error",
+          errorMessage: message,
+        });
+
+        if (error instanceof HttpError) {
+          throw error;
+        }
 
         if (isGeminiCredentialError(error)) {
           throw new HttpError(400, "BYOK_INVALID", message);

@@ -77,10 +77,16 @@ export default function OsceBuilderPage() {
       let body: Record<string, unknown> = { prompt, mode: prompt ? "prompt" : "file" };
       
       if (file) {
-        const buffer = await file.arrayBuffer();
-        const base64 = btoa(
-          new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-        );
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            resolve(result.split(',')[1]); // get base64 part
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        
         body = { ...body, fileName: file.name, fileBase64: base64, fileType: file.type };
       }
       

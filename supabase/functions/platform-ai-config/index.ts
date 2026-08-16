@@ -21,7 +21,7 @@ function buildConfigOverview(row: PlatformConfigRow | null) {
     return {
       provider: "disabled" as const,
       enabled: false,
-      model: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
       promptVersion: "phase1-v1",
       insightMode: "rules" as const,
       hasSecret: false,
@@ -155,7 +155,7 @@ Deno.serve(async (req) => {
       const writePayload = {
         provider: payload.provider === "gemini" ? "gemini" : "disabled",
         enabled: Boolean(payload.enabled),
-        model: typeof payload.model === "string" && payload.model ? payload.model : "gemini-3.6-flash",
+        model: typeof payload.model === "string" && payload.model ? payload.model : "gemini-3.7-flash",
         prompt_version: typeof payload.promptVersion === "string" ? payload.promptVersion : null,
         insight_mode: payload.insightMode === "ai" || payload.insightMode === "hybrid" ? payload.insightMode : "rules",
         platform_secret_id: nextSecretId,

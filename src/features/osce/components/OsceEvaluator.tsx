@@ -26,7 +26,7 @@ export function OsceEvaluator({ config, payload, onClose }: OsceEvaluatorProps) 
         if (!apiKey) throw new Error("API Key Gemini tidak ditemukan.");
 
         const status = await getGlobalAiCredentialStatus();
-        const targetModel = status.model || "gemini-3.6-flash";
+        const targetModel = status.model || "gemini-3.7-flash";
 
         const systemPrompt = `Anda adalah penguji OSCE yang sangat objektif dan ketat.
 Nilai performa kandidat HANYA berdasarkan bukti dari Transkrip dan Lembar Kerja.

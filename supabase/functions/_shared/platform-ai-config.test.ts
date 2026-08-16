@@ -6,7 +6,7 @@ describe("resolvePlatformTestConfig", () => {
     expect(
       resolvePlatformTestConfig(
         {
-          model: "gemini-3.6-flash",
+          model: "gemini-3.7-flash",
           platformSecretId: "vault-secret-1",
         },
         {
@@ -26,13 +26,13 @@ describe("resolvePlatformTestConfig", () => {
     expect(
       resolvePlatformTestConfig(
         {
-          model: "gemini-3.6-flash",
+          model: "gemini-3.7-flash",
           platformSecretId: "vault-secret-1",
         },
         {},
       ),
     ).toEqual({
-      model: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
       apiKey: null,
       shouldPersistLastTestedAt: true,
       secretSource: "stored",

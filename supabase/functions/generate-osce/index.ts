@@ -37,7 +37,7 @@ serve(async (req) => {
   try {
     const user = await requireAuthenticatedUser(req);
     const service = createServiceClient();
-    const { prompt, mode } = await req.json();
+    const { prompt, mode, fileBase64, fileType } = await req.json();
 
     const credential = await readUserCredential(service, user.id);
     if (!credential?.secret_id) {
@@ -91,13 +91,15 @@ Standar Pemformatan Konten:
    - Tuliskan referensi yang digunakan (Misal: Farmakope Indonesia Edisi VI, ISO, DIH).
 
 6. 'worksheetTemplate' (Lembar Kerja OSCE INTERNAL):
-   - Jika station butuh perhitungan / dokumen yang harus diisi kandidat (seperti Uji Disolusi, Skrining Resep), buatkan template form isian dalam bentuk MARKDOWN (gunakan tabel markdown atau titik-titik untuk diisi).
+   - Jika station butuh perhitungan / dokumen yang harus diisi kandidat (seperti Uji Disolusi, Skrining Resep), buatkan template form isian dalam bentuk MARKDOWN.
+   - PENTING: Untuk area yang harus diisi oleh kandidat, gunakan garis bawah "___" (minimal 3 underscore) untuk isian teks sebaris, atau kosongkan isi sel (contoh: | |) jika berada di dalam tabel. Jangan gunakan titik-titik (....).
    - Contoh format Lembar Kerja:
      **Parameter Uji ...**
+     Diagnosis utama: ___
      | Parameter | Keterangan |
      |-----------|------------|
-     | Jenis Medium | ................... |
-     | Waktu | ................... |
+     | Jenis Medium | |
+     | Waktu | |
 
      **Data Tabel Hasil**
      | Tablet | Perhitungan | % Hasil |
@@ -116,12 +118,36 @@ Kembalikan HANYA dalam format JSON yang valid dan persis sesuai skema berikut:
 ${jsonSchema}
 Tidak boleh ada teks penjelasan sebelum atau sesudah JSON, pastikan JSON valid dan proper escaping. (Catatan: gunakan \\n untuk newline di dalam nilai string JSON).`;
 
-    const modelToUse = credential.model || 'gemini-3.6-flash';
+    const modelToUse = credential.model || 'gemini-3.7-flash';
+    
+    let textPrompt = systemPrompt + '\n\nInstruksi Mentor:\n' + (prompt || "Buat skenario OSCE apoteker acak yang relevan.");
+    let parts: any[] = [{ text: textPrompt }];
+    
+    // Default fileType if missing
+    let resolvedFileType = fileType;
+    if (mode === "file" && fileBase64) {
+      if (!resolvedFileType) {
+         // Fallback guess based on mode (if it's a file upload without mime type, usually PDF)
+         resolvedFileType = "application/pdf";
+      }
+      
+      textPrompt = systemPrompt + '\n\nEkstrak informasi dari dokumen terlampir untuk membuat skenario OSCE. Jika ada instruksi tambahan:\n' + (prompt || "Buat sesuai dokumen.");
+      parts = [
+        { text: textPrompt },
+        {
+          inlineData: {
+            mimeType: resolvedFileType,
+            data: fileBase64
+          }
+        }
+      ];
+    }
     
     let jsonString = await generateGeminiText({
       apiKey,
       model: modelToUse,
-      prompt: systemPrompt + '\n\nInstruksi Mentor:\n' + (prompt || "Buat skenario OSCE apoteker acak yang relevan."),
+      prompt: textPrompt,
+      parts,
       maxOutputTokens: 8192,
       responseMimeType: "application/json",
     });

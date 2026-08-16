@@ -47,7 +47,12 @@ serve(async (req) => {
     const apiKey = await readVaultSecret(service, credential.secret_id);
 
     // Build prompt combining actor instructions and chat history
-    let systemPrompt = `Anda adalah aktor pasien simulasi OSCE. Ikuti instruksi ini dengan ketat:\n${config.actorInstructions}\n\nBerperanlah senatural mungkin sesuai skenario. Jangan keluar dari karakter. Batasi respon Anda menjadi maksimal 2 atau 3 kalimat singkat yang relevan.`;
+    let systemPrompt = `Anda adalah pemeran standar (Standardized Patient) untuk ujian OSCE. Ikuti instruksi ini dengan ketat:\n${config.actorInstructions}\n\nATURAN PENTING:
+1. Berperanlah senatural mungkin sebagai pasien sesuai skenario. Jangan pernah keluar dari karakter.
+2. JANGAN PERNAH memberikan informasi yang tidak ditanyakan (oversharing). Jawab HANYA apa yang ditanyakan oleh kandidat secara spesifik.
+3. Jangan pernah secara sukarela menjelaskan seluruh keluhan atau riwayat penyakit jika tidak digali oleh kandidat.
+4. Jangan mendiagnosa diri sendiri atau memberikan istilah medis yang rumit kecuali skenario memintanya.
+5. Berbicaralah sesingkat mungkin (maksimal 1-2 kalimat). Biarkan kandidat yang proaktif memimpin percakapan dan menggali informasi.`;
     
     // Format history for Gemini
     let conversationContext = "Riwayat Percakapan:\n";
@@ -60,7 +65,7 @@ serve(async (req) => {
 
     const aiResponse = await generateGeminiText({
       apiKey,
-      model: credential.model || "gemini-3.6-flash", 
+      model: credential.model || "gemini-3.7-flash", 
       prompt: finalPrompt,
       maxOutputTokens: 2048,
     });

@@ -235,3 +235,21 @@ button[class*="bg-[var(--color-teal)]"] {
   gap: var(--dashboard-grid-gap);
   grid-template-columns: minmax(0, 1fr);
 }
+
+@layer components {
+  .osce-input {
+    @apply inline-block min-w-[150px] border-b-2 border-dashed border-slate-300 focus:border-blue-500 focus:bg-blue-50/50 outline-none px-2 py-0.5 mx-1 text-blue-700 font-medium transition-colors cursor-text;
+  }
+  .osce-input:empty:before {
+    content: "Ketik jawaban...";
+    @apply text-slate-400 font-normal italic pointer-events-none;
+  }
+  
+  .osce-cell-input {
+    @apply block w-full min-h-[2rem] outline-none focus:bg-blue-50/50 p-1.5 text-blue-700 font-medium transition-colors cursor-text;
+  }
+  .osce-cell-input:empty:before {
+    content: "Ketik di sini...";
+    @apply text-slate-400 font-normal italic pointer-events-none;
+  }
+}

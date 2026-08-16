@@ -2,7 +2,7 @@ create table if not exists public.ai_provider_configs (
   id uuid primary key default gen_random_uuid(),
   provider text not null default 'disabled' check (provider in ('gemini', 'disabled')),
   enabled boolean not null default false,
-  model text not null default 'gemini-2.5-flash',
+  model text not null default 'gemini-3.7-flash',
   prompt_version text,
   insight_mode text not null default 'rules' check (insight_mode in ('rules', 'hybrid', 'ai')),
   platform_secret_id uuid,
@@ -19,7 +19,7 @@ create table if not exists public.user_ai_credentials (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null unique references public.profiles(id) on delete cascade,
   provider text not null default 'gemini' check (provider in ('gemini')),
-  model text not null default 'gemini-2.5-flash',
+  model text not null default 'gemini-3.7-flash',
   secret_id uuid,
   secret_hint text,
   last_validated_at timestamptz,
@@ -75,7 +75,7 @@ insert into public.ai_provider_configs (
 select
   'disabled',
   false,
-  'gemini-2.5-flash',
+  'gemini-3.7-flash',
   'phase1-v1',
   'rules',
   null

@@ -75,23 +75,23 @@ beforeEach(() => {
   });
   mockGetFlashCardGeneratorStatus.mockResolvedValue({
     hasCredential: true,
-    model: "gemini-2.5-flash",
-    modelLabel: "gemini-2.5-flash",
+    model: "gemini-3.7-flash",
+    modelLabel: "gemini-3.7-flash",
     lastValidatedAt: null,
     lastError: null,
   });
   mockSaveFlashCardGeneratorCredential.mockResolvedValue({
     hasCredential: true,
-    model: "gemini-2.5-flash",
-    modelLabel: "gemini-2.5-flash",
+    model: "gemini-3.7-flash",
+    modelLabel: "gemini-3.7-flash",
     lastValidatedAt: null,
     lastError: null,
   });
   mockTestFlashCardGeneratorCredential.mockResolvedValue({
     status: {
       hasCredential: true,
-      model: "gemini-2.5-flash",
-      modelLabel: "gemini-2.5-flash",
+      model: "gemini-3.7-flash",
+      modelLabel: "gemini-3.7-flash",
       lastValidatedAt: null,
       lastError: null,
     },
@@ -103,8 +103,8 @@ beforeEach(() => {
   });
   mockDeleteFlashCardGeneratorCredential.mockResolvedValue({
     hasCredential: false,
-    model: "gemini-2.5-flash",
-    modelLabel: "gemini-2.5-flash",
+    model: "gemini-3.7-flash",
+    modelLabel: "gemini-3.7-flash",
     lastValidatedAt: null,
     lastError: null,
   });
@@ -124,8 +124,8 @@ describe("FlashCardGeneratorCreatePage", () => {
   test("blocks flash card processing when no validated BYOK is available", async () => {
     mockGetFlashCardGeneratorStatus.mockResolvedValueOnce({
       hasCredential: false,
-      model: "gemini-2.5-flash",
-      modelLabel: "gemini-2.5-flash",
+      model: "gemini-3.7-flash",
+      modelLabel: "gemini-3.7-flash",
       lastValidatedAt: null,
       lastError: null,
     });
@@ -164,7 +164,7 @@ describe("FlashCardGeneratorCreatePage", () => {
     await waitFor(() => {
       expect(mockSaveFlashCardGeneratorCredential).toHaveBeenCalledWith({
         apiKey: "AIza-flash-card-user",
-        model: "gemini-2.5-flash",
+        model: "gemini-3.7-flash",
       });
     });
 
@@ -269,15 +269,15 @@ describe("FlashCardGeneratorCreatePage", () => {
     mockGetFlashCardGeneratorStatus
       .mockResolvedValueOnce({
         hasCredential: false,
-        model: "gemini-2.5-flash",
-        modelLabel: "gemini-2.5-flash",
+        model: "gemini-3.7-flash",
+        modelLabel: "gemini-3.7-flash",
         lastValidatedAt: null,
         lastError: null,
       })
       .mockResolvedValueOnce({
         hasCredential: false,
-        model: "gemini-2.5-flash",
-        modelLabel: "gemini-2.5-flash",
+        model: "gemini-3.7-flash",
+        modelLabel: "gemini-3.7-flash",
         lastValidatedAt: null,
         lastError: null,
       });

@@ -67,7 +67,7 @@ describe("buildGeneratorCredentialWritePayload", () => {
     })).toEqual({
       user_id: "user-1",
       provider: "gemini",
-      model: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
       secret_hint: "••••1234",
       last_error: null,
     });
@@ -156,12 +156,12 @@ describe("generator persistence builders", () => {
   test("builds a batch insert payload with reference count and target count", () => {
     expect(buildQuestionGenerationBatchInsert({
       createdBy: "user-1",
-      model: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
       references: [validReference],
       targetQuestionCount: 5,
     })).toEqual({
       created_by: "user-1",
-      model: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
       target_question_count: 5,
       reference_count: 1,
       status: "generating",

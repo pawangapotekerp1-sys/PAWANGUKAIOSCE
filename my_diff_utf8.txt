@@ -292,7 +292,7 @@ index 90b3405..76499fc 100644
 -Tidak boleh ada teks penjelasan sebelum atau sesudah JSON, pastikan JSON valid dan proper escaping.`;
 +Tidak boleh ada teks penjelasan sebelum atau sesudah JSON, pastikan JSON valid dan proper escaping. (Catatan: gunakan \\n untuk newline di dalam nilai string JSON).`;
  
-     const modelToUse = credential.model || 'gemini-3.6-flash';
+     const modelToUse = credential.model || 'gemini-3.7-flash';
      
 @@ -118,7 +135,7 @@ Tidak boleh ada teks penjelasan sebelum atau sesudah JSON, pastikan JSON valid d
  

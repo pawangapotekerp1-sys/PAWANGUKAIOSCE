@@ -25,7 +25,7 @@ vi.mock("../../lib/api/analytics-api", () => ({
 vi.mock("../../lib/api/global-ai-credential-api", () => ({
   getGlobalAiCredentialStatus: vi.fn().mockResolvedValue({
     hasCredential: true,
-    model: "gemini-3.6-flash",
+    model: "gemini-3.7-flash",
   }),
 }));
 

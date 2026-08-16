@@ -9,14 +9,14 @@ describe("question-generator-mappers", () => {
     expect(
       mapQuestionGeneratorStatus({
         hasCredential: true,
-        model: "gemini-2.5-flash",
+        model: "gemini-3.7-flash",
         lastValidatedAt: "2026-06-04T08:00:00.000Z",
         lastError: null,
       }),
     ).toEqual({
       hasCredential: true,
-      model: "gemini-2.5-flash",
-      modelLabel: "gemini-2.5-flash",
+      model: "gemini-3.7-flash",
+      modelLabel: "gemini-3.7-flash",
       lastValidatedAt: "2026-06-04T08:00:00.000Z",
       lastError: null,
     });
@@ -26,7 +26,7 @@ describe("question-generator-mappers", () => {
     const detail = mapQuestionGenerationBatchDetail({
       batch: {
         id: "batch-1",
-        model: "gemini-2.5-flash",
+        model: "gemini-3.7-flash",
         targetQuestionCount: 3,
         referenceCount: 1,
         status: "partially_distributed",

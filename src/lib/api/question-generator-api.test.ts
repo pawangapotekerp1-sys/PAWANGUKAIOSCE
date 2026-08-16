@@ -20,7 +20,7 @@ describe("question-generator-api", () => {
         data: {
           status: {
             hasCredential: true,
-            model: "gemini-3.6-flash",
+            model: "gemini-3.7-flash",
             lastValidatedAt: "2026-06-04T08:00:00.000Z",
             lastError: null,
           },
@@ -31,7 +31,7 @@ describe("question-generator-api", () => {
         data: {
           status: {
             hasCredential: true,
-            model: "gemini-3.6-flash",
+            model: "gemini-3.7-flash",
             lastValidatedAt: null,
             lastError: null,
           },
@@ -42,7 +42,7 @@ describe("question-generator-api", () => {
         data: {
           status: {
             hasCredential: false,
-            model: "gemini-3.6-flash",
+            model: "gemini-3.7-flash",
             lastValidatedAt: null,
             lastError: null,
           },
@@ -53,7 +53,7 @@ describe("question-generator-api", () => {
         data: {
           status: {
             hasCredential: true,
-            model: "gemini-3.6-flash",
+            model: "gemini-3.7-flash",
             lastValidatedAt: "2026-06-04T08:05:00.000Z",
             lastError: null,
           },
@@ -80,8 +80,8 @@ describe("question-generator-api", () => {
 
     await expect(getQuestionGeneratorStatus(client as never)).resolves.toEqual({
       hasCredential: true,
-      model: "gemini-3.6-flash",
-      modelLabel: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
+      modelLabel: "gemini-3.7-flash",
       lastValidatedAt: "2026-06-04T08:00:00.000Z",
       lastError: null,
     });
@@ -90,22 +90,22 @@ describe("question-generator-api", () => {
       saveQuestionGeneratorCredential(
         {
           apiKey: "AIza-testing-key-1234",
-          model: "gemini-3.6-flash",
+          model: "gemini-3.7-flash",
         },
         client as never,
       ),
     ).resolves.toEqual({
       hasCredential: true,
-      model: "gemini-3.6-flash",
-      modelLabel: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
+      modelLabel: "gemini-3.7-flash",
       lastValidatedAt: null,
       lastError: null,
     });
 
     await expect(deleteQuestionGeneratorCredential(client as never)).resolves.toEqual({
       hasCredential: false,
-      model: "gemini-3.6-flash",
-      modelLabel: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
+      modelLabel: "gemini-3.7-flash",
       lastValidatedAt: null,
       lastError: null,
     });
@@ -113,8 +113,8 @@ describe("question-generator-api", () => {
     await expect(testQuestionGeneratorCredential(client as never)).resolves.toEqual({
       status: {
         hasCredential: true,
-        model: "gemini-3.6-flash",
-        modelLabel: "gemini-3.6-flash",
+        model: "gemini-3.7-flash",
+        modelLabel: "gemini-3.7-flash",
         lastValidatedAt: "2026-06-04T08:05:00.000Z",
         lastError: null,
       },
@@ -160,7 +160,7 @@ describe("question-generator-api", () => {
           detail: {
             batch: {
               id: "batch-1",
-              model: "gemini-3.6-flash",
+              model: "gemini-3.7-flash",
               targetQuestionCount: 3,
               referenceCount: 1,
               status: "ready_for_review",
@@ -256,7 +256,7 @@ describe("question-generator-api", () => {
     await expect(getQuestionGenerationBatchDetail({ batchId: "batch-1" }, client as never)).resolves.toEqual({
       batch: expect.objectContaining({
         id: "batch-1",
-        model: "gemini-3.6-flash",
+        model: "gemini-3.7-flash",
         status: "ready_for_review",
       }),
       references: [

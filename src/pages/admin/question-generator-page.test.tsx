@@ -47,8 +47,8 @@ afterEach(() => {
 beforeEach(() => {
   mockGetQuestionGeneratorStatus.mockResolvedValue({
     hasCredential: true,
-    model: "gemini-2.5-flash",
-    modelLabel: "gemini-2.5-flash",
+    model: "gemini-3.7-flash",
+    modelLabel: "gemini-3.7-flash",
     lastValidatedAt: "2026-06-04T09:00:00.000Z",
     lastError: null,
   });
@@ -58,16 +58,16 @@ beforeEach(() => {
   });
   mockSaveQuestionGeneratorCredential.mockResolvedValue({
     hasCredential: true,
-    model: "gemini-2.5-flash",
-    modelLabel: "gemini-2.5-flash",
+    model: "gemini-3.7-flash",
+    modelLabel: "gemini-3.7-flash",
     lastValidatedAt: "2026-06-04T09:00:00.000Z",
     lastError: null,
   });
   mockTestQuestionGeneratorCredential.mockResolvedValue({
     status: {
       hasCredential: true,
-      model: "gemini-2.5-flash",
-      modelLabel: "gemini-2.5-flash",
+      model: "gemini-3.7-flash",
+      modelLabel: "gemini-3.7-flash",
       lastValidatedAt: "2026-06-04T09:02:00.000Z",
       lastError: null,
     },
@@ -79,8 +79,8 @@ beforeEach(() => {
   });
   mockDeleteQuestionGeneratorCredential.mockResolvedValue({
     hasCredential: false,
-    model: "gemini-2.5-flash",
-    modelLabel: "gemini-2.5-flash",
+    model: "gemini-3.7-flash",
+    modelLabel: "gemini-3.7-flash",
     lastValidatedAt: null,
     lastError: null,
   });
@@ -163,8 +163,8 @@ describe("Admin question generator page", () => {
   test("shows BYOK status and blocks generation when no valid key is available", async () => {
     mockGetQuestionGeneratorStatus.mockResolvedValueOnce({
       hasCredential: false,
-      model: "gemini-2.5-flash",
-      modelLabel: "gemini-2.5-flash",
+      model: "gemini-3.7-flash",
+      modelLabel: "gemini-3.7-flash",
       lastValidatedAt: null,
       lastError: "API key belum pernah divalidasi.",
     });
@@ -179,8 +179,8 @@ describe("Admin question generator page", () => {
   test("allows saving, testing, and deleting a personal Gemini credential from the generator page", async () => {
     mockGetQuestionGeneratorStatus.mockResolvedValueOnce({
       hasCredential: false,
-      model: "gemini-2.5-flash",
-      modelLabel: "gemini-2.5-flash",
+      model: "gemini-3.7-flash",
+      modelLabel: "gemini-3.7-flash",
       lastValidatedAt: null,
       lastError: "API key belum pernah divalidasi.",
     });
@@ -197,7 +197,7 @@ describe("Admin question generator page", () => {
     await waitFor(() => {
       expect(mockSaveQuestionGeneratorCredential).toHaveBeenCalledWith({
         apiKey: "AIzaSyDemoKey",
-        model: "gemini-2.5-flash",
+        model: "gemini-3.7-flash",
       });
     });
 

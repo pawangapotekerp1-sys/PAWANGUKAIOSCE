@@ -1679,7 +1679,7 @@ insert into public.ai_provider_configs (
 select
   'disabled',
   false,
-  'gemini-2.5-flash',
+  'gemini-3.7-flash',
   'phase1-v1',
   'rules',
   null

@@ -153,7 +153,7 @@ export default function AiConfigPage() {
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Model bawaan (<code className="font-mono text-primary font-bold">gemini-3.6-flash</code>) sudah ditetapkan agar hasil tetap konsisten dan super cepat.
+                Model bawaan (<code className="font-mono text-primary font-bold">gemini-3.7-flash</code>) sudah ditetapkan agar hasil tetap konsisten dan super cepat.
               </p>
               {statusQuery.data?.lastValidatedAt ? (
                 <p className="text-[11px] font-mono font-semibold uppercase tracking-wider text-muted-foreground">
@@ -180,7 +180,7 @@ export default function AiConfigPage() {
                 onClick={() =>
                   saveCredentialMutation.mutate({
                     apiKey: apiKey.trim(),
-                    model: "gemini-3.6-flash",
+                    model: "gemini-3.7-flash",
                   })}
                 className="text-xs font-semibold h-9 px-4 w-full justify-center"
               >

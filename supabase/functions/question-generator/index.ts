@@ -122,7 +122,7 @@ function mapGeneratedReferenceValidationError(error: GeneratedReferenceValidatio
 function mapGeneratorStatus(credential: GeneratorCredentialRow | null) {
   return {
     hasCredential: Boolean(credential?.secret_id),
-    model: credential?.model ?? "gemini-3.6-flash",
+    model: credential?.model ?? "gemini-3.7-flash",
     lastValidatedAt: credential?.last_validated_at ?? null,
     lastError: credential?.last_error ?? null,
   };

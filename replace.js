@@ -4,7 +4,7 @@ const path = 'e:\\Projek TRY OYT\\supabase\\functions\\flash-card-generator\\han
 let content = fs.readFileSync(path, 'utf8');
 
 // Replace model string
-content = content.replace(/"gemini-2.5-flash"/g, '"gemini-3.6-flash"');
+content = content.replace(/"gemini-3.7-flash"/g, '"gemini-3.7-flash"');
 
 // Replace prompt block
 const oldPrompt = `  return [

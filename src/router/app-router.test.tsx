@@ -436,8 +436,8 @@ beforeEach(() => {
   mockGetProfileAvatarSignedUrl.mockResolvedValue("https://example.com/avatar.webp");
   mockGetQuestionGeneratorStatus.mockResolvedValue({
     hasCredential: true,
-    model: "gemini-2.5-flash",
-    modelLabel: "gemini-2.5-flash",
+    model: "gemini-3.7-flash",
+    modelLabel: "gemini-3.7-flash",
     lastValidatedAt: "2026-06-04T09:00:00.000Z",
     lastError: null,
   });

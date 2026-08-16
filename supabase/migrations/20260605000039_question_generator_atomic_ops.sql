@@ -2,7 +2,7 @@ create table if not exists public.generator_user_settings (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null unique references public.profiles (id) on delete cascade,
   provider text not null default 'gemini',
-  model text not null default 'gemini-2.5-flash',
+  model text not null default 'gemini-3.7-flash',
   secret_id uuid,
   secret_hint text not null,
   last_validated_at timestamptz,
@@ -23,7 +23,7 @@ execute function public.set_updated_at();
 create table if not exists public.question_generation_batches (
   id uuid primary key default gen_random_uuid(),
   created_by uuid not null references public.profiles (id) on delete cascade,
-  model text not null default 'gemini-2.5-flash',
+  model text not null default 'gemini-3.7-flash',
   target_question_count integer not null,
   reference_count integer not null,
   status text not null default 'generating',

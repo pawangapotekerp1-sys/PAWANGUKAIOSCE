@@ -21,7 +21,7 @@ describe("flash-card-api", () => {
         data: {
           status: {
             hasCredential: true,
-            model: "gemini-3.6-flash",
+            model: "gemini-3.7-flash",
             lastValidatedAt: null,
             lastError: null,
           },
@@ -32,7 +32,7 @@ describe("flash-card-api", () => {
         data: {
           status: {
             hasCredential: true,
-            model: "gemini-3.6-flash",
+            model: "gemini-3.7-flash",
             lastValidatedAt: null,
             lastError: null,
           },
@@ -43,7 +43,7 @@ describe("flash-card-api", () => {
         data: {
           status: {
             hasCredential: true,
-            model: "gemini-3.6-flash",
+            model: "gemini-3.7-flash",
             lastValidatedAt: null,
             lastError: null,
           },
@@ -59,7 +59,7 @@ describe("flash-card-api", () => {
         data: {
           status: {
             hasCredential: false,
-            model: "gemini-3.6-flash",
+            model: "gemini-3.7-flash",
             lastValidatedAt: null,
             lastError: null,
           },
@@ -74,26 +74,26 @@ describe("flash-card-api", () => {
 
     await expect(getFlashCardGeneratorStatus(client as never)).resolves.toEqual({
       hasCredential: true,
-      model: "gemini-3.6-flash",
-      modelLabel: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
+      modelLabel: "gemini-3.7-flash",
       lastValidatedAt: null,
       lastError: null,
     });
     await expect(saveFlashCardGeneratorCredential({
       apiKey: "AIza-user",
-      model: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
     }, client as never)).resolves.toEqual({
       hasCredential: true,
-      model: "gemini-3.6-flash",
-      modelLabel: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
+      modelLabel: "gemini-3.7-flash",
       lastValidatedAt: null,
       lastError: null,
     });
     await expect(testFlashCardGeneratorCredential(client as never)).resolves.toEqual({
       status: {
         hasCredential: true,
-        model: "gemini-3.6-flash",
-        modelLabel: "gemini-3.6-flash",
+        model: "gemini-3.7-flash",
+        modelLabel: "gemini-3.7-flash",
         lastValidatedAt: null,
         lastError: null,
       },
@@ -105,8 +105,8 @@ describe("flash-card-api", () => {
     });
     await expect(deleteFlashCardGeneratorCredential(client as never)).resolves.toEqual({
       hasCredential: false,
-      model: "gemini-3.6-flash",
-      modelLabel: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
+      modelLabel: "gemini-3.7-flash",
       lastValidatedAt: null,
       lastError: null,
     });
@@ -115,7 +115,7 @@ describe("flash-card-api", () => {
       body: { action: "get-status" },
     });
     expect(invoke).toHaveBeenNthCalledWith(2, "flash-card-generator", {
-      body: { action: "save-credential", apiKey: "AIza-user", model: "gemini-3.6-flash" },
+      body: { action: "save-credential", apiKey: "AIza-user", model: "gemini-3.7-flash" },
     });
     expect(invoke).toHaveBeenNthCalledWith(3, "flash-card-generator", {
       body: { action: "test-credential" },

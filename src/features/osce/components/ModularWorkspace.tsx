@@ -17,7 +17,12 @@ function FormWidget({ value, onChange, template }: { value: string; onChange: (v
         contentRef.current.innerHTML = value;
         isInitialized.current = true;
       } else if (template) {
-        const html = marked.parse(template) as string;
+        let html = marked.parse(template) as string;
+        // Ubah placeholder garis bawah menjadi input teks sebaris
+        html = html.replace(/_{3,}/g, '<span contenteditable="true" class="osce-input"></span>');
+        // Ubah sel tabel kosong menjadi input blok
+        html = html.replace(/<td>\s*<\/td>/g, '<td><div contenteditable="true" class="osce-cell-input"></div></td>');
+        
         contentRef.current.innerHTML = html;
         onChange(html);
         isInitialized.current = true;
@@ -28,15 +33,13 @@ function FormWidget({ value, onChange, template }: { value: string; onChange: (v
   return (
     <div className="p-4 h-full bg-white rounded-xl m-4 shadow-sm border border-slate-200 text-slate-800 flex flex-col">
       <h3 className="font-bold mb-2">Lembar Kerja / Dokumen</h3>
-      <p className="text-xs text-slate-500 mb-4">Silakan klik dan ketik jawaban Anda langsung di dalam tabel atau dokumen di bawah ini.</p>
+      <p className="text-xs text-slate-500 mb-4">Silakan klik dan ketik jawaban Anda pada area input yang disediakan di bawah ini.</p>
       
       <div 
         ref={contentRef}
-        contentEditable={true}
-        suppressContentEditableWarning={true}
         onInput={(e) => onChange(e.currentTarget.innerHTML)}
         onBlur={(e) => onChange(e.currentTarget.innerHTML)}
-        className="prose prose-sm text-slate-700 max-w-none flex-grow p-4 bg-slate-50 border rounded-lg overflow-y-auto outline-none focus:border-blue-500 focus:bg-white transition-colors"
+        className="prose prose-sm text-slate-700 max-w-none flex-grow p-4 bg-slate-50 border rounded-lg overflow-y-auto outline-none transition-colors"
       />
     </div>
   );

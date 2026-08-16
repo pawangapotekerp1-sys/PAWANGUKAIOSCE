@@ -35,7 +35,7 @@ function createBatchDetail() {
   return {
     batch: {
       id: "batch-1",
-      model: "gemini-2.5-flash",
+      model: "gemini-3.7-flash",
       status: "ready_for_review",
       statusLabel: "Siap direview",
       targetQuestionCount: 2,

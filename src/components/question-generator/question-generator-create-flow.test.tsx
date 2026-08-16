@@ -56,23 +56,23 @@ beforeEach(() => {
   window.localStorage.clear();
   mockGetQuestionGeneratorStatus.mockResolvedValue({
     hasCredential: true,
-    model: "gemini-3.6-flash",
-    modelLabel: "gemini-3.6-flash",
+    model: "gemini-3.7-flash",
+    modelLabel: "gemini-3.7-flash",
     lastValidatedAt: null,
     lastError: null,
   });
   mockSaveQuestionGeneratorCredential.mockResolvedValue({
     hasCredential: true,
-    model: "gemini-3.6-flash",
-    modelLabel: "gemini-3.6-flash",
+    model: "gemini-3.7-flash",
+    modelLabel: "gemini-3.7-flash",
     lastValidatedAt: null,
     lastError: null,
   });
   mockTestQuestionGeneratorCredential.mockResolvedValue({
     status: {
       hasCredential: true,
-      model: "gemini-3.6-flash",
-      modelLabel: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
+      modelLabel: "gemini-3.7-flash",
       lastValidatedAt: null,
       lastError: null,
     },
@@ -84,8 +84,8 @@ beforeEach(() => {
   });
   mockDeleteQuestionGeneratorCredential.mockResolvedValue({
     hasCredential: false,
-    model: "gemini-3.6-flash",
-    modelLabel: "gemini-3.6-flash",
+    model: "gemini-3.7-flash",
+    modelLabel: "gemini-3.7-flash",
     lastValidatedAt: null,
     lastError: null,
   });
@@ -138,8 +138,8 @@ describe("QuestionGeneratorCreateFlow", () => {
     // window.localStorage.setItem(questionGeneratorApiKeyStorageKey("user-1"), "AIza-local-only");
     mockGetQuestionGeneratorStatus.mockResolvedValueOnce({
       hasCredential: false,
-      model: "gemini-3.6-flash",
-      modelLabel: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
+      modelLabel: "gemini-3.7-flash",
       lastValidatedAt: null,
       lastError: null,
     });

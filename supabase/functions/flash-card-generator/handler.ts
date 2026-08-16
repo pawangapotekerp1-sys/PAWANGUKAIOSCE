@@ -160,7 +160,7 @@ export function buildFlashCardCredentialWritePayload({
   return {
     user_id: userId,
     provider: "gemini",
-    model: model.trim() || "gemini-3.6-flash",
+    model: model.trim() || "gemini-3.7-flash",
     secret_hint: `â€¢â€¢â€¢â€¢${apiKey.trim().slice(-4)}`,
     last_error: null,
   };

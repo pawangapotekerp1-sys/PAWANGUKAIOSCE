@@ -133,7 +133,7 @@ describe("flash-card persistence payloads", () => {
     })).toEqual({
       user_id: "mentor-1",
       provider: "gemini",
-      model: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
       secret_hint: "â€¢â€¢â€¢â€¢4321",
       last_error: null,
     });

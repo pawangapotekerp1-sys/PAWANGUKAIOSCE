@@ -43,7 +43,7 @@ describe("gemini-client", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const { testGeminiConnection } = await import("./gemini-client.ts");
-    await testGeminiConnection("api-key", "gemini-3.6-flash");
+    await testGeminiConnection("api-key", "gemini-3.7-flash");
 
     const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
     const body = JSON.parse(String(requestInit.body));
@@ -80,7 +80,7 @@ describe("gemini-client", () => {
 
     await generateGeminiText({
       apiKey: "api-key",
-      model: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
       prompt: "Buat JSON kosong.",
       responseMimeType: "application/json",
       responseSchema,
@@ -121,7 +121,7 @@ describe("gemini-client", () => {
     const { generateGeminiText } = await import("./gemini-client.ts");
     await generateGeminiText({
       apiKey: "api-key",
-      model: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
       prompt: "Analisis lampiran PDF ini.",
       parts: [
         {
@@ -222,7 +222,7 @@ describe("gemini-client", () => {
     const { generateGeminiText } = await import("./gemini-client.ts");
     const result = await generateGeminiText({
       apiKey: "api-key",
-      model: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
       prompt: "Balas dengan JSON valid.",
       responseMimeType: "application/json",
       responseSchema: {
@@ -251,7 +251,7 @@ describe("gemini-client", () => {
     await expect(() =>
       generateGeminiText({
         apiKey: "api-key",
-        model: "gemini-3.6-flash",
+        model: "gemini-3.7-flash",
         prompt: "Balas dengan JSON valid.",
       })
     ).rejects.toThrow(/temporarily unavailable/i);
@@ -275,7 +275,7 @@ describe("gemini-client", () => {
     await expect(() =>
       generateGeminiText({
         apiKey: "api-key",
-        model: "gemini-3.6-flash",
+        model: "gemini-3.7-flash",
         prompt: "Balas dengan JSON valid.",
       })
     ).rejects.toThrow(/gemini sedang penuh sementara/i);
@@ -314,7 +314,7 @@ describe("gemini-client", () => {
     const { generateGeminiStructuredData } = await import("./gemini-client.ts");
     const result = await generateGeminiStructuredData<Array<{ stem: string; correctOptionKey: string }>>({
       apiKey: "api-key",
-      model: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
       prompt: "Balas dengan array JSON valid.",
       responseMimeType: "application/json",
       responseSchema: {
@@ -365,7 +365,7 @@ describe("gemini-client", () => {
     const { generateGeminiStructuredData } = await import("./gemini-client.ts");
     const result = await generateGeminiStructuredData<Array<{ stem: string; correctOptionKey: string }>>({
       apiKey: "api-key",
-      model: "gemini-3.6-flash",
+      model: "gemini-3.7-flash",
       prompt: "Balas dengan array JSON valid.",
       maxOutputTokens: 1024,
       responseMimeType: "application/json",
@@ -407,7 +407,7 @@ describe("gemini-client", () => {
     await expect(() =>
       generateGeminiStructuredData({
         apiKey: "api-key",
-        model: "gemini-3.6-flash",
+        model: "gemini-3.7-flash",
         prompt: "Balas dengan array JSON valid.",
         maxOutputTokens: 1024,
         responseMimeType: "application/json",
@@ -435,7 +435,7 @@ describe("gemini-client", () => {
     await expect(() =>
       generateGeminiStructuredData({
         apiKey: "bad-api-key",
-        model: "gemini-3.6-flash",
+        model: "gemini-3.7-flash",
         prompt: "Balas dengan array JSON valid.",
         responseMimeType: "application/json",
         responseSchema: {

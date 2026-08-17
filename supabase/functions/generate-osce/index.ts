@@ -118,8 +118,23 @@ Tidak boleh ada teks penjelasan sebelum atau sesudah JSON, pastikan JSON valid d
     const modelToUse = credential.model || 'gemini-3.7-flash';
     
     let scenarioTypeContext = "";
-    if (scenarioType) {
-      scenarioTypeContext = `\n\nPERHATIAN: Pastikan jenis stase OSCE (field "type") di set ke "${scenarioType === 'pemeran_standar' ? 'komunikasi' : scenarioType}" dan skenario dibuat menyesuaikan dengan jenis tersebut.\n`;
+    if (scenarioType === 'pemeran_standar') {
+      scenarioTypeContext = `\n\nPERHATIAN JENIS STASE:
+- Jenis stase: PEMERAN STANDAR (field "type" harus "komunikasi").
+- WAJIB generate "actorInstructions" secara mendetail (identitas pasien, riwayat penyakit, skenario jawaban, dll).
+- JANGAN generate "worksheetTemplate". Biarkan field "worksheetTemplate" berisi string kosong "".
+- Skenario ini berbasis interaksi langsung kandidat dengan pemeran standar (pasien simulasi).\n`;
+    } else if (scenarioType === 'dokumen') {
+      scenarioTypeContext = `\n\nPERHATIAN JENIS STASE:
+- Jenis stase: DOKUMEN (field "type" harus "dokumen").
+- WAJIB generate "worksheetTemplate" secara mendetail dalam format Markdown (tabel, form isian, dll).
+- JANGAN generate "actorInstructions". Biarkan field "actorInstructions" berisi string kosong "".
+- Skenario ini berbasis pengerjaan dokumen/lembar kerja oleh kandidat (tanpa pemeran standar).\n`;
+    } else if (scenarioType === 'hybrid') {
+      scenarioTypeContext = `\n\nPERHATIAN JENIS STASE:
+- Jenis stase: HYBRID (field "type" harus "hybrid").
+- WAJIB generate KEDUA field: "actorInstructions" (identitas pasien, riwayat, skenario jawaban) DAN "worksheetTemplate" (format Markdown tabel/form isian).
+- Skenario ini menggabungkan interaksi dengan pemeran standar DAN pengerjaan dokumen/lembar kerja.\n`;
     }
     
     let textPrompt = systemPrompt + scenarioTypeContext + '\nInstruksi Mentor:\n' + (prompt || "Buat skenario OSCE apoteker acak yang relevan.");

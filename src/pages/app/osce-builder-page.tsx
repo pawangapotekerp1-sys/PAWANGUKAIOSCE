@@ -156,8 +156,9 @@ export default function OsceBuilderPage() {
       brand={productShellMeta.brand}
       tierLabel={studentShell.tierLabel}
       navItems={studentShell.navItems}
+      disablePadding
     >
-      <div className="flex flex-col gap-6 w-full py-4 max-w-5xl mx-auto">
+      <div className="flex flex-col gap-6 w-full h-full p-4 md:p-6 lg:p-8">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border/40">
           <div>

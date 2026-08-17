@@ -51,6 +51,7 @@ export default function OsceDemoPage() {
       brand={productShellMeta.brand}
       tierLabel={studentShell.tierLabel}
       navItems={studentShell.navItems}
+      disablePadding
     >
       <div className="flex flex-col w-full h-[calc(100vh-4rem)] p-6 overflow-y-auto">
         {!activeConfig ? (

@@ -26,6 +26,7 @@ type ProductShellProps = {
   brand: string;
   tierLabel: string;
   navItems: ProductShellNavItem[];
+  disablePadding?: boolean;
 };
 
 function ProductShell({
@@ -33,6 +34,7 @@ function ProductShell({
   brand,
   tierLabel,
   navItems,
+  disablePadding = false,
 }: ProductShellProps) {
   return (
     <div className="min-h-screen w-full bg-clinical-surface text-clinical-text-primary flex flex-col relative">
@@ -126,7 +128,7 @@ function ProductShell({
 
       {/* Main Content Area */}
       <main className="flex-1 w-full relative z-10">
-        <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 py-6 md:py-8">
+        <div className={cn("w-full h-full", disablePadding ? "" : "px-4 sm:px-8 lg:px-12 xl:px-16 py-6 md:py-8")}>
           {children}
         </div>
       </main>

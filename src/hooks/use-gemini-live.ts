@@ -44,12 +44,6 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}) {
     optionsRef.current = options;
   }, [options]);
 
-  useEffect(() => {
-    return () => {
-      endCall();
-    };
-  }, [endCall]);
-
   const endCall = useCallback(() => {
     if (wsRef.current) {
       wsRef.current.close();
@@ -75,6 +69,12 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}) {
     setIsConnecting(false);
     setIsSpeaking(false);
   }, []);
+
+  useEffect(() => {
+    return () => {
+      endCall();
+    };
+  }, [endCall]);
 
   const playAudioData = useCallback((base64Data: string) => {
     if (!audioContextRef.current) return;

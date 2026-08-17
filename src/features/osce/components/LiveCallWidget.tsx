@@ -14,6 +14,8 @@ interface Props {
 }
 
 export function LiveCallWidget({ config, onTranscriptUpdate }: Props) {
+  if (!config) return null;
+
   const [callError, setCallError] = useState<string | null>(null);
   const transcriptRef = useRef<TranscriptEntry[]>([]);
 

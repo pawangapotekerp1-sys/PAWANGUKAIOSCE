@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { getRawAiCredentialKey } from "../lib/api/global-ai-credential-api";
 
 export interface UseGeminiLiveOptions {
@@ -39,6 +39,17 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}) {
   const nextPlayTimeRef = useRef<number>(0);
   const speechRecognitionRef = useRef<any>(null);
 
+  const optionsRef = useRef(options);
+  useEffect(() => {
+    optionsRef.current = options;
+  }, [options]);
+
+  useEffect(() => {
+    return () => {
+      endCall();
+    };
+  }, [endCall]);
+
   const endCall = useCallback(() => {
     if (wsRef.current) {
       wsRef.current.close();
@@ -71,6 +82,7 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}) {
     
     const int16Array = base64ToInt16(base64Data);
     const float32Array = new Float32Array(int16Array.length);
+    if (float32Array.length === 0) return;
     for (let i = 0; i < int16Array.length; i++) {
       float32Array[i] = int16Array[i] / 32768.0;
     }
@@ -130,15 +142,29 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}) {
               if (event.results[i].isFinal) {
                 const text = event.results[i][0].transcript;
                 if (text.trim().length > 0) {
-                  options.onTranscript?.(text, "user");
+                  optionsRef.current.onTranscript?.(text, "user");
                 }
               }
             }
           };
           
+          let hasFatalError = false;
+          
+          recognition.onerror = (e: any) => {
+            if (e.error === 'not-allowed' || e.error === 'network') {
+              hasFatalError = true;
+            }
+          };
+
           recognition.onend = () => {
-            if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-              try { recognition.start(); } catch (e) {}
+            if (!hasFatalError && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+              setTimeout(() => {
+                try {
+                  if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                    recognition.start();
+                  }
+                } catch (e) {}
+              }, 500);
             }
           };
           
@@ -159,13 +185,13 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}) {
               speechConfig: {
                 voiceConfig: {
                   prebuiltVoiceConfig: {
-                    voiceName: options.voiceName || "Aoede", // Aoede (Female), Puck (Male), Charon (Male), Kore (Female), Fenrir (Male)
+                    voiceName: optionsRef.current.voiceName || "Aoede", // Aoede (Female), Puck (Male), Charon (Male), Kore (Female), Fenrir (Male)
                   }
                 }
               }
             },
             systemInstruction: {
-              parts: [{ text: options.systemInstruction || "You are a helpful assistant." }]
+              parts: [{ text: optionsRef.current.systemInstruction || "You are a helpful assistant." }]
             }
           }
         };
@@ -208,7 +234,7 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}) {
           workletNode.connect(ctx.destination);
         } catch (err) {
           console.error("Audio Setup Error:", err);
-          options.onError?.(new Error("Gagal mengakses mikrofon atau memproses audio."));
+          optionsRef.current.onError?.(new Error("Gagal mengakses mikrofon atau memproses audio."));
           endCall();
         }
       };
@@ -236,7 +262,7 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}) {
 
       ws.onerror = (err) => {
         console.error("Gemini Live WebSocket Error:", err);
-        options.onError?.(new Error("Koneksi terputus. Silakan coba lagi."));
+        optionsRef.current.onError?.(new Error("Koneksi terputus. Silakan coba lagi."));
         endCall();
       };
 
@@ -245,9 +271,9 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}) {
           console.error(`WebSocket Ditutup (Code: ${e.code}, Reason: ${e.reason})`);
           const reasonLower = (e.reason || "").toLowerCase();
           if (e.code === 1008 || e.code === 429 || reasonLower.includes("quota") || reasonLower.includes("token") || reasonLower.includes("resource")) {
-            options.onError?.(new Error("Peringatan: Token/Kuota API Gemini Anda telah habis."));
+            optionsRef.current.onError?.(new Error("Peringatan: Token/Kuota API Gemini Anda telah habis."));
           } else {
-            options.onError?.(new Error(`Koneksi ditutup server (Code: ${e.code}). ${e.reason || ''}`));
+            optionsRef.current.onError?.(new Error(`Koneksi ditutup server (Code: ${e.code}). ${e.reason || ''}`));
           }
         }
         endCall();
@@ -255,19 +281,19 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}) {
       
     } catch (err) {
       setIsConnecting(false);
-      options.onError?.(err instanceof Error ? err : new Error(String(err)));
+      optionsRef.current.onError?.(err instanceof Error ? err : new Error(String(err)));
       endCall();
     }
-  }, [options, endCall]);
+  }, [endCall]);
 
   const handleWsMessage = (msg: any, ws: any) => {
     if (msg.error) {
       console.error("Gemini WS Error Message:", msg.error);
       const errMsg = msg.error.message?.toLowerCase() || "";
       if (errMsg.includes("quota") || errMsg.includes("token") || msg.error.code === 429) {
-        options.onError?.(new Error("Peringatan: Token/Kuota API Gemini Anda telah habis."));
+        optionsRef.current.onError?.(new Error("Peringatan: Token/Kuota API Gemini Anda telah habis."));
       } else {
-        options.onError?.(new Error(msg.error.message || "Terjadi kesalahan pada Gemini API."));
+        optionsRef.current.onError?.(new Error(msg.error.message || "Terjadi kesalahan pada Gemini API."));
       }
       endCall();
       return;
@@ -286,7 +312,7 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}) {
           playAudioData(part.inlineData.data);
         }
         if (part.text) {
-          options.onTranscript?.(part.text, "model");
+          optionsRef.current.onTranscript?.(part.text, "model");
         }
       }
     }

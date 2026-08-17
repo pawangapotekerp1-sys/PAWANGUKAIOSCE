@@ -243,7 +243,12 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}) {
       ws.onclose = (e) => {
         if (e.code !== 1000 && e.code !== 1005) {
           console.error(`WebSocket Ditutup (Code: ${e.code}, Reason: ${e.reason})`);
-          options.onError?.(new Error(`Koneksi ditutup server (Code: ${e.code}). ${e.reason || ''}`));
+          const reasonLower = e.reason.toLowerCase();
+          if (e.code === 1008 || e.code === 429 || reasonLower.includes("quota") || reasonLower.includes("token") || reasonLower.includes("resource")) {
+            options.onError?.(new Error("Peringatan: Token/Kuota API Gemini Anda telah habis."));
+          } else {
+            options.onError?.(new Error(`Koneksi ditutup server (Code: ${e.code}). ${e.reason || ''}`));
+          }
         }
         endCall();
       };
@@ -256,6 +261,18 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}) {
   }, [options, endCall]);
 
   const handleWsMessage = (msg: any, ws: any) => {
+    if (msg.error) {
+      console.error("Gemini WS Error Message:", msg.error);
+      const errMsg = msg.error.message?.toLowerCase() || "";
+      if (errMsg.includes("quota") || errMsg.includes("token") || msg.error.code === 429) {
+        options.onError?.(new Error("Peringatan: Token/Kuota API Gemini Anda telah habis."));
+      } else {
+        options.onError?.(new Error(msg.error.message || "Terjadi kesalahan pada Gemini API."));
+      }
+      endCall();
+      return;
+    }
+
     if (msg.setupComplete) {
       if (ws && ws._markSetupComplete) {
         ws._markSetupComplete();

@@ -191,6 +191,19 @@ export function StationManualEditor({ initialConfig, onSave }: Props) {
             {config.rubrics.map((rubric, index) => (
               <div key={index} className="border border-slate-200 rounded-lg p-4 bg-slate-50 space-y-4">
                 <div className="flex justify-between items-center">
+                  <span className="text-sm font-bold text-slate-700">Rubrik #{index + 1}: {rubric.rubricId || '(Tanpa ID)'}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newRubrics = [...(config.rubrics || [])];
+                      newRubrics.splice(index, 1);
+                      handleChange('rubrics', newRubrics);
+                    }}
+                    className="text-xs text-red-500 hover:text-red-700 font-medium cursor-pointer"
+                  >
+                    Hapus
+                  </button>
+                </div>
                 <div className="flex flex-col md:flex-row gap-4 mb-4">
                   <div className="flex-1">
                     <label className="text-xs font-semibold text-slate-500 mb-1 block">Domain Kompetensi / ID</label>

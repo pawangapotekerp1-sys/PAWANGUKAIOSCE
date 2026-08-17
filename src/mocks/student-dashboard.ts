@@ -134,11 +134,6 @@ export function createProductNavItems(
       },
       productNavItems[1], // Review
       productNavItems[4], // Area Belajar
-      {
-        href: "/app/osce-demo",
-        label: "OSCE Virtual",
-        icon: Video,
-      },
       productNavItems[5], // Profil
       productNavItems[6], // Pengaturan AI
     ]

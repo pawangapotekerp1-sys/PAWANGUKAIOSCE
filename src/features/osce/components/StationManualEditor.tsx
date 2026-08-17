@@ -143,17 +143,143 @@ export function StationManualEditor({ initialConfig, onSave }: Props) {
         />
       </div>
 
-      {/* Rubrics Info — hidden from editing, managed by AI */}
-      {config.rubrics && config.rubrics.length > 0 && (
-        <div className="pt-4 border-t border-slate-100">
-          <div className="flex items-center gap-2 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600 shrink-0"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-            <p className="text-sm text-emerald-800">
-              <span className="font-semibold">{config.rubrics.length} rubrik penilaian</span> telah di-generate oleh AI berdasarkan guideline 25 parameter. Rubrik akan digunakan secara otomatis saat simulasi OSCE.
-            </p>
-          </div>
+      {/* Rubrics Section */}
+      <div className="space-y-4 pt-4 border-t border-slate-100">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-bold text-slate-800">Rubrik Penilaian</h3>
+          <button 
+            type="button"
+            onClick={() => {
+              const newRubric = { 
+                competencyDomain: '',
+                criterion: '',
+                expectedEvidence: '',
+                score3Anchor: '', 
+                score2Anchor: '', 
+                score1Anchor: '', 
+                score0Anchor: '',
+                criticalElements: [],
+                supportingElements: [],
+                acceptedSemanticVariants: [],
+                acceptedClinicalAlternatives: [],
+                unacceptableResponses: [],
+                dangerousResponses: [],
+                weight: 10,
+                isCriticalItem: false,
+                criticalErrorRule: '',
+                patientSafetyRule: '',
+                sequenceSensitive: false,
+                conditionalRule: '',
+                evidenceSource: '',
+                reference: '',
+                referenceVersion: '',
+                humanReviewTrigger: '',
+                rubricId: `RUBRIC-${Date.now().toString().slice(-4)}`
+              };
+              handleChange('rubrics', [...(config.rubrics || []), newRubric]);
+            }}
+            className="text-sm px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors cursor-pointer"
+          >
+            + Tambah Kompetensi
+          </button>
         </div>
-      )}
+        
+        {(!config.rubrics || config.rubrics.length === 0) ? (
+          <p className="text-sm text-slate-500 italic">Belum ada rubrik penilaian. Silakan buat menggunakan AI atau tambah secara manual.</p>
+        ) : (
+          <div className="space-y-6">
+            {config.rubrics.map((rubric, index) => (
+              <div key={index} className="border border-slate-200 rounded-lg p-4 bg-slate-50 space-y-4">
+                {/* Header rubrik */}
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-bold text-slate-700">Rubrik #{index + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newRubrics = [...(config.rubrics || [])];
+                      newRubrics.splice(index, 1);
+                      handleChange('rubrics', newRubrics);
+                    }}
+                    className="text-xs text-red-500 hover:text-red-700 font-medium cursor-pointer"
+                  >
+                    Hapus
+                  </button>
+                </div>
+
+                {/* Domain & Kriteria */}
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1 space-y-1">
+                    <label className="text-xs font-semibold text-slate-500 block">Domain Kompetensi</label>
+                    <input 
+                      type="text"
+                      value={rubric.competencyDomain || (rubric as any).competency || ''}
+                      onChange={(e) => {
+                        const newRubrics = [...(config.rubrics || [])];
+                        newRubrics[index] = { ...rubric, competencyDomain: e.target.value, competency: e.target.value } as any;
+                        handleChange('rubrics', newRubrics);
+                      }}
+                      placeholder="Misal: Pengumpulan Data"
+                      className="w-full p-2 border border-slate-300 rounded font-semibold text-slate-800"
+                    />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <label className="text-xs font-semibold text-slate-500 block">Kriteria Penilaian</label>
+                    <input 
+                      type="text"
+                      value={rubric.criterion || ''}
+                      onChange={(e) => {
+                        const newRubrics = [...(config.rubrics || [])];
+                        newRubrics[index] = { ...rubric, criterion: e.target.value };
+                        handleChange('rubrics', newRubrics);
+                      }}
+                      placeholder="Kemampuan yang dinilai..."
+                      className="w-full p-2 border border-slate-300 rounded text-slate-800"
+                    />
+                  </div>
+                </div>
+
+                {/* Expected Evidence */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-500 block">Expected Evidence</label>
+                  <textarea 
+                    value={rubric.expectedEvidence || ''}
+                    onChange={(e) => {
+                      const newRubrics = [...(config.rubrics || [])];
+                      newRubrics[index] = { ...rubric, expectedEvidence: e.target.value };
+                      handleChange('rubrics', newRubrics);
+                    }}
+                    placeholder="Evidence minimal yang membuat kriteria terpenuhi..."
+                    className="w-full p-2 border border-slate-300 rounded text-sm min-h-[60px]"
+                  />
+                </div>
+
+                {/* Anchor Skor 0-3 */}
+                <div className="grid grid-cols-1 gap-2">
+                  {[3, 2, 1, 0].map((score) => {
+                    const legacyField = `score${score}` as keyof typeof rubric;
+                    const anchorField = `score${score}Anchor` as keyof typeof rubric;
+                    return (
+                      <div key={score} className="flex gap-3 items-start">
+                        <div className="w-16 shrink-0 pt-2 font-bold text-slate-600 text-right text-sm">Skor {score}</div>
+                        <textarea 
+                          value={(rubric[anchorField] as string) || (rubric[legacyField] as string) || ''}
+                          onChange={(e) => {
+                            const newRubrics = [...(config.rubrics || [])];
+                            newRubrics[index] = { ...rubric, [anchorField]: e.target.value, [legacyField]: e.target.value };
+                            handleChange('rubrics', newRubrics);
+                          }}
+                          className="flex-1 p-2 text-sm border border-slate-200 rounded resize-y min-h-[52px]"
+                          placeholder={`Definisi operasional untuk skor ${score}...`}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

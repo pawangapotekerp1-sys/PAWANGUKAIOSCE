@@ -46,7 +46,7 @@ serve(async (req) => {
 
     const apiKey = await readVaultSecret(service, credential.secret_id);
 
-    // Schema yang diharapkan (berdasarkan StationConfigSchema yang baru diperbarui)
+    // Schema yang diharapkan (berdasarkan StationConfigSchema yang baru diperbarui dan Guideline 38 Halaman)
     const jsonSchema = `
     {
       "title": "Judul Stase",
@@ -56,63 +56,60 @@ serve(async (req) => {
       "competence": "Kompetensi Spesifik (Misal: 1. Pengumpulan data & informasi, 2. Penetapan masalah, dll)",
       "practiceArea": "Praktek Kefarmasian (Misal: R&D, QC/QA, Pelayanan obat tanpa resep, dll)",
       "instructions": "Skenario dan Tugas untuk kandidat",
-      "reference": "Referensi (Misal: Farmakope Edisi VI)",
+      "reference": "Referensi Utama Station (Misal: Farmakope Edisi VI)",
       "actorInstructions": "Instruksi Pemeran/PS (Berisi identitas pasien, riwayat penyakit, dll)",
       "rubrics": [
         {
-          "competency": "Pengumpulan Data dan Informasi Pasien",
-          "score3": "Deskripsi Skor 3",
-          "score2": "Deskripsi Skor 2",
-          "score1": "Deskripsi Skor 1",
-          "score0": "Deskripsi Skor 0"
+          "rubricId": "ID Unik (Misal: DATA-01)",
+          "competencyDomain": "Area Kompetensi (Misal: Pengumpulan Data dan Informasi)",
+          "criterion": "Kriteria penilaian (Misal: Menggali riwayat alergi obat pasien)",
+          "description": "Deskripsi opsional tambahan",
+          "expectedEvidence": "Evidence minimal yang membuat kriteria dianggap terpenuhi",
+          "criticalElements": ["Daftar elemen kritis yang menentukan keselamatan/keberhasilan"],
+          "supportingElements": ["Daftar elemen tambahan yang mendukung"],
+          "acceptedSemanticVariants": ["Contoh variasi kalimat yang bermakna sama"],
+          "acceptedClinicalAlternatives": ["Pendekatan klinis alternatif yang valid"],
+          "unacceptableResponses": ["Respons salah / tidak relevan"],
+          "dangerousResponses": ["Respons yang membahayakan keselamatan"],
+          "score3Anchor": "Definisi skor 3 (COMPLETE / CORRECT)",
+          "score2Anchor": "Definisi skor 2 (CORRECT BUT INCOMPLETE)",
+          "score1Anchor": "Definisi skor 1 (PARTIAL / INADEQUATE)",
+          "score0Anchor": "Definisi skor 0 (NOT DEMONSTRATED / INCORRECT)",
+          "weight": 10,
+          "isCriticalItem": true,
+          "criticalErrorRule": "Aturan spesifik jika terjadi critical error",
+          "patientSafetyRule": "Aturan spesifik pelanggaran keselamatan pasien",
+          "sequenceSensitive": false,
+          "conditionalRule": "Kriteria kondisional jika ada",
+          "evidenceSource": "Sumber evidence (Misal: Transcript/audio, tindakan virtual)",
+          "reference": "Referensi spesifik untuk item rubrik ini",
+          "referenceVersion": "Versi/tahun referensi",
+          "humanReviewTrigger": "Kondisi yang memicu review manusia (Misal: audio tidak jelas)"
         }
       ],
-      "worksheetTemplate": "Markdown template untuk Lembar Kerja OSCE Internal (Misal: Tabel, parameter uji, form kosong, dsb). Biarkan string kosong jika tidak diperlukan.",
+      "worksheetTemplate": "Markdown template untuk Lembar Kerja OSCE Internal",
       "attachments": []
     }
     `;
 
-    const systemPrompt = `Anda adalah asisten ahli pembuat soal UKAI (Uji Kompetensi Apoteker Indonesia) berstandar nasional metode OSCE. 
-Buat rancangan stase OSCE Apoteker secara SANGAT MENDETAIL dan LENGKAP mengikuti STANDAR FORMAT TERBARU.
+    const systemPrompt = `Anda adalah Asisten Ahli Pembuat Soal UKAI OSCE. Buat rancangan stase OSCE Apoteker SANGAT MENDETAIL mematuhi GUIDELINE RUBRIK OSCE VIRTUAL AI TERBARU.
 
-Gunakan format MARKDOWN (tebal, list, tabel) di dalam field string agar hasilnya rapi.
+ATURAN WAJIB PENYUSUNAN RUBRIK (TIDAK BOLEH DILANGGAR):
+1. PRINSIP DASAR: Valid, Observable, Specific, Discriminative, Safe, Traceable, AI-Interpretable.
+2. HINDARI COMPOUND CRITERIA: Satu item rubrik = satu konstruk penilaian. Jangan gabungkan banyak perilaku dalam satu kriteria. Hindari Micro-Checklist yang berlebihan.
+3. SCORING 0-3: 
+   - Skor 3: COMPLETE/CORRECT (tindakan utama dilakukan, isi benar, cukup lengkap).
+   - Skor 2: CORRECT BUT INCOMPLETE (inti benar, komponen pendukung terlewat).
+   - Skor 1: PARTIAL/INADEQUATE (informasi penting terlewat, belum cukup mencapai tujuan).
+   - Skor 0: NOT DEMONSTRATED/INCORRECT (jawaban salah prinsip, tidak dilakukan).
+   - Jangan gunakan anchor subjektif seperti "sangat baik", "baik", "cukup". Harus spesifik.
+4. CRITICAL & SUPPORTING: Bedakan informasi esensial penentu keselamatan (Critical) dan informasi tambahan (Supporting).
+5. OMISSION vs MISINFORMATION: Bedakan lupa memberi tahu (omission) dengan aktif memberi tahu hal yang salah (misinformation).
+6. ACCEPTED ALTERNATIVES: Pertimbangkan pendekatan klinis alternatif yang valid (Accepted Clinical Alternatives & Semantic Variants).
+7. TIDAK BOLEH: Memberikan double penalty/reward, mendasarkan pada personality, menilai gaya bahasa berlebihan, menggunakan Halo Effect, dan mengarang (invent) evidence.
 
-Standar Pemformatan Konten:
-1. 'objective': Hanya tuliskan tujuan utama stase secara ringkas (Misal: Menguji kemampuan kandidat dalam...).
-2. 'competence': Buat daftar kompetensi spesifik yang diuji (Misal: 1. Pengumpulan data & informasi, 2. Penyelesaian masalah, dll).
-3. 'practiceArea': Sebutkan area praktek kefarmasian (Misal: R&D / Produksi / QC / Pelayanan / Dispensing, dll).
-
-4. 'instructions' (Instruksi Kandidat) (Gunakan Markdown tebal untuk label):
-   **Skenario:** (Latar belakang situasi spesifik)
-   **Tugas:** (Daftar list 1, 2, 3... tugas spesifik untuk kandidat)
-   *(Catatan: TIDAK PERLU menambahkan Tata letak station maupun Kebutuhan laboran)*
-
-5. 'reference':
-   - Tuliskan referensi yang digunakan (Misal: Farmakope Indonesia Edisi VI, ISO, DIH).
-
-6. 'worksheetTemplate' (Lembar Kerja OSCE INTERNAL):
-   - Jika station butuh perhitungan / dokumen yang harus diisi kandidat (seperti Uji Disolusi, Skrining Resep), buatkan template form isian dalam bentuk MARKDOWN.
-   - PENTING: Untuk area yang harus diisi oleh kandidat, gunakan garis bawah "___" (minimal 3 underscore) untuk isian teks sebaris, atau kosongkan isi sel (contoh: | |) jika berada di dalam tabel. Jangan gunakan titik-titik (....).
-   - Contoh format Lembar Kerja:
-     **Parameter Uji ...**
-     Diagnosis utama: ___
-     | Parameter | Keterangan |
-     |-----------|------------|
-     | Jenis Medium | |
-     | Waktu | |
-
-     **Data Tabel Hasil**
-     | Tablet | Perhitungan | % Hasil |
-     |--------|-------------|---------|
-     | 1 | | |
-     
-   - Buatkan secara lengkap menyerupai Lembar Kerja ujian asli yang harus diserahkan oleh kandidat. Jika stase murni komunikasi tanpa tulisan, isi string kosong.
-
-7. 'actorInstructions':
-   - Jabarkan profil, riwayat, dialog spesifik. Jika tidak ada PS, tulis "Tidak ada".
-
-8. 'rubrics':
-   - Buat matriks rubrik konkret untuk Skor 3 (Sempurna), Skor 2, Skor 1, dan Skor 0 (Tidak mampu).
+FORMAT RUBRIK (25 PARAMETER):
+Untuk bagian "rubrics", WAJIB gunakan format 25 properti sesuai dengan jsonSchema. Jabarkan sejelas-jelasnya elemen kritis, respons berbahaya, dan trigger review manusia.
 
 Kembalikan HANYA dalam format JSON yang valid dan persis sesuai skema berikut:
 ${jsonSchema}
@@ -165,6 +162,18 @@ Tidak boleh ada teks penjelasan sebelum atau sesudah JSON, pastikan JSON valid d
     // Default id untuk frontend
     if (!resultConfig.id) {
        resultConfig.id = crypto.randomUUID();
+    }
+
+    // Mapping fallback untuk menjaga kompatibilitas dengan frontend lama
+    if (resultConfig.rubrics && Array.isArray(resultConfig.rubrics)) {
+      resultConfig.rubrics = resultConfig.rubrics.map((r: any) => ({
+        ...r,
+        competency: r.competency || r.competencyDomain,
+        score3: r.score3 || r.score3Anchor,
+        score2: r.score2 || r.score2Anchor,
+        score1: r.score1 || r.score1Anchor,
+        score0: r.score0 || r.score0Anchor,
+      }));
     }
 
     return jsonResponse(resultConfig);

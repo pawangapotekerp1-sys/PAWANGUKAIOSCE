@@ -2,13 +2,14 @@ import React, { useState, useRef } from 'react';
 import { FileText, Sparkles, Upload, Loader2 } from 'lucide-react';
 
 interface Props {
-  onGenerate: (prompt?: string, file?: File) => void;
+  onGenerate: (prompt?: string, file?: File, scenarioType?: string) => void;
   isGenerating: boolean;
 }
 
 export function StationBuilderForm({ onGenerate, isGenerating }: Props) {
   const [mode, setMode] = useState<'prompt' | 'upload'>('prompt');
   const [prompt, setPrompt] = useState('');
+  const [scenarioType, setScenarioType] = useState('pemeran_standar');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -70,10 +71,53 @@ export function StationBuilderForm({ onGenerate, isGenerating }: Props) {
             placeholder="Masukkan instruksi skenario OSCE... (Contoh: Pasien dengan asma eksaserbasi akut)"
             className="w-full h-32 p-4 rounded-lg border border-slate-200 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 outline-none resize-none text-slate-700 bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
           />
+          
+          <div className="flex flex-col gap-3 py-2">
+            <label className="text-sm font-semibold text-slate-700">Jenis Stase / Skenario</label>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input 
+                  type="radio" 
+                  name="scenarioType" 
+                  value="pemeran_standar" 
+                  checked={scenarioType === 'pemeran_standar'} 
+                  onChange={(e) => setScenarioType(e.target.value)} 
+                  className="w-4 h-4 text-emerald-600 focus:ring-emerald-600 border-slate-300" 
+                  disabled={isGenerating}
+                />
+                <span className="text-sm text-slate-700">Pemeran Standar</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input 
+                  type="radio" 
+                  name="scenarioType" 
+                  value="dokumen" 
+                  checked={scenarioType === 'dokumen'} 
+                  onChange={(e) => setScenarioType(e.target.value)} 
+                  className="w-4 h-4 text-emerald-600 focus:ring-emerald-600 border-slate-300" 
+                  disabled={isGenerating}
+                />
+                <span className="text-sm text-slate-700">Dokumen</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input 
+                  type="radio" 
+                  name="scenarioType" 
+                  value="hybrid" 
+                  checked={scenarioType === 'hybrid'} 
+                  onChange={(e) => setScenarioType(e.target.value)} 
+                  className="w-4 h-4 text-emerald-600 focus:ring-emerald-600 border-slate-300" 
+                  disabled={isGenerating}
+                />
+                <span className="text-sm text-slate-700">Hybrid (Keduanya)</span>
+              </label>
+            </div>
+          </div>
+
           <button 
             type="button"
             disabled={isGenerating || !prompt.trim()}
-            onClick={() => onGenerate(prompt.trim(), undefined)}
+            onClick={() => onGenerate(prompt.trim(), undefined, scenarioType)}
             className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             {isGenerating ? <Loader2 className="animate-spin" /> : <Sparkles />}
@@ -109,7 +153,7 @@ export function StationBuilderForm({ onGenerate, isGenerating }: Props) {
           <button 
             type="button"
             disabled={isGenerating || !selectedFile}
-            onClick={() => selectedFile && onGenerate(undefined, selectedFile)}
+            onClick={() => selectedFile && onGenerate(undefined, selectedFile, scenarioType)}
             className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             {isGenerating ? <Loader2 className="animate-spin" /> : <Upload />}

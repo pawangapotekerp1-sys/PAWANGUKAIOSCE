@@ -37,7 +37,7 @@ serve(async (req) => {
   try {
     const user = await requireAuthenticatedUser(req);
     const service = createServiceClient();
-    const { prompt, mode, fileBase64, fileType } = await req.json();
+    const { prompt, mode, fileBase64, fileType, scenarioType } = await req.json();
 
     const credential = await readUserCredential(service, user.id);
     if (!credential?.secret_id) {
@@ -117,7 +117,12 @@ Tidak boleh ada teks penjelasan sebelum atau sesudah JSON, pastikan JSON valid d
 
     const modelToUse = credential.model || 'gemini-3.7-flash';
     
-    let textPrompt = systemPrompt + '\n\nInstruksi Mentor:\n' + (prompt || "Buat skenario OSCE apoteker acak yang relevan.");
+    let scenarioTypeContext = "";
+    if (scenarioType) {
+      scenarioTypeContext = `\n\nPERHATIAN: Pastikan jenis stase OSCE (field "type") di set ke "${scenarioType === 'pemeran_standar' ? 'komunikasi' : scenarioType}" dan skenario dibuat menyesuaikan dengan jenis tersebut.\n`;
+    }
+    
+    let textPrompt = systemPrompt + scenarioTypeContext + '\nInstruksi Mentor:\n' + (prompt || "Buat skenario OSCE apoteker acak yang relevan.");
     let parts: any[] = [{ text: textPrompt }];
     
     // Default fileType if missing

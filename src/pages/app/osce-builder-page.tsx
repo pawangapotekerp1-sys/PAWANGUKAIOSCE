@@ -68,13 +68,17 @@ export default function OsceBuilderPage() {
   
   const hasCredential = statusQuery.data?.hasCredential ?? false;
 
-  const handleGenerate = async (prompt?: string, file?: File) => {
+  const handleGenerate = async (prompt?: string, file?: File, scenarioType?: string) => {
     setIsGenerating(true);
     
     try {
       const supabase = getSupabaseBrowserClient();
       
-      let body: Record<string, unknown> = { prompt, mode: prompt ? "prompt" : "file" };
+      let body: Record<string, unknown> = { 
+        prompt, 
+        mode: prompt ? "prompt" : "file",
+        scenarioType 
+      };
       
       if (file) {
         const base64 = await new Promise<string>((resolve, reject) => {

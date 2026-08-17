@@ -17,9 +17,19 @@ export function LiveCallWidget({ config, onTranscriptUpdate }: Props) {
   const [callError, setCallError] = useState<string | null>(null);
   const transcriptRef = useRef<TranscriptEntry[]>([]);
 
-  // Deteksi gender dari teks instruksi skenario untuk menentukan suara
-  const instructionText = (config.actorInstructions || '').toLowerCase();
-  const isFemaleRole = /wanita|istri|perempuan|ibu|nyonya|mba|kakak perempuan|adik perempuan/i.test(instructionText);
+  // Tentukan gender berdasarkan pilihan eksplisit atau deteksi dari teks instruksi
+  let isFemaleRole = false;
+  if (config.actorGender === 'female') {
+    isFemaleRole = true;
+  } else if (config.actorGender === 'male') {
+    isFemaleRole = false;
+  } else {
+    // Fallback otomatis
+    const instructionText = (config.actorInstructions || '').toLowerCase();
+    // Prioritaskan laki-laki terlebih dahulu jika kata 'bapak/pria' ada, namun regex ini tetap rentan. Lebih baik andalkan input manual.
+    isFemaleRole = /wanita|istri|perempuan|ibu|nyonya|mba|kakak perempuan|adik perempuan/i.test(instructionText);
+  }
+  
   const selectedVoice = isFemaleRole ? "Aoede" : "Puck"; // Aoede = Female, Puck = Male
 
   const {

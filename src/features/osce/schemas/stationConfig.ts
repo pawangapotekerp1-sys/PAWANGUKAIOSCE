@@ -58,6 +58,7 @@ export const StationConfigSchema = z.object({
   instructions: z.string(),
   reference: z.string().optional(),
   actorInstructions: z.string().optional(),
+  actorGender: z.enum(['male', 'female']).optional(),
   rubrics: z.array(RubricSchema).optional(),
   aiPersona: AiPersonaSchema.optional(),
   requiredForm: z.string().optional(),

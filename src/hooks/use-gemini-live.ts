@@ -243,7 +243,7 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}) {
       ws.onclose = (e) => {
         if (e.code !== 1000 && e.code !== 1005) {
           console.error(`WebSocket Ditutup (Code: ${e.code}, Reason: ${e.reason})`);
-          const reasonLower = e.reason.toLowerCase();
+          const reasonLower = (e.reason || "").toLowerCase();
           if (e.code === 1008 || e.code === 429 || reasonLower.includes("quota") || reasonLower.includes("token") || reasonLower.includes("resource")) {
             options.onError?.(new Error("Peringatan: Token/Kuota API Gemini Anda telah habis."));
           } else {

@@ -131,6 +131,20 @@ export function StationManualEditor({ initialConfig, onSave }: Props) {
           placeholder="Identitas pasien, riwayat penyakit, skenario jawaban (Hal-hal yang harus dikatakan jika ditanya kandidat)..."
         />
       </div>
+      
+      <div className="space-y-2">
+        <label htmlFor="station-actor-gender" className="text-sm font-semibold text-slate-600">Gender Pemeran Standar (Mempengaruhi Suara AI)</label>
+        <select
+          id="station-actor-gender"
+          value={config.actorGender || 'auto'}
+          onChange={(e) => handleChange('actorGender', e.target.value === 'auto' ? undefined : (e.target.value as 'male' | 'female'))}
+          className="w-full p-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-800"
+        >
+          <option value="auto">Otomatis (Berdasarkan teks instruksi)</option>
+          <option value="male">Laki-laki (Suara Pria)</option>
+          <option value="female">Perempuan (Suara Wanita)</option>
+        </select>
+      </div>
 
       <div className="space-y-2">
         <label htmlFor="station-worksheet" className="text-sm font-semibold text-slate-600">Template Lembar Kerja OSCE Internal (Markdown)</label>

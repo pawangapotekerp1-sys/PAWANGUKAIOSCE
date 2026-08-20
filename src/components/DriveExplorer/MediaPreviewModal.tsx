@@ -142,6 +142,8 @@ export function MediaPreviewModal({ link, onClose }: MediaPreviewModalProps) {
                 >
                   <ZoomIn className="w-4 h-4" />
                 </button>
+              </div>
+            )}
             {/* Fullscreen Button */}
             <button
               onClick={toggleFullscreen}

@@ -125,11 +125,11 @@ function LoginPage() {
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
         
         <div className="relative z-10 text-primary-foreground max-w-2xl p-12 text-center flex flex-col items-center">
-          <div className="w-28 h-28 mb-8 rounded-3xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-2xl overflow-hidden shrink-0">
+          <div className="w-28 h-28 mb-8 rounded-3xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-2xl shrink-0 p-3">
             <img
               src="/logo.jpg"
               alt="Logo Pawang Apoteker"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain rounded-xl"
             />
           </div>
           <h2 className="text-5xl font-bold mb-6 font-display tracking-tight text-white shadow-sm">Pawang Apoteker</h2>

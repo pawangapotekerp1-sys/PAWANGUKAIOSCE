@@ -36,22 +36,21 @@ export default function FullPageLoader({
       {/* Glassmorphic Container Card */}
       <div className="relative z-10 flex w-full max-w-md flex-col items-center text-center rounded-3xl border border-border/50 bg-card/80 p-8 shadow-2xl shadow-primary/5 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-300">
         {/* Brand Icon Header */}
-        <div className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-xs">
+        <div className="relative mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-white shadow-md border border-primary/10">
           {!isError && (
             <span
               aria-hidden="true"
               className="absolute inset-0 rounded-2xl bg-primary/20 animate-ping opacity-30"
             />
           )}
-          {/* Bowl of Hygieia Icon */}
-          <svg
-            viewBox="0 0 100 100"
-            className="h-9 w-9 text-primary fill-current transition-transform duration-300"
-            aria-hidden="true"
-          >
-            <path d="M42 22 L58 22 C64 22 68 25 71 30 C74 36 75 44 73 51 C70 60 62 67 52 68 L52 76 L66 76 C68 76 70 78 70 80 C70 82 68 84 66 84 L34 84 C32 84 30 82 30 80 C30 78 32 76 34 76 L48 76 L48 68 C38 67 30 60 27 51 C25 44 26 36 29 30 C32 25 36 22 42 22 Z M43 26 C38 26 34 29 32 33 C30 38 29 44 31 50 C33 57 40 63 50 63 C60 63 67 57 69 50 C71 44 70 38 68 33 C66 29 62 26 57 26 Z" />
-            <path d="M50 14 C48 10 44 7 40 7 C34 7 30 11 30 16 C30 20 33 24 37 27 C42 30 46 34 46 40 C46 47 41 52 35 54 L36 57 C44 55 50 49 50 40 C50 32 44 28 40 25 C36 22 34 20 34 16 C34 13 37 10 40 10 C43 10 45 12 47 15 Z" />
-          </svg>
+          {/* Brand Logo */}
+          <div className="absolute inset-0 overflow-hidden rounded-2xl">
+            <img 
+              src="/logo.jpg" 
+              alt="Logo Pawang Apoteker" 
+              className="h-full w-full object-cover" 
+            />
+          </div>
         </div>
 
         {/* Shimmering Indeterminate Progress Bar */}

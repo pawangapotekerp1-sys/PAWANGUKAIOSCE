@@ -125,19 +125,12 @@ function LoginPage() {
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
         
         <div className="relative z-10 text-primary-foreground max-w-2xl p-12 text-center flex flex-col items-center">
-          <div className="w-20 h-20 mb-8 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-2xl">
-            <svg
-              className="w-12 h-12 text-white"
-              viewBox="0 0 100 100"
-              fill="currentColor"
-              aria-label="Simbol Cawan Hygieia Apoteker"
-            >
-              {/* Chalice / Cawan Farmasi */}
-              <path d="M 4 36 L 96 36 C 82 44 68 56 53 56 L 53 82 C 60 88 68 91 76 95 L 24 95 C 32 91 40 88 47 82 L 47 56 C 32 56 18 44 4 36 Z" />
-              
-              {/* Ular Hygieia (High S-Curve & Head Silhouette) */}
-              <path d="M 52 22 L 46 14 C 44 11 48 7 53 7 C 60 7 67 12 64 21 C 60 30 42 28 36 21 C 30 13 36 2 52 2 C 73 2 80 14 75 25 C 70 34 60 38 52 38 C 42 38 38 43 43 52 C 48 61 68 58 72 67 C 76 76 68 86 52 86 C 40 86 33 79 33 72 C 33 64 45 64 49 68 C 52 71 49 75 45 75 C 43 75 42 73 44 71 C 45 70 47 70 47 71 C 47 72 46 72 45 72 C 44 72 44 71 45 70 C 46 69 51 68 53 72 C 55 77 50 81 44 81 C 36 81 37 70 45 66 C 53 62 65 62 61 51 C 57 40 47 40 53 31 C 59 23 65 20 65 14 C 65 10 60 8 55 8 C 51 8 49 10 50 12 L 52 22 Z" />
-            </svg>
+          <div className="w-28 h-28 mb-8 rounded-3xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-2xl overflow-hidden shrink-0">
+            <img
+              src="/logo.jpg"
+              alt="Logo Pawang Apoteker"
+              className="w-full h-full object-cover"
+            />
           </div>
           <h2 className="text-5xl font-bold mb-6 font-display tracking-tight text-white shadow-sm">Pawang Apoteker</h2>
           <p className="text-lg opacity-95 font-sans font-medium leading-relaxed text-white/90 whitespace-nowrap">

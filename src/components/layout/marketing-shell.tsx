@@ -25,13 +25,18 @@ function MarketingShell({ children, footer }: MarketingShellProps) {
       <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-[1400px] flex-col px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
         <header className="rounded-[2rem] border border-[var(--color-outline-soft)] bg-[rgba(255,252,244,0.76)] px-4 py-4 shadow-[0_18px_42px_rgba(15,46,47,0.06)] backdrop-blur-sm sm:px-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="font-mono text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-teal-soft)]">
-                Pawang Apoteker
-              </p>
-              <p className="mt-2 text-sm leading-6 text-[var(--color-ink-muted)]">
-                Latihan serius untuk mahasiswa dan lulusan baru farmasi.
-              </p>
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.06)] overflow-hidden shrink-0 bg-white">
+                <img src="/logo.jpg" alt="Logo" className="h-full w-full object-cover" />
+              </div>
+              <div>
+                <p className="font-mono text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-teal-soft)]">
+                  Pawang Apoteker
+                </p>
+                <p className="mt-1 text-sm leading-6 text-[var(--color-ink-muted)]">
+                  Latihan serius untuk mahasiswa dan lulusan baru farmasi.
+                </p>
+              </div>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:justify-end">

@@ -147,7 +147,7 @@ describe("App dashboard page", () => {
       ).not.toBeInTheDocument();
     });
     
-    expect(screen.getByText(/pawang apoteker/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/pawang apoteker/i)[0]).toBeInTheDocument();
     expect(
       screen.getByText(/materi terlemah/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' }),
     ).toBeInTheDocument();

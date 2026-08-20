@@ -30,7 +30,7 @@ describe("ProductShell", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText(/pawang apoteker/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/pawang apoteker/i)[0]).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /ringkasan/i })[0]).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /profil/i })[0]).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /logout/i })[0]).toBeInTheDocument();
@@ -59,7 +59,7 @@ describe("ProductShell", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText(/pawang apoteker/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/pawang apoteker/i)[0]).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /ringkasan/i })[0]).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /profil/i })[0]).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /logout/i })[0]).toBeInTheDocument();

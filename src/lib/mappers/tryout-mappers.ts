@@ -474,8 +474,8 @@ export function buildQuestionBankOverviewCards(
     },
     {
       id: "missing-explanations",
-      title: "Perlu edit penjelasan",
-      detail: `${missingExplanationCount} soal masih belum punya penjelasan final untuk pembahasan.`,
+      title: "Perlu edit pembahasan",
+      detail: `${missingExplanationCount} soal masih belum punya pembahasan final.`,
     },
     {
       id: "published-templates",

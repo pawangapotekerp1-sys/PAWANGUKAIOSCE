@@ -247,7 +247,7 @@ export const studyQueue: StudyQueueItem[] = [
 export const weeklyTrend = [62, 68, 66, 74, 71, 78, 82] as const;
 
 export const productShellMeta = {
-  brand: "Pawang Masuk Apoteker",
+  brand: "Pawang Apoteker",
   tierLabel: "Pro",
   headerEyebrow: "Selamat datang kembali",
   headerTitle: "Kunci ulang blok lemah, lalu gas ke simulasi.",

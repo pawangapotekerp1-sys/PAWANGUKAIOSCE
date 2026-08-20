@@ -27,7 +27,7 @@ function MarketingShell({ children, footer }: MarketingShellProps) {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="font-mono text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-teal-soft)]">
-                Pawang Masuk Apoteker
+                Pawang Apoteker
               </p>
               <p className="mt-2 text-sm leading-6 text-[var(--color-ink-muted)]">
                 Latihan serius untuk mahasiswa dan lulusan baru farmasi.

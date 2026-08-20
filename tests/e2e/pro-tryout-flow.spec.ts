@@ -121,6 +121,6 @@ test.describe("pro tryout flow", () => {
         name: /review dan pembahasan/i,
       }),
     ).toBeVisible();
-    await expect(page.getByText(/penjelasan/i).first()).toBeVisible();
+    await expect(page.getByText(/pembahasan/i).first()).toBeVisible();
   });
 });

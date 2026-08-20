@@ -987,7 +987,7 @@ function ScheduledEventEditorPage() {
                         Pembahasan
                       </h3>
                       <p className="text-sm leading-6 text-foreground">
-                        Tambahkan penjelasan singkat dan lampiran bila diperlukan.
+                        Tambahkan pembahasan singkat dan lampiran bila diperlukan.
                       </p>
                     </div>
                     <label className="text-sm font-medium text-foreground" htmlFor={`scheduled-question-${questionIndex}-explanation`}>

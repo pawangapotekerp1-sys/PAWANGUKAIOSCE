@@ -18,7 +18,7 @@ describe("ProductShell", () => {
     const { container } = render(
       <MemoryRouter>
         <ProductShell
-          brand="Pawang Masuk Apoteker"
+          brand="Pawang Apoteker"
           tierLabel="Mentor"
           navItems={[
             { href: "/app", label: "Ringkasan", icon: LayoutDashboard, active: true },
@@ -30,7 +30,7 @@ describe("ProductShell", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText(/pawang masuk apoteker/i)).toBeInTheDocument();
+    expect(screen.getByText(/pawang apoteker/i)).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /ringkasan/i })[0]).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /profil/i })[0]).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /logout/i })[0]).toBeInTheDocument();
@@ -47,7 +47,7 @@ describe("ProductShell", () => {
     const { container } = render(
       <MemoryRouter>
         <ProductShell
-          brand="Pawang Masuk Apoteker"
+          brand="Pawang Apoteker"
           tierLabel="Mentor"
           navItems={[
             { href: "/app", label: "Ringkasan", icon: LayoutDashboard, active: true },
@@ -59,7 +59,7 @@ describe("ProductShell", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText(/pawang masuk apoteker/i)).toBeInTheDocument();
+    expect(screen.getByText(/pawang apoteker/i)).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /ringkasan/i })[0]).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /profil/i })[0]).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /logout/i })[0]).toBeInTheDocument();

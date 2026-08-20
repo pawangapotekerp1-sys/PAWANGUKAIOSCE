@@ -72,7 +72,7 @@ export const marketingFeatures: MarketingFeature[] = [
     title: "Insight AI opsional untuk membaca pola salah",
     summary: "Bukan pengganti latihan, tetapi lapisan bantu saat kamu ingin membaca pola kesalahan lebih cepat.",
     detail:
-      "Gunakan saat perlu ringkasan miskonsepsi, saran urutan review, atau penjelasan kenapa pola jawabanmu terus turun di blok tertentu.",
+      "Gunakan saat perlu ringkasan miskonsepsi, saran urutan review, atau pembahasan kenapa pola jawabanmu terus turun di blok tertentu.",
   },
 ];
 
@@ -127,10 +127,10 @@ export const pricingPreview: PricingPreview[] = [
 ] as const;
 
 export const homepageCopy = {
-  brand: "Pawang Masuk Apoteker",
+  brand: "Pawang Apoteker",
   heroTitle: "Lolos ujian profesi apoteker dengan latihan yang terasa seperti hari H",
   heroDescription:
-    "Pawang Masuk Apoteker membantu mahasiswa dan lulusan baru farmasi membangun ritme try out sebelum menghadapi ujian profesi apoteker.",
+    "Pawang Apoteker membantu mahasiswa dan lulusan baru farmasi membangun ritme try out sebelum menghadapi ujian profesi apoteker.",
   heroLead:
     "Fokusnya bukan sekadar banyak soal, tetapi simulasi, pembacaan area lemah, dan keputusan belajar yang lebih tenang dari sesi ke sesi.",
   heroPrimaryCta: "Mulai perjalanan try out",

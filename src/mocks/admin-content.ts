@@ -102,7 +102,7 @@ export const paymentQueue = [
 ] as const;
 
 export const adminShellMeta = {
-  brand: "Pawang Masuk Apoteker",
+  brand: "Pawang Apoteker",
   summaryTitle: "Ringkasan admin hari ini",
   summaryDescription:
     "Pantau pembayaran, pengguna aktif, dan aktivitas try out dari satu tempat.",

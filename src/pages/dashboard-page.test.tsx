@@ -123,7 +123,7 @@ describe("Dashboard page", () => {
         screen.queryByText(/ringkasan dashboard sedang disiapkan/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' }),
       ).not.toBeInTheDocument();
     });
-    expect(screen.getByText("Pawang Masuk Apoteker")).toBeInTheDocument();
+    expect(screen.getByText("Pawang Apoteker")).toBeInTheDocument();
     expect(
       screen.getAllByRole("heading", {
         name: /try out besar/i,

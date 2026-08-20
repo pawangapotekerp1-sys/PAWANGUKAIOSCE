@@ -21,7 +21,7 @@ describe("AdminShell", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText(/pawang masuk apoteker/i)).toBeInTheDocument();
+    expect(screen.getByText(/pawang apoteker/i)).toBeInTheDocument();
     expect(screen.getByText(/area admin/i)).toBeInTheDocument();
     expect(screen.getByText(/dashboard/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /profil/i })).toBeInTheDocument();

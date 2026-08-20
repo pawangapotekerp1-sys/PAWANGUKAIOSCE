@@ -149,7 +149,7 @@ Deno.serve(async (req) => {
           service,
           payload.apiKey.trim(),
           `platform-gemini-${Date.now()}`,
-          "Platform Gemini key for Pawang Masuk Apoteker",
+          "Platform Gemini key for Pawang Apoteker",
         )
         : latestConfig?.platform_secret_id ?? null;
       const writePayload = {

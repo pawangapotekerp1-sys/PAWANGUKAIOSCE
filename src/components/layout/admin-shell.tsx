@@ -24,7 +24,7 @@ function AdminShell({
 }: AdminShellProps) {
   return (
     <ProductShell
-      brand="Pawang Masuk Apoteker"
+      brand="Pawang Apoteker"
       tierLabel="Admin"
       navItems={navItems as any}
     >

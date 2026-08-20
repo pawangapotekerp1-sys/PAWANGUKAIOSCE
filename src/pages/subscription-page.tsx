@@ -245,7 +245,7 @@ function SubscriptionPage() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
-                Pawang Masuk Apoteker
+                Pawang Apoteker
               </p>
               <h1 className="mt-3 text-3xl font-bold leading-tight text-foreground">
                 Aktifkan akses belajar.

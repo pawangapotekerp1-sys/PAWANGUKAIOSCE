@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { MaterialLink } from '@/lib/api/material-api';
-import { X, Maximize2, Minimize2, Loader2, Video, FileText, Link as LinkIcon, ZoomIn, ZoomOut } from 'lucide-react';
+import { X, Maximize2, Minimize2, Loader2, Video, FileText, Link as LinkIcon, ZoomIn, ZoomOut, ExternalLink } from 'lucide-react';
 
 export type ModalSize = 'standard' | 'fullscreen';
 
@@ -142,9 +142,6 @@ export function MediaPreviewModal({ link, onClose }: MediaPreviewModalProps) {
                 >
                   <ZoomIn className="w-4 h-4" />
                 </button>
-              </div>
-            )}
-
             {/* Fullscreen Button */}
             <button
               onClick={toggleFullscreen}

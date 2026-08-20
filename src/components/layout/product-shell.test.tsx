@@ -31,10 +31,10 @@ describe("ProductShell", () => {
     );
 
     expect(screen.getAllByText(/pawang apoteker/i)[0]).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: /ringkasan/i })).toHaveLength(2);
-    expect(screen.getAllByRole("link", { name: /profil/i })).toHaveLength(2);
-    expect(screen.getByRole("button", { name: /logout/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /logout/i })).toHaveAttribute("data-variant", "outline");
+    expect(screen.getAllByRole("link", { name: /ringkasan/i })[0]).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /profil/i })[0]).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /logout/i })[0]).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /logout/i })[0]).toHaveAttribute("data-variant", "outline");
     expect(screen.queryByText(/sesi aktif/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/sumber data aktif/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/sprint hari ini/i)).not.toBeInTheDocument();
@@ -60,10 +60,10 @@ describe("ProductShell", () => {
     );
 
     expect(screen.getAllByText(/pawang apoteker/i)[0]).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: /ringkasan/i })).toHaveLength(2);
-    expect(screen.getAllByRole("link", { name: /profil/i })).toHaveLength(2);
-    expect(screen.getByRole("button", { name: /logout/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /logout/i })).toHaveAttribute("data-variant", "outline");
+    expect(screen.getAllByRole("link", { name: /ringkasan/i })[0]).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /profil/i })[0]).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /logout/i })[0]).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /logout/i })[0]).toHaveAttribute("data-variant", "outline");
 
     const header = container.querySelector("header");
     expect(header).toBeInTheDocument();

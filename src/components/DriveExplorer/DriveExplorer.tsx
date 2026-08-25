@@ -210,7 +210,11 @@ export function DriveExplorer({ driveType, isMentorOrAdmin }: DriveExplorerProps
     }
   };
 
-  const isEmpty = !isLoading && folders.length === 0 && links.length === 0;
+  const isEmpty = React.useMemo(() => !isLoading && folders.length === 0 && links.length === 0, [isLoading, folders.length, links.length]);
+  
+  const hasLongName = React.useMemo(() => {
+    return folders.some((f) => f.name.length > 20) || links.some((l) => l.title.length > 20);
+  }, [folders, links]);
 
   return (
     <div className="w-full p-4 md:p-6 bg-card rounded-2xl shadow-sm border border-border/80">
@@ -278,7 +282,7 @@ export function DriveExplorer({ driveType, isMentorOrAdmin }: DriveExplorerProps
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className={hasLongName ? "flex flex-col gap-2" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"}>
             {folders.map((folder) => (
               <FolderItem
                 key={folder.id}
@@ -290,6 +294,7 @@ export function DriveExplorer({ driveType, isMentorOrAdmin }: DriveExplorerProps
                 onClone={() => cloneMutation.mutate({ id: folder.id, type: 'folder' })}
                 onDelete={() => setDeleteFolderTarget(folder)}
                 onMove={() => setMoveItemTarget({ id: folder.id, type: 'folder', name: folder.name })}
+                isListView={hasLongName}
               />
             ))}
             {links.map((link) => (
@@ -303,6 +308,7 @@ export function DriveExplorer({ driveType, isMentorOrAdmin }: DriveExplorerProps
                 onClone={() => cloneMutation.mutate({ id: link.id, type: 'link' })}
                 onDelete={() => setDeleteLinkTarget(link)}
                 onMove={() => setMoveItemTarget({ id: link.id, type: 'link', name: link.title })}
+                isListView={hasLongName}
               />
             ))}
           </div>

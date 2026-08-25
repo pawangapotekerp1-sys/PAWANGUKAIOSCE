@@ -2,6 +2,7 @@ import React from 'react';
 import { Link as LinkIcon, VideoCamera, FilePpt } from '@phosphor-icons/react';
 import { MaterialLink } from '@/lib/api/material-api';
 import { ActionMenu } from './ActionMenu';
+import { formatDateId } from '@/lib/utils';
 
 interface LinkItemProps {
   link: MaterialLink;
@@ -12,6 +13,7 @@ interface LinkItemProps {
   onClone?: (link: MaterialLink) => void;
   onMove?: (link: MaterialLink) => void;
   onDelete?: (link: MaterialLink) => void;
+  isListView?: boolean;
 }
 
 export function LinkItem({
@@ -23,6 +25,7 @@ export function LinkItem({
   onClone,
   onMove,
   onDelete,
+  isListView,
 }: LinkItemProps) {
   const handleClick = () => {
     if (onSelect) {
@@ -38,9 +41,9 @@ export function LinkItem({
     <div className="relative group">
       <div
         onClick={handleClick}
-        className="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:border-emerald-300 hover:shadow-md hover:bg-emerald-50/50 transition-all cursor-pointer bg-white"
+        className={`flex items-center justify-between p-3 border border-slate-200 hover:border-emerald-300 hover:shadow-md hover:bg-emerald-50/50 transition-all cursor-pointer bg-white ${isListView ? 'rounded-lg' : 'rounded-xl'}`}
       >
-        <div className="flex items-center space-x-3 overflow-hidden">
+        <div className="flex items-center space-x-3 overflow-hidden flex-1">
           <div className={`p-2 rounded-lg flex-shrink-0 transition-colors ${
             link.drive_type === 'VIDEO' 
               ? 'bg-rose-100 text-rose-600 group-hover:bg-rose-600 group-hover:text-white'
@@ -50,12 +53,18 @@ export function LinkItem({
           }`}>
             <IconComponent weight="fill" className="w-6 h-6" />
           </div>
-          <div className="flex flex-col overflow-hidden">
-            <span className="font-medium text-slate-700 truncate group-hover:text-slate-900 transition-colors">
+          <div className="flex flex-col overflow-hidden flex-1">
+            <span className={`font-medium text-slate-700 group-hover:text-slate-900 transition-colors ${isListView ? 'break-words whitespace-normal' : 'truncate'}`}>
               {link.title}
             </span>
           </div>
         </div>
+
+        {isListView && (
+          <div className="hidden md:flex items-center text-sm text-slate-500 mr-4 w-32 justify-end flex-shrink-0">
+            {formatDateId(link.created_at)}
+          </div>
+        )}
 
         {isMentorOrAdmin && (
           <ActionMenu

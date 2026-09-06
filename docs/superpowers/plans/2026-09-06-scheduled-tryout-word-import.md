@@ -4,7 +4,7 @@
 
 **Goal:** Replace the one verified dummy question in `Try Out CBT Pharmaceutical Science Part 1` with the 91 source-faithful questions from the supplied Word document, preserving text, answers, equations, images, and nested tables while leaving the event in `draft`.
 
-**Architecture:** OOXML traversal and semantic parsing produce a partial source manifest plus exact fragment selectors. Fragment DOCX files preserve the original package relationships and are rendered by Microsoft Word to PDF, rasterized at exactly 200 DPI, and cropped without changing content. A read-only PostgreSQL preflight captures canonical server-side fingerprints before any Storage write. An orchestrator combines source, visual, and cloud evidence into the versioned manifest. Storage uses an ephemeral authenticated admin/mentor session. Separate import, verification, and recovery generators create guarded SQL; the destructive replacement runs only after a fresh in-transaction recheck.
+**Architecture:** OOXML traversal and semantic parsing produce a partial source manifest plus exact fragment selectors. Fragment DOCX files preserve the original package relationships and are rendered by Microsoft Word to PDF, rasterized at exactly 200 DPI, and cropped without changing content. A read-only PostgreSQL preflight captures raw snapshots before any Storage write; a tested Python finalizer recursively canonicalizes them and computes fingerprints. An orchestrator combines source, visual, and cloud evidence into the versioned manifest. Storage uses an ephemeral authenticated admin/mentor session. Separate import, verification, and recovery generators create guarded SQL; the destructive replacement runs only after a fresh in-transaction recheck.
 
 **Tech Stack:** Python 3 (`python-docx`, `lxml`, Pillow), Microsoft Word COM, bundled Poppler, Node.js (`@supabase/supabase-js`, Vitest), PostgreSQL 17 through Docker `psql`.
 
@@ -26,6 +26,7 @@
 ```powershell
 $repo = (git rev-parse --show-toplevel).Trim()
 $py = "C:\Users\ASUS\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
+$pdfToPpm = "C:\Users\ASUS\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\poppler\Library\bin\pdftoppm.exe"
 $sourceDocx = "C:\Users\ASUS\Downloads\Soal Try Out 1(1).docx"
 ```
 
@@ -39,17 +40,12 @@ $sourceDocx = "C:\Users\ASUS\Downloads\Soal Try Out 1(1).docx"
 
 - Create: `scripts/scheduled_tryout_import/models.py`
 - Create: `scripts/scheduled_tryout_import/ooxml.py`
+- Create: `scripts/scheduled_tryout_import/probe_source_inventory.py`
 - Create: `scripts/scheduled_tryout_import/__init__.py`
 - Create: `tests/scripts/test_scheduled_tryout_ooxml.py`
 - Create fixtures: `tests/fixtures/scheduled_tryout_import/`
 
-- [ ] **Step 1: Verify the frozen authoritative asset inventory**
-
-Run a read-only OOXML probe against the original source. It must report exactly 47 assets: question rows `8,16,23,28,59,77,89` and explanation rows `1,5,11,14,15,16,18,19,21,23,24,25,27,28,29,31,36,38,42,43,46,47,49,51,54,56,57,58,60,62,67,70,71,73,75,78,79,83,84,91`.
-
-Expected: one unambiguous question-row set of length 7, one unambiguous explanation-row set of length 40, union-with-kind count 47, and no duplicate or placeholder wording.
-
-- [ ] **Step 2: Create focused OOXML fixtures and failing tests**
+- [ ] **Step 1: Create focused OOXML fixtures and failing tests**
 
 Fixtures must cover direct `w:p`/`w:tbl` child ordering, embedded-image relationship lookup, an image paragraph before option A, a nested table before option A, a visual after option A, `m:oMath` in stem prose, supported `≤ ≥ < >` option equations, unsupported option equations, and answer-label punctuation/whitespace variants. Test methods name every behavior and compare exact paragraph strings and relationship targets.
 
@@ -61,22 +57,32 @@ Run:
 
 Expected RED: import failure naming `scripts.scheduled_tryout_import.ooxml`.
 
-- [ ] **Step 3: Implement single-responsibility OOXML helpers**
+- [ ] **Step 2: Implement single-responsibility OOXML helpers and inventory CLI**
 
-`ooxml.py` owns namespace constants, direct-child iteration, ordered `w:t`/`m:t` text extraction, paragraph boundary preservation, direct nested-table detection, `a:blip` relationship resolution, and immutable fragment selectors expressed as cell column plus direct-child indexes and optional paragraph/run boundaries. It must not decide which text is stem, option, answer, or explanation. `models.py` contains typed immutable records and stable validation-error codes only.
+`ooxml.py` owns namespace constants, direct-child iteration, ordered `w:t`/`m:t` text extraction, paragraph boundary preservation, direct nested-table detection, `a:blip` relationship resolution, and immutable fragment selectors expressed as cell column plus direct-child indexes and optional paragraph/run boundaries. It must not decide which text is stem, option, answer, or explanation. `models.py` contains typed immutable records and stable validation-error codes only. `probe_source_inventory.py` is a read-only CLI that reports the kind-specific asset row sets and exits nonzero unless they match explicit caller expectations.
 
 Normalization is limited to trimming each paragraph at both ends, joining adjacent runs, and joining retained paragraphs with `\n`. Characters inside a paragraph are never collapsed, corrected, or replaced.
 
-- [ ] **Step 4: Run OOXML tests and verify GREEN**
+- [ ] **Step 3: Run OOXML tests and verify GREEN**
 
-Run the Step 2 command.
+Run the Step 1 command.
 
 Expected GREEN: all named OOXML tests pass with `OK`; fixture relationship targets and child indexes match exactly.
+
+- [ ] **Step 4: Verify the frozen source inventory with the implemented CLI**
+
+Run:
+
+```powershell
+& $py -m scripts.scheduled_tryout_import.probe_source_inventory --source $sourceDocx --expect-question-rows "8,16,23,28,59,77,89" --expect-explanation-rows "1,5,11,14,15,16,18,19,21,23,24,25,27,28,29,31,36,38,42,43,46,47,49,51,54,56,57,58,60,62,67,70,71,73,75,78,79,83,84,91"
+```
+
+Expected exact line: `INVENTORY_OK question=7 explanation=40 total=47 embedded_pictures=5 equations=97`.
 
 - [ ] **Step 5: Commit Task 1**
 
 ```powershell
-git add scripts/scheduled_tryout_import/models.py scripts/scheduled_tryout_import/ooxml.py scripts/scheduled_tryout_import/__init__.py tests/scripts/test_scheduled_tryout_ooxml.py tests/fixtures/scheduled_tryout_import
+git add scripts/scheduled_tryout_import/models.py scripts/scheduled_tryout_import/ooxml.py scripts/scheduled_tryout_import/probe_source_inventory.py scripts/scheduled_tryout_import/__init__.py tests/scripts/test_scheduled_tryout_ooxml.py tests/fixtures/scheduled_tryout_import
 git commit -m "feat: add scheduled tryout OOXML traversal"
 ```
 
@@ -161,7 +167,7 @@ Expected RED: import failures naming `fragment_docx` and `rasterize_assets`.
 
 - [ ] **Step 3: Implement Microsoft Word rendering and 200-DPI rasterization**
 
-`render_word_assets.ps1` opens each fragment read-only in Word, disables prompts and macros, exports Word's fixed-layout PDF, and closes every document and Word instance in `finally`. It never opens the original source for writing. `rasterize_assets.py` invokes the bundled `pdftocairo.exe -png -r 200`, composites transparency onto white, crops only the exterior all-white bounding box with a safety margin, vertically stitches multiple pages when needed, writes one PNG per asset, verifies PNG signature, and records SHA-256, byte size, width, and height.
+`render_word_assets.ps1` opens each fragment read-only in Word, disables prompts and macros, exports Word's fixed-layout PDF, and closes every document and Word instance in `finally`. It never opens the original source for writing. `rasterize_assets.py` requires the exact bundled binary `C:\Users\ASUS\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\poppler\Library\bin\pdftoppm.exe`, invokes it with `-png -r 200`, composites transparency onto white, crops only the exterior all-white bounding box with a safety margin, vertically stitches multiple pages when needed, writes one PNG per asset, verifies PNG signature, and records SHA-256, byte size, width, and height.
 
 - [ ] **Step 4: Run fragment/raster tests and verify GREEN**
 
@@ -174,9 +180,10 @@ Expected GREEN: all named tests pass with `OK`; the fixture PNG metadata reports
 Run:
 
 ```powershell
+if (-not (Test-Path -LiteralPath $pdfToPpm -PathType Leaf)) { throw "Bundled pdftoppm.exe not found" }
 & $py -m scripts.scheduled_tryout_import.fragment_docx --source $sourceDocx --partial-manifest "$repo\tmp\scheduled-tryout-import\source-partial.json" --run-root "$repo\tmp\scheduled-tryout-import"
 & "$repo\scripts\scheduled_tryout_import\render_word_assets.ps1" -RunRoot "$repo\tmp\scheduled-tryout-import"
-& $py -m scripts.scheduled_tryout_import.rasterize_assets --run-root "$repo\tmp\scheduled-tryout-import"
+& $py -m scripts.scheduled_tryout_import.rasterize_assets --run-root "$repo\tmp\scheduled-tryout-import" --pdftoppm $pdfToPpm --dpi 200
 ```
 
 Expected exact final line: `ASSETS_RENDERED total=47 question=7 explanation=40 dpi=200 invalid=0`.
@@ -212,7 +219,7 @@ git commit -m "feat: render Word-authoritative tryout assets"
 
 - [ ] **Step 1: Write failing canonicalization and preflight tests**
 
-Tests assert the SQL reads exactly the eleven event fields (`id`, `title`, `description`, `editorial_status`, `access_start_at`, `access_end_at`, `current_cycle`, `created_by`, `updated_by`, `created_at`, `updated_at`), full dummy question row, dummy options ordered by `sort_order`, count from `scheduled_tryout_attempts`, and active `blocks` rows named `Pharmaceutical Science`. SQL constructs sorted-key `jsonb`, converts all timestamps to UTC ISO strings before JSON construction, preserves nulls and array order, and computes SHA-256 server-side from the UTF-8 bytes of `jsonb::text`. Python refuses malformed/multiple JSON lines and independently checks the exact target/dummy facts.
+Tests assert the SQL reads exactly the eleven event fields (`id`, `title`, `description`, `editorial_status`, `access_start_at`, `access_end_at`, `current_cycle`, `created_by`, `updated_by`, `created_at`, `updated_at`), full dummy question row, dummy options ordered by `sort_order`, count from `scheduled_tryout_attempts`, and active `blocks` rows named `Pharmaceutical Science`. SQL converts timestamps to UTC ISO strings, preserves nulls and array order, and returns raw snapshot values without claiming canonical key order. Python refuses malformed/multiple JSON lines, independently checks the exact target/dummy facts, recursively sorts every object key, preserves array order, serializes UTF-8 with `ensure_ascii=False` and compact separators `(',', ':')`, and computes lowercase SHA-256 from those exact bytes.
 
 Run:
 
@@ -224,7 +231,7 @@ Expected RED: import failure naming `finalize_preflight`.
 
 - [ ] **Step 2: Implement read-only SQL and finalizer**
 
-`cloud_preflight.sql` uses `\pset tuples_only on`, `\pset format unaligned`, and `\o :preflight_output` to write exactly one JSON object to the caller-supplied mounted path. It performs SELECT statements only. The object contains `eventSnapshot`, `dummySnapshot`, `attemptCount`, `activeBlocks`, `eventFingerprint`, and `dummyFingerprint`. `finalize_preflight.py` verifies exactly one matching draft event, title `Try Out CBT Pharmaceutical Science Part 1`, zero attempts, one exact dummy ID/content/options snapshot, and exactly one active matching block, then atomically writes `cloud-preflight.json`.
+`cloud_preflight.sql` uses `\pset tuples_only on`, `\pset format unaligned`, and `\o :preflight_output` to write exactly one JSON object to the caller-supplied mounted path. It performs SELECT statements only. The raw object contains `eventSnapshot`, `dummySnapshot`, `attemptCount`, and `activeBlocks`. `finalize_preflight.py` verifies exactly one matching draft event, title `Try Out CBT Pharmaceutical Science Part 1`, zero attempts, one exact dummy ID/content/options snapshot, and exactly one active matching block; canonicalizes the two snapshots with the tested recursive serializer; adds `eventFingerprint`, `dummyFingerprint`, `eventCanonicalJson`, and `dummyCanonicalJson`; then atomically writes `cloud-preflight.json`.
 
 - [ ] **Step 3: Run tests and verify GREEN**
 
@@ -238,6 +245,7 @@ Create the run directory from the partial manifest, copy `cloud_preflight.sql` i
 
 ```powershell
 $runRoot = (& $py -m scripts.scheduled_tryout_import.docx_parser --print-run-root "$repo\tmp\scheduled-tryout-import\source-partial.json").Trim()
+Copy-Item -LiteralPath "$repo\scripts\scheduled_tryout_import\cloud_preflight.sql" -Destination "$runRoot\cloud_preflight.sql" -Force
 docker run --rm -it -v "${runRoot}:/work" postgres:17-alpine psql -W "host=aws-0-ap-northeast-1.pooler.supabase.com port=5432 dbname=postgres user=postgres.pqwrsezwynpyeqeaydup sslmode=require" --set=ON_ERROR_STOP=1 --set=preflight_output=/work/cloud-preflight.raw.json --file=/work/cloud_preflight.sql
 & $py -m scripts.scheduled_tryout_import.finalize_preflight --input "$runRoot\cloud-preflight.raw.json" --output "$runRoot\cloud-preflight.json"
 ```
@@ -324,7 +332,7 @@ git commit -m "feat: build guarded scheduled tryout manifest"
 
 - [ ] **Step 1: Write failing uploader and ledger tests**
 
-Inject fake Auth/Storage clients. Tests assert admin/mentor acceptance; all other roles rejected; hidden credential prompt is not logged; sign-out always occurs; gate revalidation precedes authentication; remote paths are exactly `scheduled-events/67049b8f-1763-45aa-993f-d1b93311e294/imports/<runId>/<assetId>.png`; MIME is `image/png`; upload uses `upsert:false`; each success is fsync-appended to `created-objects.jsonl` before the next upload; re-download matches SHA-256 and byte length; manifest update uses temp-file-plus-rename; cleanup refuses paths outside the current run prefix or ledger and deletes only explicitly ledgered objects.
+Inject fake Auth/Storage clients. Tests assert admin/mentor acceptance; all other roles rejected; hidden credential prompt is not logged; sign-out always occurs; gate revalidation precedes authentication; remote paths are exactly `scheduled-events/67049b8f-1763-45aa-993f-d1b93311e294/imports/<runId>/<assetId>.png`; MIME is `image/png`; upload uses `upsert:false`; each success is fsync-appended to `created-objects.jsonl` before the next upload; re-download matches SHA-256 and byte length; manifest update uses temp-file-plus-rename; an upload/re-download/hash failure automatically deletes every object ledgered in that same authenticated session before sign-out; retry cleanup accepts `--cleanup-upload-failure`; cleanup refuses paths outside the current run prefix or ledger and deletes only explicitly ledgered objects.
 
 Run:
 
@@ -336,7 +344,7 @@ Expected RED: module-resolution failures naming `upload_assets.mjs` and `storage
 
 - [ ] **Step 2: Implement uploader and durable recovery ledger**
 
-Read only `VITE_SUPABASE_URL` and the publishable/anon key from `.env.local`. Prompt for application email and password at runtime; password input must not echo. Authenticate, query the signed-in profile role, run the storage gate again, upload sequentially with `upsert:false`, fsync the ledger after each success, download through the same authenticated client, verify bytes/hash, atomically update the manifest asset to `verified`, and sign out in `finally`. Never print credentials, tokens, or full auth responses.
+Read only `VITE_SUPABASE_URL` and the publishable/anon key from `.env.local`. Prompt for application email and password at runtime; password input must not echo. Authenticate, query the signed-in profile role, run the storage gate again, upload sequentially with `upsert:false`, fsync the ledger after each success, download through the same authenticated client, verify bytes/hash, and atomically update the manifest asset to `verified`. On any upload, download, or hash error, delete every successfully created path listed in the current ledger before sign-out, mark those assets pending again atomically, and exit nonzero. If automatic cleanup itself is interrupted, `--cleanup-upload-failure` repeats only the ledger/prefix-restricted deletions. Sign out in `finally`. Never print credentials, tokens, or full auth responses.
 
 Cleanup mode accepts `--cleanup-current-run`, revalidates both ledger membership and prefix, and requires a caller-provided `--database-unreferenced-evidence` file before deletion after a database operation.
 
@@ -364,6 +372,14 @@ GATE_DATABASE_OK questions=91 options=455 assets=47 remote_verified=47 attempts=
 
 Database rows remain unchanged.
 
+If the command fails, expected failure handling is `STORAGE_UPLOAD_FAILED created=N verified=N` followed by `STORAGE_ROLLBACK_OK deleted=N remaining=0`. If the process was interrupted before that line, rerun the authenticated cleanup explicitly:
+
+```powershell
+node scripts/scheduled_tryout_import/upload_assets.mjs --manifest "$runRoot\manifest.json" --env-file "$repo\.env.local" --cleanup-upload-failure
+```
+
+Expected: `STORAGE_ROLLBACK_OK deleted=N remaining=0`; the database is still unchanged because upload precedes Task 9.
+
 - [ ] **Step 5: Commit Task 6**
 
 ```powershell
@@ -379,13 +395,14 @@ git commit -m "feat: upload scheduled tryout assets safely"
 - Create: `scripts/scheduled_tryout_import/generate_import_sql.py`
 - Create: `scripts/scheduled_tryout_import/generate_verify_sql.py`
 - Create: `scripts/scheduled_tryout_import/generate_restore_sql.py`
+- Create: `scripts/scheduled_tryout_import/finalize_verification.py`
 - Create: `tests/scripts/test_scheduled_tryout_import_sql.py`
 - Create: `tests/scripts/test_scheduled_tryout_verify_sql.py`
 - Create: `tests/scripts/test_scheduled_tryout_restore_sql.py`
 
 - [ ] **Step 1: Write failing import-SQL tests**
 
-Assert `BEGIN ISOLATION LEVEL SERIALIZABLE`; transaction-scoped advisory lock derived from event UUID; `SELECT id FROM public.scheduled_tryout_events WHERE id = '67049b8f-1763-45aa-993f-d1b93311e294' FOR UPDATE`; reconstruction and SHA-256 comparison of the exact event/dummy canonical JSON; title/draft/zero-attempt assertions; one active block assertion; temp staging tables matching the CSV columns; `\copy` from `/work/questions.csv` and `/work/options.csv`; schema/readiness/gate constants embedded from the manifest; delete restricted by both event ID and dummy ID; inserts into `scheduled_tryout_event_questions` and `scheduled_tryout_event_question_options`; and pre-COMMIT assertions for 91/455, five A-E options, non-empty text, valid keys, exact inserted UUID sets, block/topic/media mapping, unchanged eleven event fields, and zero attempts. Every passed assertion emits `ASSERT_OK` followed by its stable named code before `COMMIT`.
+Assert `BEGIN ISOLATION LEVEL SERIALIZABLE`; transaction-scoped advisory lock derived from event UUID; `SELECT id FROM public.scheduled_tryout_events WHERE id = '67049b8f-1763-45aa-993f-d1b93311e294' FOR UPDATE`; reconstruction of current event/dummy JSONB and equality with the embedded expected snapshots; SHA-256 verification of the embedded compact canonical JSON bytes against the manifest fingerprints; title/draft/zero-attempt assertions; one active block assertion; temp staging tables matching the CSV columns; `\copy` from `/work/questions.csv` and `/work/options.csv`; schema/readiness/gate constants embedded from the manifest; delete restricted by both event ID and dummy ID; inserts into `scheduled_tryout_event_questions` and `scheduled_tryout_event_question_options`; and pre-COMMIT assertions for 91/455, five A-E options, non-empty text, valid keys, exact inserted UUID sets, block/topic/media mapping, unchanged eleven event fields, and zero attempts. JSONB equality proves the locked current rows equal the snapshots whose tested canonical bytes are fingerprinted. Every passed assertion emits `ASSERT_OK` followed by its stable named code before `COMMIT`.
 
 Run:
 
@@ -407,7 +424,7 @@ Expected GREEN: all import SQL tests pass with `OK`.
 
 - [ ] **Step 4: Write failing verification-SQL tests**
 
-Assert a fresh-connection read-only script compares source order, stem, each A-E option, correct key, explanation mode/text, media path, block, null topic, exact run UUID sets, Storage-path inventory, zero attempts, and all eleven unchanged event fields. It writes exactly one canonical JSON reconciliation record to `/work/cloud-verification.raw.json` and emits `VERIFY_OK mismatches=0 questions=91 options=455 assets=47` only when every check passes.
+Assert fresh-connection read-only scripts have three distinct contracts. `verify.sql` compares source order, stem, each A-E option, correct key, explanation mode/text, media path, block, null topic, exact run UUID sets, Storage-path inventory, zero attempts, and all eleven unchanged event fields, writing `/work/cloud-verification.raw.json`. `verify_storage_references.sql` proves the original dummy snapshot is intact and no current-run question UUID or Storage path is referenced after a rolled-back import, writing `/work/storage-reference-verification.raw.json`. `verify_restore.sql` proves the captured dummy question/options are restored, all current-run IDs and media references are absent, all eleven event fields are unchanged, and attempts remain zero, writing `/work/post-restore-verification.raw.json`.
 
 Run:
 
@@ -419,7 +436,7 @@ Expected RED: import failure naming `generate_verify_sql`.
 
 - [ ] **Step 5: Implement verification SQL and reconciliation finalization**
 
-`generate_verify_sql.py` writes `verify.sql` and adds a `--finalize` mode that validates the raw JSON, atomically updates `reconciliation.json`, and writes `database-unreferenced-evidence.json` only when no database row references a current-run Storage path. The SQL never mutates data.
+`generate_verify_sql.py` writes `verify.sql`, `verify_storage_references.sql`, and `verify_restore.sql`; all three perform SELECT statements only. `finalize_verification.py` owns raw-output validation. Mode `import` atomically updates `reconciliation.json` only on the exact 91/455/47 successful contract. Mode `storage-unreferenced` writes `database-unreferenced-evidence.json` only when the dummy is intact and all current-run question IDs and paths are absent. Mode `prepare-restore` writes `restore-authorized.json` only when the current cloud question UUID set exactly equals the 91 run IDs and all eleven event fields match. Mode `restored` accepts only the exact dummy snapshot, no run IDs/media references, unchanged event, and zero attempts.
 
 - [ ] **Step 6: Run verification tests and verify GREEN**
 
@@ -451,7 +468,7 @@ Run:
 
 ```powershell
 & $py -m scripts.scheduled_tryout_import.generate_import_sql --manifest "$runRoot\manifest.json" --output "$runRoot\import.sql"
-& $py -m scripts.scheduled_tryout_import.generate_verify_sql --manifest "$runRoot\manifest.json" --output "$runRoot\verify.sql"
+& $py -m scripts.scheduled_tryout_import.generate_verify_sql --manifest "$runRoot\manifest.json" --output-directory $runRoot
 & $py -m scripts.scheduled_tryout_import.generate_restore_sql --manifest "$runRoot\manifest.json" --output "$runRoot\restore.sql"
 & $py -m scripts.scheduled_tryout_import.assert_manifest --manifest "$runRoot\manifest.json" --gate database --print-destructive-summary
 ```
@@ -465,7 +482,7 @@ DESTRUCTIVE_DRY_GATE_OK event=67049b8f-1763-45aa-993f-d1b93311e294 delete_questi
 - [ ] **Step 10: Commit Task 7**
 
 ```powershell
-git add scripts/scheduled_tryout_import/sql_common.py scripts/scheduled_tryout_import/generate_import_sql.py scripts/scheduled_tryout_import/generate_verify_sql.py scripts/scheduled_tryout_import/generate_restore_sql.py tests/scripts/test_scheduled_tryout_import_sql.py tests/scripts/test_scheduled_tryout_verify_sql.py tests/scripts/test_scheduled_tryout_restore_sql.py
+git add scripts/scheduled_tryout_import/sql_common.py scripts/scheduled_tryout_import/generate_import_sql.py scripts/scheduled_tryout_import/generate_verify_sql.py scripts/scheduled_tryout_import/generate_restore_sql.py scripts/scheduled_tryout_import/finalize_verification.py tests/scripts/test_scheduled_tryout_import_sql.py tests/scripts/test_scheduled_tryout_verify_sql.py tests/scripts/test_scheduled_tryout_restore_sql.py
 git commit -m "feat: generate guarded scheduled tryout SQL"
 ```
 
@@ -479,7 +496,13 @@ git commit -m "feat: generate guarded scheduled tryout SQL"
 
 - [ ] **Step 1: Re-run the same read-only preflight with a fresh connection**
 
-Run the Task 4 Docker command again with `--set=preflight_output=/work/cloud-preflight-final.raw.json`, then finalize it to `cloud-preflight-final.json`.
+Run:
+
+```powershell
+Copy-Item -LiteralPath "$repo\scripts\scheduled_tryout_import\cloud_preflight.sql" -Destination "$runRoot\cloud_preflight.sql" -Force
+docker run --rm -it -v "${runRoot}:/work" postgres:17-alpine psql -W "host=aws-0-ap-northeast-1.pooler.supabase.com port=5432 dbname=postgres user=postgres.pqwrsezwynpyeqeaydup sslmode=require" --set=ON_ERROR_STOP=1 --set=preflight_output=/work/cloud-preflight-final.raw.json --file=/work/cloud_preflight.sql
+& $py -m scripts.scheduled_tryout_import.finalize_preflight --input "$runRoot\cloud-preflight-final.raw.json" --output "$runRoot\cloud-preflight-final.json"
+```
 
 Expected: the same `PREFLIGHT_OK` line as Task 4.
 
@@ -488,7 +511,7 @@ Expected: the same `PREFLIGHT_OK` line as Task 4.
 Run:
 
 ```powershell
-& $py -m scripts.scheduled_tryout_import.finalize_preflight --input "$runRoot\cloud-preflight-final.raw.json" --output "$runRoot\cloud-preflight-final.json" --compare "$runRoot\cloud-preflight.json"
+& $py -m scripts.scheduled_tryout_import.finalize_preflight --compare "$runRoot\cloud-preflight.json" --candidate "$runRoot\cloud-preflight-final.json"
 & $py -m scripts.scheduled_tryout_import.assert_manifest --manifest "$runRoot\manifest.json" --gate database --preflight "$runRoot\cloud-preflight-final.json"
 ```
 
@@ -519,6 +542,18 @@ Enter the database password only at psql's hidden prompt.
 
 Expected transcript contains, in order, `ASSERT_OK EVENT_LOCKED`, `ASSERT_OK EVENT_FINGERPRINT`, `ASSERT_OK DUMMY_FINGERPRINT`, `ASSERT_OK ZERO_ATTEMPTS`, `ASSERT_OK ACTIVE_BLOCK`, `ASSERT_OK STAGING_91_455`, `ASSERT_OK INSERTED_UUID_SET`, `ASSERT_OK FIVE_OPTIONS_A_E`, `ASSERT_OK CONTENT_NONEMPTY`, `ASSERT_OK MEDIA_MAPPING`, `ASSERT_OK EVENT_FIELDS_UNCHANGED`, `ASSERT_OK ZERO_ATTEMPTS_FINAL`, then `COMMIT` and `IMPORT_OK questions=91 options=455`. Missing or reordered assertions are treated as failure; `ON_ERROR_STOP` must leave the transaction rolled back.
 
+- [ ] **Step 3: Clean up uploaded assets if the import command fails before COMMIT**
+
+Only on a nonzero Task 9 psql exit, prove the rollback left the exact dummy intact and no current-run ID or path referenced, then perform authenticated ledger-restricted cleanup:
+
+```powershell
+docker run --rm -it -v "${runRoot}:/work" postgres:17-alpine psql -W "host=aws-0-ap-northeast-1.pooler.supabase.com port=5432 dbname=postgres user=postgres.pqwrsezwynpyeqeaydup sslmode=require" --set=ON_ERROR_STOP=1 --file=/work/verify_storage_references.sql
+& $py -m scripts.scheduled_tryout_import.finalize_verification --mode storage-unreferenced --input "$runRoot\storage-reference-verification.raw.json" --manifest "$runRoot\manifest.json" --evidence "$runRoot\database-unreferenced-evidence.json"
+node scripts/scheduled_tryout_import/upload_assets.mjs --manifest "$runRoot\manifest.json" --env-file "$repo\.env.local" --cleanup-current-run --database-unreferenced-evidence "$runRoot\database-unreferenced-evidence.json"
+```
+
+Expected exact lines: `DATABASE_UNREFERENCED_OK dummy=intact run_ids=0 run_paths=0`, then `STORAGE_CLEANUP_OK deleted=47 skipped=0`. If the evidence command fails, stop and retain all Storage objects for human review.
+
 ### Task 10: Verify independently and recover only on exact current-run ownership
 
 **Use:** `verify.sql`, `restore.sql`, `reconciliation.json`, `created-objects.jsonl`
@@ -529,7 +564,7 @@ Run:
 
 ```powershell
 docker run --rm -it -v "${runRoot}:/work" postgres:17-alpine psql -W "host=aws-0-ap-northeast-1.pooler.supabase.com port=5432 dbname=postgres user=postgres.pqwrsezwynpyeqeaydup sslmode=require" --set=ON_ERROR_STOP=1 --file=/work/verify.sql
-& $py -m scripts.scheduled_tryout_import.generate_verify_sql --finalize "$runRoot\cloud-verification.raw.json" --manifest "$runRoot\manifest.json" --reconciliation "$runRoot\reconciliation.json"
+& $py -m scripts.scheduled_tryout_import.finalize_verification --mode import --input "$runRoot\cloud-verification.raw.json" --manifest "$runRoot\manifest.json" --reconciliation "$runRoot\reconciliation.json"
 ```
 
 Expected exact final lines:
@@ -541,16 +576,23 @@ RECONCILIATION_OK source_rows=91 cloud_rows=91 option_rows=455 event_fields_unch
 
 - [ ] **Step 2: Use compensation only if fresh verification fails and ownership is exact**
 
-First run verify finalization in `--prepare-restore` mode. It writes `restore-authorized.json` only when the current cloud question UUID set exactly equals the 91 current-run IDs and the eleven event fields still match. If that file is absent, stop without deleting database or Storage data.
+First run verification finalization in `prepare-restore` mode:
+
+```powershell
+& $py -m scripts.scheduled_tryout_import.finalize_verification --mode prepare-restore --input "$runRoot\cloud-verification.raw.json" --manifest "$runRoot\manifest.json" --authorization "$runRoot\restore-authorized.json"
+```
+
+Expected: `RESTORE_AUTHORIZED run_question_ids=91 event_fields_unchanged=11`; it writes `restore-authorized.json` only when the current cloud question UUID set exactly equals the 91 current-run IDs and the eleven event fields still match. If the command fails or that file is absent, stop without deleting database or Storage data.
 
 When and only when `restore-authorized.json` exists, run:
 
 ```powershell
 docker run --rm -it -v "${runRoot}:/work:ro" postgres:17-alpine psql -W "host=aws-0-ap-northeast-1.pooler.supabase.com port=5432 dbname=postgres user=postgres.pqwrsezwynpyeqeaydup sslmode=require" --set=ON_ERROR_STOP=1 --file=/work/restore.sql
-docker run --rm -it -v "${runRoot}:/work" postgres:17-alpine psql -W "host=aws-0-ap-northeast-1.pooler.supabase.com port=5432 dbname=postgres user=postgres.pqwrsezwynpyeqeaydup sslmode=require" --set=ON_ERROR_STOP=1 --file=/work/verify.sql
+docker run --rm -it -v "${runRoot}:/work" postgres:17-alpine psql -W "host=aws-0-ap-northeast-1.pooler.supabase.com port=5432 dbname=postgres user=postgres.pqwrsezwynpyeqeaydup sslmode=require" --set=ON_ERROR_STOP=1 --file=/work/verify_restore.sql
+& $py -m scripts.scheduled_tryout_import.finalize_verification --mode restored --input "$runRoot\post-restore-verification.raw.json" --manifest "$runRoot\manifest.json" --evidence "$runRoot\database-unreferenced-evidence.json"
 ```
 
-Expected restoration transcript ends with `RESTORE_OK dummy=94d85610-ef6d-41eb-871e-62fffb776d9f options=5 event_fields_unchanged=11 attempts=0`. After the second verification proves no DB references, create `database-unreferenced-evidence.json` and run:
+Expected restoration transcript ends with `RESTORE_OK dummy=94d85610-ef6d-41eb-871e-62fffb776d9f options=5 event_fields_unchanged=11 attempts=0`. The dedicated post-restore verification must then emit `POST_RESTORE_OK dummy=intact run_ids=0 run_paths=0 event_fields_unchanged=11 attempts=0` and create `database-unreferenced-evidence.json`. Only then run:
 
 ```powershell
 node scripts/scheduled_tryout_import/upload_assets.mjs --manifest "$runRoot\manifest.json" --env-file "$repo\.env.local" --cleanup-current-run --database-unreferenced-evidence "$runRoot\database-unreferenced-evidence.json"

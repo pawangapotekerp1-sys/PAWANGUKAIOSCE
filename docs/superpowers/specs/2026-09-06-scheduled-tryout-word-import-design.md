@@ -18,7 +18,7 @@ Replace the single dummy question in the Supabase Cloud event `Try Out CBT Pharm
 1. The importer must never infer, correct, or add an answer. `correct_option_key` must come only from the source answer label in the same Word row.
 2. Every imported question must have exactly five source options, A through E, in source order. Missing or ambiguous options stop the import.
 3. A plain cell is one whose OOXML subtree contains no `m:oMath`, `a:blip`, or direct child `w:tbl`. Plain question and explanation content remains text with source spelling and wording preserved. Normalization may trim the start and end of each paragraph, join adjacent Word runs, and preserve paragraph boundaries as `\n`; it may not collapse or replace characters inside a paragraph.
-4. Simple equation characters required inside selectable options, limited to `≤`, `≥`, `<`, and `>`, are preserved as Unicode text read from the Word equation XML. They must not be guessed from highlighting. Any other equation structure inside an option is a blocking validation error because option images are unsupported.
+4. Simple equation characters required inside selectable options, limited to `≤`, `≥`, `<`, and `>`, are preserved as Unicode text read from the Word equation XML. They must not be guessed from highlighting. Any other equation structure inside an option is a blocking validation error because option images are unsupported. The inspected source has no equation in stem prose before the first option; the extractor asserts this for every row, and any such stem equation is a blocking error rather than being silently dropped.
 5. A complex explanation cell is any answer cell whose OOXML subtree contains at least one `m:oMath`, `a:blip`, or direct child `w:tbl`. The complete cell content after the `Jawaban X` label is rendered by Microsoft Word to one PNG at 200 DPI on a white background, including all prose and visuals in source order. For those rows, `explanation_text` is null and the PNG path is stored in `explanation_image_path`.
 6. A complex question visual is an embedded image or direct child nested table located before the first A-through-E option paragraph. Those visual fragments are rendered in source order into one PNG at 200 DPI on a white background and stored in `question_image_path`. Stem prose and the five options remain separately selectable text. A visual after the first option paragraph is a blocking validation error because the UI can display its one question image only between the stem and options.
 7. An exact visual means the generated image contains the same visible content and order as Word at 100% zoom, has no clipping or replacement glyphs, and passes side-by-side human inspection against the source render. Decorative outer borders of the parent three-column table may be omitted; content, nested-table borders, equations, and embedded figures may not be altered.
@@ -69,6 +69,8 @@ ManifestAsset {
   heightPx: positive integer
   remotePath: string | null
   uploadStatus: "pending" | "uploaded" | "verified"
+  visualReviewStatus: "pending" | "approved" | "rejected"
+  visualReviewEvidence: string | null
 }
 
 ValidationError {
@@ -78,7 +80,15 @@ ValidationError {
 }
 ```
 
-Only a manifest with `schemaVersion = 1`, `readiness = "validated"`, an empty error array, verified asset hashes, and all assets at `uploadStatus = "verified"` is accepted by the database importer.
+Only a manifest with `schemaVersion = 1`, `readiness = "validated"`, an empty error array, verified asset hashes, all assets at `uploadStatus = "verified"`, and all assets at `visualReviewStatus = "approved"` with non-empty review evidence is accepted by the database importer.
+
+### Cloud preflight and snapshot
+
+Input: target event ID.
+
+Output: the exact event-row snapshot, dummy question/options snapshot, attempt count, resolved active block row, and canonical fingerprints.
+
+This component runs before Storage upload and owns the cloud-state fields in the combined manifest. It serializes objects as canonical UTF-8 JSON with recursively lexicographically sorted object keys, array order preserved, timestamps normalized to PostgreSQL UTC ISO output, and JSON nulls preserved; SHA-256 of those bytes becomes `expectedEventFingerprint` and `expectedDummyQuestionFingerprint`. The import orchestrator combines this preflight output with the DOCX extractor output; the DOCX extractor itself does not read or populate cloud-state fingerprints.
 
 ## Components
 
@@ -94,9 +104,9 @@ The extractor reads the top-level table only, preserves row order, reads OOXML e
 
 Input: source cell content identified as complex.
 
-Output: PNG or WebP assets with a white background, readable resolution, and no clipping.
+Output: PNG assets with a white background, readable resolution, and no clipping.
 
-Microsoft Word is used to render the source content because it is the authoritative renderer for native Word equations. Each generated asset is visually compared with the corresponding source page before upload. The renderer records dimensions, MIME type, byte length, and SHA-256 in the manifest. Assets remain under the 10 MB `question-media` bucket limit.
+Microsoft Word is used to render the source content because it is the authoritative renderer for native Word equations. Each generated asset is visually compared with the corresponding source page before upload. The reviewer records `visualReviewStatus = "approved"` and evidence identifying the source page and source row only after confirming identical visible content/order and no clipping; rejection blocks readiness. The renderer records dimensions, MIME type, byte length, and SHA-256 in the manifest. Assets remain under the 10 MB `question-media` bucket limit.
 
 ### Storage uploader
 
@@ -151,7 +161,7 @@ The database write is prohibited unless all of these checks pass:
 - Exactly 91 explicit source answer labels.
 - Every correct answer is one of A, B, C, D, or E.
 - Every row has exactly one option for each of A, B, C, D, and E.
-- Every complex source cell has exactly one verified output asset with MIME `image/png`, positive dimensions, size from 1 byte through 10 MB, matching local/remote SHA-256, and successful authenticated readability.
+- Every complex source cell has exactly one verified output asset with MIME `image/png`, positive dimensions, size from 1 byte through 10 MB, matching local/remote SHA-256, successful authenticated readability, and recorded human visual approval evidence.
 - Every referenced Storage object is successfully uploaded before the database transaction starts.
 - The active block lookup returns exactly one `Pharmaceutical Science` row.
 - The target event ID and title match, the event remains `draft`, it has zero attempts, and its metadata fingerprint matches the captured snapshot.
@@ -170,8 +180,8 @@ Post-import checks:
 - Parsing ambiguity: stop and report the source row; do not infer content.
 - Rendering mismatch or clipping: regenerate the asset and inspect it again.
 - Storage failure: leave the database unchanged and remove only paths listed in the current run's created-object ledger.
-- Database failure: roll back the transaction; do not publish the event.
-- All count, option, key, event-metadata, and inserted-ID invariants run before `COMMIT`. After commit, a fresh connection repeats the checks. If that verification finds a discrepancy and the current question-ID set still exactly equals the current run's recorded IDs, a compensating serializable transaction deletes those IDs and restores the captured dummy snapshot. If concurrent data no longer matches that exact set, automation stops without deleting anything and reports the conflict for human review.
+- Database failure: roll back the transaction, do not publish the event, and delete only current-run paths from the created-object ledger after confirming no database row references them.
+- All count, option, key, event-metadata, and inserted-ID invariants run before `COMMIT`. After commit, a fresh connection repeats the checks. If that verification finds a discrepancy and the current question-ID set still exactly equals the current run's recorded IDs, a compensating serializable transaction deletes those IDs and restores the captured dummy snapshot. After successful compensation, delete only the unreferenced current-run paths from the created-object ledger. If concurrent data no longer matches that exact set, automation stops without deleting database rows or Storage objects and reports the conflict for human review.
 
 ## Security
 

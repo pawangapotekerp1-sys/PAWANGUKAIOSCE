@@ -96,9 +96,9 @@ This component runs before Storage upload and owns the cloud-state fields in the
 
 Input: the original DOCX.
 
-Output: a normalized JSON manifest containing source row number, stem, five options, correct option key, plain explanation when safe, flags for complex content, and local paths for generated visual assets.
+Output: a partial source manifest containing source row number, stem, five options, correct option key, plain explanation when safe, flags for complex content, and local paths for generated visual assets. The import orchestrator later combines this source output with the independently captured cloud-preflight snapshot and fingerprints to produce the complete `ImportManifest` contract.
 
-The extractor reads the top-level table only, preserves row order, reads OOXML equations in document order, resolves embedded-image relationships, and ignores empty rows 92 through 100. It returns the manifest contract above. Any error sets `readiness` to `blocked` and prevents Storage or database writes.
+The extractor reads the top-level table only, preserves row order, reads OOXML equations in document order, resolves embedded-image relationships, and ignores empty rows 92 through 100. It does not read or populate cloud-state fields. Any extraction error is carried into the combined manifest, sets `readiness` to `blocked`, and prevents Storage or database writes.
 
 ### Visual renderer
 
@@ -147,10 +147,11 @@ If any assertion, insert, or invariant fails, the transaction rolls back and the
 2. Extract rows 1 through 91 into a manifest.
 3. Validate source numbering, stems, five options, explicit answer labels, and complex-content mapping.
 4. Render and visually verify required question and explanation assets.
-5. Upload all assets to the private bucket.
-6. Recheck the target event, exact metadata fingerprint, exact dummy fingerprint, and zero-attempt count.
-7. Run the replacement transaction.
-8. Verify the cloud result and retain the event as draft.
+5. Run the read-only cloud preflight; capture the event, dummy, attempts, block, and canonical fingerprints, then combine them with the source manifest.
+6. Upload all assets to the private bucket only after the combined preflight/source manifest passes its local gates.
+7. Recheck the target event, exact metadata fingerprint, exact dummy fingerprint, and zero-attempt count immediately before the database transaction.
+8. Run the replacement transaction.
+9. Verify the cloud result and retain the event as draft.
 
 ## Validation Gates
 

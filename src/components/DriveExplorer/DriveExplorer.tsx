@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   MaterialDriveType,
@@ -17,7 +17,7 @@ import { Breadcrumb, BreadcrumbItem } from './Breadcrumb';
 import { FolderItem } from './FolderItem';
 import { LinkItem } from './LinkItem';
 import { MediaPreviewModal } from './MediaPreviewModal';
-import { FolderPlus, Link as LinkIcon, Spinner } from '@phosphor-icons/react';
+import { FolderPlus, Link as LinkIcon, Spinner, SortAscending, SortDescending, CalendarBlank } from '@phosphor-icons/react';
 
 // UI Components
 import { toast } from 'sonner';
@@ -27,6 +27,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+
+type SortOption = 'name-asc' | 'name-desc' | 'date-desc' | 'date-asc';
 
 interface DriveExplorerProps {
   driveType: 'rekaman' | 'ppt';
@@ -39,6 +41,7 @@ export function DriveExplorer({ driveType, isMentorOrAdmin }: DriveExplorerProps
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [previewLink, setPreviewLink] = useState<MaterialLink | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>('name-asc');
 
   // Modals state
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
@@ -210,9 +213,48 @@ export function DriveExplorer({ driveType, isMentorOrAdmin }: DriveExplorerProps
     }
   };
 
-  const isEmpty = React.useMemo(() => !isLoading && folders.length === 0 && links.length === 0, [isLoading, folders.length, links.length]);
+  // Sorted folders and links
+  const sortedFolders = useMemo(() => {
+    const sorted = [...folders];
+    switch (sortBy) {
+      case 'name-asc':
+        sorted.sort((a, b) => a.name.localeCompare(b.name, 'id'));
+        break;
+      case 'name-desc':
+        sorted.sort((a, b) => b.name.localeCompare(a.name, 'id'));
+        break;
+      case 'date-desc':
+        sorted.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+        break;
+      case 'date-asc':
+        sorted.sort((a, b) => new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime());
+        break;
+    }
+    return sorted;
+  }, [folders, sortBy]);
+
+  const sortedLinks = useMemo(() => {
+    const sorted = [...links];
+    switch (sortBy) {
+      case 'name-asc':
+        sorted.sort((a, b) => a.title.localeCompare(b.title, 'id'));
+        break;
+      case 'name-desc':
+        sorted.sort((a, b) => b.title.localeCompare(a.title, 'id'));
+        break;
+      case 'date-desc':
+        sorted.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+        break;
+      case 'date-asc':
+        sorted.sort((a, b) => new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime());
+        break;
+    }
+    return sorted;
+  }, [links, sortBy]);
+
+  const isEmpty = useMemo(() => !isLoading && folders.length === 0 && links.length === 0, [isLoading, folders.length, links.length]);
   
-  const hasLongName = React.useMemo(() => {
+  const hasLongName = useMemo(() => {
     return folders.some((f) => f.name.length > 20) || links.some((l) => l.title.length > 20);
   }, [folders, links]);
 
@@ -224,6 +266,18 @@ export function DriveExplorer({ driveType, isMentorOrAdmin }: DriveExplorerProps
         </h2>
         
         <div className="flex items-center gap-3 w-full md:w-auto">
+          <Select value={sortBy} onValueChange={(val) => setSortBy(val as SortOption)}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Urutkan..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name-asc">Nama (A → Z)</SelectItem>
+              <SelectItem value="name-desc">Nama (Z → A)</SelectItem>
+              <SelectItem value="date-desc">Terbaru diubah</SelectItem>
+              <SelectItem value="date-asc">Terlama diubah</SelectItem>
+            </SelectContent>
+          </Select>
+
           {isMentorOrAdmin && (
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
@@ -283,7 +337,7 @@ export function DriveExplorer({ driveType, isMentorOrAdmin }: DriveExplorerProps
           </div>
         ) : (
           <div className={hasLongName ? "flex flex-col gap-2" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"}>
-            {folders.map((folder) => (
+            {sortedFolders.map((folder) => (
               <FolderItem
                 key={folder.id}
                 folder={folder}
@@ -297,7 +351,7 @@ export function DriveExplorer({ driveType, isMentorOrAdmin }: DriveExplorerProps
                 isListView={hasLongName}
               />
             ))}
-            {links.map((link) => (
+            {sortedLinks.map((link) => (
               <LinkItem
                 key={link.id}
                 link={link}

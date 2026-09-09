@@ -752,18 +752,18 @@ function ScheduledTryoutSessionPage() {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Ringkasan Pengerjaan</AlertDialogTitle>
-              <AlertDialogDescription asChild>
-                <div>
-                  <p>Berikut adalah ringkasan dari pengerjaan try out Anda:</p>
-                  <ul className="mt-4 space-y-2 list-disc list-inside">
-                    <li>Jumlah soal: <strong>{questions.length}</strong></li>
-                    <li>Sudah diisi: <strong>{questions.filter(q => q.selectedOptionKey !== null).length}</strong></li>
-                    <li>Belum diisi: <strong>{questions.filter(q => q.selectedOptionKey === null).length}</strong></li>
-                    <li>Ragu-ragu: <strong>{questions.filter(q => q.isDoubtful).length}</strong></li>
-                  </ul>
-                  <p className="mt-4">Setelah hasil dikirim, Anda tidak dapat mengubah jawaban lagi.</p>
-                </div>
+              <AlertDialogDescription>
+                Berikut adalah ringkasan dari pengerjaan try out Anda:
               </AlertDialogDescription>
+              <div className="text-sm text-muted-foreground">
+                <ul className="mt-2 space-y-2 list-disc list-inside">
+                  <li>Jumlah soal: <strong>{questions.length}</strong></li>
+                  <li>Sudah diisi: <strong>{questions.filter(q => q.selectedOptionKey !== null).length}</strong></li>
+                  <li>Belum diisi: <strong>{questions.filter(q => q.selectedOptionKey === null).length}</strong></li>
+                  <li>Ragu-ragu: <strong>{questions.filter(q => q.isDoubtful).length}</strong></li>
+                </ul>
+                <p className="mt-4">Setelah hasil dikirim, Anda tidak dapat mengubah jawaban lagi.</p>
+              </div>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <Button

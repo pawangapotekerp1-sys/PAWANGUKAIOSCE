@@ -598,7 +598,7 @@ function TryoutSessionPage() {
             </CardHeader>
           </Card>
         ) : questionView === "ready" && sessionData?.view === "ready" && currentQuestion ? (
-          <div className={["mt-6 grid gap-6", isQuestionNavHidden ? "xl:grid-cols-[minmax(0,1fr)]" : "xl:grid-cols-[18rem_minmax(0,1fr)]"].join(" ")}>
+          <div className={["mt-6 grid gap-6", isQuestionNavHidden ? "md:grid-cols-[minmax(0,1fr)]" : "md:grid-cols-[16rem_minmax(0,1fr)] lg:grid-cols-[18rem_minmax(0,1fr)]"].join(" ")}>
             {!isQuestionNavHidden ? (
               <Card className="shadow-sm h-fit">
                 <CardHeader className="pb-3 border-b bg-muted/20">

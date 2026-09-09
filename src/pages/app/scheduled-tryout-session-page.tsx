@@ -545,7 +545,7 @@ function ScheduledTryoutSessionPage() {
           <div
             className={[
               "mt-6 grid gap-4",
-              isQuestionNavHidden ? "xl:grid-cols-[minmax(0,1fr)]" : "xl:grid-cols-[18rem_minmax(0,1fr)]",
+              isQuestionNavHidden ? "md:grid-cols-[minmax(0,1fr)]" : "md:grid-cols-[16rem_minmax(0,1fr)] lg:grid-cols-[18rem_minmax(0,1fr)]",
             ].join(" ")}
           >
             {!isQuestionNavHidden ? (

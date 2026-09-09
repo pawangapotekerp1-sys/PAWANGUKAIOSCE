@@ -19,6 +19,14 @@ import SectionHeading from "../../components/ui/section-heading";
 import { SessionAnswerOptionButton, SessionQuestionNavButton } from "../../components/ui/session-option-buttons";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+} from "../../components/ui/alert-dialog";
 import { productShellMeta } from "../../mocks/student-dashboard";
 import { useSession } from "../../lib/auth/use-session";
 import { useStudentShell } from "./use-student-shell";
@@ -33,6 +41,8 @@ function TryoutSessionPage() {
   const [isQuestionNavHidden, setIsQuestionNavHidden] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [timeRemainingSeconds, setTimeRemainingSeconds] = useState<number | null>(null);
+  const [isSubmitConfirmOpen, setIsSubmitConfirmOpen] = useState(false);
+  const [isSubmitSummaryOpen, setIsSubmitSummaryOpen] = useState(false);
   const hasTriggeredAutoSubmit = useRef(false);
   const hasRequestedPause = useRef(false);
   const hasStartedSubmit = useRef(false);
@@ -499,8 +509,9 @@ function TryoutSessionPage() {
       brand={productShellMeta.brand}
       tierLabel={studentShell.tierLabel}
       navItems={studentShell.navItems}
+      disablePadding={true}
     >
-      <section id="tryout">
+      <section id="tryout" className="w-full px-4 sm:px-6 py-4 md:py-6">
         <SectionHeading
           title="Sesi try out berjalan"
           description="Pilih nomor soal untuk berpindah dan kirim hasil saat selesai."
@@ -714,7 +725,7 @@ function TryoutSessionPage() {
                     disabled={isAttemptInteractionDisabled || isQuestionMutationPending}
                     loading={submitMutation.isPending}
                     loadingLabel="Mengirim hasil..."
-                    onClick={() => { void triggerSubmit(); }}
+                    onClick={() => setIsSubmitConfirmOpen(true)}
                     variant="default"
                   >
                     Kirim hasil
@@ -779,6 +790,75 @@ function TryoutSessionPage() {
             </CardHeader>
           </Card>
         )}
+
+        <AlertDialog open={isSubmitConfirmOpen} onOpenChange={setIsSubmitConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Konfirmasi Kirim Hasil</AlertDialogTitle>
+              <AlertDialogDescription>
+                Apakah Anda yakin ingin menyelesaikan try out ini?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <Button variant="outline" onClick={() => setIsSubmitConfirmOpen(false)}>
+                Batal
+              </Button>
+              <Button
+                variant="default"
+                onClick={() => {
+                  setIsSubmitConfirmOpen(false);
+                  setIsSubmitSummaryOpen(true);
+                }}
+              >
+                Yakin
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog
+          open={isSubmitSummaryOpen}
+          onOpenChange={(open) => {
+            if (!open && !submitMutation.isPending) {
+              setIsSubmitSummaryOpen(false);
+            }
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Ringkasan Pengerjaan</AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div>
+                  <p>Berikut adalah ringkasan dari pengerjaan try out Anda:</p>
+                  <ul className="mt-4 space-y-2 list-disc list-inside">
+                    <li>Jumlah soal: <strong>{questions.length}</strong></li>
+                    <li>Sudah diisi: <strong>{questions.filter(q => q.selectedOptionKey !== null).length}</strong></li>
+                    <li>Belum diisi: <strong>{questions.filter(q => q.selectedOptionKey === null).length}</strong></li>
+                    <li>Ragu-ragu: <strong>{questions.filter(q => q.isDoubtful).length}</strong></li>
+                  </ul>
+                  <p className="mt-4">Setelah hasil dikirim, Anda tidak dapat mengubah jawaban lagi.</p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsSubmitSummaryOpen(false)}
+                disabled={submitMutation.isPending}
+              >
+                Kembali
+              </Button>
+              <Button
+                variant="default"
+                loading={submitMutation.isPending}
+                loadingLabel="Mengirim hasil..."
+                onClick={() => { void triggerSubmit(); }}
+              >
+                Lanjutkan
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </section>
     </ProductShell>
   );

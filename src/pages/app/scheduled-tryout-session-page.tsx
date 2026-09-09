@@ -549,11 +549,11 @@ function ScheduledTryoutSessionPage() {
             ].join(" ")}
           >
             {!isQuestionNavHidden ? (
-              <Card className="p-5">
+              <Card className="p-5 order-2 md:order-1 h-fit">
                 <p className="font-mono text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-primary">
                   Daftar soal
                 </p>
-                <div className="mt-5 grid grid-cols-4 gap-3">
+                <div className="mt-5 grid grid-cols-5 sm:grid-cols-6 md:grid-cols-4 gap-3 max-h-[40vh] md:max-h-[70vh] overflow-y-auto">
                   {questions.map((question, index) => (
                     <SessionQuestionNavButton
                       key={question.id}
@@ -574,7 +574,7 @@ function ScheduledTryoutSessionPage() {
               </Card>
             ) : null}
 
-            <Card className="p-5">
+            <Card className="p-5 order-1 md:order-2">
               {syncNotice ? (
                 <Alert className="mb-5 border-primary text-primary">
                   <AlertDescription className="font-semibold text-sm">{syncNotice}</AlertDescription>

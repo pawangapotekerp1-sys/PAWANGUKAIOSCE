@@ -600,14 +600,14 @@ function TryoutSessionPage() {
         ) : questionView === "ready" && sessionData?.view === "ready" && currentQuestion ? (
           <div className={["mt-6 grid gap-6", isQuestionNavHidden ? "md:grid-cols-[minmax(0,1fr)]" : "md:grid-cols-[16rem_minmax(0,1fr)] lg:grid-cols-[18rem_minmax(0,1fr)]"].join(" ")}>
             {!isQuestionNavHidden ? (
-              <Card className="shadow-sm h-fit">
+              <Card className="shadow-sm h-fit order-2 md:order-1">
                 <CardHeader className="pb-3 border-b bg-muted/20">
                   <CardDescription className="font-semibold uppercase tracking-wider text-primary text-xs">
                     Navigasi Soal
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-4 px-3 pb-3">
-                  <div className="grid grid-cols-4 gap-2.5 max-h-[70vh] overflow-y-auto p-1.5">
+                  <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-4 gap-2.5 max-h-[40vh] md:max-h-[70vh] overflow-y-auto p-1.5">
                     {questions.map((question, index) => (
                       <SessionQuestionNavButton
                         key={question.id}
@@ -629,7 +629,7 @@ function TryoutSessionPage() {
               </Card>
             ) : null}
 
-            <Card className="shadow-sm">
+            <Card className="shadow-sm order-1 md:order-2">
               {sessionAttempt?.status === "paused" && resumeMutation.isError ? (
                 <div className="m-5 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-4" role="alert">
                   <p className="text-sm font-semibold text-destructive">{resumeErrorMessage}</p>

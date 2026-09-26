@@ -884,6 +884,24 @@ export async function createScheduledTryoutAttempt(
   return mapAttempt(data as ScheduledAttemptRow);
 }
 
+export async function syncScheduledTryoutAttempt(
+  {
+    client = getSupabaseBrowserClient(),
+    attemptId,
+  }: {
+    client?: ScheduledTryoutClient;
+    attemptId: string;
+  },
+): Promise<void> {
+  const { error } = await client.rpc("sync_scheduled_tryout_attempt", {
+    target_attempt_id: attemptId,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 export async function getScheduledAttemptSessionPageData(
   {
     client = getSupabaseBrowserClient(),
@@ -895,14 +913,6 @@ export async function getScheduledAttemptSessionPageData(
     now?: Date;
   },
 ): Promise<ScheduledTryoutSessionPageData> {
-  const syncResponse = await client.rpc("sync_scheduled_tryout_attempt", {
-    target_attempt_id: attemptId,
-  });
-
-  if (syncResponse.error) {
-    throw new Error(syncResponse.error.message);
-  }
-
   const [attempt, items, answers] = await Promise.all([
     getScheduledAttemptById(client, attemptId),
     getScheduledAttemptItemsByAttemptId(client, attemptId),

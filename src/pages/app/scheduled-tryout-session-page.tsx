@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, ArrowLeft, ArrowRight, Clock, Loader2 } from "lucide-react";
-import { startTransition, useEffect, useRef, useState } from "react";
+import { startTransition, useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import ProductShell from "../../components/layout/product-shell";
 import Button, { getButtonStyleProps } from "../../components/ui/button";
@@ -24,6 +24,7 @@ import {
   resumeScheduledTryoutAttempt,
   saveScheduledTryoutAnswer,
   submitScheduledTryoutAttempt,
+  syncScheduledTryoutAttempt,
 } from "../../lib/api/scheduled-tryout-api";
 import { formatScheduledDurationAsClock } from "../../lib/mappers/scheduled-tryout-mappers";
 import { productShellMeta } from "../../mocks/student-dashboard";
@@ -73,8 +74,28 @@ function ScheduledTryoutSessionPage() {
       getScheduledAttemptSessionPageData({
         attemptId: attemptId!,
       }),
-    refetchInterval: 15_000,
   });
+
+  // Sync soal dari mentor setiap 2 menit (bukan setiap 15 detik).
+  // Sync juga sudah otomatis berjalan saat siswa menjawab soal (save_answer RPC),
+  // resume (resume RPC), dan submit (submit RPC). Polling 2 menit ini hanya
+  // sebagai jaring pengaman jika siswa diam lama tanpa interaksi.
+  useEffect(() => {
+    if (!attemptId) return;
+
+    const intervalId = setInterval(async () => {
+      try {
+        await syncScheduledTryoutAttempt({ attemptId });
+        void queryClient.invalidateQueries({
+          queryKey: ["scheduled-tryout-session", attemptId],
+        });
+      } catch {
+        // Sync failure is non-fatal — data will sync on next answer/resume/submit
+      }
+    }, 120_000); // 2 menit
+
+    return () => clearInterval(intervalId);
+  }, [attemptId, queryClient]);
   const answerMutation = useMutation({
     mutationFn: (variables: {
       attemptItemId: string;

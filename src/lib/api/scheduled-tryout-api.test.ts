@@ -421,11 +421,6 @@ describe("scheduled-tryout-api", () => {
           isDoubtful: true,
         },
       ],
-    });
-
-    expect(rpc).toHaveBeenCalledWith("sync_scheduled_tryout_attempt", {
-      target_attempt_id: "scheduled-attempt-1",
-    });
   });
 
   test("builds the scheduled result page contract with derived block summaries", async () => {

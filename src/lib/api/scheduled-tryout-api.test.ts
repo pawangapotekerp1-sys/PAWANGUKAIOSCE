@@ -421,6 +421,7 @@ describe("scheduled-tryout-api", () => {
           isDoubtful: true,
         },
       ],
+    });
   });
 
   test("builds the scheduled result page contract with derived block summaries", async () => {

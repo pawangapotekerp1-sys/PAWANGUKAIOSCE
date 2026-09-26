@@ -322,6 +322,9 @@ async function createSignedMediaUrl(
   return data?.signedUrl ?? null;
 }
 
+const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
+const missingUrlCache = new Map<string, number>();
+
 async function createSignedMediaUrls(
   client: ScheduledTryoutClient,
   paths: string[],
@@ -330,34 +333,53 @@ async function createSignedMediaUrls(
     return {};
   }
 
-  const { data, error } = await client.storage
-    .from("question-media")
-    .createSignedUrls(paths, 3600);
+  const now = Date.now();
+  const result: Record<string, string> = {};
+  const pathsToFetch: string[] = [];
 
-  if (error) {
-    // Bulk API is atomic — if any file is missing, the entire request fails.
-    // Fall back to individual requests so missing files get null instead of
-    // crashing the whole page.
-    const results = await Promise.allSettled(
-      paths.map((p) => createSignedMediaUrl(client, p)),
-    );
-
-    const fallback: Record<string, string> = {};
-    results.forEach((result, i) => {
-      const p = paths[i];
-      if (p && result.status === "fulfilled" && result.value) {
-        fallback[p] = result.value;
-      }
-    });
-    return fallback;
+  for (const p of paths) {
+    if (missingUrlCache.has(p) && missingUrlCache.get(p)! > now) {
+      continue;
+    }
+    const cached = signedUrlCache.get(p);
+    if (cached && cached.expiresAt > now) {
+      result[p] = cached.url;
+    } else {
+      pathsToFetch.push(p);
+    }
   }
 
-  return data.reduce((acc, item) => {
-    if (item.path && item.signedUrl) {
-      acc[item.path] = item.signedUrl;
+  if (pathsToFetch.length === 0) {
+    return result;
+  }
+
+  const { data, error } = await client.storage
+    .from("question-media")
+    .createSignedUrls(pathsToFetch, 3600);
+
+  if (error) {
+    // Fall back to sequential individual requests to avoid rate limits when a file is missing.
+    // Caching ensures this slow path is rarely hit.
+    for (const p of pathsToFetch) {
+      const url = await createSignedMediaUrl(client, p);
+      if (url) {
+        result[p] = url;
+        signedUrlCache.set(p, { url, expiresAt: now + 3000 * 1000 }); // cache 50 mins
+      } else {
+        missingUrlCache.set(p, now + 300 * 1000); // cache missing for 5 mins
+      }
     }
-    return acc;
-  }, {} as Record<string, string>);
+    return result;
+  }
+
+  for (const item of (data ?? [])) {
+    if (item.path && item.signedUrl) {
+      result[item.path] = item.signedUrl;
+      signedUrlCache.set(item.path, { url: item.signedUrl, expiresAt: now + 3000 * 1000 });
+    }
+  }
+
+  return result;
 }
 
 function mapAttempt(row: ScheduledAttemptRow): ScheduledPersistedAttempt {

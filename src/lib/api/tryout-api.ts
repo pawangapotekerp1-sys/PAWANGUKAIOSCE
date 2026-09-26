@@ -649,6 +649,9 @@ async function createSignedMediaUrl(client: TryoutClient, path: string | null): 
   return data?.signedUrl ?? null;
 }
 
+const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
+const missingUrlCache = new Map<string, number>();
+
 async function createSignedMediaUrls(
   client: TryoutClient,
   paths: Array<string | null>,
@@ -659,34 +662,47 @@ async function createSignedMediaUrls(
     return paths.map(() => null);
   }
 
-  const { data, error } = await client.storage
-    .from("question-media")
-    .createSignedUrls(validPaths, 3600);
+  const now = Date.now();
+  const urlMap = new Map<string, string | null>();
+  const pathsToFetch: string[] = [];
 
-  if (error) {
-    // Bulk API is atomic — if any file is missing, the entire request fails.
-    // Fall back to individual requests so missing files get null instead of
-    // crashing the whole page.
-    const results = await Promise.allSettled(
-      paths.map((p) => createSignedMediaUrl(client, p)),
-    );
-
-    const urlMap = new Map<string, string | null>();
-    results.forEach((result, i) => {
-      const p = paths[i];
-      if (p && result.status === "fulfilled") {
-        urlMap.set(p, result.value);
-      }
-    });
-
-    return paths.map((path) => path ? (urlMap.get(path) ?? null) : null);
+  for (const p of validPaths) {
+    if (missingUrlCache.has(p) && missingUrlCache.get(p)! > now) {
+      continue;
+    }
+    const cached = signedUrlCache.get(p);
+    if (cached && cached.expiresAt > now) {
+      urlMap.set(p, cached.url);
+    } else {
+      pathsToFetch.push(p);
+    }
   }
 
-  const urlMap = new Map<string, string | null>();
+  if (pathsToFetch.length > 0) {
+    const { data, error } = await client.storage
+      .from("question-media")
+      .createSignedUrls(pathsToFetch, 3600);
 
-  for (const item of (data ?? [])) {
-    if (!item.error && item.path && item.signedUrl) {
-      urlMap.set(item.path, item.signedUrl);
+    if (error) {
+      // Fall back to sequential individual requests to avoid rate limits when a file is missing.
+      for (const p of pathsToFetch) {
+        const url = await createSignedMediaUrl(client, p);
+        if (url) {
+          urlMap.set(p, url);
+          signedUrlCache.set(p, { url, expiresAt: now + 3000 * 1000 });
+        } else {
+          missingUrlCache.set(p, now + 300 * 1000);
+        }
+      }
+    } else {
+      for (const item of (data ?? [])) {
+        if (!item.error && item.path && item.signedUrl) {
+          urlMap.set(item.path, item.signedUrl);
+          signedUrlCache.set(item.path, { url: item.signedUrl, expiresAt: now + 3000 * 1000 });
+        } else if (item.path && item.error) {
+          missingUrlCache.set(item.path, now + 300 * 1000);
+        }
+      }
     }
   }
 

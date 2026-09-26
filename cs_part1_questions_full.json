@@ -1,0 +1,3101 @@
+{
+  "questions": [
+    {
+      "id": "921e90b3-2711-4618-ba3d-922616850d92",
+      "stem": "Apa efek samping yang paling sering dijumpai pada penggunaan obat-obatan golongan NSAID?",
+      "question_order": 1,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "c76d6c69-5862-4640-9367-ce037a4f480c",
+      "stem": "Apa mekanisme utama terjadinya nyeri pada pasien dengan osteoartritis?",
+      "question_order": 2,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "1fabb387-6b0f-46c1-9597-f9b32e502f18",
+      "stem": "Apa peran apoteker dalam pengelolaan pasien dengan hiperurisemia dan osteoarthritis, kecuali?",
+      "question_order": 3,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "acb5e66d-822a-4caf-9a86-cd2e118d501c",
+      "stem": "Apa yang dimaksud dengan tophi pada pasien hiperurisemia?",
+      "question_order": 4,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "15048bbc-e932-4eeb-a344-ded14f39ab48",
+      "stem": "Apoteker di apotek sedang melayani pasien dengan keluhan gatal-gatal dan kemerahan pad kulit. Setelah ditelusuri pasien memiliki alergi makanan seafood dan 3 jam yang lalu di pertemuan rapat memakan makanan yang diduga mengandung seafood. Pasien belum pergi memeriksakan diri ke dokter. Apa obat yang dapat diberikan kepada pasien?",
+      "question_order": 5,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "8310e3f1-08d4-437e-8a11-41dac41801f6",
+      "stem": "Apoteker di instalasi farmasi rumah sakit sedang melakukan pelayanan resep untuk pasien, laki-laki, usia 50 tahun penyandang penyakit hipertensi dengan tekanan darah 160/90 mmHg dan asam urat dengan kadar 10 mg/dL. Dokter meresepkan kaptopril dan allopurinol untuk pasien tersebut. Apoteker mengetahui bahwa terdapat interaksi dari kedua obat tersebut jika diberikan secara bersamaan sehingga harus diberikan pada waktu yang berbeda. Apakah efek interaksi obat yang terjadi?",
+      "question_order": 6,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "02c43a91-35cd-4d2f-922c-18c282546f27",
+      "stem": "Apoteker sedang melayani resep pasien kemoterapi. Pasien didiagnosis Nonsmall Cell Lung Cancer. Pasien berumur 55 tahun, tinggi 1,65 meter, dan berat badan 55 kg. Salah satu antikanker yang diberikan adalah Cisplatin dengan dosis 100 mg/m2. Berapa mg dosis antikanker yang dibutuhkan pasien?",
+      "question_order": 7,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "716975f5-0bba-474f-955c-89915eec3faf",
+      "stem": "Apoteker sedang melayani resep pasien kemoterapi. Pasien mengalami kanker payudara stadium II dengan Hers negatif. Pasien berumur 44 tahun, tinggi 1,6 meter, dan berat badan 48 kg. Salah satu antikanker yang diberikan adalah Docataxel dengan dosis 75 mg/m2. Berapa mg dosis antikanker yang dibutuhkan pasien?",
+      "question_order": 8,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "fe48ae76-8c3e-48a3-8273-8dca1029c0a8",
+      "stem": "Apteker sedang melakukan literasi mengenai penyakit SLE ( Systemic lupus erythematosus) untuk persiapan pasien yang baru masuk dan terdiagnosis SLE. Saat literasi tata laksana penyakit tersebut, pengobatan utama pada SLE adalah penggunaan antimalaria. Apa obat yang dimaksud?",
+      "question_order": 9,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "f939cc41-a17d-49e7-94bb-0b7988d44ec6",
+      "stem": "Faktor risiko hipertensi manakah yang termasuk dalam kategori non-modifiable?",
+      "question_order": 10,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "66cc4d3f-f010-4e21-a398-85b49c7fe07d",
+      "stem": "Anak laki-laki usia 6 tahun (BB 20 kg) dibawa ibunya ke apotek dengan membawa resep:\nPCT    500 mg\nCTM       3 mg\nm.f pulv.no XII\nS 3 dd 1 pc\nSetelah menyiapkan bahan, apoteker menyadari bahwa tablet CTM 4 mg tinggal 2 butir di stok apotek, sementara kebutuhan masih kurang. Gudang terdekat baru bisa mengirim stok dalam 3 jam, sedangkan pasien memerlukan obat segera karena demam tinggi. Apa langkah paling profesional dan sesuai prosedur pelayanan kefarmasian yang sebaiknya dilakukan apoteker dalam situasi ini?",
+      "question_order": 11,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "4b992ff5-0bb8-439e-b6aa-96e02e5ac77d",
+      "stem": "Seorang pria 52 tahun dengan obesitas dan sindrom metabolik memiliki kadar trigliserida 500 mg/dL. Dokter ingin mengurangi risiko pankreatitis. Apa pilihan terapi yang paling sesuai?",
+      "question_order": 12,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "6de5cfa8-e4e8-46b6-8c25-d12dcd1daec1",
+      "stem": "Apoteker menerima resep dari dokter anak untuk pasien laki-laki 3 tahun, sebagai baerikut: Ketika proses peracikan selesai, orang tua pasien datang tergesa-gesa dan meminta agar racikan diganti menjadi sirup karena anaknya tidak bisa menelan kapsul. Namun apotek tidak memiliki alat ukur untuk pembuatan sediaan cair. Apa langkah yang paling tepat dilakukan apoteker?",
+      "question_order": 13,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "be439ae2-83ad-42af-b4cf-550c3221b730",
+      "stem": "Manakah dari kondisi berikut yang merupakan komplikasi hipertensi pada sistem saraf pusat?",
+      "question_order": 14,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "842c485b-f54f-47d7-9fd1-b1136242795d",
+      "stem": "Manakah dari obat berikut yang BUKAN merupakan obat pilihan tatalaksana asam urat?",
+      "question_order": 15,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "e9805100-27ea-4395-b19c-6e12222e6a97",
+      "stem": "Ny IK, usia 39 tahun dengan kondisi sedang hamil datang ke Rumah Sakit dengan keluhan pasien hamil kurang bulan dengan mata kuning. Pasien mengeluhkan merasa mulai mengalami perubahan berwarna kekuningan pada matanya disertai BAK yang berwarna kuning pekat seperti teh sejak 2 bulan yang lalu. Sejak 2 minggu yang lalu pasien juga mengeluhkan tubuhnya mulai merasa menjadi kekuningan. Pasien didiagnosis Hepatitis B. Terapi apakah yang efektif untuk pasien tersebut ?",
+      "question_order": 16,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "1bbadb76-d640-4d13-9535-7eaae201d905",
+      "stem": "Ny CN usia 33 tahun dating ke rumah sakit dengan diagnosis DBD. Pasien sedang menyusui anaknya yg berusia 3 bulan dan memiliki riwayat ulkus peptik. Pasien mengalami migrain selama rawat inap. Dokter dan apoteker mendiskusikan terapi yang tepat untuk pengobatan pasien tersebut. Apakah obat yang direkomendasikan untuk pasien tersebut?",
+      "question_order": 17,
+      "correct_option_key": "E"
+    },
+    {
+      "id": "1f71678c-4d09-42c8-b89c-4e39670789b1",
+      "stem": "Apoteker rumah sakit sedang berdiskusi dengan mahasiswa yang sedang melakukan praktek kerja profesi. Kasus yang dibahas adalah pengobatan pasien pria berusia 40 tahun datang ke unit gawat darurat dengan keluhan sesak napas berat, mengi, dan batuk yang semakin memburuk dalam beberapa minggu terakhir. Pasien sering terbangun di malam hari karena kesulitan bernapas dan sudah beberapa kali membutuhkan nebulisasi di rumah sakit dalam 2 bulan terakhir. Pasien memiliki riwayat asma berat sejak 5 tahun lalu dan telah menjalani terapi kortikosteroid inhalasi (ICS) + long-acting beta agonist (LABA) secara rutin. Namun, gejalanya tetap tidak terkontrol, dan ia mengalami eksaserbasi berulang. Hasil Laboratorium menunjukkan jumlah Eosinofil tinggi (>300 sel/µL) dan Kadar IgE meningkat. Dokter mendiagnosis pasien dengan asma berat tidak terkontrol terkait alergi dan memutuskan untuk menambahkan terapi tambahan untuk mengurangi risiko eksaserbasi lebih lanjut. Apa terapi tambahan yang paling sesuai untuk pasien ini?",
+      "question_order": 18,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "cbf59ee2-4a4f-4d01-882a-1796f443ac5a",
+      "stem": "Ny KT usia 36 tahun datang ke poliklinik untuk melakukan pemeriksaan, pasien tersebut berencana untuk melakukan ibadah umroh selama 14 hari, Pasien meminta untuk dirersepkan obat untuk mengatur siklus mestruasinya. Apakah terapi hormon yang sesuai untuk pasien tersebut?",
+      "question_order": 19,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "7b26aa50-7de5-46bb-b932-032eaa9368fe",
+      "stem": "Ny RH datang ke klinik dengan keluhan nyeri saat menelan, pusing, demam dan muntah dua kali. Hasil laboratorium menunjukkan leukositosis dan neutrofilia. Dokter mendiagnosis pasien menderita akut faringitis. Diketahui pasien alergi terhadap penisilin. Antibiotik apakah yang tepat diberikan untuk pasien tersebut?",
+      "question_order": 20,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "923adde8-2e2a-4706-a58f-127b92e20af6",
+      "stem": "Ny SW didiagnosis mengalami pneumonia yang disebabkan H. Inflenzae sebagai apoteker antibiotik yang dapat di srankan adalah",
+      "question_order": 21,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "3f17e2f8-095e-4e9a-a36c-44b55b34ab79",
+      "stem": "Pasien dengan hiperurisemia dan osteoartritis bersamaan seringkali diberikan terapi kombinasi. Apa tujuan utama terapi kombinasi tersebut?",
+      "question_order": 22,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "89232b2b-9eb0-4d3f-b7de-be7d678e320a",
+      "stem": "Pasien dengan osteoartritis seringkali mengeluhkan nyeri sendi. Obat mana yang TIDAK direkomendasikan sebagai lini pertama untuk mengatasi nyeri pada pasien osteoartritis?",
+      "question_order": 23,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "fee07e1a-c2d3-45c0-aba7-064b10900f56",
+      "stem": "Pasien kemoterapi umumnya mengalami efek samping mual dan muntah. Apa obat yang dapat direkomendasikan apoteker untuk penanganan efek samping tersebut?",
+      "question_order": 24,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "5f386bf7-2835-403a-b1a4-9fcd64d298e9",
+      "stem": "Pasien kemoterapi umumnya mengalami efek samping mual dan muntah. Untuk penanganan efek samping tersebut, pasien diberikan antiemetik. Kapan waktu pemberian obat yang tepat yang dapat apoteker rekomendasikan?",
+      "question_order": 25,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "c4a0571f-6133-46b5-b6fb-271463e2d79a",
+      "stem": "Pasien laki-laki 20 tahun datang dengan keluhan diare akut yang sudah berlangsung selama 2 hari. Tidak ada tanda-tanda dehidrasi berat. Namun pasien hanya merasa lelah. Apa terapi yang paling tepat untuk pasien ini?",
+      "question_order": 26,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "ac40ed59-75ce-45de-836c-de3d580e2c5e",
+      "stem": "Pasien perempuan berusia 40 tahun mengalami migrain berulang dan sering mengonsumsi kombinasi parasetamol-kafein setiap hari selama lebih dari 2 bulan. Masalah apa yang sebaiknya diidentifikasi apoteker dalam kasus ini?",
+      "question_order": 27,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "0c0f6ad5-980e-4c5d-8760-d8bb08d9a04d",
+      "stem": "Bayi baru lahir di rawat di sebuah rumah sakit, bayi tersebut mengalami beberapa gejala sebagai berikut Ruam, Splenomegal, hiperbilirubinemia, Korioenteriti, dan Mikrosefal. Pasien tersebut didiagnosis Postnatally acquired CMV infectio. Terapi apakah yang efektif untuk pasien tersebut ?",
+      "question_order": 28,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "b8ee3e8b-9f36-4d07-af04-8da1c77fc345",
+      "stem": "Pasien pria usia 45 tahun sering merasakan rasa panas di dada terutama setelah makan dan berbaring. Dokter mendiagnosis pasien dengan Gastroesophageal Reflux Disease (GERD). Apa golongan obat yang sering diberikan sebagai terapi lini pertama untuk kondisi ini?",
+      "question_order": 29,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "68f871b7-2538-47f0-be17-d9098de47132",
+      "stem": "Pasien TB MDR dengan diabetes melitus menggunakan metformin, dan dokter akan menambahkan linezolid. Apoteker diminta menilai kebutuhan monitoring dan edukasi pasien. Apa hal yang harus diutamakan dalam edukasi apoteker?",
+      "question_order": 30,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "2f01e7af-7e0e-4cdf-84ab-5e44b082cd12",
+      "stem": "Pasien wanita berusia 50 tahun datang dengan keluhan melena. Hasil endoskopi menunjukkan tukak duodenum aktif. Dokter telah memberikan omeprazol bolus 80 mg dilanjutkan infus 8 mg/jam selama 72 jam. Kapan terapi dapat dialihkan ke bentuk oral?",
+      "question_order": 31,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "11c6c5b6-a971-4099-8e6c-66406d8548b2",
+      "stem": "Sdr KM Usia 14 tahun datang ke IGD RS dengan keluhan kemerahan pada seluruh tubuh yang disertai rasa sangat gatal sejak 3 hari terakhir. Pasien memiliki riwayat penyakit psoriasis. Pada pemeriksaan fisik ditemukan suhu 38.5 C. Pemeriksaan dermatologis tampak eritema generalisata disertai skuama berlapis-lapis. Pada kedua lutut kaki, lesi tampak lebih eritematosa dan skuama tampak lebih tebal daripada lokasi lainnya. Apakah terapi lini pertama yang dapat diberikan pada kasus tersebut?",
+      "question_order": 32,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "79c7d2a4-d82f-4c6d-9643-e5daef128776",
+      "stem": "Seorang apoteker melakukan visite mandiri kepada pasien yang baru dipindahkan dari IGD ke ruang rawat. Pasien dirawat karena perdarahan saluran cerna akibat penggunaan asam mefenamat jangka panjang. Apa tindakan pertama yang sebaiknya dilakukan apoteker pada saat visite tersebut?",
+      "question_order": 33,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "3c784a71-777f-425d-b7b9-7caadeefc2a5",
+      "stem": "Seorang Apoteker memberikan informasi aturan pakai obat diabetes melitus kepada pasien. Apoteker menginformasikan bahwa obat tersebut harus diminum bersama dengan suapan pertama ketika makan. Manakah antidiabetes yang sesuai dengan aturan pakai tersebut?",
+      "question_order": 34,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "1011e785-358d-452a-a104-65c9d2d91550",
+      "stem": "Seorang apoteker menyiapkan obat metformin 3 lembar sesuai dengan resep untuk Tn. R yang mengidap penyakit diabetes mellitus. Berapakah dosis metformin yang ada di pasaran tiap tabletnya?",
+      "question_order": 35,
+      "correct_option_key": "E"
+    },
+    {
+      "id": "fa7923b4-c8cd-4c0f-bac7-986523007b69",
+      "stem": "Seorang ibu hamil usia 30 tahun datang ke klinik dengan keluhan sakit kepala yang parah, penglihatan kabur, mual dan muntah. Berdasarkan hasil pemeriksaan, tekanan darah pasien 145/90 mmHg. Dokter meresepkan golongan antihipertensi kelas I level C untuk ibu hamil tersebut. Apakah golongan obat yang dimaksud?",
+      "question_order": 36,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "9ce1bbef-aece-4a58-b1f3-998a3c916462",
+      "stem": "Seorang ibu menyusui usia 35 tahun datang ke rumah sakit dengan keluhan sakit kepala dan pundak terasa berat. Berdasarkan hasil pemeriksaan, tekanan darah pasien 150/90 mmHg. Dokter meresepkan antihipertensi yang aman untuk bayinya. Apakah obat lini pertama untuk pasien tersebut?",
+      "question_order": 37,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "6656d8b5-a580-4dc7-8738-73412c50ae3f",
+      "stem": "Seorang laki-laki 45 tahun baru didiagnosis hipertensi. Pemeriksaan fisik menunjukkan BMI 28 kg/m2 , dan ia mengaku sering makan makanan cepat saji. Apa rekomendasi terapi non-farmakologis yang sesuai dengan kondisi pasien?",
+      "question_order": 38,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "819542c2-610d-4c0c-9471-35f975411370",
+      "stem": "Seorang laki-laki berusia 38 tahun dengan keluhan dispepsia terkonfirmasi positif Helicobacter pylori. Pasien belum pernah menjalani terapi eradikasi dan tidak memiliki alergi obat. Pasien tinggal di wilayah Jawa Barat yang merupakan daerah dengan resistensi klaritromisin <15%. Regimen eradikasi lini pertama apa yang sesuai untuk pasien ini berdasarkan pedoman nasional?",
+      "question_order": 39,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "8d280d97-81dd-48ef-8e33-e38ec88c1422",
+      "stem": "Seorang laki-laki berusia 40 tahun dengan asma terkontrol sedang (menggunakan kombinasi kortikosteroid hirup dan agonis Beta 2 kerja panjang) datang dengan keluhan batuk kronis terutama pada malam hari dan suara serak. Ia juga mengeluhkan regurgitasi asam setelah makan dan rasa panas di dada (heartburn). Menurut rekomendasi GINA 2024, apa langkah yang paling tepat dalam manajemen pasien ini?",
+      "question_order": 40,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "e4b95a4d-c681-41c0-8955-20aea5c1d9c4",
+      "stem": "Seorang laki-laki berusia 45 tahun datang ke apotek mengeluh cepat lelah. Ia ingin membeli suplemen zat besi. Setelah ditanya, ternyata pasien menderita gastritis kronis dan sering mengonsumsi obat antasida. Apa informasi penggunaan obat yang dapat disampaikan sesuai kondisi pasien tersebut?",
+      "question_order": 41,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "cd9f5105-8692-44ba-85f7-67e94dbb4caf",
+      "stem": "Seorang laki-laki berusia 45 tahun datang untuk kontrol rutin asma. Ia mengatakan saat ini gejalanya jarang muncul dan hanya membutuhkan inhaler pereda sesekali. Namun, dari catatan medis diketahui bahwa setahun yang lalu ia pernah dirawat di rumah sakit karena serangan asma berat. Pemeriksaan fungsi paru saat ini dalam batas normal dan pasien tampak patuh menggunakan inhaler. Menurut rekomendasi GINA 2024, bagaimana interpretasi klinis dan langkah manajemen yang tepat terhadap kondisi pasien ini?",
+      "question_order": 42,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "c0ab0479-88b0-485d-8d9f-cc1bdeca8b69",
+      "stem": "Seorang laki-laki berusia 45 tahun dengan riwayat gastritis kronis datang dengan anemia megaloblastik. Hasil pemeriksaan menunjukkan defisiensi vitamin B12. Apa terapi yang tepat untuk pasien?",
+      "question_order": 43,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "a988958e-7e72-4731-b151-b3ded640fc44",
+      "stem": "Seorang laki-laki berusia 50 tahun datang dengan nyeri ulu hati dan mual yang sudah berlangsung selama dua minggu. Ia mengaku sering mengonsumsi ibuprofen untuk nyeri lutut. Apa langkah pertama yang sebaiknya dilakukan dalam menangani pasien ini?",
+      "question_order": 44,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "efec2f94-a91d-497a-a6e3-0c7934237085",
+      "stem": "Seorang laki-laki berusia 55 tahun datang dengan keluhan sakit kepala berdenyut di bagian belakang kepala yang sering dialami sejak 3 bulan terakhir. Hasil pengukuran tekanan darah di klinik 152/96 mmHg. Ia memiliki kebiasaan merokok 1 bungkus per hari selama 30 tahun. HAsil pemeriksaan fisik dan laboratorium rutin dalam batas normal. Masuk ke dalam klasifikasi hipertensi AHA (2017) apa kondisi pasien?",
+      "question_order": 45,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "e51b4cda-4611-4b42-90bb-eef310f38d1f",
+      "stem": "Seorang laki-laki berusia 58 tahun dengan TB MDR akan memulai regimen BPaLM (bedaquiline, pretomanid, linezolid, dan moxifloxacin). Pemeriksaan awal menunjukkan ALT 2 x ULN dan kreatinin normal. Sebelum terapi dimulai, apa rekomendasi apoteker yang paling tepat?",
+      "question_order": 46,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "a9c26d2b-9991-44d7-97c8-df7b6b3b744a",
+      "stem": "Seorang laki-laki berusia 60 tahun dengan TB MDR mendapat linezolid 600 mg/hari sebagai bagian regimen dan juga menderita DM tipe 2 yang diobati glibenklamid. Pada bulan kedua terapi, pasien tampak lemah dan pucat; hasil laboratorium menunjukkan trombosit turun dari 250.000 menjadi 90.000 mcL. Apa intervensi apoteker yang paling tepat dilakukan?",
+      "question_order": 47,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "457ebc33-b21b-45d4-95cc-c952db546bbd",
+      "stem": "Seorang pasien dengan hiperurisemia sedang menjalani pengobatan dengan allopurinol. Tanda bahaya apa yang harus diwaspadai oleh apoteker?",
+      "question_order": 48,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "555552f0-89ac-47e3-bb8c-46ed5aaafd9e",
+      "stem": "Seorang pasien hipertensi datang dengan keluhan jantung berdebar. Hasil EKG menunjukkan irama sinus dengan laju 105x/menit. Apa antihipertensi yang sesuai dalam mengatasi gejala klinis pasien?",
+      "question_order": 49,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "6d281061-8776-4f45-a756-18cefe41e735",
+      "stem": "Seorang pasien laki-laki 22 tahun datang dengan keluhan gatal, kemerahan, dan pengelupasan kulit di lipatan paha. Setelah diperiksa, pasien didiagnosis menderita tinea cruris (infeksi jamur di daerah lipatan). Apa pengobatan topikal yang paling tepat untuk kondisi ini?",
+      "question_order": 50,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "3495cf17-211f-46f6-820d-2328edc067c1",
+      "stem": "Seorang pasien laki-laki 30 tahun datang dengan keluhan ruam yang nyeri, berwarna merah, dan berisi cairan di satu sisi tubuh. Dokter mendiagnosis pasien dengan herpes zoster. Apa terapi antiviral yang sering diresepkan untuk mempercepat penyembuhan dan mengurangi gejala?",
+      "question_order": 51,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "46f7f70d-6e04-44cd-8b51-ffbd1b1c9f6f",
+      "stem": "Seorang pasien laki-laki 55 tahun menjalani terapi PPI oral setelah dirawat karena ulkus duodenum berdarah. Dokter menanyakan durasi terapi oral yang optimal. Berapa lama terapi PPI oral perlu dilanjutkan setelah keluar dari rumah sakit?",
+      "question_order": 52,
+      "correct_option_key": "E"
+    },
+    {
+      "id": "07453961-a524-4b1d-bf01-44f3d3fc1c3f",
+      "stem": "Seorang pasien laki-laki 70 tahun datang untuk kontrol rutin ke klinik. Pasien menderita hipertensi dengan riwayat diabetes melitus tipe 2. Berapa mmHg target tekanan darah pasien yang sesuai berdasarkan pedoman AHA (2017)?",
+      "question_order": 53,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "5b9e582f-0c51-4d85-8681-c438f384b265",
+      "stem": "Seorang pasien laki-laki berusia 24 tahun dengan asma tidak terkontrol, sering terbangun di malam hari karena sesak napas disertai bunyi mengi, dan pemeriksaan menunjukkan kepatuhan penggunaan obat yang buruk serta teknik penggunaan inhaler yang tidak tepat. Menurut rekomendasi GINA 2024, apa langkah paling penting yang harus dilakukan sebelum menaikkan dosis obat?",
+      "question_order": 54,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "fc1c6523-75f3-4b76-847b-58993407ac39",
+      "stem": "Seorang pasien laki-laki berusia 42 tahun dengan riwayat asma persisten sedang datang untuk kontrol ulang. Ia sebelumnya menggunakan kortikosteroid hirup dosis rendah (budesonid) dan inhaler salbutamol bila perlu, namun masih mengalami gejala sesak 2-3 kali per minggu. Dokter kemudian mengganti regimen pasien menjadi terapi pemeliharaan dan pereda (MART) dengan budesonid-formoterol. Apa informasi yang harus disampaikan apoteker kepada pasien mengenai terapi baru?",
+      "question_order": 55,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "d772bee5-2188-430f-ae8e-f1be4605c6e5",
+      "stem": "Seorang pasien laki-laki berusia 48 tahun, menggunakan insulin premix dua kali sehari. Ia menyimpan pena insulin di dashboard mobil karena sering bepergian. Saat datang ke apotek, insulin tampak keruh dan menggumpal. Ia menanyakan apakah masih aman digunakan. Apa jawaban profesional apoteker?",
+      "question_order": 56,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "83e68aca-48c8-4107-bcc7-5d387ef9a552",
+      "stem": "Seorang pasien laki-laki berusia 50 tahun dirawat dengan diagnosis kanker paru metastasis tulang. Pasien mengeluh nyeri hebat yang tidak tertahankan meskipun telah mendapat parasetamol. Dokter berencana menaikkan terapi sesuai tangga analgetik WHO. Obat apa yang sebaiknya direkomendasikan apoteker sebagai langkah terapi berikutnya?",
+      "question_order": 57,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "6cc63a62-a119-4f6b-85bb-4b5854270859",
+      "stem": "Seorang pasien mengalami neuropati perifer akibat diabetes melitus. Ia telah menggunakan parasetamol namun tidak ada perbaikan. Obat apa yang paling tepat direkomendasikan apoteker pada kondisi pasien?",
+      "question_order": 58,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "86ff3eda-a47e-4592-9814-24a6d7702510",
+      "stem": "Seorang pasien mengeluhkan nyeri gigi. Kemudian pasien tersebut mengkonsumsi aspirin 500 mg. beberapa jam kemudian pasien tersebut mengalami sesak nafas. Gejala yang timbul diakibatkan oleh peningkatan kadar?",
+      "question_order": 59,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "f58d03cd-3518-4c93-a58c-d1b004f50edd",
+      "stem": "Seorang pasien osteoartritis dengan BMI > 27 mengeluhkan nyeri sendi yang semakin memburuk. Apa konseling yang dapat diberikan oleh apoteker?",
+      "question_order": 60,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "32f09d7a-2cc3-4d49-8331-fe9c20fd8cfa",
+      "stem": "Seorang pasien perempuan 28 tahun datang ke apotek dengan keluhan gatal-gatal dan kemerahan pada kulit setelah menggunakan produk kosmetik baru. Berdasarkan anamnesis, pasien didiagnosis menderita dermatitis kontak. Obat topikal apa yang paling tepat direkomendasikan untuk mengatasi gejala ini?",
+      "question_order": 61,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "f4c0cc10-a5a5-4eee-bf18-fb745d4e7532",
+      "stem": "Seorang pasien perempuan berusia 27 tahun datang ke unit gawat darurat dengan asma eksaserbasi akut derajat sedang hingga berat. Menurut rekomendasi GINA 2024, apa tindakan perawatan akut yang dapat diberikan?",
+      "question_order": 62,
+      "correct_option_key": "E"
+    },
+    {
+      "id": "9e9ed247-c0ef-4298-aede-2c836e6df3de",
+      "stem": "Seorang pasien perempuan berusia 49 tahun dengan diagnosis TB MDR, menjalani terapi dengan regimen yang mengandung linezolid. Pada bulan keempat, ia melaporkan penglihatan kabur. Apoteker mencurigai neuropati optik akibat linezolid. Apa tindakan awal yang paling tepat dilakukan apoteker?",
+      "question_order": 63,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "a538c27a-1ba0-4431-a7a6-0f599aae0a75",
+      "stem": "Seorang pasien perempuan berusia 54 tahun, DM tipe 2 selama 8 tahun, datang ke apotek dengan resep insulin detemir 14 unit sc malam hari, serta metformin 1000 mg dua kali sehari. Ia mengaku sering lupa menyuntik insulin dan merasa tidak perlu karena gula darah sudah baik saat pagi. Hasil pemeriksaan terakhir menunjukkan HbA1c 9,1%. Bagaimana pendekatan konseling yang paling tepat dilakukan apoteker?",
+      "question_order": 64,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "8e3f130b-53f1-4f3b-a2d1-779a1eb732c4",
+      "stem": "Seorang pasien perempuan berusia 55 tahun, pasien TB MDR mendapat regimen yang mengandung clofazimine dan moxifloxacin. Ia mengeluh kulit menjadi lebih gelap dan mata terasa kering. Apoteker diminta menjelaskan efek samping dan langkah penanganannya. Apa penjelasan yang paling tepat disampaikan kepada pasien?",
+      "question_order": 65,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "337a4bf8-794b-4f21-bca8-ebb6ce3aefe6",
+      "stem": "Seorang pasien perempuan berusia 56 tahun, pengguna insulin basal-bolus (glargine 12 unit malam dan lispro 6 unit sebelum makan). Ia datang ke apotek mengeluh sering merasa gemetar, berkeringat, dan lemas setiap sore sebelum makan malam. Setelah ditanya, ia mengaku sering lupa makan siang. Apa edukasi utama yang harus diberikan apoteker?",
+      "question_order": 66,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "2b3976f0-b6ba-4a71-9cf1-4d9331d7d984",
+      "stem": "Seorang pasien perempuan berusia 59 tahun, penderita DM tipe 2 dengan hipertensi, mendapat terapi metformin, insulin glargine, dan amlodipin. Saat konseling, ia mengatakan sering pusing dan lemas setelah olahraga pagi. Hasil cek glukometer menunjukkan 62 mg/dL. Apa pesan edukasi yang harus ditekankan oleh apoteker?",
+      "question_order": 67,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "806e346b-5451-40f1-88bb-74b6f87474b8",
+      "stem": "Seorang pasien pria berusia 50 tahun mengeluh sering mengalami kembung, diare, dan berat badan yang turun secara drastis selama beberapa bulan terakhir. Dokter mendiagnosis pasien tersebut dengan penyakit celiac dan menyarankan diet bebas gluten. Apa patofisiologi utama dari penyakit celiac?",
+      "question_order": 68,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "b85b7281-047c-48a7-8981-7fd3438dfbe7",
+      "stem": "Seorang pasien TB MDR dengan diabetes yang tidak terkontrol (HbA1c 9,2%) akan memulai terapi MDR. Tim klinik mempertimbangkan melakukan TDM (Therapeutic Drug Monitoring) untuk fluoroquinolone atau linezolid. Apa rekomendasi apoteker terkait hal ini?",
+      "question_order": 69,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "fd6d3fd1-c102-4ab5-8de0-3b49fc6a907c",
+      "stem": "Seorang pasien TB MDR menerima bedaquiline dan juga terapi HIV dengan inhibitor CYP3A4 kuat. Tim meminta penilaian apoteker mengenai potensi interaksi. Apa rekomendasi yang paling tepat?",
+      "question_order": 70,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "c3c74a10-a02e-4984-8b23-a06e46a1f6a6",
+      "stem": "Seorang pasien TB MDR menerima linezolid dan pada bulan ketiga terapi mengeluh kesemutan dan nyeri terbakar di kedua kaki. Pasien juga memiliki diabetes yang terkontrol. Sebagai apoteker di rawat jalan, apa langkah awal yang paling tepat dilakukan terkait gejala neuropati tersebut?",
+      "question_order": 71,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "b02b2467-b4eb-4cad-8148-54ad81ccc433",
+      "stem": "Seorang pasien TB MDR sedang menggunakan moxifloxacin dan juga menerima terapi sitagliptin untuk diabetes melitus tipe 2. Pasien menanyakan kemungkinan interaksi obat. Apa penjelasan yang paling tepat diberikan apoteker?",
+      "question_order": 72,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "e3c1201e-d6b1-4cf6-b255-0f682f2c3eb2",
+      "stem": "Seorang pasien wanita 27 tahun datang dengan keluhan gatal yang hebat, terutama di malam hari, dan terlihat adanya bintik-bintik kecil di sela-sela jari tangan. Dokter mendiagnosis pasien dengan skabies. Apa obat topikal yang paling tepat untuk mengatasi skabies?",
+      "question_order": 73,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "b72617ac-d8e6-4a52-b049-4efd7fee5382",
+      "stem": "Seorang pasien wanita berusia 40 tahun mengeluh sering mengalami nyeri ulu hati dan rasa panas di dada terutama setelah makan. Dokter mendiagnosis pasien tersebut dengan GERD (Gastroesophageal Reflux Disease) dan meresepkan omeprazol. Apa mekanisme kerja omeprazol pada pasien dengan GERD?",
+      "question_order": 74,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "d217a536-afa9-4760-99af-9d9cc44ea53d",
+      "stem": "Seorang pasien, perempuan usia 40 tahun penyandang diabetes dan hipertensi datang ke klinik dengan keluhan merasa pusing dan pundak terasa berat. Pasien mengatakan bahwa sudah 3 hari yang lalu mengkonsumsi amlodipine dan metformin Serta obat tambahan kombinasi Tripolidin HCl dan Pseudoefedrin HCl, Vitamin C dan parasetamol untuk mengobati flu yang dideritanya. Setelah diperiksa, tekanan darah pasien 160/90 mmHg. Dokter memastikan hipertensi yang terjadi adalah efek samping obat yang sedang dikonsumsi. Apakah obat yang dimaksud?",
+      "question_order": 75,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "2b5b1a33-8096-422f-a1af-3181443bdccb",
+      "stem": "Seorang pasien, perempuan, usia 34 tahun, hamil 5 bulan dirawat di suatu rumah sakit dengan diagnosis hipertensi dengan tekanan darah 180/90 mmHg. Salah satu terapi yang harus diperoleh oleh pasien adalah antihipertensi dengan mempertimbangkan kehamilan pasien. Apakah obat yang aman untuk diberikan?",
+      "question_order": 76,
+      "correct_option_key": "E"
+    },
+    {
+      "id": "8991a07f-9cb3-4662-8e01-450dae643147",
+      "stem": "Seorang pasien, perempuan, usia 45 tahun,dibawa ke rumah sakit karena mengalami nyeri dan terasa tertekan pada daerah dada, keringat dingin dan nyeri ulu hati. Tekanan darah pasien 170/90 mmHg. Dokter mendiagnosis pasien menderita jantung koroner dan hipertensi. Apakah antihipertensi yang tepat untuk pasien yang mempunyai penyakit jantung koroner?",
+      "question_order": 77,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "6c13e79e-c4bd-45ca-b4fd-5a002f63684e",
+      "stem": "Seorang perempuan 58 tahun dengan hipertensi dan gagal ginjal kronik stadium 3, datang dengan keluhan lemas. Hasil laboratorium menunjukkan kalium serum 5,8 mEq/L. Apa antihipertensi yang dapat menyebabkan hiperkalemia pada pasien ini?",
+      "question_order": 78,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "1d34af83-14be-4b9b-8adb-c9cd87430638",
+      "stem": "Seorang perempuan 75 tahun dengan hipertensi dirawat karena pusing, hampir pingsan dan bengkak pada ekstremitas. Ia mengonsumsi obat antihipertensi secara teratur. Manakah dari obat berikut yang paling sering menyebabkan hipotensi ortostatik, terutama pada lansia?",
+      "question_order": 79,
+      "correct_option_key": "E"
+    },
+    {
+      "id": "641e522c-30f7-4b1e-b3a6-651198cd48e2",
+      "stem": "Seorang perempuan berusia 24 tahun datang ke apotek untuk berkonsultasi. Ia mengaku telah berhubungan seksual tanpa pengaman 48 jam yang lalu dan cemas akan risiko kehamilan. Ia meminta saran mengenai kontrasepsi yang dapat digunakan saat ini untuk mencegah kehamilan setelah hubungan seksual tersebut. Apa kontrasepsi yang dimaksud?",
+      "question_order": 80,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "a6961b6f-7827-4863-9707-aac6276cd9dd",
+      "stem": "Seorang perempuan berusia 25 tahun sedang hamil dengan usia kandungan 20 minggu. Saat diperiksa ke dokter, pasien memiliki kadar Hb: 9 g/dL dan didiagnosis anemia defisiensi besi. Apa terapi pertama yang tepat untuk pasien?",
+      "question_order": 81,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "f98055ba-053b-45cb-b0ab-0199a798408e",
+      "stem": "Seorang perempuan berusia 25 tahun, baru menikah, dan ingin menunda kehamilan. Ia merupakan perokok berat (>15 batang/hari), namun tidak memiliki riwayat penyakit kronis lainnya. Ia datang ke apotek untuk berkonsultasi mengenai kontrasepsi yang aman dan efektif baginya. Apa pilihan kontrasepsi tersebut?",
+      "question_order": 82,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "4e2a0cf9-1dfa-4595-be74-75f256285471",
+      "stem": "Seorang perempuan berusia 27 tahun, sedang hamil 22 minggu, datang dengan keluhan sering berkemih, nyeri saat berkemih, dan demam ringan. Hasil urinalisis menunjukkan leukosit positif dan nitrit positif. Dokter menegakkan diagnosis infeksi saluran kemih (ISK) pada kehamilan. Apa pilihan antibiotik yang aman yang sesuai dengan kondisi pasien?",
+      "question_order": 83,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "dbbb331f-8eb1-478d-986b-213490307bcf",
+      "stem": "Seorang perempuan berusia 28 tahun, datang ke klinik dengan keluhan nyeri perut bawah kronis, haid tidak teratur, dan nyeri haid berat (dismenore). Hasil USG menunjukkan adanya kista ovarium akibat endometriosis. Apa terapi lini pertama yang sesuai dengan pasien?",
+      "question_order": 84,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "9d0b44df-df3a-4a50-bf22-c0a71717c99c",
+      "stem": "Seorang perempuan berusia 29 tahun, sedang hamil 8 minggu, datang ke kliik dengan keluhan mual dan muntah hebat hingga mengalami tanda-tanda dehidrasi. Setelah pemeriksaan, ditegakkan diagnosis hiperemesis gravidarum. Apa terapi awalyang dapat diberikan kepada pasien?",
+      "question_order": 85,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "cfda0476-358e-400a-bd8d-402817f69c0e",
+      "stem": "Seorang perempuan berusia 33 tahun sedang menyusui anaknya yang berusia 8 bulan. Ia datang ke apotek dan ingin membeli alat kontrasepsi yang dapat digunakan sendiri (swamedikasi). Saat ini bayi sudah mulai makanan pendamping ASI (MPASI) sehingga pasien tidak lagi menyusui secara eksklusif. Apa pilihan kontrasepsi yang paling tepat dan aman untuk pasien tersebut?",
+      "question_order": 86,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "ffa9b678-c155-4daa-aec1-ece903ea9461",
+      "stem": "Seorang perempuan berusia 34 tahun datang untuk pemeriksaan rutin kehamilan pada usia kandungan 20 minggu. Ia memiliki riwayat asma sejak remaja dan saat ini kadang mengalami sesak napas pada malam hari. Pasien khawatir penggunaan inhaler akan membahayakan janinnya, sehingga ia menghentikan semua obat asma sejak awal kehamilan. Dokter meminta pendapat apoteker klinik mengenai pendekatan manajemen asma yang paling tepat selama kehamilan. Apa manajemen asma yang dimaksud?",
+      "question_order": 87,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "fa37c11f-5f4b-49af-9df6-36eb5918ea53",
+      "stem": "Seorang perempuan berusia 35 tahun datang ke puskesmas ingin meminta rekomendasi tentang kontrasepsi yang sesuai dengan kondisinya. Pasien memiliki riwayat migrain dengan aura sejak lama. Manakah jenis kontrasepsi yang harus dihindari pada pasien?",
+      "question_order": 88,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "ef3b6b91-3dfb-46fc-a4a8-3d645a00c68e",
+      "stem": "Seorang perempuan berusia 35 tahun dengan asma ringan yang terkontrol datang untuk kunjungan rutin. Ia menggunakan kombinasi kortikosteroid hirup dan formoterol dosis rendah sesuai kebutuhan. Pasien merasa gejalanya sudah stabil dan berkonsultasi kepada apoteker tentang rencana aksi tertulis untuk asma. Apa rekomendasi yang dapat diberikan untuk pasien ini?",
+      "question_order": 89,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "9ff87550-cfc5-4c0e-a668-9f70f9eef573",
+      "stem": "Tn Cw datang ke klinik mata dengan keluhan sakit kepala, mata sangat pegal, mual bahkan muntah, penglihatan terasa buram, melihat pelangi di sekitar lampu dan mata kemerahan. Pasien tersebut didiagnosis glaukoma. Pasien tersebut diberikan terapi prostaglandin analog. Bagaimanakah mekanisme kerja obat tersebut?",
+      "question_order": 90,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "c6cdbeed-1a55-4ccf-b193-218dfcf1c918",
+      "stem": "Seorang pasien wanita 50 tahun yang memiliki riwayat stroke iskemik baru-baru ini ditemukan memiliki kadar LDL 190 mg/dL. Dokter meresepkan statin intensitas tinggi. Apa mekanisme utama dari golongan statin dalam menurunkan kadar LDL?",
+      "question_order": 91,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "acbaebd1-281e-442d-b57d-507b543a487a",
+      "stem": "Seorang pasien mengalami stroke iskemik akut. Obat manakah yang paling efektif untuk diberikan dalam 4,5 jam pertama setelah onset gejala untuk meminimalkan kerusakan otak?",
+      "question_order": 92,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "8aca92d7-499f-43ee-acfa-d9a52c6add05",
+      "stem": "Seorang pasien Laki-laki usia 30 tahun didiagnosa dokter mengalami gastric ulcer karena infeksi H. pylory. Dokter meresepkan omeprazole 20 mg 2 kali sehari, Clarithromycin 500 mg 2 kali sehari selama 14 hari. Pada saat menebus resep, pasien mengatakan kepada anda bahwa dia alergi terhadap amoxicillin dan anda memutuskan untuk menelpon dokter untuk mengusulkan penggantian amoxicillin dengan antibiotic lain. Antibiotic apakah yang tepat untuk disarankan kepada dokter penulis resep?",
+      "question_order": 93,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "6dce39d0-a54c-4024-8a3c-f04133307d36",
+      "stem": "Seorang pasien laki-laki berusia 48 tahun memiliki kadar trigliserida 700 mg/dL. Ia tidak memiliki riwayat penyakit kardiovaskular, tetapi mengeluhkan nyeri epigastrium yang berulang. Apa pilihan terapi pertama yang paling sesuai?",
+      "question_order": 94,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "c4deead5-4cc3-4a34-9b1a-fbbc4c80dcf5",
+      "stem": "Seorang wanita hamil berusia 32 tahun mengalami depresi sedang. Antidepresan mana yang dianggap paling aman untuk digunakan selama kehamilan?",
+      "question_order": 95,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "3cf9bc52-da91-46a7-b81a-18f7caa30445",
+      "stem": "Seorang wanita hamil berusia 30 tahun mengalami asma. Obat apa yang aman untuk digunakan sebagai terapi jangka panjang pada pasien asma hamil?",
+      "question_order": 96,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "e0e7fa93-f850-4883-a23d-2bbdfb12cdce",
+      "stem": "Seorang wanita hamil berusia 28 tahun didiagnosis dengan hipotiroidisme. Obat mana yang harus diberikan untuk mengelola kondisi ini selama kehamilan?",
+      "question_order": 97,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "ea09e506-b084-448f-9955-f10e6b1b9faa",
+      "stem": "Seorang wanita hamil berusia 28 tahun didiagnosis dengan hipertensi. Obat antihipertensi mana yang paling aman untuk digunakan pada kehamilan?",
+      "question_order": 98,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "01e226de-77aa-4259-a3db-e0e57399b9bc",
+      "stem": "Seorang perempuan berusia 52 tahun terdiagnosis TB MDR paru dan sedang mendapat regimen oral berisi bedaquiline, linezolid, moxifloxacin, clofazimine, dan pyrazinamide. Pasien juga memiliki diabetes melitus tipe 2 dengan terapi metformin 1.000 mg dua kali sehari. Sebelum terapi, ECG normal (QTc 420 ms). Pada minggu ke-4 terapi, pasien mengeluh palpitasi dan ECG menunjukkan QTc 490 ms. Sebagai apoteker, tindakan apa yang paling tepat dilakukan saat ini?",
+      "question_order": 99,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "cda19152-4ee9-41e4-b7e8-907468382f00",
+      "stem": "Seorang wanita hamil berusia 32 tahun didiagnosis dengan diabetes gestasional. Obat mana yang merupakan pilihan pengobatan pertama untuk mengontrol kadar glukosa?",
+      "question_order": 100,
+      "correct_option_key": "C"
+    }
+  ],
+  "allOptions": [
+    {
+      "event_question_id": "02c43a91-35cd-4d2f-922c-18c282546f27",
+      "option_key": "A",
+      "option_text": "158,77"
+    },
+    {
+      "event_question_id": "02c43a91-35cd-4d2f-922c-18c282546f27",
+      "option_key": "B",
+      "option_text": "252,08"
+    },
+    {
+      "event_question_id": "02c43a91-35cd-4d2f-922c-18c282546f27",
+      "option_key": "C",
+      "option_text": "952,63"
+    },
+    {
+      "event_question_id": "02c43a91-35cd-4d2f-922c-18c282546f27",
+      "option_key": "D",
+      "option_text": "9.075"
+    },
+    {
+      "event_question_id": "02c43a91-35cd-4d2f-922c-18c282546f27",
+      "option_key": "E",
+      "option_text": "9.526,28"
+    },
+    {
+      "event_question_id": "0c0f6ad5-980e-4c5d-8760-d8bb08d9a04d",
+      "option_key": "A",
+      "option_text": "Valganciclovir"
+    },
+    {
+      "event_question_id": "0c0f6ad5-980e-4c5d-8760-d8bb08d9a04d",
+      "option_key": "B",
+      "option_text": "Adefovir"
+    },
+    {
+      "event_question_id": "0c0f6ad5-980e-4c5d-8760-d8bb08d9a04d",
+      "option_key": "C",
+      "option_text": "Rilpivirine"
+    },
+    {
+      "event_question_id": "0c0f6ad5-980e-4c5d-8760-d8bb08d9a04d",
+      "option_key": "D",
+      "option_text": "Ganciclovir"
+    },
+    {
+      "event_question_id": "0c0f6ad5-980e-4c5d-8760-d8bb08d9a04d",
+      "option_key": "E",
+      "option_text": "Entecavir"
+    },
+    {
+      "event_question_id": "15048bbc-e932-4eeb-a344-ded14f39ab48",
+      "option_key": "A",
+      "option_text": "CTM"
+    },
+    {
+      "event_question_id": "15048bbc-e932-4eeb-a344-ded14f39ab48",
+      "option_key": "B",
+      "option_text": "Cetirizin"
+    },
+    {
+      "event_question_id": "15048bbc-e932-4eeb-a344-ded14f39ab48",
+      "option_key": "C",
+      "option_text": "Efedrin"
+    },
+    {
+      "event_question_id": "15048bbc-e932-4eeb-a344-ded14f39ab48",
+      "option_key": "D",
+      "option_text": "Epinefrin"
+    },
+    {
+      "event_question_id": "15048bbc-e932-4eeb-a344-ded14f39ab48",
+      "option_key": "E",
+      "option_text": "Norepinefrin"
+    },
+    {
+      "event_question_id": "1bbadb76-d640-4d13-9535-7eaae201d905",
+      "option_key": "A",
+      "option_text": "Na diklofenak"
+    },
+    {
+      "event_question_id": "1bbadb76-d640-4d13-9535-7eaae201d905",
+      "option_key": "B",
+      "option_text": "Ibuprofen"
+    },
+    {
+      "event_question_id": "1bbadb76-d640-4d13-9535-7eaae201d905",
+      "option_key": "C",
+      "option_text": "Naproksena"
+    },
+    {
+      "event_question_id": "1bbadb76-d640-4d13-9535-7eaae201d905",
+      "option_key": "D",
+      "option_text": "Ergotramin"
+    },
+    {
+      "event_question_id": "1bbadb76-d640-4d13-9535-7eaae201d905",
+      "option_key": "E",
+      "option_text": "Parasetamol"
+    },
+    {
+      "event_question_id": "1f71678c-4d09-42c8-b89c-4e39670789b1",
+      "option_key": "A",
+      "option_text": "Omalizumab"
+    },
+    {
+      "event_question_id": "1f71678c-4d09-42c8-b89c-4e39670789b1",
+      "option_key": "B",
+      "option_text": "Salbutamol inhalasi dosis tinggi"
+    },
+    {
+      "event_question_id": "1f71678c-4d09-42c8-b89c-4e39670789b1",
+      "option_key": "C",
+      "option_text": "Prednison oral jangka panjang"
+    },
+    {
+      "event_question_id": "1f71678c-4d09-42c8-b89c-4e39670789b1",
+      "option_key": "D",
+      "option_text": "Montelukast"
+    },
+    {
+      "event_question_id": "1f71678c-4d09-42c8-b89c-4e39670789b1",
+      "option_key": "E",
+      "option_text": "Ipratropium"
+    },
+    {
+      "event_question_id": "1fabb387-6b0f-46c1-9597-f9b32e502f18",
+      "option_key": "A",
+      "option_text": "Memberikan informasi mengenai penyakit dan pengobatan."
+    },
+    {
+      "event_question_id": "1fabb387-6b0f-46c1-9597-f9b32e502f18",
+      "option_key": "B",
+      "option_text": "Memantau efek samping obat"
+    },
+    {
+      "event_question_id": "1fabb387-6b0f-46c1-9597-f9b32e502f18",
+      "option_key": "C",
+      "option_text": "Memberikan konseling mengenai perubahan gaya hidup."
+    },
+    {
+      "event_question_id": "1fabb387-6b0f-46c1-9597-f9b32e502f18",
+      "option_key": "D",
+      "option_text": "Memberikan diagnosis dan prognosis kepada pasien."
+    },
+    {
+      "event_question_id": "1fabb387-6b0f-46c1-9597-f9b32e502f18",
+      "option_key": "E",
+      "option_text": "Memberikan home care kepada pasien terkait pengobatan"
+    },
+    {
+      "event_question_id": "3f17e2f8-095e-4e9a-a36c-44b55b34ab79",
+      "option_key": "A",
+      "option_text": "Mengurangi risiko efek samping obat."
+    },
+    {
+      "event_question_id": "3f17e2f8-095e-4e9a-a36c-44b55b34ab79",
+      "option_key": "B",
+      "option_text": "Mempercepat penurunan kadar asam urat."
+    },
+    {
+      "event_question_id": "3f17e2f8-095e-4e9a-a36c-44b55b34ab79",
+      "option_key": "C",
+      "option_text": "Mengontrol nyeri, mencegah kerusakan lanjut dan peradangan serta mencegah kekambuhan"
+    },
+    {
+      "event_question_id": "3f17e2f8-095e-4e9a-a36c-44b55b34ab79",
+      "option_key": "D",
+      "option_text": "Mencegah kerusakan sendi lebih lanjut"
+    },
+    {
+      "event_question_id": "3f17e2f8-095e-4e9a-a36c-44b55b34ab79",
+      "option_key": "E",
+      "option_text": "Mengurangi medication error yang dapat terjadi"
+    },
+    {
+      "event_question_id": "4b992ff5-0bb8-439e-b6aa-96e02e5ac77d",
+      "option_key": "A",
+      "option_text": "Ezetimibe"
+    },
+    {
+      "event_question_id": "4b992ff5-0bb8-439e-b6aa-96e02e5ac77d",
+      "option_key": "B",
+      "option_text": "Atorvastatin"
+    },
+    {
+      "event_question_id": "4b992ff5-0bb8-439e-b6aa-96e02e5ac77d",
+      "option_key": "C",
+      "option_text": "Omega-3"
+    },
+    {
+      "event_question_id": "4b992ff5-0bb8-439e-b6aa-96e02e5ac77d",
+      "option_key": "D",
+      "option_text": "Niacin"
+    },
+    {
+      "event_question_id": "4b992ff5-0bb8-439e-b6aa-96e02e5ac77d",
+      "option_key": "E",
+      "option_text": "Evolocumab"
+    },
+    {
+      "event_question_id": "5f386bf7-2835-403a-b1a4-9fcd64d298e9",
+      "option_key": "A",
+      "option_text": "Segera setelah muncul gejala"
+    },
+    {
+      "event_question_id": "5f386bf7-2835-403a-b1a4-9fcd64d298e9",
+      "option_key": "B",
+      "option_text": "Saat kemoterapi berlangung"
+    },
+    {
+      "event_question_id": "5f386bf7-2835-403a-b1a4-9fcd64d298e9",
+      "option_key": "C",
+      "option_text": "30 menit sebelum terapi"
+    },
+    {
+      "event_question_id": "5f386bf7-2835-403a-b1a4-9fcd64d298e9",
+      "option_key": "D",
+      "option_text": "30 meneit setelah terapi"
+    },
+    {
+      "event_question_id": "5f386bf7-2835-403a-b1a4-9fcd64d298e9",
+      "option_key": "E",
+      "option_text": "2 jam sebelum terapi"
+    },
+    {
+      "event_question_id": "66cc4d3f-f010-4e21-a398-85b49c7fe07d",
+      "option_key": "A",
+      "option_text": "Mengganti CTM dengan loratadin tanpa konfirmasi"
+    },
+    {
+      "event_question_id": "66cc4d3f-f010-4e21-a398-85b49c7fe07d",
+      "option_key": "B",
+      "option_text": "Mengurangi jumlah bungkus puyer tanpa memberitahu dokter"
+    },
+    {
+      "event_question_id": "66cc4d3f-f010-4e21-a398-85b49c7fe07d",
+      "option_key": "C",
+      "option_text": "Menunda penyerahan obat dan menghubungi dokter untuk klarifikasi penggantian antihistamin"
+    },
+    {
+      "event_question_id": "66cc4d3f-f010-4e21-a398-85b49c7fe07d",
+      "option_key": "D",
+      "option_text": "Menyusun resep sesuai ketersediaan lalu memberi penjelasan ke pasien"
+    },
+    {
+      "event_question_id": "66cc4d3f-f010-4e21-a398-85b49c7fe07d",
+      "option_key": "E",
+      "option_text": "Menghilangkan CTM dari racikan dan tetap memberikan obat lainnya"
+    },
+    {
+      "event_question_id": "68f871b7-2538-47f0-be17-d9098de47132",
+      "option_key": "A",
+      "option_text": "Tidak diperlukan monitoring tambahan karena metformin aman dikombinasikan."
+    },
+    {
+      "event_question_id": "68f871b7-2538-47f0-be17-d9098de47132",
+      "option_key": "B",
+      "option_text": "Memberikan edukasi tentang risiko myelosuppression dari linezolid, menyarankan pemeriksaan darah lengkap berkala, memberi edukasi gejala infeksi atau perdarahan, serta memantau fungsi ginjal yang memengaruhi dosis metformin."
+    },
+    {
+      "event_question_id": "68f871b7-2538-47f0-be17-d9098de47132",
+      "option_key": "C",
+      "option_text": "Menghentikan metformin saat memulai linezolid karena interaksi farmakokinetik."
+    },
+    {
+      "event_question_id": "68f871b7-2538-47f0-be17-d9098de47132",
+      "option_key": "D",
+      "option_text": "Hanya fokus pada kontrol gula darah tanpa memperhatikan efek obat TB."
+    },
+    {
+      "event_question_id": "68f871b7-2538-47f0-be17-d9098de47132",
+      "option_key": "E",
+      "option_text": "Memberikan suplemen vitamin B12 untuk mencegah neuropati."
+    },
+    {
+      "event_question_id": "6de5cfa8-e4e8-46b6-8c25-d12dcd1daec1",
+      "option_key": "A",
+      "option_text": "Mengubah bentuk sediaan menjadi larutan oral dengan alat seadanya"
+    },
+    {
+      "event_question_id": "6de5cfa8-e4e8-46b6-8c25-d12dcd1daec1",
+      "option_key": "B",
+      "option_text": "Memberikan kapsul dan meminta orang tua membukanya di rumah"
+    },
+    {
+      "event_question_id": "6de5cfa8-e4e8-46b6-8c25-d12dcd1daec1",
+      "option_key": "C",
+      "option_text": "Menjelaskan bahwa perubahan bentuk sediaan memerlukan perhitungan stabilitas dan keseragaman dosis, serta menawarkan alternatif sirup jadi"
+    },
+    {
+      "event_question_id": "6de5cfa8-e4e8-46b6-8c25-d12dcd1daec1",
+      "option_key": "D",
+      "option_text": "Mengganti racikan dengan obat cair OTC tanpa sepengetahuan dokter"
+    },
+    {
+      "event_question_id": "6de5cfa8-e4e8-46b6-8c25-d12dcd1daec1",
+      "option_key": "E",
+      "option_text": "Menunda penyerahan obat hingga alat lengkap tersedia"
+    },
+    {
+      "event_question_id": "716975f5-0bba-474f-955c-89915eec3faf",
+      "option_key": "A",
+      "option_text": "109,6"
+    },
+    {
+      "event_question_id": "716975f5-0bba-474f-955c-89915eec3faf",
+      "option_key": "B",
+      "option_text": "160"
+    },
+    {
+      "event_question_id": "716975f5-0bba-474f-955c-89915eec3faf",
+      "option_key": "C",
+      "option_text": "657,27"
+    },
+    {
+      "event_question_id": "716975f5-0bba-474f-955c-89915eec3faf",
+      "option_key": "D",
+      "option_text": "5.760"
+    },
+    {
+      "event_question_id": "716975f5-0bba-474f-955c-89915eec3faf",
+      "option_key": "E",
+      "option_text": "6.572,67"
+    },
+    {
+      "event_question_id": "7b26aa50-7de5-46bb-b932-032eaa9368fe",
+      "option_key": "A",
+      "option_text": "Sefadroksil"
+    },
+    {
+      "event_question_id": "7b26aa50-7de5-46bb-b932-032eaa9368fe",
+      "option_key": "B",
+      "option_text": "Ampisilin"
+    },
+    {
+      "event_question_id": "7b26aa50-7de5-46bb-b932-032eaa9368fe",
+      "option_key": "C",
+      "option_text": "Metronidazol"
+    },
+    {
+      "event_question_id": "7b26aa50-7de5-46bb-b932-032eaa9368fe",
+      "option_key": "D",
+      "option_text": "Sulfametoksazol"
+    },
+    {
+      "event_question_id": "7b26aa50-7de5-46bb-b932-032eaa9368fe",
+      "option_key": "E",
+      "option_text": "Amoksilin"
+    },
+    {
+      "event_question_id": "8310e3f1-08d4-437e-8a11-41dac41801f6",
+      "option_key": "A",
+      "option_text": "Penurunan efek kaptopril"
+    },
+    {
+      "event_question_id": "8310e3f1-08d4-437e-8a11-41dac41801f6",
+      "option_key": "B",
+      "option_text": "Penurunan efek allopurinol"
+    },
+    {
+      "event_question_id": "8310e3f1-08d4-437e-8a11-41dac41801f6",
+      "option_key": "C",
+      "option_text": "Peningkatan kerusakan ginjal"
+    },
+    {
+      "event_question_id": "8310e3f1-08d4-437e-8a11-41dac41801f6",
+      "option_key": "D",
+      "option_text": "Peningkatan reaksi alergi dan infeksi yang parah"
+    },
+    {
+      "event_question_id": "8310e3f1-08d4-437e-8a11-41dac41801f6",
+      "option_key": "E",
+      "option_text": "Peningkatan kerusakan hati"
+    },
+    {
+      "event_question_id": "842c485b-f54f-47d7-9fd1-b1136242795d",
+      "option_key": "A",
+      "option_text": "Allopurinol"
+    },
+    {
+      "event_question_id": "842c485b-f54f-47d7-9fd1-b1136242795d",
+      "option_key": "B",
+      "option_text": "Febuxosat"
+    },
+    {
+      "event_question_id": "842c485b-f54f-47d7-9fd1-b1136242795d",
+      "option_key": "C",
+      "option_text": "Probenesid"
+    },
+    {
+      "event_question_id": "842c485b-f54f-47d7-9fd1-b1136242795d",
+      "option_key": "D",
+      "option_text": "Imatinib"
+    },
+    {
+      "event_question_id": "842c485b-f54f-47d7-9fd1-b1136242795d",
+      "option_key": "E",
+      "option_text": "Kolkisin"
+    },
+    {
+      "event_question_id": "89232b2b-9eb0-4d3f-b7de-be7d678e320a",
+      "option_key": "A",
+      "option_text": "Paracetamol"
+    },
+    {
+      "event_question_id": "89232b2b-9eb0-4d3f-b7de-be7d678e320a",
+      "option_key": "B",
+      "option_text": "NSAID (Non-Steroidal Anti-Inflammatory Drugs)"
+    },
+    {
+      "event_question_id": "89232b2b-9eb0-4d3f-b7de-be7d678e320a",
+      "option_key": "C",
+      "option_text": "Opioid"
+    },
+    {
+      "event_question_id": "89232b2b-9eb0-4d3f-b7de-be7d678e320a",
+      "option_key": "D",
+      "option_text": "Kolkisin"
+    },
+    {
+      "event_question_id": "89232b2b-9eb0-4d3f-b7de-be7d678e320a",
+      "option_key": "E",
+      "option_text": "Intraartikular steroid"
+    },
+    {
+      "event_question_id": "921e90b3-2711-4618-ba3d-922616850d92",
+      "option_key": "A",
+      "option_text": "Peningkatan kadar asam urat."
+    },
+    {
+      "event_question_id": "921e90b3-2711-4618-ba3d-922616850d92",
+      "option_key": "B",
+      "option_text": "Gangguan fungsi hati."
+    },
+    {
+      "event_question_id": "921e90b3-2711-4618-ba3d-922616850d92",
+      "option_key": "C",
+      "option_text": "Iritasi lambung."
+    },
+    {
+      "event_question_id": "921e90b3-2711-4618-ba3d-922616850d92",
+      "option_key": "D",
+      "option_text": "Peningkatan risiko infeksi."
+    },
+    {
+      "event_question_id": "921e90b3-2711-4618-ba3d-922616850d92",
+      "option_key": "E",
+      "option_text": "Sakit kepala."
+    },
+    {
+      "event_question_id": "923adde8-2e2a-4706-a58f-127b92e20af6",
+      "option_key": "A",
+      "option_text": "Azitromisin"
+    },
+    {
+      "event_question_id": "923adde8-2e2a-4706-a58f-127b92e20af6",
+      "option_key": "B",
+      "option_text": "Amoksilin"
+    },
+    {
+      "event_question_id": "923adde8-2e2a-4706-a58f-127b92e20af6",
+      "option_key": "C",
+      "option_text": "Clindamysin"
+    },
+    {
+      "event_question_id": "923adde8-2e2a-4706-a58f-127b92e20af6",
+      "option_key": "D",
+      "option_text": "Cefadroksil"
+    },
+    {
+      "event_question_id": "923adde8-2e2a-4706-a58f-127b92e20af6",
+      "option_key": "E",
+      "option_text": "Doksisiklin"
+    },
+    {
+      "event_question_id": "ac40ed59-75ce-45de-836c-de3d580e2c5e",
+      "option_key": "A",
+      "option_text": "Potensi hepatotoksisitas akut"
+    },
+    {
+      "event_question_id": "ac40ed59-75ce-45de-836c-de3d580e2c5e",
+      "option_key": "B",
+      "option_text": "Risiko nyeri kepala akibat penggunaan obat berlebihan"
+    },
+    {
+      "event_question_id": "ac40ed59-75ce-45de-836c-de3d580e2c5e",
+      "option_key": "C",
+      "option_text": "Ketergantungan kafein"
+    },
+    {
+      "event_question_id": "ac40ed59-75ce-45de-836c-de3d580e2c5e",
+      "option_key": "D",
+      "option_text": "Resistensi terhadap analgesik"
+    },
+    {
+      "event_question_id": "ac40ed59-75ce-45de-836c-de3d580e2c5e",
+      "option_key": "E",
+      "option_text": "Gangguan ginjal kronis"
+    },
+    {
+      "event_question_id": "acb5e66d-822a-4caf-9a86-cd2e118d501c",
+      "option_key": "A",
+      "option_text": "Pembengkakan sendi akibat peradangan."
+    },
+    {
+      "event_question_id": "acb5e66d-822a-4caf-9a86-cd2e118d501c",
+      "option_key": "B",
+      "option_text": "Penumpukan kristal asam urat di bawah kulit."
+    },
+    {
+      "event_question_id": "acb5e66d-822a-4caf-9a86-cd2e118d501c",
+      "option_key": "C",
+      "option_text": "Kerusakan tulang rawan sendi."
+    },
+    {
+      "event_question_id": "acb5e66d-822a-4caf-9a86-cd2e118d501c",
+      "option_key": "D",
+      "option_text": "Pembentukan jaringan parut di sekitar sendi."
+    },
+    {
+      "event_question_id": "acb5e66d-822a-4caf-9a86-cd2e118d501c",
+      "option_key": "E",
+      "option_text": "Penumpukkan sel mononuclear pada sendi"
+    },
+    {
+      "event_question_id": "b8ee3e8b-9f36-4d07-af04-8da1c77fc345",
+      "option_key": "A",
+      "option_text": "Proton pump inhibitor (PPI)"
+    },
+    {
+      "event_question_id": "b8ee3e8b-9f36-4d07-af04-8da1c77fc345",
+      "option_key": "B",
+      "option_text": "H2 receptor blocker"
+    },
+    {
+      "event_question_id": "b8ee3e8b-9f36-4d07-af04-8da1c77fc345",
+      "option_key": "C",
+      "option_text": "Antasida"
+    },
+    {
+      "event_question_id": "b8ee3e8b-9f36-4d07-af04-8da1c77fc345",
+      "option_key": "D",
+      "option_text": "Prokinetik"
+    },
+    {
+      "event_question_id": "b8ee3e8b-9f36-4d07-af04-8da1c77fc345",
+      "option_key": "E",
+      "option_text": "Kortikosteroid oral"
+    },
+    {
+      "event_question_id": "be439ae2-83ad-42af-b4cf-550c3221b730",
+      "option_key": "A",
+      "option_text": "Infark miokard"
+    },
+    {
+      "event_question_id": "be439ae2-83ad-42af-b4cf-550c3221b730",
+      "option_key": "B",
+      "option_text": "Retinopati hipertensif"
+    },
+    {
+      "event_question_id": "be439ae2-83ad-42af-b4cf-550c3221b730",
+      "option_key": "C",
+      "option_text": "Aneurisma aorta"
+    },
+    {
+      "event_question_id": "be439ae2-83ad-42af-b4cf-550c3221b730",
+      "option_key": "D",
+      "option_text": "Stroke hemoragik"
+    },
+    {
+      "event_question_id": "be439ae2-83ad-42af-b4cf-550c3221b730",
+      "option_key": "E",
+      "option_text": "Gagal ginjal kronik"
+    },
+    {
+      "event_question_id": "c4a0571f-6133-46b5-b6fb-271463e2d79a",
+      "option_key": "A",
+      "option_text": "Loperamid"
+    },
+    {
+      "event_question_id": "c4a0571f-6133-46b5-b6fb-271463e2d79a",
+      "option_key": "B",
+      "option_text": "Rehidrasi dengan oralit"
+    },
+    {
+      "event_question_id": "c4a0571f-6133-46b5-b6fb-271463e2d79a",
+      "option_key": "C",
+      "option_text": "Antibiotik"
+    },
+    {
+      "event_question_id": "c4a0571f-6133-46b5-b6fb-271463e2d79a",
+      "option_key": "D",
+      "option_text": "Probiotik"
+    },
+    {
+      "event_question_id": "c4a0571f-6133-46b5-b6fb-271463e2d79a",
+      "option_key": "E",
+      "option_text": "Antispasmodik"
+    },
+    {
+      "event_question_id": "c76d6c69-5862-4640-9367-ce037a4f480c",
+      "option_key": "A",
+      "option_text": "Peradangan sendi akibat autoimun."
+    },
+    {
+      "event_question_id": "c76d6c69-5862-4640-9367-ce037a4f480c",
+      "option_key": "B",
+      "option_text": "Degenerasi tulang rawan sendi."
+    },
+    {
+      "event_question_id": "c76d6c69-5862-4640-9367-ce037a4f480c",
+      "option_key": "C",
+      "option_text": "Penumpukan kristal asam urat di sendi."
+    },
+    {
+      "event_question_id": "c76d6c69-5862-4640-9367-ce037a4f480c",
+      "option_key": "D",
+      "option_text": "Infeksi bakteri pada sendi."
+    },
+    {
+      "event_question_id": "c76d6c69-5862-4640-9367-ce037a4f480c",
+      "option_key": "E",
+      "option_text": "Peningkatan enzim transaminase di dalam darah"
+    },
+    {
+      "event_question_id": "cbf59ee2-4a4f-4d01-882a-1796f443ac5a",
+      "option_key": "A",
+      "option_text": "Progesteron"
+    },
+    {
+      "event_question_id": "cbf59ee2-4a4f-4d01-882a-1796f443ac5a",
+      "option_key": "B",
+      "option_text": "Estrogen"
+    },
+    {
+      "event_question_id": "cbf59ee2-4a4f-4d01-882a-1796f443ac5a",
+      "option_key": "C",
+      "option_text": "Androgen"
+    },
+    {
+      "event_question_id": "cbf59ee2-4a4f-4d01-882a-1796f443ac5a",
+      "option_key": "D",
+      "option_text": "Norethisteron"
+    },
+    {
+      "event_question_id": "cbf59ee2-4a4f-4d01-882a-1796f443ac5a",
+      "option_key": "E",
+      "option_text": "Testoteron"
+    },
+    {
+      "event_question_id": "e9805100-27ea-4395-b19c-6e12222e6a97",
+      "option_key": "A",
+      "option_text": "Ribavirin"
+    },
+    {
+      "event_question_id": "e9805100-27ea-4395-b19c-6e12222e6a97",
+      "option_key": "B",
+      "option_text": "Tenofovir"
+    },
+    {
+      "event_question_id": "e9805100-27ea-4395-b19c-6e12222e6a97",
+      "option_key": "C",
+      "option_text": "Zidovudine"
+    },
+    {
+      "event_question_id": "e9805100-27ea-4395-b19c-6e12222e6a97",
+      "option_key": "D",
+      "option_text": "Lamivudine"
+    },
+    {
+      "event_question_id": "e9805100-27ea-4395-b19c-6e12222e6a97",
+      "option_key": "E",
+      "option_text": "Valganciclovir"
+    },
+    {
+      "event_question_id": "f939cc41-a17d-49e7-94bb-0b7988d44ec6",
+      "option_key": "A",
+      "option_text": "Konsumsi garam berlebih"
+    },
+    {
+      "event_question_id": "f939cc41-a17d-49e7-94bb-0b7988d44ec6",
+      "option_key": "B",
+      "option_text": "Obesitas"
+    },
+    {
+      "event_question_id": "f939cc41-a17d-49e7-94bb-0b7988d44ec6",
+      "option_key": "C",
+      "option_text": "Stres psikologis"
+    },
+    {
+      "event_question_id": "f939cc41-a17d-49e7-94bb-0b7988d44ec6",
+      "option_key": "D",
+      "option_text": "Riwayat keluarga hipertensi"
+    },
+    {
+      "event_question_id": "f939cc41-a17d-49e7-94bb-0b7988d44ec6",
+      "option_key": "E",
+      "option_text": "Kurang aktivitas fisik"
+    },
+    {
+      "event_question_id": "fe48ae76-8c3e-48a3-8273-8dca1029c0a8",
+      "option_key": "A",
+      "option_text": "Artemisinin"
+    },
+    {
+      "event_question_id": "fe48ae76-8c3e-48a3-8273-8dca1029c0a8",
+      "option_key": "B",
+      "option_text": "Doksisiklin"
+    },
+    {
+      "event_question_id": "fe48ae76-8c3e-48a3-8273-8dca1029c0a8",
+      "option_key": "C",
+      "option_text": "Hidroklorokuin"
+    },
+    {
+      "event_question_id": "fe48ae76-8c3e-48a3-8273-8dca1029c0a8",
+      "option_key": "D",
+      "option_text": "Klorokuin"
+    },
+    {
+      "event_question_id": "fe48ae76-8c3e-48a3-8273-8dca1029c0a8",
+      "option_key": "E",
+      "option_text": "Primaquin"
+    },
+    {
+      "event_question_id": "fee07e1a-c2d3-45c0-aba7-064b10900f56",
+      "option_key": "A",
+      "option_text": "Asam folat"
+    },
+    {
+      "event_question_id": "fee07e1a-c2d3-45c0-aba7-064b10900f56",
+      "option_key": "B",
+      "option_text": "Dimenhidrat"
+    },
+    {
+      "event_question_id": "fee07e1a-c2d3-45c0-aba7-064b10900f56",
+      "option_key": "C",
+      "option_text": "Metoklopramid"
+    },
+    {
+      "event_question_id": "fee07e1a-c2d3-45c0-aba7-064b10900f56",
+      "option_key": "D",
+      "option_text": "Ondansentron"
+    },
+    {
+      "event_question_id": "fee07e1a-c2d3-45c0-aba7-064b10900f56",
+      "option_key": "E",
+      "option_text": "Piridoksin"
+    },
+    {
+      "event_question_id": "07453961-a524-4b1d-bf01-44f3d3fc1c3f",
+      "option_key": "A",
+      "option_text": "< 150/90"
+    },
+    {
+      "event_question_id": "07453961-a524-4b1d-bf01-44f3d3fc1c3f",
+      "option_key": "B",
+      "option_text": "< 140/90"
+    },
+    {
+      "event_question_id": "07453961-a524-4b1d-bf01-44f3d3fc1c3f",
+      "option_key": "C",
+      "option_text": "< 130/80"
+    },
+    {
+      "event_question_id": "07453961-a524-4b1d-bf01-44f3d3fc1c3f",
+      "option_key": "D",
+      "option_text": "< 120/80"
+    },
+    {
+      "event_question_id": "07453961-a524-4b1d-bf01-44f3d3fc1c3f",
+      "option_key": "E",
+      "option_text": "< 125/75"
+    },
+    {
+      "event_question_id": "1011e785-358d-452a-a104-65c9d2d91550",
+      "option_key": "A",
+      "option_text": "50 mg"
+    },
+    {
+      "event_question_id": "1011e785-358d-452a-a104-65c9d2d91550",
+      "option_key": "B",
+      "option_text": "100 mg"
+    },
+    {
+      "event_question_id": "1011e785-358d-452a-a104-65c9d2d91550",
+      "option_key": "C",
+      "option_text": "200 mg"
+    },
+    {
+      "event_question_id": "1011e785-358d-452a-a104-65c9d2d91550",
+      "option_key": "D",
+      "option_text": "250 mg"
+    },
+    {
+      "event_question_id": "1011e785-358d-452a-a104-65c9d2d91550",
+      "option_key": "E",
+      "option_text": "500 mg"
+    },
+    {
+      "event_question_id": "11c6c5b6-a971-4099-8e6c-66406d8548b2",
+      "option_key": "A",
+      "option_text": "Acitretin"
+    },
+    {
+      "event_question_id": "11c6c5b6-a971-4099-8e6c-66406d8548b2",
+      "option_key": "B",
+      "option_text": "Adalimumab"
+    },
+    {
+      "event_question_id": "11c6c5b6-a971-4099-8e6c-66406d8548b2",
+      "option_key": "C",
+      "option_text": "Infliximab"
+    },
+    {
+      "event_question_id": "11c6c5b6-a971-4099-8e6c-66406d8548b2",
+      "option_key": "D",
+      "option_text": "Prednisolon"
+    },
+    {
+      "event_question_id": "11c6c5b6-a971-4099-8e6c-66406d8548b2",
+      "option_key": "E",
+      "option_text": "Primaquin"
+    },
+    {
+      "event_question_id": "2f01e7af-7e0e-4cdf-84ab-5e44b082cd12",
+      "option_key": "A",
+      "option_text": "Setelah 12 jam terapi intravena"
+    },
+    {
+      "event_question_id": "2f01e7af-7e0e-4cdf-84ab-5e44b082cd12",
+      "option_key": "B",
+      "option_text": "Setelah 24 jam terapi intravena"
+    },
+    {
+      "event_question_id": "2f01e7af-7e0e-4cdf-84ab-5e44b082cd12",
+      "option_key": "C",
+      "option_text": "Setelah 72 jam dan kondisi klinis stabil"
+    },
+    {
+      "event_question_id": "2f01e7af-7e0e-4cdf-84ab-5e44b082cd12",
+      "option_key": "D",
+      "option_text": "Begitu pasien sadar dan dapat menelan"
+    },
+    {
+      "event_question_id": "2f01e7af-7e0e-4cdf-84ab-5e44b082cd12",
+      "option_key": "E",
+      "option_text": "Setelah hasil endoskopi negatif"
+    },
+    {
+      "event_question_id": "3495cf17-211f-46f6-820d-2328edc067c1",
+      "option_key": "A",
+      "option_text": "Asiklovir"
+    },
+    {
+      "event_question_id": "3495cf17-211f-46f6-820d-2328edc067c1",
+      "option_key": "B",
+      "option_text": "Hidrokortison krim"
+    },
+    {
+      "event_question_id": "3495cf17-211f-46f6-820d-2328edc067c1",
+      "option_key": "C",
+      "option_text": "Antibiotik oral"
+    },
+    {
+      "event_question_id": "3495cf17-211f-46f6-820d-2328edc067c1",
+      "option_key": "D",
+      "option_text": "Lidokain topikal"
+    },
+    {
+      "event_question_id": "3495cf17-211f-46f6-820d-2328edc067c1",
+      "option_key": "E",
+      "option_text": "Mupirosin"
+    },
+    {
+      "event_question_id": "3c784a71-777f-425d-b7b9-7caadeefc2a5",
+      "option_key": "A",
+      "option_text": "Metformin"
+    },
+    {
+      "event_question_id": "3c784a71-777f-425d-b7b9-7caadeefc2a5",
+      "option_key": "B",
+      "option_text": "Glibenklamid"
+    },
+    {
+      "event_question_id": "3c784a71-777f-425d-b7b9-7caadeefc2a5",
+      "option_key": "C",
+      "option_text": "Pioglitazon"
+    },
+    {
+      "event_question_id": "3c784a71-777f-425d-b7b9-7caadeefc2a5",
+      "option_key": "D",
+      "option_text": "Akarbose"
+    },
+    {
+      "event_question_id": "3c784a71-777f-425d-b7b9-7caadeefc2a5",
+      "option_key": "E",
+      "option_text": "Vildagliptin"
+    },
+    {
+      "event_question_id": "457ebc33-b21b-45d4-95cc-c952db546bbd",
+      "option_key": "A",
+      "option_text": "Nyeri sendi yang semakin hebat."
+    },
+    {
+      "event_question_id": "457ebc33-b21b-45d4-95cc-c952db546bbd",
+      "option_key": "B",
+      "option_text": "Demam dan ruam kulit."
+    },
+    {
+      "event_question_id": "457ebc33-b21b-45d4-95cc-c952db546bbd",
+      "option_key": "C",
+      "option_text": "Mual dan muntah."
+    },
+    {
+      "event_question_id": "457ebc33-b21b-45d4-95cc-c952db546bbd",
+      "option_key": "D",
+      "option_text": "Kelelahan."
+    },
+    {
+      "event_question_id": "457ebc33-b21b-45d4-95cc-c952db546bbd",
+      "option_key": "E",
+      "option_text": "Sakit Kepala."
+    },
+    {
+      "event_question_id": "46f7f70d-6e04-44cd-8b51-ffbd1b1c9f6f",
+      "option_key": "A",
+      "option_text": "3 hari"
+    },
+    {
+      "event_question_id": "46f7f70d-6e04-44cd-8b51-ffbd1b1c9f6f",
+      "option_key": "B",
+      "option_text": "1 minggu"
+    },
+    {
+      "event_question_id": "46f7f70d-6e04-44cd-8b51-ffbd1b1c9f6f",
+      "option_key": "C",
+      "option_text": "3 bulan"
+    },
+    {
+      "event_question_id": "46f7f70d-6e04-44cd-8b51-ffbd1b1c9f6f",
+      "option_key": "D",
+      "option_text": "2-4 minggu"
+    },
+    {
+      "event_question_id": "46f7f70d-6e04-44cd-8b51-ffbd1b1c9f6f",
+      "option_key": "E",
+      "option_text": "6-8 minggu"
+    },
+    {
+      "event_question_id": "555552f0-89ac-47e3-bb8c-46ed5aaafd9e",
+      "option_key": "A",
+      "option_text": "Nifedipine"
+    },
+    {
+      "event_question_id": "555552f0-89ac-47e3-bb8c-46ed5aaafd9e",
+      "option_key": "B",
+      "option_text": "Hydrochlorothiazide"
+    },
+    {
+      "event_question_id": "555552f0-89ac-47e3-bb8c-46ed5aaafd9e",
+      "option_key": "C",
+      "option_text": "Bisoprolol"
+    },
+    {
+      "event_question_id": "555552f0-89ac-47e3-bb8c-46ed5aaafd9e",
+      "option_key": "D",
+      "option_text": "Lisinopril"
+    },
+    {
+      "event_question_id": "555552f0-89ac-47e3-bb8c-46ed5aaafd9e",
+      "option_key": "E",
+      "option_text": "Amlodipine"
+    },
+    {
+      "event_question_id": "5b9e582f-0c51-4d85-8681-c438f384b265",
+      "option_key": "A",
+      "option_text": "Langsung meningkatkan dosis kortikosteroid hirup (ICS) ke dosis tinggi tanpa evaluasi"
+    },
+    {
+      "event_question_id": "5b9e582f-0c51-4d85-8681-c438f384b265",
+      "option_key": "B",
+      "option_text": "Memeriksa dan memperbaiki kepatuhan, teknik penggunaan inhaler, serta mengidentifikasi faktor pencetus"
+    },
+    {
+      "event_question_id": "5b9e582f-0c51-4d85-8681-c438f384b265",
+      "option_key": "C",
+      "option_text": "Memberikan kortikosteroid oral jangka panjang"
+    },
+    {
+      "event_question_id": "5b9e582f-0c51-4d85-8681-c438f384b265",
+      "option_key": "D",
+      "option_text": "Merujuk langsung ke terapi biologik"
+    },
+    {
+      "event_question_id": "5b9e582f-0c51-4d85-8681-c438f384b265",
+      "option_key": "E",
+      "option_text": "Menghentikan semua obat inhalasi"
+    },
+    {
+      "event_question_id": "6656d8b5-a580-4dc7-8738-73412c50ae3f",
+      "option_key": "A",
+      "option_text": "Konsumsi suplemen kalium"
+    },
+    {
+      "event_question_id": "6656d8b5-a580-4dc7-8738-73412c50ae3f",
+      "option_key": "B",
+      "option_text": "Diet rendah garam dan penurunan berat badan"
+    },
+    {
+      "event_question_id": "6656d8b5-a580-4dc7-8738-73412c50ae3f",
+      "option_key": "C",
+      "option_text": "Meditasi transcendental"
+    },
+    {
+      "event_question_id": "6656d8b5-a580-4dc7-8738-73412c50ae3f",
+      "option_key": "D",
+      "option_text": "Terapi akupunktur rutin"
+    },
+    {
+      "event_question_id": "6656d8b5-a580-4dc7-8738-73412c50ae3f",
+      "option_key": "E",
+      "option_text": "Puasa intermittent 16 jam"
+    },
+    {
+      "event_question_id": "6cc63a62-a119-4f6b-85bb-4b5854270859",
+      "option_key": "A",
+      "option_text": "Gabapentin"
+    },
+    {
+      "event_question_id": "6cc63a62-a119-4f6b-85bb-4b5854270859",
+      "option_key": "B",
+      "option_text": "Ibuprofen"
+    },
+    {
+      "event_question_id": "6cc63a62-a119-4f6b-85bb-4b5854270859",
+      "option_key": "C",
+      "option_text": "Ketorolac"
+    },
+    {
+      "event_question_id": "6cc63a62-a119-4f6b-85bb-4b5854270859",
+      "option_key": "D",
+      "option_text": "Tramadol"
+    },
+    {
+      "event_question_id": "6cc63a62-a119-4f6b-85bb-4b5854270859",
+      "option_key": "E",
+      "option_text": "Parasetamol kombinasi kafein"
+    },
+    {
+      "event_question_id": "6d281061-8776-4f45-a756-18cefe41e735",
+      "option_key": "A",
+      "option_text": "Hidrokortison krim"
+    },
+    {
+      "event_question_id": "6d281061-8776-4f45-a756-18cefe41e735",
+      "option_key": "B",
+      "option_text": "Klotrimazol krim"
+    },
+    {
+      "event_question_id": "6d281061-8776-4f45-a756-18cefe41e735",
+      "option_key": "C",
+      "option_text": "Mupirosin"
+    },
+    {
+      "event_question_id": "6d281061-8776-4f45-a756-18cefe41e735",
+      "option_key": "D",
+      "option_text": "Asam salisilat"
+    },
+    {
+      "event_question_id": "6d281061-8776-4f45-a756-18cefe41e735",
+      "option_key": "E",
+      "option_text": "Kalamin losion"
+    },
+    {
+      "event_question_id": "79c7d2a4-d82f-4c6d-9643-e5daef128776",
+      "option_key": "A",
+      "option_text": "Memberikan edukasi mengenai diet tinggi serat"
+    },
+    {
+      "event_question_id": "79c7d2a4-d82f-4c6d-9643-e5daef128776",
+      "option_key": "B",
+      "option_text": "Mengonfirmasi dan mengidentifikasi data pasien"
+    },
+    {
+      "event_question_id": "79c7d2a4-d82f-4c6d-9643-e5daef128776",
+      "option_key": "C",
+      "option_text": "Langsung menyusun rekomendasi penggantian obat"
+    },
+    {
+      "event_question_id": "79c7d2a4-d82f-4c6d-9643-e5daef128776",
+      "option_key": "D",
+      "option_text": "Melakukan penyesuaian dosis obat berdasarkan usia pasien"
+    },
+    {
+      "event_question_id": "79c7d2a4-d82f-4c6d-9643-e5daef128776",
+      "option_key": "E",
+      "option_text": "Mengambil data laboratorium dari rekam medis"
+    },
+    {
+      "event_question_id": "819542c2-610d-4c0c-9471-35f975411370",
+      "option_key": "A",
+      "option_text": "Vonoprazan 20 mg sekali sehari + amoksisilin + klaritromisin selama 7 hari"
+    },
+    {
+      "event_question_id": "819542c2-610d-4c0c-9471-35f975411370",
+      "option_key": "B",
+      "option_text": "PPI + amoksisilin + klaritromisin selama 14 hari"
+    },
+    {
+      "event_question_id": "819542c2-610d-4c0c-9471-35f975411370",
+      "option_key": "C",
+      "option_text": "PPI + metronidazol + tetrasiklin selama 7 hari"
+    },
+    {
+      "event_question_id": "819542c2-610d-4c0c-9471-35f975411370",
+      "option_key": "D",
+      "option_text": "Vonoprazan + amoksisilin dosis rendah selama 3 hari"
+    },
+    {
+      "event_question_id": "819542c2-610d-4c0c-9471-35f975411370",
+      "option_key": "E",
+      "option_text": "PPI + amoksisilin + rifabutin selama 10 hari"
+    },
+    {
+      "event_question_id": "83e68aca-48c8-4107-bcc7-5d387ef9a552",
+      "option_key": "A",
+      "option_text": "Ibuprofen"
+    },
+    {
+      "event_question_id": "83e68aca-48c8-4107-bcc7-5d387ef9a552",
+      "option_key": "B",
+      "option_text": "Tramadol"
+    },
+    {
+      "event_question_id": "83e68aca-48c8-4107-bcc7-5d387ef9a552",
+      "option_key": "C",
+      "option_text": "Morfin"
+    },
+    {
+      "event_question_id": "83e68aca-48c8-4107-bcc7-5d387ef9a552",
+      "option_key": "D",
+      "option_text": "Ketorolac"
+    },
+    {
+      "event_question_id": "83e68aca-48c8-4107-bcc7-5d387ef9a552",
+      "option_key": "E",
+      "option_text": "Parasetamol dosis tinggi"
+    },
+    {
+      "event_question_id": "86ff3eda-a47e-4592-9814-24a6d7702510",
+      "option_key": "A",
+      "option_text": "Asam arakhidonat"
+    },
+    {
+      "event_question_id": "86ff3eda-a47e-4592-9814-24a6d7702510",
+      "option_key": "B",
+      "option_text": "Prostaglandin"
+    },
+    {
+      "event_question_id": "86ff3eda-a47e-4592-9814-24a6d7702510",
+      "option_key": "C",
+      "option_text": "Prostasiklin"
+    },
+    {
+      "event_question_id": "86ff3eda-a47e-4592-9814-24a6d7702510",
+      "option_key": "D",
+      "option_text": "Leukotrien"
+    },
+    {
+      "event_question_id": "86ff3eda-a47e-4592-9814-24a6d7702510",
+      "option_key": "E",
+      "option_text": "NAPQI"
+    },
+    {
+      "event_question_id": "8d280d97-81dd-48ef-8e33-e38ec88c1422",
+      "option_key": "A",
+      "option_text": "Meningkatkan dosis kombinasi kortikosteroid hirup dan agonis Beta 2 kerja panjang tanpa evaluasi penyebab lain"
+    },
+    {
+      "event_question_id": "8d280d97-81dd-48ef-8e33-e38ec88c1422",
+      "option_key": "B",
+      "option_text": "Mengabaikan keluhan refluks karena tidak berhubungan dengan asma"
+    },
+    {
+      "event_question_id": "8d280d97-81dd-48ef-8e33-e38ec88c1422",
+      "option_key": "C",
+      "option_text": "Mengevaluasi dan menangani penyakit refluks gastroesofageal (GERD) dengan terapi farmakologis dan modifikasi gaya hidup sebagai bagian dari penatalaksanaan"
+    },
+    {
+      "event_question_id": "8d280d97-81dd-48ef-8e33-e38ec88c1422",
+      "option_key": "D",
+      "option_text": "Menghentikan kombinasi kortikosteroid hirup dan agonis Beta 2 kerja panjang serta mengganti dengan agonis Beta 2 kerja singkat saja"
+    },
+    {
+      "event_question_id": "8d280d97-81dd-48ef-8e33-e38ec88c1422",
+      "option_key": "E",
+      "option_text": "Memberikan antibiotik empiris untuk mengatasi batuk kronis"
+    },
+    {
+      "event_question_id": "9ce1bbef-aece-4a58-b1f3-998a3c916462",
+      "option_key": "A",
+      "option_text": "Amlodipin"
+    },
+    {
+      "event_question_id": "9ce1bbef-aece-4a58-b1f3-998a3c916462",
+      "option_key": "B",
+      "option_text": "Furosemid"
+    },
+    {
+      "event_question_id": "9ce1bbef-aece-4a58-b1f3-998a3c916462",
+      "option_key": "C",
+      "option_text": "Hidroklortiazid"
+    },
+    {
+      "event_question_id": "9ce1bbef-aece-4a58-b1f3-998a3c916462",
+      "option_key": "D",
+      "option_text": "Metildopa"
+    },
+    {
+      "event_question_id": "9ce1bbef-aece-4a58-b1f3-998a3c916462",
+      "option_key": "E",
+      "option_text": "Propanolol"
+    },
+    {
+      "event_question_id": "a988958e-7e72-4731-b151-b3ded640fc44",
+      "option_key": "A",
+      "option_text": "Memberikan terapi eradikasi H. pylori"
+    },
+    {
+      "event_question_id": "a988958e-7e72-4731-b151-b3ded640fc44",
+      "option_key": "B",
+      "option_text": "Memberikan PPI dan menghentikan penggunaan NSAID"
+    },
+    {
+      "event_question_id": "a988958e-7e72-4731-b151-b3ded640fc44",
+      "option_key": "C",
+      "option_text": "Melakukan pemeriksaan endoskopi segera"
+    },
+    {
+      "event_question_id": "a988958e-7e72-4731-b151-b3ded640fc44",
+      "option_key": "D",
+      "option_text": "Memberikan antasida saja"
+    },
+    {
+      "event_question_id": "a988958e-7e72-4731-b151-b3ded640fc44",
+      "option_key": "E",
+      "option_text": "Memberikan antibiotik klaritromisin"
+    },
+    {
+      "event_question_id": "a9c26d2b-9991-44d7-97c8-df7b6b3b744a",
+      "option_key": "A",
+      "option_text": "Segera menghentikan linezolid dan memberi transfusi trombosit."
+    },
+    {
+      "event_question_id": "a9c26d2b-9991-44d7-97c8-df7b6b3b744a",
+      "option_key": "B",
+      "option_text": "Mewaspadai efek samping myelosuppression akibat linezolid; melaporkan ke tim, merekomendasikan monitoring darah lengkap mingguan, mempertimbangkan penyesuaian dosis atau penghentian bila trombosit menurun lebih lanjut, dan mengevaluasi obat lain yang dapat menyebabkan trombositopenia."
+    },
+    {
+      "event_question_id": "a9c26d2b-9991-44d7-97c8-df7b6b3b744a",
+      "option_key": "C",
+      "option_text": "Menurunkan dosis glibenklamid karena mungkin menyebabkan gejala lemah."
+    },
+    {
+      "event_question_id": "a9c26d2b-9991-44d7-97c8-df7b6b3b744a",
+      "option_key": "D",
+      "option_text": "Menambahkan suplemen zat besi agar trombosit cepat meningkat."
+    },
+    {
+      "event_question_id": "a9c26d2b-9991-44d7-97c8-df7b6b3b744a",
+      "option_key": "E",
+      "option_text": "Melanjutkan semua obat dan menambahkan kortikosteroid untuk mencegah efek samping."
+    },
+    {
+      "event_question_id": "c0ab0479-88b0-485d-8d9f-cc1bdeca8b69",
+      "option_key": "A",
+      "option_text": "Asam folat oral"
+    },
+    {
+      "event_question_id": "c0ab0479-88b0-485d-8d9f-cc1bdeca8b69",
+      "option_key": "B",
+      "option_text": "Mecobalamin injeksi"
+    },
+    {
+      "event_question_id": "c0ab0479-88b0-485d-8d9f-cc1bdeca8b69",
+      "option_key": "C",
+      "option_text": "Tablet besi oral"
+    },
+    {
+      "event_question_id": "c0ab0479-88b0-485d-8d9f-cc1bdeca8b69",
+      "option_key": "D",
+      "option_text": "Vitamin C"
+    },
+    {
+      "event_question_id": "c0ab0479-88b0-485d-8d9f-cc1bdeca8b69",
+      "option_key": "E",
+      "option_text": "Erytropoietin"
+    },
+    {
+      "event_question_id": "cd9f5105-8692-44ba-85f7-67e94dbb4caf",
+      "option_key": "A",
+      "option_text": "Pasien berisiko tinggi mengalami eksaserbasi di masa depan, sehingga perlu penilaian risiko dan pencegahan yang lebih intensif"
+    },
+    {
+      "event_question_id": "cd9f5105-8692-44ba-85f7-67e94dbb4caf",
+      "option_key": "B",
+      "option_text": "Pasien tidak berisiko mengalami eksaserbasi berulang, sehingga tidak perlu perubahan terapi yang sedang dijalankan"
+    },
+    {
+      "event_question_id": "cd9f5105-8692-44ba-85f7-67e94dbb4caf",
+      "option_key": "C",
+      "option_text": "Pasien cukup diberikan agonis Beta 2 kerja singkat (SABA) saja untuk pencegahan serangan berikutnya"
+    },
+    {
+      "event_question_id": "cd9f5105-8692-44ba-85f7-67e94dbb4caf",
+      "option_key": "D",
+      "option_text": "Pasien langsung diberikan kortikosteroid oral dosis rendah harian tanpa evaluasi lanjutan"
+    },
+    {
+      "event_question_id": "cd9f5105-8692-44ba-85f7-67e94dbb4caf",
+      "option_key": "E",
+      "option_text": "Pasien dianjurkan untuk membatasi aktivitas fisik permanen tanpa terapi tambahan"
+    },
+    {
+      "event_question_id": "d772bee5-2188-430f-ae8e-f1be4605c6e5",
+      "option_key": "A",
+      "option_text": "Aman digunakan selama belum melewati tanggal kedaluwarsa"
+    },
+    {
+      "event_question_id": "d772bee5-2188-430f-ae8e-f1be4605c6e5",
+      "option_key": "B",
+      "option_text": "Tidak boleh digunakan karena paparan panas merusak stabilitas insulin"
+    },
+    {
+      "event_question_id": "d772bee5-2188-430f-ae8e-f1be4605c6e5",
+      "option_key": "C",
+      "option_text": "Masih bisa digunakan jika dikocok merata"
+    },
+    {
+      "event_question_id": "d772bee5-2188-430f-ae8e-f1be4605c6e5",
+      "option_key": "D",
+      "option_text": "Cukup disimpan di tempat teduh sebelum digunakan lagi"
+    },
+    {
+      "event_question_id": "d772bee5-2188-430f-ae8e-f1be4605c6e5",
+      "option_key": "E",
+      "option_text": "Bisa digunakan asalkan disuntik di area berbeda"
+    },
+    {
+      "event_question_id": "e4b95a4d-c681-41c0-8955-20aea5c1d9c4",
+      "option_key": "A",
+      "option_text": "Suplemen zat besi dapat diminum kapan saja bersamaan dengan antasida"
+    },
+    {
+      "event_question_id": "e4b95a4d-c681-41c0-8955-20aea5c1d9c4",
+      "option_key": "B",
+      "option_text": "Suplemen zat besi tidak boleh diminum bila ada riwayat gastritis"
+    },
+    {
+      "event_question_id": "e4b95a4d-c681-41c0-8955-20aea5c1d9c4",
+      "option_key": "C",
+      "option_text": "Pisahkan waktu konsumsi zat besi dan antasida minimal 2 jam"
+    },
+    {
+      "event_question_id": "e4b95a4d-c681-41c0-8955-20aea5c1d9c4",
+      "option_key": "D",
+      "option_text": "Zat besi sebaiknya dihentikan jika ada keluhan lelah"
+    },
+    {
+      "event_question_id": "e4b95a4d-c681-41c0-8955-20aea5c1d9c4",
+      "option_key": "E",
+      "option_text": "Antasida meningkatkan penyerapan zat besi"
+    },
+    {
+      "event_question_id": "e51b4cda-4611-4b42-90bb-eef310f38d1f",
+      "option_key": "A",
+      "option_text": "Memulai regimen penuh tanpa pemeriksaan tambahan karena peningkatan ALT ringan tidak bermakna."
+    },
+    {
+      "event_question_id": "e51b4cda-4611-4b42-90bb-eef310f38d1f",
+      "option_key": "B",
+      "option_text": "Menunda pemberian bedaquiline karena kontraindikasi bila ALT meningkat."
+    },
+    {
+      "event_question_id": "e51b4cda-4611-4b42-90bb-eef310f38d1f",
+      "option_key": "C",
+      "option_text": "Mendokumentasikan peningkatan ALT, memberi informasi risiko hepatotoksisitas dari beberapa obat (pretomanid, pyrazinamide), menyarankan monitoring fungsi hati berkala, dan berkoordinasi dengan tim mengenai penyebab peningkatan ALT sebelum terapi dimulai."
+    },
+    {
+      "event_question_id": "e51b4cda-4611-4b42-90bb-eef310f38d1f",
+      "option_key": "D",
+      "option_text": "Mengurangi semua dosis obat TB setengah dari dosis standar untuk mencegah hepatotoksisitas."
+    },
+    {
+      "event_question_id": "e51b4cda-4611-4b42-90bb-eef310f38d1f",
+      "option_key": "E",
+      "option_text": "Mengeluarkan linezolid dari regimen karena risiko hepatotoksisitas."
+    },
+    {
+      "event_question_id": "efec2f94-a91d-497a-a6e3-0c7934237085",
+      "option_key": "A",
+      "option_text": "Hipertensi derajat 1"
+    },
+    {
+      "event_question_id": "efec2f94-a91d-497a-a6e3-0c7934237085",
+      "option_key": "B",
+      "option_text": "Hipertensi derajat 2"
+    },
+    {
+      "event_question_id": "efec2f94-a91d-497a-a6e3-0c7934237085",
+      "option_key": "C",
+      "option_text": "Hipertensi krisis"
+    },
+    {
+      "event_question_id": "efec2f94-a91d-497a-a6e3-0c7934237085",
+      "option_key": "D",
+      "option_text": "Hipertensi pre hipertensi"
+    },
+    {
+      "event_question_id": "efec2f94-a91d-497a-a6e3-0c7934237085",
+      "option_key": "E",
+      "option_text": "Hipertensi normal"
+    },
+    {
+      "event_question_id": "f58d03cd-3518-4c93-a58c-d1b004f50edd",
+      "option_key": "A",
+      "option_text": "Pentingnya istirahat total."
+    },
+    {
+      "event_question_id": "f58d03cd-3518-4c93-a58c-d1b004f50edd",
+      "option_key": "B",
+      "option_text": "Penggunaan obat-obatan secara terus-menerus tanpa dosis yang disesuaikan."
+    },
+    {
+      "event_question_id": "f58d03cd-3518-4c93-a58c-d1b004f50edd",
+      "option_key": "C",
+      "option_text": "Pentingnya menjaga berat badan ideal."
+    },
+    {
+      "event_question_id": "f58d03cd-3518-4c93-a58c-d1b004f50edd",
+      "option_key": "D",
+      "option_text": "Penggunaan suplemen kalsium untuk memperkuat tulang."
+    },
+    {
+      "event_question_id": "f58d03cd-3518-4c93-a58c-d1b004f50edd",
+      "option_key": "E",
+      "option_text": "Pentingnya mengkonsumsi glukosamin sebagai suplemen dalam tatalaksana osteoartritis"
+    },
+    {
+      "event_question_id": "fa7923b4-c8cd-4c0f-bac7-986523007b69",
+      "option_key": "A",
+      "option_text": "ACEI"
+    },
+    {
+      "event_question_id": "fa7923b4-c8cd-4c0f-bac7-986523007b69",
+      "option_key": "B",
+      "option_text": "ARB"
+    },
+    {
+      "event_question_id": "fa7923b4-c8cd-4c0f-bac7-986523007b69",
+      "option_key": "C",
+      "option_text": "CCB"
+    },
+    {
+      "event_question_id": "fa7923b4-c8cd-4c0f-bac7-986523007b69",
+      "option_key": "D",
+      "option_text": "Diuretik"
+    },
+    {
+      "event_question_id": "fa7923b4-c8cd-4c0f-bac7-986523007b69",
+      "option_key": "E",
+      "option_text": "Penghambat Renin"
+    },
+    {
+      "event_question_id": "fc1c6523-75f3-4b76-847b-58993407ac39",
+      "option_key": "A",
+      "option_text": "MART hanya menggunakan formoterol tanpa kortikosteroid hirup"
+    },
+    {
+      "event_question_id": "fc1c6523-75f3-4b76-847b-58993407ac39",
+      "option_key": "B",
+      "option_text": "MART menggunakan kombinasi kortikosteroid hirup dan formoterol untuk terapi harian sekaligus obat pereda bila perlu, yang dapat menurunkan risiko eksaserbasi"
+    },
+    {
+      "event_question_id": "fc1c6523-75f3-4b76-847b-58993407ac39",
+      "option_key": "C",
+      "option_text": "MART berarti penggunaan kortikosteroid oral sesuai kebutuhan tanpa obat inhalasi"
+    },
+    {
+      "event_question_id": "fc1c6523-75f3-4b76-847b-58993407ac39",
+      "option_key": "D",
+      "option_text": "MART berarti mengganti inhaler pasien menjadi nebulizer untuk jangka panjang"
+    },
+    {
+      "event_question_id": "fc1c6523-75f3-4b76-847b-58993407ac39",
+      "option_key": "E",
+      "option_text": "MART tidak direkomendasikan untuk semua pasien karena risiko efek samping berat"
+    },
+    {
+      "event_question_id": "1d34af83-14be-4b9b-8adb-c9cd87430638",
+      "option_key": "A",
+      "option_text": "Amlodipine"
+    },
+    {
+      "event_question_id": "1d34af83-14be-4b9b-8adb-c9cd87430638",
+      "option_key": "B",
+      "option_text": "Atenolol"
+    },
+    {
+      "event_question_id": "1d34af83-14be-4b9b-8adb-c9cd87430638",
+      "option_key": "C",
+      "option_text": "Hydrochlorothiazide"
+    },
+    {
+      "event_question_id": "1d34af83-14be-4b9b-8adb-c9cd87430638",
+      "option_key": "D",
+      "option_text": "Lisinopril"
+    },
+    {
+      "event_question_id": "1d34af83-14be-4b9b-8adb-c9cd87430638",
+      "option_key": "E",
+      "option_text": "Prazosin"
+    },
+    {
+      "event_question_id": "2b3976f0-b6ba-4a71-9cf1-4d9331d7d984",
+      "option_key": "A",
+      "option_text": "Hindari olahraga sepenuhnya untuk mencegah hipoglikemia"
+    },
+    {
+      "event_question_id": "2b3976f0-b6ba-4a71-9cf1-4d9331d7d984",
+      "option_key": "B",
+      "option_text": "Lakukan olahraga setelah sarapan dan bawa selalu sumber glukosa cepat"
+    },
+    {
+      "event_question_id": "2b3976f0-b6ba-4a71-9cf1-4d9331d7d984",
+      "option_key": "C",
+      "option_text": "Menambah dosis insulin sebelum olahraga"
+    },
+    {
+      "event_question_id": "2b3976f0-b6ba-4a71-9cf1-4d9331d7d984",
+      "option_key": "D",
+      "option_text": "Minum kopi sebelum olahraga"
+    },
+    {
+      "event_question_id": "2b3976f0-b6ba-4a71-9cf1-4d9331d7d984",
+      "option_key": "E",
+      "option_text": "Menghentikan insulin setiap hari berolahraga"
+    },
+    {
+      "event_question_id": "2b5b1a33-8096-422f-a1af-3181443bdccb",
+      "option_key": "A",
+      "option_text": "Amlodipin"
+    },
+    {
+      "event_question_id": "2b5b1a33-8096-422f-a1af-3181443bdccb",
+      "option_key": "B",
+      "option_text": "Captopril"
+    },
+    {
+      "event_question_id": "2b5b1a33-8096-422f-a1af-3181443bdccb",
+      "option_key": "C",
+      "option_text": "Furosemid"
+    },
+    {
+      "event_question_id": "2b5b1a33-8096-422f-a1af-3181443bdccb",
+      "option_key": "D",
+      "option_text": "Hidroklortiazid"
+    },
+    {
+      "event_question_id": "2b5b1a33-8096-422f-a1af-3181443bdccb",
+      "option_key": "E",
+      "option_text": "Metildopa"
+    },
+    {
+      "event_question_id": "32f09d7a-2cc3-4d49-8331-fe9c20fd8cfa",
+      "option_key": "A",
+      "option_text": "Antihistamin oral"
+    },
+    {
+      "event_question_id": "32f09d7a-2cc3-4d49-8331-fe9c20fd8cfa",
+      "option_key": "B",
+      "option_text": "Klotrimazol krim"
+    },
+    {
+      "event_question_id": "32f09d7a-2cc3-4d49-8331-fe9c20fd8cfa",
+      "option_key": "C",
+      "option_text": "Hidrokortison krim 1%"
+    },
+    {
+      "event_question_id": "32f09d7a-2cc3-4d49-8331-fe9c20fd8cfa",
+      "option_key": "D",
+      "option_text": "Neomisin salep"
+    },
+    {
+      "event_question_id": "32f09d7a-2cc3-4d49-8331-fe9c20fd8cfa",
+      "option_key": "E",
+      "option_text": "Asam salisilat topical"
+    },
+    {
+      "event_question_id": "337a4bf8-794b-4f21-bca8-ebb6ce3aefe6",
+      "option_key": "A",
+      "option_text": "Mengurangi dosis insulin glargine"
+    },
+    {
+      "event_question_id": "337a4bf8-794b-4f21-bca8-ebb6ce3aefe6",
+      "option_key": "B",
+      "option_text": "Menghentikan insulin sementara"
+    },
+    {
+      "event_question_id": "337a4bf8-794b-4f21-bca8-ebb6ce3aefe6",
+      "option_key": "C",
+      "option_text": "Menjelaskan bahwa gejala tersebut adalah hipoglikemia, dan pasien harus segera mengonsumsi makanan atau minuman manis setiap kali gejala muncul"
+    },
+    {
+      "event_question_id": "337a4bf8-794b-4f21-bca8-ebb6ce3aefe6",
+      "option_key": "D",
+      "option_text": "Menyarankan menambah insulin lispro saat makan malam"
+    },
+    {
+      "event_question_id": "337a4bf8-794b-4f21-bca8-ebb6ce3aefe6",
+      "option_key": "E",
+      "option_text": "Menyarankan mengganti insulin basal dengan premix"
+    },
+    {
+      "event_question_id": "4e2a0cf9-1dfa-4595-be74-75f256285471",
+      "option_key": "A",
+      "option_text": "Amoksisilin"
+    },
+    {
+      "event_question_id": "4e2a0cf9-1dfa-4595-be74-75f256285471",
+      "option_key": "B",
+      "option_text": "Siprofloksasin"
+    },
+    {
+      "event_question_id": "4e2a0cf9-1dfa-4595-be74-75f256285471",
+      "option_key": "C",
+      "option_text": "Kotrimoksazol"
+    },
+    {
+      "event_question_id": "4e2a0cf9-1dfa-4595-be74-75f256285471",
+      "option_key": "D",
+      "option_text": "Doksisiklin"
+    },
+    {
+      "event_question_id": "4e2a0cf9-1dfa-4595-be74-75f256285471",
+      "option_key": "E",
+      "option_text": "Kloramfenikol"
+    },
+    {
+      "event_question_id": "641e522c-30f7-4b1e-b3a6-651198cd48e2",
+      "option_key": "A",
+      "option_text": "Pil kombinasi dosis tinggi (Yuzpe regimen)"
+    },
+    {
+      "event_question_id": "641e522c-30f7-4b1e-b3a6-651198cd48e2",
+      "option_key": "B",
+      "option_text": "Levonorgestrel 1,5 mg dosis tunggal"
+    },
+    {
+      "event_question_id": "641e522c-30f7-4b1e-b3a6-651198cd48e2",
+      "option_key": "C",
+      "option_text": "Medroksiprogesteron asetat suntik"
+    },
+    {
+      "event_question_id": "641e522c-30f7-4b1e-b3a6-651198cd48e2",
+      "option_key": "D",
+      "option_text": "Pil mini harian"
+    },
+    {
+      "event_question_id": "641e522c-30f7-4b1e-b3a6-651198cd48e2",
+      "option_key": "E",
+      "option_text": "IUD levonorgestrel langsung dipasang"
+    },
+    {
+      "event_question_id": "6c13e79e-c4bd-45ca-b4fd-5a002f63684e",
+      "option_key": "A",
+      "option_text": "Amlodipine"
+    },
+    {
+      "event_question_id": "6c13e79e-c4bd-45ca-b4fd-5a002f63684e",
+      "option_key": "B",
+      "option_text": "Furosemide"
+    },
+    {
+      "event_question_id": "6c13e79e-c4bd-45ca-b4fd-5a002f63684e",
+      "option_key": "C",
+      "option_text": "Lisinopril"
+    },
+    {
+      "event_question_id": "6c13e79e-c4bd-45ca-b4fd-5a002f63684e",
+      "option_key": "D",
+      "option_text": "Metoprolol"
+    },
+    {
+      "event_question_id": "6c13e79e-c4bd-45ca-b4fd-5a002f63684e",
+      "option_key": "E",
+      "option_text": "Doxazosin"
+    },
+    {
+      "event_question_id": "806e346b-5451-40f1-88bb-74b6f87474b8",
+      "option_key": "A",
+      "option_text": "Malabsorpsi lemak karena gangguan pankreas."
+    },
+    {
+      "event_question_id": "806e346b-5451-40f1-88bb-74b6f87474b8",
+      "option_key": "B",
+      "option_text": "Autoimun yang menyebabkan kerusakan villi usus halus akibat paparan gluten."
+    },
+    {
+      "event_question_id": "806e346b-5451-40f1-88bb-74b6f87474b8",
+      "option_key": "C",
+      "option_text": "Infeksi bakteri yang mengganggu fungsi pencernaan."
+    },
+    {
+      "event_question_id": "806e346b-5451-40f1-88bb-74b6f87474b8",
+      "option_key": "D",
+      "option_text": "Peradangan kronis pada usus besar."
+    },
+    {
+      "event_question_id": "806e346b-5451-40f1-88bb-74b6f87474b8",
+      "option_key": "E",
+      "option_text": "Peningkatan sekresi asam lambung yang menyebabkan iritasi usus."
+    },
+    {
+      "event_question_id": "8991a07f-9cb3-4662-8e01-450dae643147",
+      "option_key": "A",
+      "option_text": "Amlodipin"
+    },
+    {
+      "event_question_id": "8991a07f-9cb3-4662-8e01-450dae643147",
+      "option_key": "B",
+      "option_text": "Bisoprolol"
+    },
+    {
+      "event_question_id": "8991a07f-9cb3-4662-8e01-450dae643147",
+      "option_key": "C",
+      "option_text": "Captopril"
+    },
+    {
+      "event_question_id": "8991a07f-9cb3-4662-8e01-450dae643147",
+      "option_key": "D",
+      "option_text": "Hidroklorotiazid"
+    },
+    {
+      "event_question_id": "8991a07f-9cb3-4662-8e01-450dae643147",
+      "option_key": "E",
+      "option_text": "Metildopa"
+    },
+    {
+      "event_question_id": "8e3f130b-53f1-4f3b-a2d1-779a1eb732c4",
+      "option_key": "A",
+      "option_text": "Hiperpigmentasi kulit akibat clofazimine biasanya membaik perlahan setelah obat dihentikan; efek ini perlu dicatat, pasien dianjurkan menggunakan tabir surya, dan dapat dikonsultasikan ke dokter bila efek kosmetik mengganggu."
+    },
+    {
+      "event_question_id": "8e3f130b-53f1-4f3b-a2d1-779a1eb732c4",
+      "option_key": "B",
+      "option_text": "Menghentikan clofazimine segera karena hiperpigmentasi tidak dapat diobati."
+    },
+    {
+      "event_question_id": "8e3f130b-53f1-4f3b-a2d1-779a1eb732c4",
+      "option_key": "C",
+      "option_text": "Menghentikan insulin karena memperburuk hiperpigmentasi."
+    },
+    {
+      "event_question_id": "8e3f130b-53f1-4f3b-a2d1-779a1eb732c4",
+      "option_key": "D",
+      "option_text": "Memberikan krim pemutih topikal tanpa konsultasi dokter."
+    },
+    {
+      "event_question_id": "8e3f130b-53f1-4f3b-a2d1-779a1eb732c4",
+      "option_key": "E",
+      "option_text": "Meyakinkan pasien bahwa perubahan warna kulit akan hilang dalam beberapa hari."
+    },
+    {
+      "event_question_id": "9d0b44df-df3a-4a50-bf22-c0a71717c99c",
+      "option_key": "A",
+      "option_text": "Ondansetron"
+    },
+    {
+      "event_question_id": "9d0b44df-df3a-4a50-bf22-c0a71717c99c",
+      "option_key": "B",
+      "option_text": "Vitamin B6"
+    },
+    {
+      "event_question_id": "9d0b44df-df3a-4a50-bf22-c0a71717c99c",
+      "option_key": "C",
+      "option_text": "Metoklopramid"
+    },
+    {
+      "event_question_id": "9d0b44df-df3a-4a50-bf22-c0a71717c99c",
+      "option_key": "D",
+      "option_text": "Deksametason"
+    },
+    {
+      "event_question_id": "9d0b44df-df3a-4a50-bf22-c0a71717c99c",
+      "option_key": "E",
+      "option_text": "Antasida"
+    },
+    {
+      "event_question_id": "9e9ed247-c0ef-4298-aede-2c836e6df3de",
+      "option_key": "A",
+      "option_text": "Mengabaikan keluhan karena mungkin akibat fluktuasi gula darah pada diabetes."
+    },
+    {
+      "event_question_id": "9e9ed247-c0ef-4298-aede-2c836e6df3de",
+      "option_key": "B",
+      "option_text": "Mendokumentasikan gejala, menyarankan pemeriksaan mata segera, menghentikan linezolid sementara bila dicurigai kuat, dan berkoordinasi dengan tim untuk evaluasi lebih lanjut."
+    },
+    {
+      "event_question_id": "9e9ed247-c0ef-4298-aede-2c836e6df3de",
+      "option_key": "C",
+      "option_text": "Memberikan vitamin A untuk memperbaiki penglihatan tanpa pemeriksaan lebih lanjut."
+    },
+    {
+      "event_question_id": "9e9ed247-c0ef-4298-aede-2c836e6df3de",
+      "option_key": "D",
+      "option_text": "Mengurangi dosis insulin karena kemungkinan hipoglikemia penyebab penglihatan kabur."
+    },
+    {
+      "event_question_id": "9e9ed247-c0ef-4298-aede-2c836e6df3de",
+      "option_key": "E",
+      "option_text": "Menambahkan tetes mata kortikosteroid tanpa rujukan dokter."
+    },
+    {
+      "event_question_id": "9ff87550-cfc5-4c0e-a668-9f70f9eef573",
+      "option_key": "A",
+      "option_text": "Peningkatan aliran keluar uveoskleral dan trabekuler"
+    },
+    {
+      "event_question_id": "9ff87550-cfc5-4c0e-a668-9f70f9eef573",
+      "option_key": "B",
+      "option_text": "Mengurangi produksi aqueous humor"
+    },
+    {
+      "event_question_id": "9ff87550-cfc5-4c0e-a668-9f70f9eef573",
+      "option_key": "C",
+      "option_text": "Pelebaran sudut ruang"
+    },
+    {
+      "event_question_id": "9ff87550-cfc5-4c0e-a668-9f70f9eef573",
+      "option_key": "D",
+      "option_text": "Menurunkan tekanan intraokular"
+    },
+    {
+      "event_question_id": "9ff87550-cfc5-4c0e-a668-9f70f9eef573",
+      "option_key": "E",
+      "option_text": "Menghambat karbonik anhidrase"
+    },
+    {
+      "event_question_id": "a538c27a-1ba0-4431-a7a6-0f599aae0a75",
+      "option_key": "A",
+      "option_text": "Menegur pasien karena tidak patuh"
+    },
+    {
+      "event_question_id": "a538c27a-1ba0-4431-a7a6-0f599aae0a75",
+      "option_key": "B",
+      "option_text": "Menjelaskan kembali tujuan insulin untuk mengontrol gula darah sepanjang hari dan mencegah komplikasi"
+    },
+    {
+      "event_question_id": "a538c27a-1ba0-4431-a7a6-0f599aae0a75",
+      "option_key": "C",
+      "option_text": "Menghentikan insulin sementara karena pasien sudah cukup dengan OAD"
+    },
+    {
+      "event_question_id": "a538c27a-1ba0-4431-a7a6-0f599aae0a75",
+      "option_key": "D",
+      "option_text": "Menyarankan mengganti insulin dengan obat herbal"
+    },
+    {
+      "event_question_id": "a538c27a-1ba0-4431-a7a6-0f599aae0a75",
+      "option_key": "E",
+      "option_text": "Menyarankan pasien menambah dosis tanpa dokter"
+    },
+    {
+      "event_question_id": "a6961b6f-7827-4863-9707-aac6276cd9dd",
+      "option_key": "A",
+      "option_text": "Suplemen asam folat"
+    },
+    {
+      "event_question_id": "a6961b6f-7827-4863-9707-aac6276cd9dd",
+      "option_key": "B",
+      "option_text": "Tablet besi sulfat oral"
+    },
+    {
+      "event_question_id": "a6961b6f-7827-4863-9707-aac6276cd9dd",
+      "option_key": "C",
+      "option_text": "Vitamin B12 injeksi"
+    },
+    {
+      "event_question_id": "a6961b6f-7827-4863-9707-aac6276cd9dd",
+      "option_key": "D",
+      "option_text": "Eritropoietin subkutan"
+    },
+    {
+      "event_question_id": "a6961b6f-7827-4863-9707-aac6276cd9dd",
+      "option_key": "E",
+      "option_text": "Transfusi darah"
+    },
+    {
+      "event_question_id": "b02b2467-b4eb-4cad-8148-54ad81ccc433",
+      "option_key": "A",
+      "option_text": "Tidak terdapat interaksi klinis bermakna antara moxifloxacin dan sitagliptin, namun moxifloxacin dapat memanjangkan interval QT sehingga perlu memperhatikan riwayat jantung dan obat lain yang memanjangkan QT serta melakukan monitoring sesuai pedoman."
+    },
+    {
+      "event_question_id": "b02b2467-b4eb-4cad-8148-54ad81ccc433",
+      "option_key": "B",
+      "option_text": "Moxifloxacin menurunkan efektivitas sitagliptin sehingga kadar gula darah akan meningkat."
+    },
+    {
+      "event_question_id": "b02b2467-b4eb-4cad-8148-54ad81ccc433",
+      "option_key": "C",
+      "option_text": "Sitagliptin meningkatkan risiko tendonitis dari moxifloxacin sehingga terapi harus dihentikan."
+    },
+    {
+      "event_question_id": "b02b2467-b4eb-4cad-8148-54ad81ccc433",
+      "option_key": "D",
+      "option_text": "Perlu menurunkan dosis sitagliptin setiap kali moxifloxacin diberikan."
+    },
+    {
+      "event_question_id": "b02b2467-b4eb-4cad-8148-54ad81ccc433",
+      "option_key": "E",
+      "option_text": "Harus mengganti moxifloxacin dengan aminoglikosida karena risiko interaksi berat."
+    },
+    {
+      "event_question_id": "b72617ac-d8e6-4a52-b049-4efd7fee5382",
+      "option_key": "A",
+      "option_text": "Menetralkan asam lambung."
+    },
+    {
+      "event_question_id": "b72617ac-d8e6-4a52-b049-4efd7fee5382",
+      "option_key": "B",
+      "option_text": "Menghambat produksi asam lambung melalui inhibisi pompa proton H+/K+-ATPase."
+    },
+    {
+      "event_question_id": "b72617ac-d8e6-4a52-b049-4efd7fee5382",
+      "option_key": "C",
+      "option_text": "Membentuk lapisan pelindung di dinding lambung."
+    },
+    {
+      "event_question_id": "b72617ac-d8e6-4a52-b049-4efd7fee5382",
+      "option_key": "D",
+      "option_text": "Mempercepat pengosongan lambung."
+    },
+    {
+      "event_question_id": "b72617ac-d8e6-4a52-b049-4efd7fee5382",
+      "option_key": "E",
+      "option_text": "Mengurangi sekresi asam lambung dengan menghambat reseptor H2."
+    },
+    {
+      "event_question_id": "b85b7281-047c-48a7-8981-7fd3438dfbe7",
+      "option_key": "A",
+      "option_text": "TDM tidak diperlukan pada TB MDR; fokus hanya pada kepatuhan pasien."
+    },
+    {
+      "event_question_id": "b85b7281-047c-48a7-8981-7fd3438dfbe7",
+      "option_key": "B",
+      "option_text": "TDM untuk linezolid atau fluoroquinolone dapat membantu menyesuaikan dosis untuk efektivitas dan menurunkan risiko toksisitas; kontrol glukosa yang baik juga penting karena DM memengaruhi respons terapi dan risiko komplikasi."
+    },
+    {
+      "event_question_id": "b85b7281-047c-48a7-8981-7fd3438dfbe7",
+      "option_key": "C",
+      "option_text": "Memulai insulin intensif akan mencegah semua efek samping obat TB."
+    },
+    {
+      "event_question_id": "b85b7281-047c-48a7-8981-7fd3438dfbe7",
+      "option_key": "D",
+      "option_text": "Monitoring hanya perlu untuk kadar gula darah; TDM meningkatkan risiko toksisitas sehingga dihindari."
+    },
+    {
+      "event_question_id": "b85b7281-047c-48a7-8981-7fd3438dfbe7",
+      "option_key": "E",
+      "option_text": "Mengganti semua obat TB ke regimen yang lebih pendek agar efek samping berkurang."
+    },
+    {
+      "event_question_id": "c3c74a10-a02e-4984-8b23-a06e46a1f6a6",
+      "option_key": "A",
+      "option_text": "Menganggap gejala sebagai neuropati diabetik dan melanjutkan regimen TB tanpa perubahan."
+    },
+    {
+      "event_question_id": "c3c74a10-a02e-4984-8b23-a06e46a1f6a6",
+      "option_key": "B",
+      "option_text": "Menilai hubungan waktu munculnya gejala dengan terapi linezolid, menyarankan pemeriksaan neurologi, mendokumentasikan kemungkinan efek samping, memberi edukasi untuk melapor bila gejala memburuk, dan berkoordinasi dengan dokter untuk evaluasi dosis atau penggantian obat."
+    },
+    {
+      "event_question_id": "c3c74a10-a02e-4984-8b23-a06e46a1f6a6",
+      "option_key": "C",
+      "option_text": "Meresepkan vitamin B kompleks tanpa koordinasi dengan tim klinik."
+    },
+    {
+      "event_question_id": "c3c74a10-a02e-4984-8b23-a06e46a1f6a6",
+      "option_key": "D",
+      "option_text": "Menghentikan semua obat yang bersifat neurotoksik tanpa diskusi dengan tim TB."
+    },
+    {
+      "event_question_id": "c3c74a10-a02e-4984-8b23-a06e46a1f6a6",
+      "option_key": "E",
+      "option_text": "Menganjurkan pasien berhenti menggunakan metformin karena memperburuk neuropati."
+    },
+    {
+      "event_question_id": "cfda0476-358e-400a-bd8d-402817f69c0e",
+      "option_key": "A",
+      "option_text": "Pil kombinasi (estrogen-progestin)"
+    },
+    {
+      "event_question_id": "cfda0476-358e-400a-bd8d-402817f69c0e",
+      "option_key": "B",
+      "option_text": "Pil mini (progestin-only pill)"
+    },
+    {
+      "event_question_id": "cfda0476-358e-400a-bd8d-402817f69c0e",
+      "option_key": "C",
+      "option_text": "Suntik kombinasi bulanan"
+    },
+    {
+      "event_question_id": "cfda0476-358e-400a-bd8d-402817f69c0e",
+      "option_key": "D",
+      "option_text": "Patch transdermal kombinasi"
+    },
+    {
+      "event_question_id": "cfda0476-358e-400a-bd8d-402817f69c0e",
+      "option_key": "E",
+      "option_text": "IUD tembaga"
+    },
+    {
+      "event_question_id": "d217a536-afa9-4760-99af-9d9cc44ea53d",
+      "option_key": "A",
+      "option_text": "Amlodipin"
+    },
+    {
+      "event_question_id": "d217a536-afa9-4760-99af-9d9cc44ea53d",
+      "option_key": "B",
+      "option_text": "Kombinasi Triprolidin HCl dengan Pseudoefedrin HCl"
+    },
+    {
+      "event_question_id": "d217a536-afa9-4760-99af-9d9cc44ea53d",
+      "option_key": "C",
+      "option_text": "Metformin"
+    },
+    {
+      "event_question_id": "d217a536-afa9-4760-99af-9d9cc44ea53d",
+      "option_key": "D",
+      "option_text": "Parasetamol"
+    },
+    {
+      "event_question_id": "d217a536-afa9-4760-99af-9d9cc44ea53d",
+      "option_key": "E",
+      "option_text": "Vitamin C"
+    },
+    {
+      "event_question_id": "dbbb331f-8eb1-478d-986b-213490307bcf",
+      "option_key": "A",
+      "option_text": "Kontrasepsi oral kombinasi"
+    },
+    {
+      "event_question_id": "dbbb331f-8eb1-478d-986b-213490307bcf",
+      "option_key": "B",
+      "option_text": "Agonis GnRH"
+    },
+    {
+      "event_question_id": "dbbb331f-8eb1-478d-986b-213490307bcf",
+      "option_key": "C",
+      "option_text": "Antibiotik"
+    },
+    {
+      "event_question_id": "dbbb331f-8eb1-478d-986b-213490307bcf",
+      "option_key": "D",
+      "option_text": "Antijamur intravaginal"
+    },
+    {
+      "event_question_id": "dbbb331f-8eb1-478d-986b-213490307bcf",
+      "option_key": "E",
+      "option_text": "NSAID"
+    },
+    {
+      "event_question_id": "e3c1201e-d6b1-4cf6-b255-0f682f2c3eb2",
+      "option_key": "A",
+      "option_text": "Asiklovir krim"
+    },
+    {
+      "event_question_id": "e3c1201e-d6b1-4cf6-b255-0f682f2c3eb2",
+      "option_key": "B",
+      "option_text": "Klotrimazol krim"
+    },
+    {
+      "event_question_id": "e3c1201e-d6b1-4cf6-b255-0f682f2c3eb2",
+      "option_key": "C",
+      "option_text": "Permetrin krim 5%"
+    },
+    {
+      "event_question_id": "e3c1201e-d6b1-4cf6-b255-0f682f2c3eb2",
+      "option_key": "D",
+      "option_text": "Hidrokortison krim"
+    },
+    {
+      "event_question_id": "e3c1201e-d6b1-4cf6-b255-0f682f2c3eb2",
+      "option_key": "E",
+      "option_text": "Lidokain krim"
+    },
+    {
+      "event_question_id": "ef3b6b91-3dfb-46fc-a4a8-3d645a00c68e",
+      "option_key": "A",
+      "option_text": "Setiap pasien asma sebaiknya memiliki rencana aksi tertulis yang mencakup pengobatan harian, tindakan saat terjadi eksaserbasi, dan waktu mencari pertolongan darurat"
+    },
+    {
+      "event_question_id": "ef3b6b91-3dfb-46fc-a4a8-3d645a00c68e",
+      "option_key": "B",
+      "option_text": "Rencana aksi hanya diberikan kepada pasien dengan asma berat yang tidak terkontrol"
+    },
+    {
+      "event_question_id": "ef3b6b91-3dfb-46fc-a4a8-3d645a00c68e",
+      "option_key": "C",
+      "option_text": "Rencana aksi hanya direkomendasikan untuk anak-anak di bawah usia lima tahun"
+    },
+    {
+      "event_question_id": "ef3b6b91-3dfb-46fc-a4a8-3d645a00c68e",
+      "option_key": "D",
+      "option_text": "Rencana aksi dapat digantikan sepenuhnya oleh aplikasi digital tanpa penjelasan dari tenaga kesehatan"
+    },
+    {
+      "event_question_id": "f4c0cc10-a5a5-4eee-bf18-fb745d4e7532",
+      "option_key": "A",
+      "option_text": "Menghentikan seluruh bronkodilator, memberikan obat penenang, dan mengobservasi tanpa terapi tambahan"
+    },
+    {
+      "event_question_id": "f4c0cc10-a5a5-4eee-bf18-fb745d4e7532",
+      "option_key": "B",
+      "option_text": "Memberikan antagonis leukotrien oral, menunda obat inhalasi, dan memulangkan pasien setelah pemberian dosis tunggal"
+    },
+    {
+      "event_question_id": "f4c0cc10-a5a5-4eee-bf18-fb745d4e7532",
+      "option_key": "C",
+      "option_text": "Memberikan terapi biologik (anti-IgE), menghindari bronkodilator, dan melanjutkan observasi singkat di IGD"
+    },
+    {
+      "event_question_id": "f4c0cc10-a5a5-4eee-bf18-fb745d4e7532",
+      "option_key": "D",
+      "option_text": "Tidak memberikan oksigen tambahan, menunda obat inhalasi, dan menunggu perbaikan spontan pasien"
+    },
+    {
+      "event_question_id": "f4c0cc10-a5a5-4eee-bf18-fb745d4e7532",
+      "option_key": "E",
+      "option_text": "Memberikan obat pereda inhalasi (SABA atau kombinasi kortikosteroid hirup–formoterol sesuai jalur), oksigen sesuai kebutuhan, dan kortikosteroid sistemik jangka pendek bila tidak membaik"
+    },
+    {
+      "event_question_id": "f98055ba-053b-45cb-b0ab-0199a798408e",
+      "option_key": "A",
+      "option_text": "Pil kombinasi estrogen-progestin"
+    },
+    {
+      "event_question_id": "f98055ba-053b-45cb-b0ab-0199a798408e",
+      "option_key": "B",
+      "option_text": "IUD tembaga"
+    },
+    {
+      "event_question_id": "f98055ba-053b-45cb-b0ab-0199a798408e",
+      "option_key": "C",
+      "option_text": "Pil mini (progestin-only pill)"
+    },
+    {
+      "event_question_id": "f98055ba-053b-45cb-b0ab-0199a798408e",
+      "option_key": "D",
+      "option_text": "Suntik kombinasi bulanan"
+    },
+    {
+      "event_question_id": "f98055ba-053b-45cb-b0ab-0199a798408e",
+      "option_key": "E",
+      "option_text": "Patch transdermal estrogen-progestin"
+    },
+    {
+      "event_question_id": "fa37c11f-5f4b-49af-9df6-36eb5918ea53",
+      "option_key": "A",
+      "option_text": "Pil kombinasi (estrogen-progestin)"
+    },
+    {
+      "event_question_id": "fa37c11f-5f4b-49af-9df6-36eb5918ea53",
+      "option_key": "B",
+      "option_text": "IUD tembaga"
+    },
+    {
+      "event_question_id": "fa37c11f-5f4b-49af-9df6-36eb5918ea53",
+      "option_key": "C",
+      "option_text": "IUD levonorgestrel"
+    },
+    {
+      "event_question_id": "fa37c11f-5f4b-49af-9df6-36eb5918ea53",
+      "option_key": "D",
+      "option_text": "Implan progestin"
+    },
+    {
+      "event_question_id": "fa37c11f-5f4b-49af-9df6-36eb5918ea53",
+      "option_key": "E",
+      "option_text": "Suntik depo progestin"
+    },
+    {
+      "event_question_id": "fd6d3fd1-c102-4ab5-8de0-3b49fc6a907c",
+      "option_key": "A",
+      "option_text": "Tidak ada interaksi antara bedaquiline dan inhibitor CYP3A4."
+    },
+    {
+      "event_question_id": "fd6d3fd1-c102-4ab5-8de0-3b49fc6a907c",
+      "option_key": "B",
+      "option_text": "Karena bedaquiline dimetabolisme oleh CYP3A4, penggunaan bersama inhibitor kuat dapat meningkatkan kadar bedaquiline dan risiko pemanjangan QT; perlu dilakukan review regimen ARV, pertimbangan alternatif, serta monitoring ECG ketat."
+    },
+    {
+      "event_question_id": "fd6d3fd1-c102-4ab5-8de0-3b49fc6a907c",
+      "option_key": "C",
+      "option_text": "Memberikan bedaquiline pada dosis ganda untuk menyeimbangkan efek inhibitor CYP3A4."
+    },
+    {
+      "event_question_id": "fd6d3fd1-c102-4ab5-8de0-3b49fc6a907c",
+      "option_key": "D",
+      "option_text": "Menghentikan bedaquiline pada pasien HIV tanpa berdiskusi dengan tim HIV."
+    },
+    {
+      "event_question_id": "fd6d3fd1-c102-4ab5-8de0-3b49fc6a907c",
+      "option_key": "E",
+      "option_text": "Menganjurkan pasien menunda terapi HIV sampai selesai terapi TB."
+    },
+    {
+      "event_question_id": "ffa9b678-c155-4daa-aec1-ece903ea9461",
+      "option_key": "A",
+      "option_text": "Menjaga kontrol asma karena kontrol yang buruk berisiko bagi ibu dan janin; terapi inhalasi dengan kortikosteroid hirup (ICS) tetap dianggap aman bila diperlukan"
+    },
+    {
+      "event_question_id": "ffa9b678-c155-4daa-aec1-ece903ea9461",
+      "option_key": "B",
+      "option_text": "Melarang semua penggunaan obat asma selama kehamilan karena dapat membahayakan janin"
+    },
+    {
+      "event_question_id": "ffa9b678-c155-4daa-aec1-ece903ea9461",
+      "option_key": "C",
+      "option_text": "Menggunakan agonis Beta 2 kerja singkat (SABA) saja tanpa kortikosteroid hirup selama kehamilan"
+    },
+    {
+      "event_question_id": "ffa9b678-c155-4daa-aec1-ece903ea9461",
+      "option_key": "D",
+      "option_text": "Menunda seluruh intervensi terapi asma hingga setelah persalinan"
+    },
+    {
+      "event_question_id": "ffa9b678-c155-4daa-aec1-ece903ea9461",
+      "option_key": "E",
+      "option_text": "Menghentikan semua obat inhalasi dan memberikan antibiotik pencegahan untuk mencegah infeksi paru"
+    },
+    {
+      "event_question_id": "01e226de-77aa-4259-a3db-e0e57399b9bc",
+      "option_key": "A",
+      "option_text": "Segera menghentikan bedaquiline dan melaporkan ke tim TB untuk mengganti obat."
+    },
+    {
+      "event_question_id": "01e226de-77aa-4259-a3db-e0e57399b9bc",
+      "option_key": "B",
+      "option_text": "Menilai kemungkinan obat lain yang memanjangkan QT (moxifloxacin, clofazimine), menganjurkan pemeriksaan ECG ulang, dan berkoordinasi dengan tim klinik untuk mengkaji risiko kombinasi obat."
+    },
+    {
+      "event_question_id": "01e226de-77aa-4259-a3db-e0e57399b9bc",
+      "option_key": "C",
+      "option_text": "Memberi edukasi bahwa palpitasi adalah hal wajar dan melanjutkan terapi tanpa perubahan."
+    },
+    {
+      "event_question_id": "01e226de-77aa-4259-a3db-e0e57399b9bc",
+      "option_key": "D",
+      "option_text": "Menghentikan moxifloxacin saja dan menambahkan aminoglikosida intramuskular."
+    },
+    {
+      "event_question_id": "01e226de-77aa-4259-a3db-e0e57399b9bc",
+      "option_key": "E",
+      "option_text": "Mengurangi dosis metformin karena interaksi dengan bedaquiline."
+    },
+    {
+      "event_question_id": "3cf9bc52-da91-46a7-b81a-18f7caa30445",
+      "option_key": "A",
+      "option_text": "Montelukast"
+    },
+    {
+      "event_question_id": "3cf9bc52-da91-46a7-b81a-18f7caa30445",
+      "option_key": "B",
+      "option_text": "Budesonide inhaler"
+    },
+    {
+      "event_question_id": "3cf9bc52-da91-46a7-b81a-18f7caa30445",
+      "option_key": "C",
+      "option_text": "Prednisone oral"
+    },
+    {
+      "event_question_id": "3cf9bc52-da91-46a7-b81a-18f7caa30445",
+      "option_key": "D",
+      "option_text": "Salmeterol"
+    },
+    {
+      "event_question_id": "3cf9bc52-da91-46a7-b81a-18f7caa30445",
+      "option_key": "E",
+      "option_text": "Salbutamol"
+    },
+    {
+      "event_question_id": "6dce39d0-a54c-4024-8a3c-f04133307d36",
+      "option_key": "A",
+      "option_text": "Atorvastatin 40 mg"
+    },
+    {
+      "event_question_id": "6dce39d0-a54c-4024-8a3c-f04133307d36",
+      "option_key": "B",
+      "option_text": "Fenofibrat 145 mg"
+    },
+    {
+      "event_question_id": "6dce39d0-a54c-4024-8a3c-f04133307d36",
+      "option_key": "C",
+      "option_text": "Ezetimibe 10 mg"
+    },
+    {
+      "event_question_id": "6dce39d0-a54c-4024-8a3c-f04133307d36",
+      "option_key": "D",
+      "option_text": "Evolocumab 140 mg"
+    },
+    {
+      "event_question_id": "6dce39d0-a54c-4024-8a3c-f04133307d36",
+      "option_key": "E",
+      "option_text": "Colesevelam 3,75 g"
+    },
+    {
+      "event_question_id": "8aca92d7-499f-43ee-acfa-d9a52c6add05",
+      "option_key": "A",
+      "option_text": "Cotrimoksazole"
+    },
+    {
+      "event_question_id": "8aca92d7-499f-43ee-acfa-d9a52c6add05",
+      "option_key": "B",
+      "option_text": "Metronidazole"
+    },
+    {
+      "event_question_id": "8aca92d7-499f-43ee-acfa-d9a52c6add05",
+      "option_key": "C",
+      "option_text": "Azythromycin"
+    },
+    {
+      "event_question_id": "8aca92d7-499f-43ee-acfa-d9a52c6add05",
+      "option_key": "D",
+      "option_text": "Doksisiklin"
+    },
+    {
+      "event_question_id": "8aca92d7-499f-43ee-acfa-d9a52c6add05",
+      "option_key": "E",
+      "option_text": "Isoniazid"
+    },
+    {
+      "event_question_id": "acbaebd1-281e-442d-b57d-507b543a487a",
+      "option_key": "A",
+      "option_text": "Aspirin"
+    },
+    {
+      "event_question_id": "acbaebd1-281e-442d-b57d-507b543a487a",
+      "option_key": "B",
+      "option_text": "Warfarin"
+    },
+    {
+      "event_question_id": "acbaebd1-281e-442d-b57d-507b543a487a",
+      "option_key": "C",
+      "option_text": "Alteplase (tPA)"
+    },
+    {
+      "event_question_id": "acbaebd1-281e-442d-b57d-507b543a487a",
+      "option_key": "D",
+      "option_text": "Heparin"
+    },
+    {
+      "event_question_id": "acbaebd1-281e-442d-b57d-507b543a487a",
+      "option_key": "E",
+      "option_text": "Klopidogrel"
+    },
+    {
+      "event_question_id": "c4deead5-4cc3-4a34-9b1a-fbbc4c80dcf5",
+      "option_key": "A",
+      "option_text": "Paroxetine"
+    },
+    {
+      "event_question_id": "c4deead5-4cc3-4a34-9b1a-fbbc4c80dcf5",
+      "option_key": "B",
+      "option_text": "Fluoxetine"
+    },
+    {
+      "event_question_id": "c4deead5-4cc3-4a34-9b1a-fbbc4c80dcf5",
+      "option_key": "C",
+      "option_text": "Sertraline"
+    },
+    {
+      "event_question_id": "c4deead5-4cc3-4a34-9b1a-fbbc4c80dcf5",
+      "option_key": "D",
+      "option_text": "Amitriptyline"
+    },
+    {
+      "event_question_id": "c4deead5-4cc3-4a34-9b1a-fbbc4c80dcf5",
+      "option_key": "E",
+      "option_text": "Carbamazepin"
+    },
+    {
+      "event_question_id": "c6cdbeed-1a55-4ccf-b193-218dfcf1c918",
+      "option_key": "A",
+      "option_text": "Menghambat enzim HMG-CoA reduktase"
+    },
+    {
+      "event_question_id": "c6cdbeed-1a55-4ccf-b193-218dfcf1c918",
+      "option_key": "B",
+      "option_text": "Meningkatkan ekskresi kolesterol melalui feses"
+    },
+    {
+      "event_question_id": "c6cdbeed-1a55-4ccf-b193-218dfcf1c918",
+      "option_key": "C",
+      "option_text": "Menghambat penyerapan kolesterol di usus"
+    },
+    {
+      "event_question_id": "c6cdbeed-1a55-4ccf-b193-218dfcf1c918",
+      "option_key": "D",
+      "option_text": "Meningkatkan metabolisme trigliserida"
+    },
+    {
+      "event_question_id": "c6cdbeed-1a55-4ccf-b193-218dfcf1c918",
+      "option_key": "E",
+      "option_text": "Mengikat asam empedu di usus"
+    },
+    {
+      "event_question_id": "cda19152-4ee9-41e4-b7e8-907468382f00",
+      "option_key": "A",
+      "option_text": "Metformin"
+    },
+    {
+      "event_question_id": "cda19152-4ee9-41e4-b7e8-907468382f00",
+      "option_key": "B",
+      "option_text": "Glibenclamide"
+    },
+    {
+      "event_question_id": "cda19152-4ee9-41e4-b7e8-907468382f00",
+      "option_key": "C",
+      "option_text": "Insulin"
+    },
+    {
+      "event_question_id": "cda19152-4ee9-41e4-b7e8-907468382f00",
+      "option_key": "D",
+      "option_text": "Pioglitazone"
+    },
+    {
+      "event_question_id": "cda19152-4ee9-41e4-b7e8-907468382f00",
+      "option_key": "E",
+      "option_text": "Vidagliptin"
+    },
+    {
+      "event_question_id": "e0e7fa93-f850-4883-a23d-2bbdfb12cdce",
+      "option_key": "A",
+      "option_text": "Propylthiouracil"
+    },
+    {
+      "event_question_id": "e0e7fa93-f850-4883-a23d-2bbdfb12cdce",
+      "option_key": "B",
+      "option_text": "Levothyroxine"
+    },
+    {
+      "event_question_id": "e0e7fa93-f850-4883-a23d-2bbdfb12cdce",
+      "option_key": "C",
+      "option_text": "Methimazole"
+    },
+    {
+      "event_question_id": "e0e7fa93-f850-4883-a23d-2bbdfb12cdce",
+      "option_key": "D",
+      "option_text": "Liothyronine"
+    },
+    {
+      "event_question_id": "e0e7fa93-f850-4883-a23d-2bbdfb12cdce",
+      "option_key": "E",
+      "option_text": "Thiamizol"
+    },
+    {
+      "event_question_id": "ea09e506-b084-448f-9955-f10e6b1b9faa",
+      "option_key": "A",
+      "option_text": "Lisinopril"
+    },
+    {
+      "event_question_id": "ea09e506-b084-448f-9955-f10e6b1b9faa",
+      "option_key": "B",
+      "option_text": "Methyldopa"
+    },
+    {
+      "event_question_id": "ea09e506-b084-448f-9955-f10e6b1b9faa",
+      "option_key": "C",
+      "option_text": "Atenolol"
+    },
+    {
+      "event_question_id": "ea09e506-b084-448f-9955-f10e6b1b9faa",
+      "option_key": "D",
+      "option_text": "Valsartan"
+    },
+    {
+      "event_question_id": "ea09e506-b084-448f-9955-f10e6b1b9faa",
+      "option_key": "E",
+      "option_text": "Sacubitril"
+    }
+  ]
+}

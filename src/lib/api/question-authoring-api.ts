@@ -342,6 +342,50 @@ async function createSignedMediaUrl(
   return data?.signedUrl ?? null;
 }
 
+async function createSignedMediaUrls(
+  client: QuestionAuthoringClient,
+  paths: Array<string | null>,
+): Promise<Array<string | null>> {
+  const validPaths = Array.from(new Set(paths.filter((p): p is string => Boolean(p))));
+
+  if (validPaths.length === 0) {
+    return paths.map(() => null);
+  }
+
+  const { data, error } = await client.storage
+    .from("question-media")
+    .createSignedUrls(validPaths, 3600);
+
+  if (error) {
+    // Bulk API is atomic — if any file is missing, the entire request fails.
+    // Fall back to individual requests so missing files get null instead of
+    // crashing the whole page.
+    const results = await Promise.allSettled(
+      paths.map((p) => createSignedMediaUrl(client, p)),
+    );
+
+    const urlMap = new Map<string, string | null>();
+    results.forEach((result, i) => {
+      const p = paths[i];
+      if (p && result.status === "fulfilled") {
+        urlMap.set(p, result.value);
+      }
+    });
+
+    return paths.map((path) => path ? (urlMap.get(path) ?? null) : null);
+  }
+
+  const urlMap = new Map<string, string | null>();
+
+  for (const item of (data ?? [])) {
+    if (!item.error && item.signedUrl) {
+      urlMap.set(item.path, item.signedUrl);
+    }
+  }
+
+  return paths.map((path) => path ? (urlMap.get(path) ?? null) : null);
+}
+
 function mapOptionInputForInsert(questionId: string, options: QuestionFormOptionInput[]) {
   return options.map((option, index) => ({
     question_id: questionId,
@@ -482,12 +526,23 @@ export async function listQuestionBank(
 
   const rows = (data as FinalQuestionListRow[] | null) ?? [];
 
-  return Promise.all(rows.map(async (row) => {
+  const questionImageUrls = await createSignedMediaUrls(
+    client,
+    rows.map((row) => row.question_image_path)
+  );
+
+  const explanationImageUrls = await createSignedMediaUrls(
+    client,
+    rows.map((row) => {
+      const explanation = resolveRelatedRow(row.explanation);
+      return explanation?.explanation_image_path ?? null;
+    })
+  );
+
+  return rows.map((row, index) => {
     const block = resolveRelatedRow(row.block);
     const topic = resolveRelatedRow(row.topic);
     const explanation = resolveRelatedRow(row.explanation);
-    const questionImageUrl = await createSignedMediaUrl(client, row.question_image_path);
-    const explanationImageUrl = await createSignedMediaUrl(client, explanation?.explanation_image_path ?? null);
 
     return mapQuestionBankItem({
       id: row.id,
@@ -497,14 +552,14 @@ export async function listQuestionBank(
       blockName: block?.name ?? null,
       topicId: topic?.id ?? null,
       topicName: topic?.name ?? null,
-      questionImageUrl,
+      questionImageUrl: questionImageUrls[index] ?? null,
       // Pass a dummy string so the UI knows an explanation record exists. 
       // This is a trade-off to save bandwidth by not downloading the full text.
       explanationText: explanation ? "exists" : null,
-      explanationImageUrl,
+      explanationImageUrl: explanationImageUrls[index] ?? null,
       updatedAt: row.updated_at,
     });
-  }));
+  });
 }
 
 export async function getQuestionEditorData(

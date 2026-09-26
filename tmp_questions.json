@@ -1,0 +1,2702 @@
+[
+  {
+    "stem": "Seorang pasien laki-laki datang ke dokter dengan keluhan lemas, kelelahan, kram kaki dan detak jantung lambat. Hasil pemeriksaan menunjukkan nilai kadar kalium pada pasien 3,5 mEq/L. Dokter mendiagnosis pasien mengalami hipokalemia. Pasien mengatakan memiliki riwayat hipertensi dan rutin mengonsumsi obat antihipertensi. Obat apakah yang menyebabkan efek samping tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Kaptropil"
+      },
+      {
+        "key": "B",
+        "text": "Valsartan"
+      },
+      {
+        "key": "C",
+        "text": "Spironolakton"
+      },
+      {
+        "key": "D",
+        "text": "Amlodipin"
+      },
+      {
+        "key": "E",
+        "text": "Furosemid"
+      }
+    ],
+    "correctOptionKey": "E",
+    "explanationText": "Jawab:\nACEi, ARB, Spironolakton→ Efek hiperkalemia\nLoop diuretic, thiazid diuretic → Efek hipokalemia\n(Dipiro 12th Edition)"
+  },
+  {
+    "stem": "Pasien laki-laki usia 55 tahun menderita Benign Prostatic Hyperplasia (BPH) dan memiliki riwayat hipertensi. Dokter meresepkan Terazosin yang bekerja dengan menghambat reseptor alfa 1. Apa efek samping yang perlu dimonitor pada penggunaan obat tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Hiperkalemia"
+      },
+      {
+        "key": "B",
+        "text": "Hipokalemia"
+      },
+      {
+        "key": "C",
+        "text": "Gout"
+      },
+      {
+        "key": "D",
+        "text": "Hipotensi ortostatik"
+      },
+      {
+        "key": "E",
+        "text": "Hiperglikemia"
+      }
+    ],
+    "correctOptionKey": "D",
+    "explanationText": "Jawab:\nAlpha-blocker mengobati tekanan darah tinggi dengan memblokir reseptor α-1 sehingga melemaskan pembuluh darah, menurunkan tekanan darah melalui efek vasodilatasi.\nEfek samping dari obat golongan ini adalah hipotensi postural dan ortostatik yang dapat menyebabkan pusing dan pingsan\n(National Library of Medicine, Terazosin)"
+  },
+  {
+    "stem": "Pasien wanita usia 44 tahun baru saja\nmenebus obat yang diresepkan dokter.\nApoteker menyarankan pasien untuk menghindari paparan sinar matahari langsung karena adanya efek samping berupa fotosensitivitas dari obat yang diterima pasien. Apa obat yang dimaksud?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Kaptropil"
+      },
+      {
+        "key": "B",
+        "text": "Valsartan"
+      },
+      {
+        "key": "C",
+        "text": "Simvastatin"
+      },
+      {
+        "key": "D",
+        "text": "Amiodaron"
+      },
+      {
+        "key": "E",
+        "text": "Canaglifazone"
+      }
+    ],
+    "correctOptionKey": "D",
+    "explanationText": "Jawab:\nAmiodarone menginduksi reaksi fototoksik dengan spektrum\naksi pada panjang gelombang UV-B dan UV-A.\n(J. Ferguson. A study of cutaneous photosensitivity induced by amiodarone, British Journal of Dermatology)"
+  },
+  {
+    "stem": "Tn A. datang ke apotek untuk menebus resep yang diterima dari dokter. Pasien diresepkan kaptropril sebagai agen antihipertensi. Apa yang apoteker sampaikan terkait cara minum obat tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Diminum saat suapan pertama makanana"
+      },
+      {
+        "key": "B",
+        "text": "Diminum 30 menit setelah makan"
+      },
+      {
+        "key": "C",
+        "text": "Diminumbersamamakanan berlemak"
+      },
+      {
+        "key": "D",
+        "text": "Diminum 2 jam setelah makan"
+      },
+      {
+        "key": "E",
+        "text": "Diminum 30 menit setelah makan"
+      }
+    ],
+    "correctOptionKey": "D",
+    "explanationText": "Jawab:\nAbsorbsi kaptropil lebih efektif dalam kondisi perut kosong sehingga diminum 1 jam sebelum makan atau 2 jam setelah makan.\n(MIMS, Medscape)"
+  },
+  {
+    "stem": "Seorang pasien laki-laki usia 56 tahun menderita hipertensi tanpa komorbid. Hasil pemeriksaan menunjukkan tekanan darah pasien mencapai 157/110 mmHg. Berapa target tekanan darah pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "<150/90 mmHg"
+      },
+      {
+        "key": "B",
+        "text": "<140/90 mmHg"
+      },
+      {
+        "key": "C",
+        "text": "<140/80 mmHg"
+      },
+      {
+        "key": "D",
+        "text": "<130/80mmHg"
+      },
+      {
+        "key": "E",
+        "text": "<160/90 mmHg"
+      }
+    ],
+    "correctOptionKey": "B",
+    "explanationText": "Jawab:\nPERHI (2021):\nKeterangan:\n- perubahan target TD pada PERHI 2021 (sebelumnya PERHI 2019).\nTarget tekanan darah menurut JNC VIII berbeda dengan PERHI. Perhimpunan Dokter Hipertensi Indonesia mengacu pada International Society of Hypertension (ISH) 2020 dari\nAmerican Heart Association (AHA)"
+  },
+  {
+    "stem": "Pasien laki-laki usia 50 tahun (TB 160 cm, BB 78 kg) dirawat di RS dengan diagnosis utama sirosis hepatik. Pasien mengalami ikterik pada sklera, jaundice, asites, edema, varises esofagus. Dokter meresepkan kombinasi diuretik untuk asites pasien. Sebagai apoteker, manakah kombinasidiuretikyang direkomendasikan?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Spironolactone dan kalium"
+      },
+      {
+        "key": "B",
+        "text": "Spironolactone dan HCT"
+      },
+      {
+        "key": "C",
+        "text": "HCT dan spironolactone"
+      },
+      {
+        "key": "D",
+        "text": "HCT dan Furosemid"
+      },
+      {
+        "key": "E",
+        "text": "Spironolactone dan furosemide"
+      }
+    ],
+    "correctOptionKey": "E",
+    "explanationText": "Jawab:\nTerapi pertama asites disarankan spironolakton dengan dosis awal 100 mg dan dinaikkan 100 mg/hari sampai 400 mg/hari, jika terapi tunggal gagal mengurangi asites, forusemida dapat ditambahkan 160 mg/hari namun dengan pantauan biokimia yang ketat.\n(Jurnal Kedokteran Nanggroe Medika. Penatalaksanaan Asites pada Sirosis Hepatis)"
+  },
+  {
+    "stem": "Seorang pasien wanita usia 24 tahun usia\nkehamilan 21 minggu datang ke IGD karenamengalamikontraksi.Hasil\npemeriksaan tekanan darah pasien 150/110 mmHg. Dokter mendiagnosis pasien mengalami preeklamsia. Apa obat antihipertensi yang juga dapat menurunkan kontraksi uterus pada pasien?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Nifedipine"
+      },
+      {
+        "key": "B",
+        "text": "Metildopa"
+      },
+      {
+        "key": "C",
+        "text": "Labetolol"
+      },
+      {
+        "key": "D",
+        "text": "Kaptropil"
+      },
+      {
+        "key": "E",
+        "text": "MgSO4"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\n- antihipertensi yang aman digunakan pada ibu hamil adalahmetildopa,betablocker(Labetalol),dan\nvasodilator/CCB (long acting nifedipin).\n- Pada kasus kontraksi uterus dapat digunakan nifedipine. Efek nifedipin selain menurunkan kontraksi uterus, juga membuat perubahan hemodinamik pada ibu hamil yaitu meningkatkan denyut nadi dan menurunkan tekanan darah ibu hamil.\n(Pharmacotherapy: A Pathophysiologic Approach edisi 10, 2017, hal. 532)."
+  },
+  {
+    "stem": "Seorang anak usia 5 tahun dibawa ke IGD oleh ayahnya setelah mengalami demam tinggi selama 4 hari. Pasien juga mengalani pegal, mual, muntah, berkeringan dan menggigil. Dokter mendiagnosis pasien menderita malaria. Pasien memiliki riwayat defisiensi G6PD. Apa obat antimalaria yang dikontraindikasikan pada pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Kina"
+      },
+      {
+        "key": "B",
+        "text": "Klorokuin"
+      },
+      {
+        "key": "C",
+        "text": "Artemisin"
+      },
+      {
+        "key": "D",
+        "text": "DHP"
+      },
+      {
+        "key": "E",
+        "text": "Primakuin"
+      }
+    ],
+    "correctOptionKey": "E",
+    "explanationText": "Jawab:\nPrimakuin tidak boleh diberikan pada bayi usia < 6 bulan dan ibu hamil juga ibu menyusui bayi usia < 6 bulan dan penderita kekurangan G6PD.\n(KEMENKES, Buku Saku Tatalaksana Kasus Malaria, 2023)."
+  },
+  {
+    "stem": "Seorang pria berusia 22 tahun datang ke dokter dengan keluhan mual, muntah, dan wajah pucat. Dokter mendiagnosis pasien mengalami anemia megalobastik\nakibat   gastritis   autoimun.   Apa\nrekomendasiterapiyangdiberikan untuk pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Asam folat"
+      },
+      {
+        "key": "B",
+        "text": "Vitamin B12"
+      },
+      {
+        "key": "C",
+        "text": "Eritropoetin"
+      },
+      {
+        "key": "D",
+        "text": "Zat besi"
+      },
+      {
+        "key": "E",
+        "text": "Vitamin B6"
+      }
+    ],
+    "correctOptionKey": "B",
+    "explanationText": "Jawab:\nPenyebab anemia megalobastik (anemia pernisiosa) yaitu kekurangan factor intrinsik lambung akibat gastritis autoimun yang menyebabkan malasorbsi vitamin B12.\n(PIONAS; Causes and Pathophysiology of Vitamin B12 and Folate Deficiencies, 2021)."
+  },
+  {
+    "stem": "Seorang pasien wanita usia kehamilandibawakeIGDsetelah mengalami kejang. Hasil pemeriksaan tekanan darah pasien yaitu 165/110 mmHg. Dokter mendiagnosis pasien mengalamieklamsia.Apa rekomendasiterapiuntukpasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Labetolol"
+      },
+      {
+        "key": "B",
+        "text": "Nifedipin"
+      },
+      {
+        "key": "C",
+        "text": "Kaptopril"
+      },
+      {
+        "key": "D",
+        "text": "Magnesium sulfat"
+      },
+      {
+        "key": "E",
+        "text": "Diazepam IV"
+      }
+    ],
+    "correctOptionKey": "D",
+    "explanationText": "Jawab:\nMagnesium sulfat merupakan pilihan antikonvulsan untuk wanita hamil dengan eklamsia.\n(Dipiro 12th Edition)"
+  },
+  {
+    "stem": "Seorang wanita berusia 28 tahun didiagnosis mendertita HIV dan diresepkan regimen terapi ARV. Setelah\n3 bulan menjalani pengobatan, dilakukan pemeriksaan rutin terhadap pasien. Hasil pemeriksaan lab menunjukkan kadar SGOT/SGOPT pasien mengalami peningkatan 2 kali dari nilai normal. Dokter menduga hal tersebut merupakan efek samping dari\nobat  ARV  yang  dikonsumsi  pasien.\nObat apakah yang menyebabkan efek samping tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Nevirapine"
+      },
+      {
+        "key": "B",
+        "text": "Efavirenz"
+      },
+      {
+        "key": "C",
+        "text": "Zidovudin"
+      },
+      {
+        "key": "D",
+        "text": "Tenofovir"
+      },
+      {
+        "key": "E",
+        "text": "Emtricitabine"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nTenofovir  toksisitas ginjal, menurunkan densitas mineral tulang, sindrom fanconi, asidosis laktat.\nZidovudin  Anemia, nitropenia, miopati\nStavudin  Lipoatropi, neuropati perifer\nLamivudin  sakit kepala, pankreatitis\nNevirapine  gangguan hati, Steven Johnson syndome\nEfavirenz  Gangguan SSP\n(PMK Nomor Hk.01.07/Menkes/90/2019 Tentang Pedoman Nasional Pelayanan Kedokteran Tata Laksana HIV)"
+  },
+  {
+    "stem": "Seorang wanita usia 23 tahun mengalami general anxiety disorder (GAD). Pasien rutin mengonsumsi Alprazolam untuk mengatasi gangguan kecemasannya. Namun, beberapa hari ini pasien mengalami kehabisan obat dan belum membeli kembali karena terlalu sibuk. Pasien mengalami tangan gemetar, jantung berdebar, dan kejang. Apa penyebab gejala yang dialami oleh pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Withdrawal syndrome"
+      },
+      {
+        "key": "B",
+        "text": "Efek toleransi"
+      },
+      {
+        "key": "C",
+        "text": "Efek autoinduksi"
+      },
+      {
+        "key": "D",
+        "text": "Efek autometabolisme"
+      },
+      {
+        "key": "E",
+        "text": "Efek resistensi"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nKetergantungan fisiologis pada benzodiazepin disertai dengan sindrom penarikan (withdrawal syndrome) yang biasanya ditandai dengan gangguan tidur, lekas marah, peningkatan ketegangan dan kecemasan, serangan panik, gemetar tangan, berkeringat, kesulitan konsentrasi, rasa kering dan mual, penurunan berat badan, jantung berdebar, sakit kepala, nyeri dan kekakuan otot serta sejumlah perubahan persepsi. Contoh juga dilaporkan dalam kategori dosis tinggi dengan perkembangan yang lebih serius seperti kejang dan reaksi psikotik.\n(National Library of medicine, The benzodiazepine withdrawal syndrom)"
+  },
+  {
+    "stem": "Seorang pria datang ke dokter spesialis kulit karena mengalami gatal pada kulit dan terdapat bercak putih. Dokter mendiagnosis pasien mengalami infeksi akibat jamur. Berdasarkan hasil pemeriksaan PMR, diketahui bahwa pasien memiliki riwayat CKD stage 2. Apa    obat    antijamur    yang\ndikontraindikasikanpadapasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Flukonazol"
+      },
+      {
+        "key": "B",
+        "text": "Ketokonazol"
+      },
+      {
+        "key": "C",
+        "text": "Mikonazol"
+      },
+      {
+        "key": "D",
+        "text": "Nystatin"
+      },
+      {
+        "key": "E",
+        "text": "Amfoterisin B"
+      }
+    ],
+    "correctOptionKey": "E",
+    "explanationText": "Jawab:\nAmfoterisin B adalah gold standard pengobatan antijamur untuk mikosis yang paling parah. Namun, efek samping sering terjadi, dengan nefrotoksisitas yang paling serius, terjadi pada awal pengobatan, dan biasanya bersifat reversibel pada sebagian besar pasien.\n(NationalLibraryofMedicine, AmphotericinB-induced nephrotoxicity: a review)"
+  },
+  {
+    "stem": "Pasien didagnosis TB dan sedang menjalani OAT. Beberapa hari kemudian pasien mengalami nyeri pada sendi dan pada hasil pemeriksaan didapatkan asam urat 8 mg/dl. Dokter menduga hal tersebut disebabkan oleh efek samping OAT yang dikonsumsi pasien. Obat apakah yang menyebabkan efek samping tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Etambutol"
+      },
+      {
+        "key": "B",
+        "text": "Pirazinamid"
+      },
+      {
+        "key": "C",
+        "text": "Streptomisin"
+      },
+      {
+        "key": "D",
+        "text": "Isoniazid"
+      },
+      {
+        "key": "E",
+        "text": "Rifampisin"
+      }
+    ],
+    "correctOptionKey": "B",
+    "explanationText": "Jawab:\nEfek samping OAT:\nIsoniazid neuropati perifer, kejang, psikosis toksik Rimfapisin  urin berwarna merah, gangguan GI, skin rash Pirazinamid gout, gangguan fungsi hati, gangguan GI Etambutol gangguan penglihatan, neuritis perifer Streptomisin ototoksik, nefrotoksik"
+  },
+  {
+    "stem": "Seorang pria datang ke rumah sakit dengan keluhan mata merah, penglihatan kabur dan mual. Dokter mendiagnosis pasien mengalami glaucoma sudut terbuka dan diresepkan tetes mata Brinzolamide untuk menurunkan produksi aquous humor. Bagaimana mekanisme kerja obat tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Antagonis reseptor beta"
+      },
+      {
+        "key": "B",
+        "text": "Alfa adrenergic agonis selektif"
+      },
+      {
+        "key": "C",
+        "text": "Karbonik anhydrase inhibitor"
+      },
+      {
+        "key": "D",
+        "text": "Analog prostaglandin"
+      },
+      {
+        "key": "E",
+        "text": "Kolinergik parasimpatomimetik"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nJembatan Kedelai:\nBuang Air KecilAkaN KeLebihan Air\nMenurunkankan produksi Aquous Humor\nBeta blocker : Timolol, Metoprolol\nAlpha adrenergic agonis selektif : Brimonidin\nKarbonik Anhidrase Inhibitor : Brinzolamide (topical), Azetolamid (sistemik, pilihan terakhir)\nMeningkatkan aliran keluar aquous humor\nANalog prostaglanding : Lantanoprost\nKoLinergik parasimpatomimetik: Pilokarpin\nAlpha adrenergic agonis non selektif"
+  },
+  {
+    "stem": "Seorang wanita usia 55 tahun datang ke dokter dengan keluhan kaki bengkak dan dan membentuk lesung saat ditekan. Dokter mendiagnosis pasien mengalami edema. Pasien memiliki riwayat hipertensi dan rutin mengonsumsi obat antihipertensi. Obat apakah yang menyebabkan keluhan pasien?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Bisoprolol"
+      },
+      {
+        "key": "B",
+        "text": "Furosemid"
+      },
+      {
+        "key": "C",
+        "text": "Amlodipin"
+      },
+      {
+        "key": "D",
+        "text": "Kaptropil"
+      },
+      {
+        "key": "E",
+        "text": "Valsartan"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nPembengkakan kaki atau pergelangan kaki (edema) adalah salah satu efek samping CCB yang paling umum. Itu terjadi karena CCB, seperti amlodipine, melebarkan pembuluh darah, yang meningkatkan aliran darah., namun bisa memberi tekanan pada pembuluh darah yang lebih kecil (disebut kapiler), menyebabkan cairan bocor ke jaringan di sekitarnya.\n(Dipiro 12th Edition; Medscape)"
+  },
+  {
+    "stem": "Seorang pasien wanita didiagnosis menderita rheumatoid artritis. Dokter meresepkan metroteksat dan asam folat. Apa alasan pemberian asam folat?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Meningkatkanabsorbsi metotreksat"
+      },
+      {
+        "key": "B",
+        "text": "Mengurangitoksisitas metotreksat"
+      },
+      {
+        "key": "C",
+        "text": "Berperansebagaiagonis metotreksat"
+      },
+      {
+        "key": "D",
+        "text": "Menurunkan sekresi metotreksat"
+      },
+      {
+        "key": "E",
+        "text": "Mencegahpeningkatanalanin transferase"
+      }
+    ],
+    "correctOptionKey": "B",
+    "explanationText": "Jawab:\nMetotreksat bekerja dengan menghambat asam dihidrofolat reductase. Dihidrofolat reduktase (DHFR) adalah enzim yang mereduksi dihidrofolat menjadi tetrahidrofolat yang merupakan prekusor penting dalam biosintesis DNA dan pertumbuhan sel. Oleh karena itu dibutuhkan asam folat untuk mengurangi toksisitas dari metotreksat.\n(Drugs Information Handbook)"
+  },
+  {
+    "stem": "Pasien bayi mengalami kemerahan pada kulit di daerah pantat, kelamin, dan lipatan paha. Dokter mendiagnosis pasien tersebut mengalami dermatitis popok akibat infeksi bakteri. Apa obat topikal yang diberikan kepada pasien?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Hidrokortison"
+      },
+      {
+        "key": "B",
+        "text": "Mikonazol"
+      },
+      {
+        "key": "C",
+        "text": "Mupirosin"
+      },
+      {
+        "key": "D",
+        "text": "Klindamisin"
+      },
+      {
+        "key": "E",
+        "text": "Kotrimoksazol"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\n(PERDOSKI, 2021. Panduan Praktik Klinis)"
+  },
+  {
+    "stem": "Seorang wanita usia 55 tahun datang ke dokter dengan keluhan nyeri sendi lutut dan lengan terutama di pagi hari. Dokter mendiagnosis pasien menderita osteoarthritis dan diresepkan Natrium diklofenak. Setelah penggalian informasi, pasien diketahui memiliki riwayat stroke iskemik dan rutin mengonsumsi Warfarin. Apoteker yang bertugas menemukan adanya interaksi antara Natrium diklofenak dan Warfarin. Apa interaksi yang dimaksud?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Peningkatanrisikopembekuan darah"
+      },
+      {
+        "key": "B",
+        "text": "Penurunanefektivitasnatrium diklofenak"
+      },
+      {
+        "key": "C",
+        "text": "Peningkatan risiko pendarahan"
+      },
+      {
+        "key": "D",
+        "text": "Peningkatan metabolisme natrium diklofenak"
+      },
+      {
+        "key": "E",
+        "text": "Penurunan absorbsi warfarin"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nMenggunakan diklofenak bersama dengan warfarin dapat menyebabkan lebih mudah mengalami pendarahan. Semua NSAID dapat memperpanjang waktu perdarahan dengan menghambat fungsi trombosit. NSAID dapat menyebabkan perdarahan gastrointestinal, yang mungkin menjadi lebih parah jika warfarin juga diberikan. Selain fungsi antiplateletnya, NSAID dapat mempengaruhi tindakan farmakologis warfarin melalui interaksi langsungnya. Pengikatan protein yang tinggi dan mekanisme pembersihan NSAID yang bergantung pada sitokrom P450 (CYP) dapat mempengaruhi kadar warfarin dalam serum.\n(National Library of Medicine, Risk Factors of Drug Interaction between Warfarin and Nonsteroidal Anti-Inflammatory Drugs in Practical Setting)"
+  },
+  {
+    "stem": "Seorang pasien datang ke dokter dengan keluhan lidah seperti terbakar dan rongga mulut terasa sakit. Dokter mendiagnosis pasien menderita kandidiasis orofaring. Apa obat yang tepat untuk pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Nistatin"
+      },
+      {
+        "key": "B",
+        "text": "Flukonazol"
+      },
+      {
+        "key": "C",
+        "text": "Kotrimoksazol"
+      },
+      {
+        "key": "D",
+        "text": "Terbinafin"
+      },
+      {
+        "key": "E",
+        "text": "Hidrokortison"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\n(PERDOSKI, 2021. Panduan Praktik Klinis)"
+  },
+  {
+    "stem": "Seorang wanita hamil didiagnosis hiperurisemia oleh dokter dengan kadar asam urat darah mencapai 7 mg/dL. Dokter meresepkan probenesid. Efek samping apa yang mungkin timbul pada obat tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Pembentukan batu ginjal"
+      },
+      {
+        "key": "B",
+        "text": "Pankreatitis"
+      },
+      {
+        "key": "C",
+        "text": "Peningkatan AST dan ALT"
+      },
+      {
+        "key": "D",
+        "text": "Hipotensi"
+      },
+      {
+        "key": "E",
+        "text": "Kolelitiasis"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nProbenesid bekerja mencegah ginjal menyerap kembali asam urat dan meningkatkan pengeluaran asam urat melalui urine. Saat pertama kali mengonsumsi probenesid jumlah asam urat di ginjal sangat meningkat. Hal ini dapat menyebabkan batu ginjal sehingga perlu mengonsumsi air dalam jumlah banyak.\n(Australian Rheumatology Association, Probenecid)"
+  },
+  {
+    "stem": "Seorang pasien berusia 22 tahun diresepkan metoklopramid untuk mengatasi mual dan muntah yang dialami. Kapan sebaiknya obat tersebut diminum?",
+    "options": [
+      {
+        "key": "A",
+        "text": "30 menit sebelum makan"
+      },
+      {
+        "key": "B",
+        "text": "15 menit setelah makan"
+      },
+      {
+        "key": "C",
+        "text": "1 jam setelah makan"
+      },
+      {
+        "key": "D",
+        "text": "Bersama makan"
+      },
+      {
+        "key": "E",
+        "text": "15 menit setelah makan"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nMetoklopramid diminum saat perut kosong atau 30 menit sebelum makan.\n(MIMS)"
+  },
+  {
+    "stem": "Pasien dengan TB Paru mendapatkan regimen terapi OAT. Pasien tersebut menanyakan terkait aturan minum OAT yang diterimanya. Bagaimana aturan minum Rifampisin?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Sesudah makan"
+      },
+      {
+        "key": "B",
+        "text": "1 jam sebelum makan"
+      },
+      {
+        "key": "C",
+        "text": "30 menit setelah makan"
+      },
+      {
+        "key": "D",
+        "text": "Diminumbersama sedikit makanan"
+      },
+      {
+        "key": "E",
+        "text": "Diminum di malam hari"
+      }
+    ],
+    "correctOptionKey": "B",
+    "explanationText": "Jawab:\nOral: Untuk memastikan absorpsi yang optimal, rifampisin harus diberikan pada perut kosong (1jam sebelum atau 2 jam setelah makan). Jika diberikan bersamaan dengan makanan meningkatkan toleransi gastrointestinal.\nJika pada soal disebutkan pasien mengalami efek samping berupa mual, anoreksia, dan nyeri perut. Maka, pemberian obat dengan bantuan sedikit makanan atau menelan OAT sebelum tidur,\n(PIONAS;  (KEMENKES  RI,  2020.  Pedoman  Nasional\nPelayanan Kedokteran Tata Laksana Tuberkulosis; WHO 2022))"
+  },
+  {
+    "stem": "Dokter di rumah sakit saat ini mengurangi pemberian salah satu obat anti migrain yang menyebabkan efek samping fatal berupa sindrom serotonin. Obat apakah yang dimaksud?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Propanolol"
+      },
+      {
+        "key": "B",
+        "text": "Kafein"
+      },
+      {
+        "key": "C",
+        "text": "Aspirin"
+      },
+      {
+        "key": "D",
+        "text": "Sumatriptan"
+      },
+      {
+        "key": "E",
+        "text": "Ergotamin"
+      }
+    ],
+    "correctOptionKey": "D",
+    "explanationText": "Jawab:\nSumatriptan termasuk dalam kelas obat yang disebut agonis reseptor serotonin selektif. Triptan dapat menyebabkan kondisi parah yang disebut sindrom serotonin. Gejalanya bisa berupa agitasi, berkeringat, detak jantung cepat, atau halusinasi (melihat atau mendengar hal-hal yang tidak nyata)\n( https://medlineplus.gov/druginfo/meds/a601116.html ; Dipiro 11th Edition)"
+  },
+  {
+    "stem": "Seorang pria mengeluhkan demam, hidung tersumbat dan bersin-bersin setelahkehujanansaatperjalanan pulangkerja. Pasien tersebut mengonsumsiobatdengan kandunganpseudoefedrinyang diresepkan dokter. Apa efek samping\nyangperludimonitorterkait\npenggunaan obat tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Hipotensi"
+      },
+      {
+        "key": "B",
+        "text": "Hipertensi"
+      },
+      {
+        "key": "C",
+        "text": "Withdrawal syndrome"
+      },
+      {
+        "key": "D",
+        "text": "Gangguan metabolik"
+      },
+      {
+        "key": "E",
+        "text": "Gangguan pencernaan"
+      }
+    ],
+    "correctOptionKey": "B",
+    "explanationText": "Jawab:\nDekongestan: pseudoefedrin, efedrin, fenilefrin, fenilpronolamin.\nObat ini bersifat simpatomimetik, oleh karena itu harus digunakan dengan hati-hati pemberiannya pada pasien dengan diabetes melitus, hipertensi, hipertiroidisme, rentan terhadap terjadinya glaukoma sudut sempit, hipertrofi prostat, gangguan\nhati dan ginjal, dan penyakit jantung iskemik dan harus\ndihindari pada pasien yang mendapat terapi penghambat MAO.\n(PIONAS)"
+  },
+  {
+    "stem": "Seorang pria usia 44 tahun rutin mengonsumsi obat yang diresepkan untuk gout yang diderita. Pasien tersebut telah mengonsumsi obat tersebut selama beberapa bulan. Namun, saat ini pasien mengeluhkan kerontokan rambut yang parah. Obat apakah yang menyebabkan keluhan pada pasien?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Allopurinol"
+      },
+      {
+        "key": "B",
+        "text": "Kolkisin"
+      },
+      {
+        "key": "C",
+        "text": "Probenesid"
+      },
+      {
+        "key": "D",
+        "text": "Febuxostat"
+      },
+      {
+        "key": "E",
+        "text": "Deksametason"
+      }
+    ],
+    "correctOptionKey": "B",
+    "explanationText": "Jawab:\nOverdosis kolkisin menghambat pembelahan sel, sehingga organ yang paling terpengaruh adalah organ yang memiliki tingkat pergantian sel yang tinggi seperti folikel rambut.\n(National Library of Medicine, Anagen Effluvium Following Acute Colchicine Poisoning)"
+  },
+  {
+    "stem": "Pasien perempuan berusia 25 tahun didiagnosis terinfeksi H. Pylori. Pasien memiliki riwayat alergi penisilin. Dokter meminta saran apoteker terkait rekomendasi terapi pasien. Apa regimen terapi yang disarankan?",
+    "options": [
+      {
+        "key": "A",
+        "text": "PPI + Klaritromisin"
+      },
+      {
+        "key": "B",
+        "text": "PPi +klaritromisin +Bismuth"
+      },
+      {
+        "key": "C",
+        "text": "PPi+ Tetrasiklin +Metronidazol"
+      },
+      {
+        "key": "D",
+        "text": "PPi+klaritromisin+ metronidazole"
+      },
+      {
+        "key": "E",
+        "text": "PPI + Bismuth + klaritromisin"
+      }
+    ],
+    "correctOptionKey": "D",
+    "explanationText": "Jawab:\n1st  PPi + klaritromisin + amoksilin/Metronidazol 2nd PPi/H2RA + Bismuth + Metronidazol + Tetrasiklin 3rd PPi + amoksilin + metronidazole + tetrasiklin\n(Dipiro 12th Edition)"
+  },
+  {
+    "stem": "Seorang pasien mendapatkan terapi furosemide dan digoksin. Setelah beberapa minggu pengobatan, pasien mengeluhkan anoreksia, mual, muntah, gangguan penglihatan, aritmia jantung, dan takikardia atrium dengan blok. Diketahui bahwa hal tersebut diakibatkan oleh adanya interaksi antara furosemide dan digoksin sehingga terjadi peningkatan toksisitas digoksin. Pada fase farmakokinetik apa interaksi tersebut terjadi?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Absropsi"
+      },
+      {
+        "key": "B",
+        "text": "Distribusi"
+      },
+      {
+        "key": "C",
+        "text": "Metabolism"
+      },
+      {
+        "key": "D",
+        "text": "Ekskresi"
+      },
+      {
+        "key": "E",
+        "text": "Sekresi"
+      }
+    ],
+    "correctOptionKey": "D",
+    "explanationText": "Jawab:\nInteraksi tersebut terjadi pada fase ekskresi. Obat yang memengaruhi fungsi ginjal seperti diuretik akan menghambat eliminasi obat lain dikarenakan ginjal hanya berfokus mengekskresi air dan elektrolit. Furosemide + digoksin menyebabkan eliminasi digoksin berkurang sehingga efek kerjanya lebih panjang dan toksisitasnya meningkat.\n(Stockley,s Drug Interactions 8th Edition)"
+  },
+  {
+    "stem": "Seorang pasien TB mendapatkan terapi OAT Kategori 1 dan menanyakan kepada apoteker mengapa pengobatan tersebut banyak dan harus dikombinasi. Sebagai apoteker informasi apakah yang disampaikan kepada pasien?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Untuk meringankan efek samping"
+      },
+      {
+        "key": "B",
+        "text": "Untuk meningkatkan efek terapi"
+      },
+      {
+        "key": "C",
+        "text": "Untukmencegahterjadinya resistensi"
+      },
+      {
+        "key": "D",
+        "text": "Untuk menghindari toksisitas"
+      },
+      {
+        "key": "E",
+        "text": "Sebagaipengobatantambahan penunjang saja"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nTujuan pemberian kombinasi Obat Anti Tuberculosis adalah untuk mencegah terjadinya resistensi terhadap bakteri Mycobacterium Tuberculosis.\n(Drugs.com)"
+  },
+  {
+    "stem": "Seorang wanita usia 55 tahun menderita rheumatoid arthritis dan diberikan deksametason. Apa efek samping yang perlu dimonitor dari penggunaan obat tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Grey syndrome"
+      },
+      {
+        "key": "B",
+        "text": "Cushing Syndrome"
+      },
+      {
+        "key": "C",
+        "text": "Stevens johnson syndrome"
+      },
+      {
+        "key": "D",
+        "text": "Red man syndrome"
+      },
+      {
+        "key": "E",
+        "text": "Burning mouth syndrome"
+      }
+    ],
+    "correctOptionKey": "B",
+    "explanationText": "Jawab:\nEfek samping kortikosteroid adalah pengeroposan tulang, perubahan suasana hati, dan dapat mengganggu kontrol glukosa yang menyebabkan dekompensasi akut, cushing syndrome (cth moon face).\n(Dipiro 12th Edition; Paul, E. 2016. Predinisolone Induced Cushing Syndrome: A Case Report. Indian Journal of Pharmacy)"
+  },
+  {
+    "stem": "Seorang wanita didiagnosis menderita General Anxiety Disorder (GAD) dan diberikanterapiantidepresan Amitriptilin. Apa efek samping dari penggunaan jangka panjang obat tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Mulut kering"
+      },
+      {
+        "key": "B",
+        "text": "Peningkatan tekanan darah"
+      },
+      {
+        "key": "C",
+        "text": "Peningkatan glukosa darah"
+      },
+      {
+        "key": "D",
+        "text": "Moon face"
+      },
+      {
+        "key": "E",
+        "text": "Red man syndrome"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nEfek samping Amitriptyline yang paling sering dilaporkan adalah tremor, ataksia, pusing, sakit kepala, mulut kering, sembelit, dan mual.\n(drugs.com)"
+  },
+  {
+    "stem": "Seorang pasien HIV baru saja melahirkan anaknya. Pasien rutin mengonsumsi regimen ARV. Pasien memutuskan untuk tidak memberikan ASI kepada bayinya untuk meminimalkan transmisi vertical. Dokter meresepkan terapi profilaksis HIV kepada bayi pasien. Apa obat yang tepat untuk bayi tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Zidovudin"
+      },
+      {
+        "key": "B",
+        "text": "Lamivudin"
+      },
+      {
+        "key": "C",
+        "text": "Nevirapine"
+      },
+      {
+        "key": "D",
+        "text": "Stavudin"
+      },
+      {
+        "key": "E",
+        "text": "Abacavir"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nIbu HIV + pengganti ASI  Zidovudin’\nIbu HIV + tanpa pengganti ASI  Zidovudin + Nevirapine\n(Keputusan Menteri Kesehatan Republik Indonesia Nomor HK.01.07/MENKES/90/2019 Tentang Pedoman Nasional Pelayanan Kedokteran Tata Laksana HIV"
+  },
+  {
+    "stem": "Seorang ibu hamil didiagnosis menderita malaria berat setelah mengunjungi daerah endemik dan akan diberikan Artesunat injeksi. Namun, obat tersebut ternyata sedang kosong sehingga pasien diberikan alternatif terapi. Apa obat yang tepat untuk mengatasi malaria berat pada pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "DHP"
+      },
+      {
+        "key": "B",
+        "text": "Primakuin"
+      },
+      {
+        "key": "C",
+        "text": "Doksisiklin"
+      },
+      {
+        "key": "D",
+        "text": "Meflokuin"
+      },
+      {
+        "key": "E",
+        "text": "Kina Drip"
+      }
+    ],
+    "correctOptionKey": "E",
+    "explanationText": "Jawab:\nArtesunat intravena merupakan pilihan utama pada malaria berat. Jika tidak tersedia dapat diberikan kina drip\n(Buku Saku Tatalaksana Kasus Malaria, 2017)"
+  },
+  {
+    "stem": "Seorang wanita dilarikan ke IGD karena tidak sadarkan diri. Sebelumnya, pasien mengalami sesak nafas setelah mengonsumsi makanan laut di restaurant cepat saji. Dokter mendiagnosis pasien mengalami syok anafilaksis. Apa obat yang diberikan kepad pasien?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Epinefrin"
+      },
+      {
+        "key": "B",
+        "text": "Norepinefrin"
+      },
+      {
+        "key": "C",
+        "text": "Dobutamin"
+      },
+      {
+        "key": "D",
+        "text": "Dopamin"
+      },
+      {
+        "key": "E",
+        "text": "Nitrogliserin"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nDipiro 12th Edition; ESC Guidelines 2023"
+  },
+  {
+    "stem": "Seorangpriadidiagnosismenderita\nPenyakitParuObstruktifKornik\n(PPOK). Untuk menurunkan risiko eksaserbasi, pasien diberikan terapi antibiotik. Apa antibiotik yang tepat?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Azitromisin"
+      },
+      {
+        "key": "B",
+        "text": "Kloramfenikol"
+      },
+      {
+        "key": "C",
+        "text": "Amoksisilin"
+      },
+      {
+        "key": "D",
+        "text": "Tetrasiklin"
+      },
+      {
+        "key": "E",
+        "text": "Seftriakson"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nPemberianbeberapaantibiotikbermanfaatmengurangi\neksaserbasi. Azithromycin atau Erythromycin selama setahun untuk penderita PPOK berisiko eksaserbasi dapat menurunkan eksaserbasi dibandingkan pengobatan biasa (bukti A).\n(PDPI, 2023. Penyakit Paru Obstruktif Kronik (PPOK) Pedoman Diagnosis dan Penatalaksanaan Di Indonesia)"
+  },
+  {
+    "stem": "Pasien anak mengeluhkan nyeri perut, mual, dan tidak nafsu makan, serta kehilangan berat badan. Hasil pemeriksaan ditemukan adanya larva cacing cambuk pada feses anak tersebut. Apa rekomendasi obat yang terpat untuk pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Mebendazol"
+      },
+      {
+        "key": "B",
+        "text": "Pirantel pamoat"
+      },
+      {
+        "key": "C",
+        "text": "Niklosamid"
+      },
+      {
+        "key": "D",
+        "text": "Prazikuantel"
+      },
+      {
+        "key": "E",
+        "text": "Dietilkarbamazin"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nCacing Gelang (Ascaris lumbricoides) : Albendazol atau Mebendazole dosis tunggal. Alternatif: Pirantel Pamoat\nCacing Cambuk (Trichuris trichiura) : Albendazol atau Mebendazol selama 3 hari berturut-turut\nCacing Tambang (Ancylostoma duodenale dan Necator americanus): Albendazol dosis tunggal. Mebendazol atau Pirantel Pamoat 3 hari berturut-turut.\n(Peraturan Menteri Kesehatan Republik Indonesia Nomor 15 Tahun 2017 Tentang Penanggulangan Cacingan)"
+  },
+  {
+    "stem": "Pasien wanita diberikan terapi Kaptropil untuk hipetensi yang dialami. Setelah 3 bulan penggunaan, dilakukan evaluasi dan diperoleh nilai tekanan darah pasien masih melewati batas normal. Dokter berencana untuk menambahkan obat antihipertensi lain sebagai terapi kombinasi. Apa obat antihipertensi yang perlu dihindari?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Bisoprolol"
+      },
+      {
+        "key": "B",
+        "text": "Amlodipin"
+      },
+      {
+        "key": "C",
+        "text": "Valsartan"
+      },
+      {
+        "key": "D",
+        "text": "Furosemid"
+      },
+      {
+        "key": "E",
+        "text": "Hidroklortiazid"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nKombinasi antihipertensi ACEi dan ARB harus dihindari karena risiko peningkatan toksisitas akibat sinergisme farmakodinamik. Blokade ganda sistem rennin-angiotensis meningkatkan risiko hipotensi, hiperkalemia, dan gangguan ginjal.\n(Medscape; Dipiro 12th Edition)"
+  },
+  {
+    "stem": "Seorang ibu hamil dibawa ke rumah sakit untuk melakukan persalinan dan diberikan obat untuk menginduksi kontraksi pada uterus. Obat apakah yang dikontraindikasikan pada pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Oksitosin"
+      },
+      {
+        "key": "B",
+        "text": "Misoprostol"
+      },
+      {
+        "key": "C",
+        "text": "Pitocin"
+      },
+      {
+        "key": "D",
+        "text": "Terbutalin"
+      },
+      {
+        "key": "E",
+        "text": "Dinoprostone"
+      }
+    ],
+    "correctOptionKey": "D",
+    "explanationText": "Jawab:\nTerbutalin merupakan obat golongan agonis β2 adrenergik yang bekerja dengan menstimulasi reseptor β2 yang terdapat di uterus dan bronkis sehingga menyebabkan relaksasi\n(Medscape)"
+  },
+  {
+    "stem": "Seorang ibu datang ke dokter membawa anaknya. Sang anak tidak sengaja menelan obat tetes telinga dengan kandungan natrium dokusat. Dokter bertanya kepada apoteker terkait tindakan penanganan untuk anak tersebut. Apa yang direkomendasikan apoteker?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Minum air dalam jumlah banyak"
+      },
+      {
+        "key": "B",
+        "text": "Memaksa anak untuk muntah"
+      },
+      {
+        "key": "C",
+        "text": "Memberikan arang aktif sebagai antidot"
+      },
+      {
+        "key": "D",
+        "text": "Memberikan obat pencahar"
+      },
+      {
+        "key": "E",
+        "text": "Memberikan obat anti diare"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nMenelan natrium dokusat dapat menyebabkan iritasi gastrointestinal, mual, muntah, dan diare.\nSenyawa ini larut dalam air sehingga dapat dikeluarkan melalui proses pembuangan alami tubuh. Pertolongan pertama yang dapat diberikan terhadap seseorang yang menelan natrium dokusat adalah dengan memberikan air minum atau susu serta tidak dirangsang muntah karena bahan bersifat iritan. Segera bawa korban ke rumah sakit jika gejala yang dialami bertambah parah. (ik.pom.go.id)"
+  },
+  {
+    "stem": "Seorang pasien wanita usia 68 tahun\ndidiagnosis osteoarthritis dan diberikan\nterapi suplemen oleh dokter. Terapi suplemen apa yang harus diberikan kepada pasien?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Glukosamin"
+      },
+      {
+        "key": "B",
+        "text": "Kondroitin"
+      },
+      {
+        "key": "C",
+        "text": "Glukosamin dan kondroitin"
+      },
+      {
+        "key": "D",
+        "text": "Piridoksin"
+      },
+      {
+        "key": "E",
+        "text": "Thiamin"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nGlukosamin dan Kondroitin dalam merupakan komponen dari\nkartilago, yang merupakan bantalan sendi. Oleh karena itu Glukosamin dan Kondroitin digunakan dalam terapi Osteoarthritis karena kartilago yang rusak."
+  },
+  {
+    "stem": "Seorang pasien usia 54 tahun mengalami penurunan kepadatan tulang sehingga tulang menjadi keropos dan mudah patah. Dokter mendiagnosis pasien mengalami osteoporosis. Setelah penggalian informasi, diketahui pasien memiliki riwayat gagal jantung dan peptic ulcer. Pasien rutin mengonsumsi, amlodipine, simvastatin, omeprazole, aspirin dan clopidogrel. Obat apakah yang menyebabkan efek samping osteoporosis pada pasien?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Aspirin"
+      },
+      {
+        "key": "B",
+        "text": "Clopidogrel"
+      },
+      {
+        "key": "C",
+        "text": "Omeprazol"
+      },
+      {
+        "key": "D",
+        "text": "Amlodipin"
+      },
+      {
+        "key": "E",
+        "text": "Simvastatin"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nPenyerapan logam, khususnya logam bevalensi dua seperti kalsium membutuhkan suasana asam. Penggunaan PPi dapat menyebabkan peningkatan pH lambung sehingga menjadi basa. Hal ini akan menyebabkan penurunan absorbsi kalsium dan mengarah pada osteoporosis.\n(National Library of Medicine, Proton pump inhibitors and osteoporosis)"
+  },
+  {
+    "stem": "Tn. A didiagnosis menderita Hiperlipidemia dengan kadar LDL 280 mg/dL, TG 250mg/dL, HDL 60 mg/dL. Apa obat antihiperlipidemia yang tepat untuk pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Simvastatin"
+      },
+      {
+        "key": "B",
+        "text": "Fenofibrat"
+      },
+      {
+        "key": "C",
+        "text": "Ezetimibe"
+      },
+      {
+        "key": "D",
+        "text": "Asam nikotinat"
+      },
+      {
+        "key": "E",
+        "text": "Omega 3"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nLDL tinggi :\n1st Statin,\n2nd Ezetimibe (tunggal pada pasien intoleransi statin atau kombinasi dengan statin)\nTrigiselida tinggi:\n1st Statin\n2nd Fibrat jika TG > 500 mg/dL\n((European Society of Cardiology, & European Atherosclerosis\nSociety. (2025). 2025 focused update of the 2019 ESC/EAS guidelines for the management of dyslipidaemias)"
+  },
+  {
+    "stem": "Seorang wanita dibawa ke rumah sakit dengan keluhan lemas, pusing, dan pucat. Pasien memiliki riwayat gagal ginjal kronik dan didiganosis mengalami anemia normositik. Nilai Hb pasien 8 g/dL dan kadar ferritin serum 280µg/L. Terapi apa yang tepat untuk mengatasi anemia pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Transfusi RBC"
+      },
+      {
+        "key": "B",
+        "text": "Vitamin B12"
+      },
+      {
+        "key": "C",
+        "text": "Asam Folat"
+      },
+      {
+        "key": "D",
+        "text": "Zat Besi"
+      },
+      {
+        "key": "E",
+        "text": "Eritropoetin"
+      }
+    ],
+    "correctOptionKey": "E",
+    "explanationText": "Jawab:\n(KDIGO, 2020)"
+  },
+  {
+    "stem": "Seorang pasien didiagnosis anemia mikrositik dan diresepkan tablet Fe dan vitamin C. Pasien bertanya kepada apoteker mengapa harus diberikan vitamin C. Apa informasi yang diberikan apoteker terkait alasan pemberian terapi tambahan vitamin C?\nFe",
+    "options": [
+      {
+        "key": "A",
+        "text": "Meningkatkan absorbsi Fe"
+      },
+      {
+        "key": "B",
+        "text": "Menurunkan toksisitas Fe"
+      },
+      {
+        "key": "C",
+        "text": "Meningkatkan kadar hemoglobin"
+      },
+      {
+        "key": "D",
+        "text": "Mengurangigangguan gastrointestinal akibat pemberian"
+      },
+      {
+        "key": "E",
+        "text": "Mencegah efek konstipasi"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nLogam valensi 2+ dan 3+ diabsorbsi pada suasana asam di saluran GI. Pemberian Vitamin C memiliki sifat asam sehingga dapat meningkatkan absorbsi Fe2+.\n(National Library of Medicine, Iron Absorption: Factors, Limitations, and Improvement Methods)"
+  },
+  {
+    "stem": "Pasien laki-laki datang ke dokter untuk menebus resep. Pasien diresepkan Terazosin untuk mengatasi BPH yang diderita. Apa yang disampaikan apoteker terkait aturan minum obat tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Diminum malam hari"
+      },
+      {
+        "key": "B",
+        "text": "Diminum pagi hari sebelum sarapan"
+      },
+      {
+        "key": "C",
+        "text": "Diminum siang hari sebelum beraktivitas"
+      },
+      {
+        "key": "D",
+        "text": "Diminum sore hari"
+      },
+      {
+        "key": "E",
+        "text": "Diminum pagi dan malam hari"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nEfek samping prazosin dan obat golongan antagonis reseptor\n𝛼 − 1 adalah hipotensi postural dan ortostatik yang dapat menyebabkan pusing dan pingsan sehingga diminum pada malam hari untuk menghindari risiko pingsan tiba-tiba yang dapat menyebabkan cedera.\nNational Library of Medicine, Terazosin; Medscape)"
+  },
+  {
+    "stem": "Nyonya A memiliki riwayat hiperlipidemia sejak 5 tahun yang lalu. Saat melakukan pemeriksaan rutin, diperoleh nilai kadar kolesterol total 220mg/dL, LDL 210mg/dL, TG 550mg/dL dan HDL 30mg/dL. Sebelumnya, pasien telah diresepkan simvastatin. Melihat hasil pemeriksaan pasien, dokter meresepkan terapi tambahan Gemfibrozil. Apoteker yang bertugas menemukan adanya interaksi antara Simvastatin dan Gemfibrozil. Apa efek samping yang dapat terjadi akibat interaksi kedua obat tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Cholelithiasis"
+      },
+      {
+        "key": "B",
+        "text": "Peningkatan SGOP dan SGPT"
+      },
+      {
+        "key": "C",
+        "text": "Batuk kering"
+      },
+      {
+        "key": "D",
+        "text": "Rhabdomiolisis"
+      },
+      {
+        "key": "E",
+        "text": "Anemia"
+      }
+    ],
+    "correctOptionKey": "D",
+    "explanationText": "Jawab:\nInteraksi antara fibrat dan statin dianggap lebih bersifat farmakodinamik daripada farmakokinetik. Oleh karena itu efek rhabdomyolysis dapat meningkat karena penjumlahan dan sinergisme miotoksisitas kedua obat\n(Dalugama, C., Pathirage, M., & Kularatne, S. A. M. (2018). Delayed presentation of severe rhabdomyolysis leading to acute kidney injury following atorvastatin-gemfibrozil combination therapy: a case report. Journal of medical case reports, 12, 1-5.)"
+  },
+  {
+    "stem": "Pasien usia 45 tahun menderita gout dan diberikan terapi kolkisin, natrium diklofenak, natrium bikarbonat, allopurinol dan probenesid. Saat datang ke dokter untuk kontrol rutin, didapatkan bahwa tekanan darah pasien mengalami peningkatan. Obat apakah yang menyebabkan peningkatan tekanan darah pada pasien?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Kolkisin"
+      },
+      {
+        "key": "B",
+        "text": "Natrium diklofenak"
+      },
+      {
+        "key": "C",
+        "text": "Natrium bikarbonat"
+      },
+      {
+        "key": "D",
+        "text": "Probenesid"
+      },
+      {
+        "key": "E",
+        "text": "Allopurinol"
+      }
+    ],
+    "correctOptionKey": "B",
+    "explanationText": "Jawab:\nMekanisme NSAID yang mempromosikan hipertensi dihipotesiskan terkait dengan penghambatan sintesis prostaglandin, yang mengarah pada gangguan pembuluh darah ginjal yang memanipulasi pengaturan tekanan darah. Selain itu, NSAID sendiri dapat menyebabkan peningkatan aldosteron serum, yang menyebabkan retensi natrium dan hipertensi.\n(WONGRAKPANICH, Supakanya, et al. A comprehensive review of non-steroidal anti-inflammatory drug use in the elderly. Aging and disease, 2018, 9.1: 143.)"
+  },
+  {
+    "stem": "Seorang remaja datang ke IGD dengan keluhan nyeri di ulu hati setelah mengonsumsi makanan pedas. Dokter mendiagnosis pasien mengalami gastritis. Apa pilihan terapi yang tepat diberikan kepada pasien saat ini?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Omeprazol"
+      },
+      {
+        "key": "B",
+        "text": "Ranitidin"
+      },
+      {
+        "key": "C",
+        "text": "Cimetidin"
+      },
+      {
+        "key": "D",
+        "text": "Klonidin"
+      },
+      {
+        "key": "E",
+        "text": "Antasida"
+      }
+    ],
+    "correctOptionKey": "E",
+    "explanationText": "Jawab:\nTujuan pengobatan gastritis adalah untuk mengatasi penyebab yang mendasari dan mengurangi jumlah asam di lambung untuk meredakan gejala, sehingga lapisan lambung dapat pulih. Antasida adalah obat over-the-counter (OTC) yang membantu menetralkan asam lambung.\n(National Library of Medicine, Gastritis)."
+  },
+  {
+    "stem": "Seorang pasien wanita usia 44 tahun didiagnosis mengalami hipertensi state\n1. Pasien memiliki riwayat asma dan rutinmenggunakansalbutamoldan\nbudenoside. Dokter berencana untuk memberikan obat antihipertensi golongan betablocker. Manakah obat beta bloker yang dikontraindikasikan pada pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Metorpolol"
+      },
+      {
+        "key": "B",
+        "text": "Atenolol"
+      },
+      {
+        "key": "C",
+        "text": "Bisoprolol"
+      },
+      {
+        "key": "D",
+        "text": "Timolol"
+      },
+      {
+        "key": "E",
+        "text": "Esmolol"
+      }
+    ],
+    "correctOptionKey": "D",
+    "explanationText": "Jawab:\nBeta bloker non seletif (β1 dan β2 inhibitor)  Kontraindikasi pasien  asma  :  Propanolol,  Nadolol,  Labetolol,  Timolol,\nCarvedilol\nBeta bloker selektif β1  aman untuk pasien asma Jembatan keledai : AMAN BABE\nAsmaMetoprolol,Atenolol,Nebivolol,Bisoprolol, Acebutolol, Betaxolol, Esmolol"
+  },
+  {
+    "stem": "Seorang pria berusia 33 tahun mengalami batuk disertai dahak berwarna hijau. Dokter mendiagnosis pasien menderita CAP dan diberikan regimen terapi rawat jalan. Pasien memiliki riwayat alergi antibiotik Azitromisin. Apa pengobatan yang tepat untuk pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Eritromisin"
+      },
+      {
+        "key": "B",
+        "text": "Amoksisilin"
+      },
+      {
+        "key": "C",
+        "text": "Amfoterisin"
+      },
+      {
+        "key": "D",
+        "text": "Klaritromisin"
+      },
+      {
+        "key": "E",
+        "text": "Levofloksaksin"
+      }
+    ],
+    "correctOptionKey": "B",
+    "explanationText": "Jawab:\nTerapi CAP rawat jalan:\n1st : Amoksisilin atau Sefadroksil 2nd : Ko amoksiklav\n3rd: Klaritromisin atau Azitromisin\n(PMK No. 28 Tahun 2021 tentang Pendoman Penggunaan Antibiotik)"
+  },
+  {
+    "stem": "Seorang pasien pria usia 55 tahun didiagnosis menderita hiperglikemia dengan hasil pemeriksaan GDS 260mg/dl dan GDP 140mg/dl. Dokter meresepkan OAD yang berkeja dengan menghambat reabsorpsi glukosa di tubulus ginjal. Obat apakah\nyang dimaksud?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Liraglutide"
+      },
+      {
+        "key": "B",
+        "text": "Metformin"
+      },
+      {
+        "key": "C",
+        "text": "Glimepirid"
+      },
+      {
+        "key": "D",
+        "text": "Sitagliptin"
+      },
+      {
+        "key": "E",
+        "text": "Canaglifozin"
+      }
+    ],
+    "correctOptionKey": "E",
+    "explanationText": "Jawab:\nCanaglifozin merupakan OAD golongan SGLT-2 inhibitor yang berfungsi menghambat reseptor SGLT-2 di tubulus proksimal sehinggan reabsorpsi glukosa tidak terjadi dan meningkatkan eksresi glukosa melalui urin.\n(Dipiro 12th Edition)"
+  },
+  {
+    "stem": "Seorang pasien wanita hamil mengeluhkan pusing dan terasa berputar jika berdiri dari posisi duduk atau bangun dari posisi berbaring. Pasien didiagnosis mengalami vertigo. Apa terapi yang diberikan kepada pasien?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Na Diklofenak"
+      },
+      {
+        "key": "B",
+        "text": "Parasetamol"
+      },
+      {
+        "key": "C",
+        "text": "Ibuprofen"
+      },
+      {
+        "key": "D",
+        "text": "Asam mefenamat"
+      },
+      {
+        "key": "E",
+        "text": "Betahistin"
+      }
+    ],
+    "correctOptionKey": "E",
+    "explanationText": "Jawab:\nBetahistin merupakan first line pada pengobatan vertigo. Betahistin bekerja dengan mengurangi fungsi asimetris organ vestibular sensorik secara perifer dan meningkatkan aliran darah vestibulocochlear dengan mengantagonis heteroreseptor H(3) lokal. Betahistine aman diberikan untuk ibu hamil (Kategori B)\nSecond line : Dimenhidrinat dan dimenhidramin\n(Lacour M & Sterkers O, CNS Drugs: DOI 10.2165/00023210-200115110-00004)"
+  },
+  {
+    "stem": "Seorang pasien wanita didiagnosis TBC oleh dokter dan saat ini menerima regimen terapi 2HRZE + 4H3R3. Saat konseling, pasien mengatakan sedang menggunakan kontrasepsi oral. Apa rekomendasi apoteker terkait pengobatan pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Menghentikanpenggunaan kontrasepsi"
+      },
+      {
+        "key": "B",
+        "text": "Tetap menggunakan kontrasepsi karena tidak ada interaksi"
+      },
+      {
+        "key": "C",
+        "text": "Menggantidengankontrasepsi non hormonal IUD Copper T"
+      },
+      {
+        "key": "D",
+        "text": "MemberijedakonsumsiOAT\ndengan kontrasepsi oral"
+      },
+      {
+        "key": "E",
+        "text": "Mengganti regimen terapi OAT"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nRifampicin merupakan inducer CYP34A yang dapat meningkatkan metabolisme obat lain. Peningkatan metabolisme suatu obat akan menyebabkan penurunan kadar obat tersebut.\nRifampisin akan menurunkan kadar obat kontrasepsi oral akibat peningkatan metabolisme sehingga harus diganti dengan kontrasepsi non hormonal, seperti IUD Copper T atau menggunakan kondom\n(Medscape)"
+  },
+  {
+    "stem": "Seorang laki laki usia 34 tahun dengan berat badan 105 kg didiagnosis menderita hipertensi. Dokter menyuruh pasien untuk mengurangi berat badan untuk mencegah komplikasi akibat berat badan berlebih. Apa terapi obesitas yang sesuai untuk pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Topiramat"
+      },
+      {
+        "key": "B",
+        "text": "Lorcaserin"
+      },
+      {
+        "key": "C",
+        "text": "Bupropion"
+      },
+      {
+        "key": "D",
+        "text": "Liraglutide"
+      },
+      {
+        "key": "E",
+        "text": "Metformin"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nPilihan terapi obesitas:\nDM tipe 2 : Orlistat, Liraglutide\nHipertensi : Orlistat, Topiramat (KI Bupropion) CKD : Orlistat, Liraglutide\nNefrolitiasis: Lorcaserin, Bupropion, Liraglutide (Dipiro 12th Edition)"
+  },
+  {
+    "stem": "Seorang ibu membawa anaknya yang berusia 6 tahun ke dokter spesialis anak. Anak tersebut mengeluhkan demam, sakit tenggorokan dan sulit menelan. Dokter mendiagnosis pasien mengalami tonsilitis akibat infeksi bakteri. Ibu pasien mengatakan anaknya alergi terhadap antibiotik golongan Beta Laktam. Apa antibotik yang tepat untuk pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Amoksiklav"
+      },
+      {
+        "key": "B",
+        "text": "Kloramfenikol"
+      },
+      {
+        "key": "C",
+        "text": "Eritromisin"
+      },
+      {
+        "key": "D",
+        "text": "Sefadroksil"
+      },
+      {
+        "key": "E",
+        "text": "Doksisiklin"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nPilihan 1: Amoksisilin atau Eritromisin Etilsuksinat (EES)\nPilihan 2: Sefadroksil atau klindamisin (PMK No 28 Tahun 2021)"
+  },
+  {
+    "stem": "Seorangpasiendatangkedokter mengeluhkannyerijempolkaki,\npergelangantangan,danjarisetiap\nbangun tidur. Hasil pemeriksaan laboratorium menunjukkan kadar asam urat 8 mg/dL. Pasien memiliki riwayat gagal ginjal kronis. Dokter berdiskusi dengan apoteker terkait terapi hiperurisemia pada pasien. Obat apakah yang perlu dihindari pada pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Febuxostate"
+      },
+      {
+        "key": "B",
+        "text": "Kolkisin"
+      },
+      {
+        "key": "C",
+        "text": "Allopurinol"
+      },
+      {
+        "key": "D",
+        "text": "Probenesid"
+      },
+      {
+        "key": "E",
+        "text": "Peglotigase"
+      }
+    ],
+    "correctOptionKey": "D",
+    "explanationText": "Jawab:\nPenggunaan probenesid pada pasien dengan gagal ginjal kronik GFR <50ml/menit perlu mendapatkan perhatian khusus, karena\nprobenesid memiliki efek samping gagal ginjal akut.\n(Nature Reviews Rheumatology, Management of gout in chronic kidney disease: a G-CAN Consensus Statement on the research priorities)"
+  },
+  {
+    "stem": "Ny. A mengeluhkan sakit kepala, pusing, dan tengkuk terasa tegang. Hasil pemeriksaan tekanan darah pasien yaitu 140/110 mmHg. Dokter mendiagnosis pasien menderita hipertensi. Pasien memiliki riwayat asam urat dan rutin mengonsumsi allopurinol. Apa antihipertensi yang dikontraindikasikan pada pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Hidroklortiazid"
+      },
+      {
+        "key": "B",
+        "text": "Klonidin"
+      },
+      {
+        "key": "C",
+        "text": "Kaptopril"
+      },
+      {
+        "key": "D",
+        "text": "Valsartan"
+      },
+      {
+        "key": "E",
+        "text": "Amlodipin"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nEfek samping diuretic: sering berkemih,hiperurisemia, hiperglikemia, dan disfungsi ereksi.\n(Konsensus Penatalaksanaan Hipertensi, 2021)"
+  },
+  {
+    "stem": "Seorang pria berusia 55 tahun didiagnosis menderita lupus like syndrome setelah  rutin  mengonsumsi\nobat hipertensi yang diresepkan dokter. Obat apakah yang menyebabkan efek samping tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Bisoprolol"
+      },
+      {
+        "key": "B",
+        "text": "Verapamil"
+      },
+      {
+        "key": "C",
+        "text": "Hidralazin"
+      },
+      {
+        "key": "D",
+        "text": "Prazosin"
+      },
+      {
+        "key": "E",
+        "text": "Nicardipine"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nPada pasien hipertensi tertentu yang diobati dengan hidralazin hidroklorida, suatu sindrom berkembang yang menyerupai\nlupus eritematosus sistemik atau dalam kasus yang lebih ringan, artritis reumatoid.\n(Julian, J. Hydralazine-Induced Lupus Erythematosus-Like Syndrome. JAMA Pediatrics)"
+  },
+  {
+    "stem": "Seorang pria datang ke apotek untuk membeli obat batuk. Pasien tersebut mengatakan bahwa mengalami batuk disertai dahak yang sulit dikeluarkan. Apoteker merekomendasikan n-asetilsistein. Bagaimana mekanisme kerja obat tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Menekan respon batuk pada sistem saraf pusat"
+      },
+      {
+        "key": "B",
+        "text": "Menghambatenzim fosfodiesterase"
+      },
+      {
+        "key": "C",
+        "text": "Menyebabkan vasodilatasi"
+      },
+      {
+        "key": "D",
+        "text": "Menekan aktivitas otat yang menyebabkan batuk"
+      },
+      {
+        "key": "E",
+        "text": "Memecah ikatan disulfida pada\nMukus"
+      }
+    ],
+    "correctOptionKey": "E",
+    "explanationText": "Jawab:\nGugus sulfhidril asetilsistein dapat menghidrolisis ikatan disulfida dalam mukus, memecah oligomer, dan membuat mukus menjadi lebih encer sehingga mudah dikeluarkan.\n(Drugbank)"
+  },
+  {
+    "stem": "Pasien usia 45 tahun melakukan pemeriksaan HbA1c di Rumah Sakit. Hasil pemeriksaan menunjukkan nilai HbA1c 9,2% dan diberikan terapi insulin. Saat konseling, apoteker memberitahu bahwa area penyuntikan tidak boleh pada\narea yang sama secara terus menerus.\nEfekapayangdapatterjadiakibat penyuntikan pada area yang sama?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Penurunan efektivitas insulin"
+      },
+      {
+        "key": "B",
+        "text": "Lipodistrofi"
+      },
+      {
+        "key": "C",
+        "text": "Rhabdomiolisis"
+      },
+      {
+        "key": "D",
+        "text": "Liposuction"
+      },
+      {
+        "key": "E",
+        "text": "Infeksi bakteri"
+      }
+    ],
+    "correctOptionKey": "B",
+    "explanationText": "Jawab:\nInjeksi sediaan insulin pada tempat yang sama secara berulang-ulang dapat menyebabkan atrofi jaringan lemak subkutis (lipodistrofi) di tempat penyuntikan\n(Katzung, 12th Edition; Medscape)"
+  },
+  {
+    "stem": "Seorang pria dibawa ke IGD karena keracunan insektisida. Apa antidot yang digunakan untuk mengatasi keracunan tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Flumazenil"
+      },
+      {
+        "key": "B",
+        "text": "Asetilsistein"
+      },
+      {
+        "key": "C",
+        "text": "Nalokson"
+      },
+      {
+        "key": "D",
+        "text": "Atropin"
+      },
+      {
+        "key": "E",
+        "text": "Glukagon"
+      }
+    ],
+    "correctOptionKey": "D",
+    "explanationText": "Jawab:\nAntidot Benzodiazepin = Flumazenil Antidot Paracetamol = N-Asetilsistein Antidot insektisida = atropin\nAntidot narkotika = nalokson Antidot beta bloker = glukagon"
+  },
+  {
+    "stem": "Seorang wanita dibawa ke IGD setelah melakukan percobaan bunuh diri dengan mengonsumsimorfin.Dokter memberikan nalokson sebagai antidotum. Bagaimana mekanisme kerja antidotum tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Antagonis parsial"
+      },
+      {
+        "key": "B",
+        "text": "Agonis total"
+      },
+      {
+        "key": "C",
+        "text": "Antagonis kompetitif"
+      },
+      {
+        "key": "D",
+        "text": "Antagonis subparsial"
+      },
+      {
+        "key": "E",
+        "text": "Agonis parsial"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nAntagonis reseptor opioid yang bekerja secara sentral merupakan inhibitor kompetitif yang poten dengan afinitas tertinggi terhadap reseptor mu. Nalokson adalah pilihan paling umum dalam keadaan darurat overdosis opioid.\n(National Library of Medicine, Opioid Antagonists)"
+  },
+  {
+    "stem": "Seorang pasien diresepkan gemfibrozil 300 mg. Kapan waktu yang tepat untuk mengonsumsi obat tersebut?\nsebelum tidur",
+    "options": [
+      {
+        "key": "A",
+        "text": "Diminum  setelah makan, dan"
+      },
+      {
+        "key": "B",
+        "text": "Diminum30menitsebelum sarapan pagi"
+      },
+      {
+        "key": "C",
+        "text": "Diminum sesudah makan"
+      },
+      {
+        "key": "D",
+        "text": "Diminum sebelum makan"
+      },
+      {
+        "key": "E",
+        "text": "Bersama dengan makan"
+      }
+    ],
+    "correctOptionKey": "B",
+    "explanationText": "Jawab:\nGemfibrozil diminum 30 menit sebelum makan pagi dan malam\n(Medscape)"
+  },
+  {
+    "stem": "Pasien wanita usia 25 tahun mengeluhkan mata merah sudah 3 hari, dokter melakukan pemeriksaan dan pasien didiagnosis mengalami konjungtivitis virus. Dokter meresepkan obat untuk mengobati keluhan tersebut. Apa obat yang diberikan?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Oseltamivir"
+      },
+      {
+        "key": "B",
+        "text": "Favipiravir"
+      },
+      {
+        "key": "C",
+        "text": "Avigan"
+      },
+      {
+        "key": "D",
+        "text": "Acyclovir"
+      },
+      {
+        "key": "E",
+        "text": "Azitromisin"
+      }
+    ],
+    "correctOptionKey": "D",
+    "explanationText": "Jawab:\nPada konjungtivitis virus pasien dapat diterapi menggunakan salep acyclovir 3 %, 5 kali sehari selama 10 hari.\n(Sitompul, R. (2017). Konjungtivitis Viral: Diagnosis dan Terapi di Pelayanan Kesehatan Primer)"
+  },
+  {
+    "stem": "Seorang ibu membawa anaknya (usia 7 tahun) ke klinik dengan keluhan penurunan nafsu makan, badan tampak kurus dan gatal di sekitar anus. Pemeriksaan laboratorium pada feses pasien ditemukan adanya parasit Enterobius vermicularis. Obat apakah yang tepat untuk anak tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Pirantel pamoat"
+      },
+      {
+        "key": "B",
+        "text": "Mebendazole"
+      },
+      {
+        "key": "C",
+        "text": "Piperazin"
+      },
+      {
+        "key": "D",
+        "text": "Ivermectin"
+      },
+      {
+        "key": "E",
+        "text": "Praziquantel"
+      }
+    ],
+    "correctOptionKey": "B",
+    "explanationText": "Jawab:\nTerapi cacing kremi (Enterobius vermicularis/ Oxyrus vemicularis: Obat pilihannya adalah albendazole atau mebendazole atau, pyrantel pamoate (alternatif) yang diberikan sebagai dosis awal tunggal, diikuti dengan dosis kedua obat yang sama 2 minggu kemudian untuk menghilangkan kemungkinan infeksi ulang.\n(PIONAS; Enterobiasis / Pinworm CDC Yellow Book 2024)"
+  },
+  {
+    "stem": "Seorang pasien yang mengalami obesitas mendapatkan terapi orlistat. Namun, setelah beberapa minggu terapi, berat badan pasien tidak mengalami penurunan. Apoteker merekomendasikan kepada dokter untuk mengganti terapi pasien dengan Dietilpropion. Bagaimana mekanisme kerja obat tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Meningkatkanpelepasan dopamine dan norepinefrin"
+      },
+      {
+        "key": "B",
+        "text": "Menghambat reuptake serotonin secara selektif"
+      },
+      {
+        "key": "C",
+        "text": "Menghambat reuptake serotonin dan norepinefrin"
+      },
+      {
+        "key": "D",
+        "text": "Menghambat enzim lipase"
+      },
+      {
+        "key": "E",
+        "text": "Meningkatkanproduksiinsulin\ndanmenurunkanproduksi glukagon"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nDiethylpropion adalah amfetamin yang merangsang neuron untuk melepaskan atau mempertahankan kelompok neurotransmiter tertentu yang dikenal sebagai katekolamin; ini termasuk dopamin dan norepinefrin. Kadar katekolamin yang tinggi cenderung menekan sinyal lapar dan nafsu makan\n(drugbank.com)"
+  },
+  {
+    "stem": "Seorang pasien menderita Diabetes Melitus dan mendapatkan terapi Metformin. Namun, pasien mengeluhkan sering mengalami kesemutan. Apa terapi tambahan yang diberikan untuk pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Vitamin A"
+      },
+      {
+        "key": "B",
+        "text": "Vitamin B12"
+      },
+      {
+        "key": "C",
+        "text": "Vitamin B6"
+      },
+      {
+        "key": "D",
+        "text": "Vitamin D"
+      },
+      {
+        "key": "E",
+        "text": "Zat besi"
+      }
+    ],
+    "correctOptionKey": "B",
+    "explanationText": "Jawab:\nPenggunaan jangka panjang metformin dapat menyebabkan terjadinya defisiensi vitamin B12 (gejala neuropati) yaitu dengan cara mengganggu penyerapan faktor intrinsik vitamin B12 di ileum terminal\n(Dipiro 12th Edition, 2020)."
+  },
+  {
+    "stem": "Seorang pasien mengeluhkan letih, lemah,\ndan lesu. Hasil pemeriksaan menunjukkan\nadanya penurunan fungsi hati pada pasien. Di bawah ini, manakah obat yang dipengaruhi farmakokinetiknya?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Morfin"
+      },
+      {
+        "key": "B",
+        "text": "Paracetamol"
+      },
+      {
+        "key": "C",
+        "text": "Klopidogrel"
+      },
+      {
+        "key": "D",
+        "text": "Aspirin"
+      },
+      {
+        "key": "E",
+        "text": "Steptomisin"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nCYP2C19 pada hati mengaktifkan obat antiplatelet clopidogrel,\ndan polimorfisme pada gen CYP2C19. Adanya penurunan fungsi hati dapat menyebabkan gangguan pada metabolisme clopidogrel dan obat obat yang dimetabolisme di hati.\n(National Library of Medicine, CYP2C19 genotype-guided antiplatelet therapy: promises and pitfalls)"
+  },
+  {
+    "stem": "Seorang wanita hamil datang ke dokter. Pemeriksaan tekanan darah menunjukkan 170/100 mmHg. Dokter menduga pasien mengalami preeklamsia sehingga melakukan pemeriksaan penunjang, apakah parameter dari pemeriksaan yang dilakukan?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Serum kreatinin"
+      },
+      {
+        "key": "B",
+        "text": "Protein dalam urin"
+      },
+      {
+        "key": "C",
+        "text": "Gula darah"
+      },
+      {
+        "key": "D",
+        "text": "Albumin"
+      },
+      {
+        "key": "E",
+        "text": "Trombosit"
+      }
+    ],
+    "correctOptionKey": "B",
+    "explanationText": "Jawab:\nPreeklampsia = peningkatan TD 140/90 mmHg yang muncul setelah 20 minggu masa kehamilan diikuti dengan adanya proteinuria  kadar protein > 300 mg/24 jam\n(KEMENKES, Mengenal Preeklamsia)"
+  },
+  {
+    "stem": "Seorang pria usia 72 tahun didiagnosis mengalami gagal jantung. Pasien memiliki riwayat hipertensi sejak 12 tahun yang lalu dan rutin mengonsumsi obat antihipertensi. Dokter berencana melakukan pergantian terapi. Obat antihipertensiapakahyang dikontraindikasikan pada pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Bisoprolol"
+      },
+      {
+        "key": "B",
+        "text": "Captropil"
+      },
+      {
+        "key": "C",
+        "text": "Valsartan"
+      },
+      {
+        "key": "D",
+        "text": "Verapamil"
+      },
+      {
+        "key": "E",
+        "text": "Furosemide"
+      }
+    ],
+    "correctOptionKey": "D",
+    "explanationText": "Jawab:\nVerapamil menurunkan tekanan darah dengan melemaskan otot jantung dan pembuluh darah sehingga dikontraindikasikan pada pasien gagal jantung.\n(Konsensus Penatalaksanaan Hipertensi, 2021)."
+  },
+  {
+    "stem": "Seorang ibu membawa anaknya yang berusia 2 tahun ke UGD. Anak tersebut mengalami kejang dan suhu badan mencapai 39,8oC. Obat apakah yang direkomendasikan segera untuk pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Asam valproat"
+      },
+      {
+        "key": "B",
+        "text": "Diazepam rektal"
+      },
+      {
+        "key": "C",
+        "text": "Diazepam intravena"
+      },
+      {
+        "key": "D",
+        "text": "Lamotigrin"
+      },
+      {
+        "key": "E",
+        "text": "Phenobarbital"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nKata kunci  dibawa ke UGD\nKejang terjadi di rumah = dapat diberikan diazepam rektal. Bila setelah pemberian diazepam kejang belum teratasi dapat diulang dengan dosis yang sama pada interval waktu 5 menit, bila setelah 2 kali pemberian tidak efektif, pasien dibawa ke rumah sakit untuk pembelian diazepam intravena.\nPasien datang ke rumah sakit saat kejang berlangsung = dapat diberikan diazepam IV"
+  },
+  {
+    "stem": "Seorang pasien laki-laki usia 58 tahun didiganosis menderita gout kronis. Pasien memiliki riwayat gangguan fungsi ginjal dengan nilai bersihan kreatinin 38 ml/menit. Apa obat antihiperurisemia yang tepat untuk pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Probenesid"
+      },
+      {
+        "key": "B",
+        "text": "Kolkisin"
+      },
+      {
+        "key": "C",
+        "text": "Allopurinol"
+      },
+      {
+        "key": "D",
+        "text": "Natrium diklofenak"
+      },
+      {
+        "key": "E",
+        "text": "Deksametason"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\n(PerhimpunanReumatologiIndonesia(2024),Pedoman Diagnosis dan Pengelolaan Gout)"
+  },
+  {
+    "stem": "Pasien  pria  usia  65  tahun  menderita\ngastritisdanosteoporosis.Dokter meresepkan esomeprazole dan kalsium\nkarbonat. Apoteker menemukan adanya interaksi dari kedua obat tersebut. Apa interaksi yang dapat terjadi?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Peningkatan absorbsi kalsium karbonat"
+      },
+      {
+        "key": "B",
+        "text": "Bersifat antagonis kompetitif"
+      },
+      {
+        "key": "C",
+        "text": "Kalsium karbonat meningkatkan metabolism esomeprazole"
+      },
+      {
+        "key": "D",
+        "text": "Penurunankadarkalsium karbonat"
+      },
+      {
+        "key": "E",
+        "text": "Penurunan absorbsi esomeprazole"
+      }
+    ],
+    "correctOptionKey": "D",
+    "explanationText": "Jawab:\nKalsium karbonat (CaCo3) merupakan logam valensi 2+ yang membutuhkan suasana asam untuk dapat diserap di\nlambung.\nPPI (Esomeprazol) dapat menghambat sekresi asam dan menyebabkan pH lambung menjadi basa sehingga mengganggu absorbsi kalsium karbonat dan menyebabkan penurunan kadar kalsium karbonat.\n(National Library of Medicine, Intestinal Ca2+ absorption revisited: A molecular and clinical approach; Dipiro 11th Edition)"
+  },
+  {
+    "stem": "Seorangpasiendiidagnosis menderita hiperlipidemia.Salahsatu obat yang diresepkan yaitu Kolestipol. Dari pemeriksaanPMR,ditemukan bahwa pasien memiliki penyakit jantung danrutinmengonsumsidigoksin. Apotekeryangbertugasmenemukan adanyainteraksiantarakeduaobat tersebut.Bagaimanasolusiyang direkomendasikan oleh apoteker?\nsebelum  atau  4  jam  setelah\nKolestipol",
+    "options": [
+      {
+        "key": "A",
+        "text": "Digoksin diminum 1 jam setelah kolestipol"
+      },
+      {
+        "key": "B",
+        "text": "Kolestipol diminum 4 jam setelah Digoksin"
+      },
+      {
+        "key": "C",
+        "text": "Kolestipol diminum 1 jam sebelum digoksin"
+      },
+      {
+        "key": "D",
+        "text": "Kolestipol diminum 30 menit sebelum atau 2 jam setelah digoksin"
+      },
+      {
+        "key": "E",
+        "text": "Digoksin  diminum  1  jam"
+      }
+    ],
+    "correctOptionKey": "E",
+    "explanationText": "Jawab:\nColestipol(BileAcidResins) mengganggu sirkulasi enterohepatik digoksin dan meningkatkan ekskresi fekal. BAR juga berinteraksi dengan obat lain seperti warfarin, tiroksin, atau thiazid sehingga obat-obatan tersebut diminum1 jam sebelum atau 4 jam setelah BAR.\n(Panduan Tatalaksana Dislipidemia, 2017 ; National Library of Medicine, Colestipol)"
+  },
+  {
+    "stem": "Pasien wanita usia 34 tahun datang dokter dengan keluhan paranoid, sering mendengar bisikan tertentu, perasaan emosional yang berlebih dan sulit dikendalikan. Dokter mendiagnosis pasien mengalami skizofrenia dan memberikan terapi antipsikotik dengan efek ekstrapiramidal yang rendah. Obat apakah yang dimaksud?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Olanzapine"
+      },
+      {
+        "key": "B",
+        "text": "Flufenazine"
+      },
+      {
+        "key": "C",
+        "text": "Klorpromazine"
+      },
+      {
+        "key": "D",
+        "text": "Haloperidol"
+      },
+      {
+        "key": "E",
+        "text": "Tioridazin"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nGenerasi 1 (tipikal, efek ekstrapiramidal tinggi)Haloperidol, Chlorpromazine, Flufenazine, Tioridazine, Pimozide, Loxapine\nGenerasi 2 (Atipikal, efek ekstrapiramidal rendah, ganguan metabolism)\nJembatan keledaiAyah ROKZAQ\nAtipikal : Risperidone, Olanzapin, Klozapin, Ziprazidone, Aripiprazole, Quetiapine"
+  },
+  {
+    "stem": "Seorang pasien HIV wanita baru saja melakukan persalinan di rumah sakit. Wanita tersebut mengatakan akan memberikan ASI pada bayinya. Dokter berkonsultasi dengan apoteker terkait obat yang digunakan sebagai pencegahan infeksi HIV pada bayi pasien. Apa obat yang dimaksud?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Zidovudin + Nevirapin"
+      },
+      {
+        "key": "B",
+        "text": "Zidovudin"
+      },
+      {
+        "key": "C",
+        "text": "Kloramfenikol"
+      },
+      {
+        "key": "D",
+        "text": "Tenofovir"
+      },
+      {
+        "key": "E",
+        "text": "Nevirapine"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nBayi dengan pengganti ASI  Zidovudin selama 6 minggu Bayi yang diberikan ASI oleh ibunya  Zidovudin + Nevirapine selama 6 minggu. Ibu harus dalam terapi HIV.\n(Keputusan Menteri Kesehatan Republik Indonesia Nomor HK.01.07/MENKES/90/2019 Tentang Pedoman Nasional Pelayanan Kedokteran Tata Laksana HIV)"
+  },
+  {
+    "stem": "Seorang pasien wanita berusia 78 tahun\nrutinmenggunakanobatnatrium\ndiklofenak untuk mengatasi osteoarthritis yang dialami. Pasien mengeluhkan perut yang terasa perih dan feses yang berwarna coklat kehitaman. Apa rekomendasi terapi untuk pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Famotidin"
+      },
+      {
+        "key": "B",
+        "text": "Omeprazole"
+      },
+      {
+        "key": "C",
+        "text": "Antasida"
+      },
+      {
+        "key": "D",
+        "text": "Simetidin"
+      },
+      {
+        "key": "E",
+        "text": "Sukralfat"
+      }
+    ],
+    "correctOptionKey": "B",
+    "explanationText": "Jawab:\nPasiendenganpepticulcersebaiknyamenghentikan\npenggunaan NSAID non selektif. Namun, jika tetap dilanjutkan maka dapat diberikan obat golongan PPi sebagai first line therapy, seperti omeprazol, lansoprazole, esomeprazol, dll. Terapi Pengobatan (6-8 minggu untuk tukak lambung / 4 minggu untuk tukak duodenum).\n(Dipiro 12th Edition)"
+  },
+  {
+    "stem": "Seorang pasien datang datang ke dokter untuk kontrol. Pasien menderita epilepsi tonik klonik dan rutin mengonsumsi Fenitoin. Namun, akhir-akhir ini epilepsinya sering kambuh padahal ia selalu minum obat. Apa yang menyebabkan hal tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Efek autoinduksi"
+      },
+      {
+        "key": "B",
+        "text": "Efek toleransi"
+      },
+      {
+        "key": "C",
+        "text": "Efek resistensi"
+      },
+      {
+        "key": "D",
+        "text": "Efek autoinhibisi"
+      },
+      {
+        "key": "E",
+        "text": "Efek sinergis"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nAutoinduksi dalam metabolisme obat adalah fenomena ketika obat menginduksi enzim yang bertanggung jawab untuk metabolisme diri sendiri. Fenitoin dimetabolisme oleh sitoktom P450 dan merupakan inducer sitokrom P450. Karena Fenitoin adalah inducer sitokrom P450, Fenitoin menginduksi metabolismenya sendiri.\nObat-obat yang dapat menyebabkan efek autoinduksi antara lain karbamazepin, fenitoin, fenobarbital, dan primidone sehingga perlu ditingkatkan dosisnya.\n(Sciencedirect, Cytochrome P450 Inducer)"
+  },
+  {
+    "stem": "Seorang wanita berusia 34 tahun datang ke dokter spesialis kulit. Kulit pasien terasa kering dan kaku serta terdapat luka yang menyebar. Hasil kultur menunjukkanadanyainfeksi Mycobacterium leprae. Obat apa yang direkomendasikan?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Dapson"
+      },
+      {
+        "key": "B",
+        "text": "Tenofovir"
+      },
+      {
+        "key": "C",
+        "text": "Amoksisilin"
+      },
+      {
+        "key": "D",
+        "text": "Kloramfenikol"
+      },
+      {
+        "key": "E",
+        "text": "Gentamisin"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nObat yang dianjurkan untuk pengobatan lepra adalah dapson, rifampisin, dan klofazimin. Sedangkan obat yang dianggap cukup aktif adalah ofloksasin, minosiklin, dan klaritromisin\n(PIONAS)."
+  },
+  {
+    "stem": "Seorang anak usia 2 tahun didiganosis menderita epilepsi fokal. Dokter memberikan Fenitoin dalam dosis yang lebih tinggi dibandingkan dosis dewasa namun masih berada dalam rentang jendela terapeutik. Apa alasan peningkatan dosis tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Anak usia 2-3 tahun memiliki laju ekskresi ginjal yang lebih besar"
+      },
+      {
+        "key": "B",
+        "text": "Anak usia 2-3 memiliki hambatan dalam mengabsorbsi obat"
+      },
+      {
+        "key": "C",
+        "text": "Anak usia 2-3 tahun memiliki metabolism hepatic lebih cepat"
+      },
+      {
+        "key": "D",
+        "text": "Anak usia 2-3 tahun memiliki volume distribusi yang lebih kecil"
+      },
+      {
+        "key": "E",
+        "text": "Anak  usia  2-3  memiliki  laju\neliminasi lebih cepat"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nNeonatus: eliminasi melalui ginjal melambat  penurunan metabolism dosis diturunkan\nAnak 2-3 tahun: metabolism obat anti epilepsy lebih cepat dosis dinaikkan\nLanjut usia Dosis obat antiepilepsi diturunkan\n(Dipiro 12th Edition)"
+  },
+  {
+    "stem": "Seorang wanita didiagnosis menderita glaukoma sudut terbuka. Pasien memiliki riwayat asma. Dokter bertanya kepada apoteker terkait pilihan terapi untuk pasien. Apa obat yang dikontraindikasikan pada pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Timolol"
+      },
+      {
+        "key": "B",
+        "text": "Lantanoprost"
+      },
+      {
+        "key": "C",
+        "text": "Brimodin"
+      },
+      {
+        "key": "D",
+        "text": "Azetolamide"
+      },
+      {
+        "key": "E",
+        "text": "Metoprolol"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nObat tetes mata beta-blocker non-selektif secara signifikan mempengaruhi fungsi paru-paru dan meningkatkan morbiditas asma.\nBeta bloker non seletif (β1 dan β2 inhibitor)  Kontraindikasi pasien  asma  :  Propanolol,  Nadolol,  Labetolol,  Timolol,\nCarvedilol\nBeta bloker selektif β1  aman untuk pasien asma Jembatan keledai : AMAN BABE\n-AsmaMetoprolol,Atenolol,Nebivolol,\nBisoprolol, Acebutolol, Betaxolol, Esmolol\n(Morales, 2016. Respiratory effect of beta-blocker eye drops in asthma; Dipiro 12th Edition)"
+  },
+  {
+    "stem": "Seorang wanita membawa ayahnya yang berusia 67 tahun ke dokter. Sang ayah mengalami tremor, gerakan melambat (bradykinesia), otot kaku dan tidak fleksibel. Dokter mendiagnosis pasien mengalami gejala Parkinson dan memberikan terapi kombinasi levodopa dan karbidopa. Apa tujuan kombinasi tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Mempercepatkonversi levodopa menjadi dopamin"
+      },
+      {
+        "key": "B",
+        "text": "Mengurangimetabolism levodopa"
+      },
+      {
+        "key": "C",
+        "text": "Bekerja secara sinergis"
+      },
+      {
+        "key": "D",
+        "text": "Mengurangi efeksamping levodopa"
+      },
+      {
+        "key": "E",
+        "text": "Meningkatkanjumlah\nlevodopa yang masuk ke otak"
+      }
+    ],
+    "correctOptionKey": "E",
+    "explanationText": "Jawab:\nKombinasi levodopa dengan karbidopa yang merupakan decarboxylase inhibitor bertujuan untuk mengurangi konversi perifer levodopa menjadi dopamine sehingga jumlah levodopa yang tersedia di otak akan meningkat.\n(Dipiro 12th Edition)."
+  },
+  {
+    "stem": "Seorang wanita hamil trisemester 1 datang ke rumah sakit dan didiagnosis mengalami hipertiroid. Pasien diberikan terapi  PTU.  Parameter  apakah  yang\ndipantau  untuk  mengetahui  efektivitas\nterapi pada fase awal pemberian obat?",
+    "options": [
+      {
+        "key": "A",
+        "text": "T4 dan TSH"
+      },
+      {
+        "key": "B",
+        "text": "T4 dan TRH"
+      },
+      {
+        "key": "C",
+        "text": "T3 dan T4"
+      },
+      {
+        "key": "D",
+        "text": "TRH dan TSH"
+      },
+      {
+        "key": "E",
+        "text": "T3 dan TRH"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nParameter Hipertiroid  T3 dan T4 tinggi, TSH rendah\nParameter Hipotiroid  T3 dan T4 rendah, TSH tinggi\n*TSH tidak digunakan sebagai parameter utama pemantauan pada fase awal terapi karena responsnya tertunda terhadap\nperubahan kadar T4 (TSH dapat digunakan setelah pasien eutiroid/fase pemeliharaan 8-12 minggu terapi)\nPTU  menghambat konversi T4 menjadi T3. Oleh karena itu, terapi PTU dikatakan berhasil apabila kadar T3 dan T4 mencapai normal.\n(PERKENI: Pedoman Pengelolaan Penyakit Hipertiroid, 2017)"
+  },
+  {
+    "stem": "Seorang wanita hamil trisemester 1 datang ke dokter kandungan karena mengalami mual dan muntah yang terus menerus. Obat apakah yang direkomendasikan untuk pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Piridoksin"
+      },
+      {
+        "key": "B",
+        "text": "Ranitidin"
+      },
+      {
+        "key": "C",
+        "text": "Ondansetron"
+      },
+      {
+        "key": "D",
+        "text": "Antasida"
+      },
+      {
+        "key": "E",
+        "text": "Domperidon"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\n(Dipiro, 11th Edition)"
+  },
+  {
+    "stem": "Seorang pasien pria berusia 55 tahun datang ke IGD karena mengalami serangan gout arthritis sejak 3 jam lalu. Obat manakah yang direkomendasikan untuk mengatasi keluhan pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Kolkisin"
+      },
+      {
+        "key": "B",
+        "text": "Prednison"
+      },
+      {
+        "key": "C",
+        "text": "Piroxicam"
+      },
+      {
+        "key": "D",
+        "text": "Allopurinol"
+      },
+      {
+        "key": "E",
+        "text": "Ketoprofen"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nKolkisin sangat efektif dalam menangani serangan gout akut pada 24 jam pertama dan hanya digunakan maksimal 36 jam dari serangan pertama.\n(Pedoman Diagnosis dan Pengelolaan Gout, 2018)"
+  },
+  {
+    "stem": "Seorang anak dibawa ke klinik karena mengalami diare 4-5 kali sehari. Dokter meresepkan oralit. Apa tujuan pemberian oralit untuk anak tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Mencegah dehidrasi"
+      },
+      {
+        "key": "B",
+        "text": "Membunuh kuman"
+      },
+      {
+        "key": "C",
+        "text": "Meningkatkan nafsu makan"
+      },
+      {
+        "key": "D",
+        "text": "Meningkatkan sistem imun"
+      },
+      {
+        "key": "E",
+        "text": "Menghentikan diare"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nOralit adalah obat untuk menggantikan cairan dan elektrolit tubuh yang hilang akibat diare, muntah, demam, atau kondisi lain.  Diare  atau  muntah  yang  tidak  ditangani  dapat\nmenyebabkan tubuh kekurangan cairan (dehidrasi).\n(PIONAS)"
+  },
+  {
+    "stem": "Seorang anak berusia 2 tahun diberikan obat tetes telinga H2O2 2%. Ibunya bertanya pada apoteker mengenai cara penggunaan obat tersebut. Apa yang disampaikan oleh apoteker terkait cara penggunaan obat tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Tarik telinga ke belakang dan Tarik ke atas"
+      },
+      {
+        "key": "B",
+        "text": "Tarik telinga ke belakang dan Tarik ke bawah"
+      },
+      {
+        "key": "C",
+        "text": "Tarik telinga 90 derajat"
+      },
+      {
+        "key": "D",
+        "text": "Tarik telinga lurus"
+      },
+      {
+        "key": "E",
+        "text": "Tarik telinga ke belakang"
+      }
+    ],
+    "correctOptionKey": "B",
+    "explanationText": "Jawab:\nUntuk anak <3 tahun: Tarik telinga ke belakang dan tarik ke bawah\nUntuk dewasa dan anak>3 tahun: Tarik telingan ke belakang dan tarik ke atas\n(PIONAS)."
+  },
+  {
+    "stem": "Pasien dengan epilepsi tonik klonik mengeluhkanpembesaranpada area gusi.Pasientersebutmengeluhkan penurunanrasapercayadiriakibat tampilangusinya.Setelah pemeriksaan, diketahui bahwaefek tersebut merupakan efek samping dari obatantiepilepsiyang dikonsumsi pasien. Apa obat yang menyebabkan efek tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Fenitoin"
+      },
+      {
+        "key": "B",
+        "text": "Topiramat"
+      },
+      {
+        "key": "C",
+        "text": "Gabapentin"
+      },
+      {
+        "key": "D",
+        "text": "Diazepam"
+      },
+      {
+        "key": "E",
+        "text": "Asam valproat"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nFenitoin adalah penyebab paling umum, dan pembesaran gingiva dilaporkan terjadi pada 50% pasien yang menggunakan obat ini. Fenitoin mempunyai efek langsung pada fibroblas gingiva dengan aktivitas tinggi, dan tingkat keparahan pembesaran gingiva yang terkait dosis.\nMitesh, K. 2022. Phenytoin-induced gingival overgrowth."
+  },
+  {
+    "stem": "Pasien pria 55 tahun didiagnosis hipertensi dan diresepkan candesartan 8 mg s dd 1. Pasien memiliki riwayat gangguan ginjal kronis. Parameter apa yang harus diperhatikan?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Kalium"
+      },
+      {
+        "key": "B",
+        "text": "Serum kreatinin"
+      },
+      {
+        "key": "C",
+        "text": "INR"
+      },
+      {
+        "key": "D",
+        "text": "SGOT/SGPT"
+      },
+      {
+        "key": "E",
+        "text": "Bradikinin"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nMonitoring yang harus dilakukan jika pasien mengkonsumsi obat golongan ARB yaitu pemeriksaan kalium, terutama pada pasien lansia dan gangguan ginjal. Hal ini dikarenakan ARB dapat meningkatkan kadar kalium serum.\n(PIONAS)"
+  },
+  {
+    "stem": "Pasien wanita usia 45 tahun menderita asma kronis dan rutin mengonsumsi obat yang diresepkan dokter. Namun, setelah penggunaan obat asma tersebut terjadi peningkatan kadar SGOT dan SGPT. Obat apakah yang menyebabkan efek samping tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Salbutamol"
+      },
+      {
+        "key": "B",
+        "text": "Fomoterol"
+      },
+      {
+        "key": "C",
+        "text": "Budenosid"
+      },
+      {
+        "key": "D",
+        "text": "Zileuton"
+      },
+      {
+        "key": "E",
+        "text": "Kromolin"
+      }
+    ],
+    "correctOptionKey": "D",
+    "explanationText": "Jawab:\nZileuton dilaporkan memiliki efek samping pada hati yaitu peningkatan kadar transaminase, sehingga harus dilakukan pemantauan kadar SGPT dan SGOT pada pasien\n(DIH 17th Edition; Dipiro 12th Edition)."
+  },
+  {
+    "stem": "Seorang wanita datang ke dokter dengan keluhan demam, batuk dan pilek. Dokter meresepkan obat yang mengandung pseudoefedrin. Bagaimana mekanisme kerja dari pseudoefedrin?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Menstimulasi beta adrenergic"
+      },
+      {
+        "key": "B",
+        "text": "Menginhibisi beta adrenergic"
+      },
+      {
+        "key": "C",
+        "text": "Menghinbisi dopaminergic"
+      },
+      {
+        "key": "D",
+        "text": "Menstimulasi alfa adrenergic"
+      },
+      {
+        "key": "E",
+        "text": "Menstimulasi dopaminergic"
+      }
+    ],
+    "correctOptionKey": "D",
+    "explanationText": "Jawab:\nMekanisme kerja pseudoefedrin yaitu menstimulasi alfa adrenergik. Sifat agonis tersebut menyebabkan pseudoephedrine memiliki efek vasokonstriksi, sehingga mampu mengurangi gejala kongesti nasal dan sinus.\n(Medscape. Pseudoephedrine: Pharmacology. 2022)."
+  },
+  {
+    "stem": "Pasien pria dengan keluhan osteoporosis telah melakukan operasi tumor. Pasien lalu diberikan terapi kalsium glukonas, alendronat dan vitamin D3. Apa fungsi pemberian vitamin D3?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Meningkatkan absorbsi kalsium"
+      },
+      {
+        "key": "B",
+        "text": "Mengurangitoksisitas alendronate"
+      },
+      {
+        "key": "C",
+        "text": "Mencegah kekambuhan tumor"
+      },
+      {
+        "key": "D",
+        "text": "Menurunkanmetabolisme kalsium"
+      },
+      {
+        "key": "E",
+        "text": "Meningkatkanwaktuparuh\nkalsium"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nVitamin D3 membantu tubuh menyerap kalsium. Kombinasi kalsium dan vitamin D digunakan untuk mengobati atau mencegah kekurangan kalsium.\n(National Library of Medicine, Vitamin D and Calcium: A Systematic Review of Health Outcomes (Update) ; Drugs.com)"
+  },
+  {
+    "stem": "Seorang pasien laki-laki dibawa ke IGD setelah ditemukan tidak sadarkan diri di kamarnya. Hasil pemeriksaan menunjukkan tekanan darah pasien yaitu 190/110 mmHg dan telah mengalami kerusakan organ. Apa obat yang tepat diberikan untuk pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Nitropusside"
+      },
+      {
+        "key": "B",
+        "text": "Labetolol"
+      },
+      {
+        "key": "C",
+        "text": "Kaptropil"
+      },
+      {
+        "key": "D",
+        "text": "Klonidin"
+      },
+      {
+        "key": "E",
+        "text": "Bisoprolol"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nHipertensi urgensi: tekanan darah 180/120mmHg tanpa kerusakan organ. Terapi: antihipertensi oral kerja pendek seperti kaptopril, klonidin, labetolol.\nHipertensi emergensi: tekanan darah 180/120mmHg disertai kerusakan organ. Terapi: Nitropusside (vasodilator yang bekerja langsung menurunkan pulmonary vascular resistance).\n(Dipiro 12th Edition)"
+  },
+  {
+    "stem": "Pasien wanita berusia 55 tahun menderita diabetes melitus tipe 2 dengan  kadar  gula  darah  puasa\nmencapai 260 mg/dL. Saat penggalian riwayat penggunaan obat, pasien mengatakan rutin mengonsumsi alendronate. Apa obat antidiabetes yang dikontraindikasikan pada pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Pioglitazon"
+      },
+      {
+        "key": "B",
+        "text": "Metformin"
+      },
+      {
+        "key": "C",
+        "text": "Glibenklamid"
+      },
+      {
+        "key": "D",
+        "text": "Sitagliptin"
+      },
+      {
+        "key": "E",
+        "text": "Canaglifozin"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\nEfeksampingobatgolonganTiazolidinedionseperti Pioglitazone adalah risiko fraktur tulang moderate, Congestive\nHeart Failure (CHF), retensi air (edema).\n(AACE, 2019)"
+  },
+  {
+    "stem": "Seorang wanita dibawa ke IGD setelah mengalami sesak nafas. Hasil pemeriksaan menunjukkan adanya penumpukan cairan pada paru-paru akibat gagal jantung ventrikel kiri. Apa obat yang direkomendasikan untuk pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Amlodipin"
+      },
+      {
+        "key": "B",
+        "text": "Hidroklortiazid"
+      },
+      {
+        "key": "C",
+        "text": "Furosemid"
+      },
+      {
+        "key": "D",
+        "text": "Spironolakton"
+      },
+      {
+        "key": "E",
+        "text": "Verapamil"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nDiuretika kuat seperti Furosedmid digunakan dalam pengobatan edema paru akibat gagal jantung ventrikel kiri. Pemberian intravena mengurangi sesak nafas dan mengurangi preload lebih cepat dari yang diharapkan dari mula kerja diuresis (PIONAS)\nThiazid vs Loop Diuretik:\n- Ketika digunakan tunggal pada pasien non-edema, diuretik thiazide sama efektifnya dengan sebagian besar kelas obat antihipertensi lainnya.\n– Diuretik loop kurang efektif dibandingkan obat jenis thiazide dalam mengurangi tekanan darah pada pasien non- dematoda; namun, seiring transisi penyakit ginjal kronik (CKD) dari stadium 3 ke 5, khususnya dengan peningkatan volume cairan ekstraseluler (ECF), diuretik loop menjadi terapi diuretik pilihan untuk pengelolaan hipertensi.\nNational Library of Medicine, Thiazide and Loop Diuretics)"
+  },
+  {
+    "stem": "Pasien pria berusia 56 tahun datang ke dokter untuk kontrol rutin. Hasil pemeriksaan menunjukkan peningkatan nilai LDL pasien yaitu 139 mg/dL. Pasien memiliki riwayat stroke iskemik dan digolongkan sebagai pasien dengan risiko sangat tinggi. Dokter menanyakan kepada apoteker terkait obat yang tepat untuk pasien. Apa obat yang direkomendasikan?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Simvastatin 20 mg"
+      },
+      {
+        "key": "B",
+        "text": "Atorvastatin 20 mg"
+      },
+      {
+        "key": "C",
+        "text": "Rosuvastatin 40 mg"
+      },
+      {
+        "key": "D",
+        "text": "Lovastatin 20 mg"
+      },
+      {
+        "key": "E",
+        "text": "Simvastatin 10 mg"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nTarget LDL pasien dengan risiko sangat tinggi <55 mg/dL\nPasien harus diberikan statin intensitas tinggi. Statin intensitas tinggi dapat menurunkan LDL rata-rata ≥ 50%. Obat-obat yang termasuk statin intensitas tinggi adalah atorvastatin (40-80 mg) dan rosuvastatin (20-40 mg) (PERKI, 2022)."
+  },
+  {
+    "stem": "Seorang pasien dibawa ke IGD karena mengalamiNSTEMI.Dokter meresepkan terapi dual antiplatelet yaitu aspirin dan clopidogrel. Keluarga pasien mengatakan bahwa pasien memiliki riwayat gastritis. Apa terapi tambahan yang dapat diberikan kepada pasien untuk meminimalkan efek samping pengobatan antiplatetet?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Asam mefenamat"
+      },
+      {
+        "key": "B",
+        "text": "Sukralfat"
+      },
+      {
+        "key": "C",
+        "text": "Lansoprazol"
+      },
+      {
+        "key": "D",
+        "text": "Antasida"
+      },
+      {
+        "key": "E",
+        "text": "Domperidon"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nPenggunaan antiplatet memiliki ESO perdarahan saluran cerna (kadang-kadang parah) (PIONAS, 2022). Lansoprazole dapat digunakan guna mengatasi ESO penggunaan antiplatelet yang berdampak terhadap riwayat gastritis pasien."
+  },
+  {
+    "stem": "Seorang wanita usia 50 tahun dengan\nberat badan 45kg didiagnosis hipertensi.\nPasien rutin menjalani hemodialisa dengan nilai serum kreatinin pasien 2,4mg/dl. Riwayat pengobatan yaitu kaptopril 25 mg (1x1). Dokter berencana memberikan terapi tambahan berupa diuretic. Apa obat diuretic yang tepat untuk pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Spironolakton"
+      },
+      {
+        "key": "B",
+        "text": "Furosemide"
+      },
+      {
+        "key": "C",
+        "text": "Hidroklortiazid"
+      },
+      {
+        "key": "D",
+        "text": "Klonidin"
+      },
+      {
+        "key": "E",
+        "text": "Indapamide"
+      }
+    ],
+    "correctOptionKey": "B",
+    "explanationText": "Jawab:\nGFR =(140−𝑢𝑚𝑢𝑟)𝑥 𝐵𝐵 x 0,85\n72 𝑋 𝑆𝑒𝑟𝑢𝑚 𝑘𝑟𝑒𝑎𝑡𝑖𝑛𝑖𝑛\nGFR = (140−50)𝑥 45 x 0,85 = 20 ml/menit/1,73m2\n72 𝑥 2,4\nPasien dengan penyakit ginjal kronik (CKD), khususnya dengan peningkatan volume cairan ekstraseluler (ECF), diuretik loop menjadi terapi diuretik pilihan untuk pengelolaan hipertensi.\nGFR <30ml/menit/1,73m2  Furosemid GFR >30ml/menit/1,73m2  HCT\n(Dipiro 12th Edition; National Library of Medicine, Thiazide and Loop Diuretics)"
+  },
+  {
+    "stem": "Seorang wanita usia 45 tahun dibawa ke rumah sakit karena tidak sadarkan diri. Tekanan darah pasien 55/45 mmHg dengan detak jantung yang lemah 34 kali per menit. Apa antidot yang diberikan kepada pasien?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Flumazenil"
+      },
+      {
+        "key": "B",
+        "text": "Arang aktif"
+      },
+      {
+        "key": "C",
+        "text": "Glukagon"
+      },
+      {
+        "key": "D",
+        "text": "Asetilsistein"
+      },
+      {
+        "key": "E",
+        "text": "Nalokson"
+      }
+    ],
+    "correctOptionKey": "C",
+    "explanationText": "Jawab:\nPasien mengalami hipotensi dan bradikardia akibat toksisitas obat golongan beta bloker dosis tinggi.\nAntidot yang diberikan adalah glucagon. Glukagon memiliki efek inotropic dan kronotropik pada otot jantung, sehingga mengatasi gejala depresi jantung akibat toksisitas beta bloker.\n(Marino, P.l., 2013., Marino’s the ICU Book, Lippincott Williams & Wilkins, USA)"
+  },
+  {
+    "stem": "Ny. A dirawat di rumah sakit karena mengalami peptic ulcer. Namun, setelah perawatan   beberapa   hari   pasien\nmengeluhkan batuk dan sesak napas.\nHasil pemeriksaanmenunjukkan adanya cairan pada kantung udara di kedua paru-paru pasien. Dokter me diagnosis pasien mengalami Hospital Acquired Pneumonia (HAP) akibat infeksi bakteri Pseudomonas. Apa antibiotik yang tepat untuk pasien tersebut?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Levofloxacin"
+      },
+      {
+        "key": "B",
+        "text": "Ampisilin sulbactam"
+      },
+      {
+        "key": "C",
+        "text": "Amoksiklav"
+      },
+      {
+        "key": "D",
+        "text": "Meropenem"
+      },
+      {
+        "key": "E",
+        "text": "Piperacillin"
+      }
+    ],
+    "correctOptionKey": "A",
+    "explanationText": "Jawab:\n(PMK No. 28 tahun 2021)"
+  }
+]

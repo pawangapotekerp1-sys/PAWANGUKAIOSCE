@@ -649,6 +649,50 @@ async function createSignedMediaUrl(client: TryoutClient, path: string | null): 
   return data?.signedUrl ?? null;
 }
 
+async function createSignedMediaUrls(
+  client: TryoutClient,
+  paths: Array<string | null>,
+): Promise<Array<string | null>> {
+  const validPaths = Array.from(new Set(paths.filter((p): p is string => Boolean(p))));
+
+  if (validPaths.length === 0) {
+    return paths.map(() => null);
+  }
+
+  const { data, error } = await client.storage
+    .from("question-media")
+    .createSignedUrls(validPaths, 3600);
+
+  if (error) {
+    // Bulk API is atomic — if any file is missing, the entire request fails.
+    // Fall back to individual requests so missing files get null instead of
+    // crashing the whole page.
+    const results = await Promise.allSettled(
+      paths.map((p) => createSignedMediaUrl(client, p)),
+    );
+
+    const urlMap = new Map<string, string | null>();
+    results.forEach((result, i) => {
+      const p = paths[i];
+      if (p && result.status === "fulfilled") {
+        urlMap.set(p, result.value);
+      }
+    });
+
+    return paths.map((path) => path ? (urlMap.get(path) ?? null) : null);
+  }
+
+  const urlMap = new Map<string, string | null>();
+
+  for (const item of (data ?? [])) {
+    if (!item.error && item.signedUrl) {
+      urlMap.set(item.path, item.signedUrl);
+    }
+  }
+
+  return paths.map((path) => path ? (urlMap.get(path) ?? null) : null);
+}
+
 function mapAnswer(row: AnswerRow): PersistedAnswer {
   return {
     attemptId: row.attempt_id,
@@ -906,14 +950,17 @@ export async function getAttemptSessionPageData(
     getAnswersByAttemptId(client, attemptId),
   ]);
 
+  const imageUrls = await createSignedMediaUrls(
+    client,
+    items.map((item) => item.questionImagePath)
+  );
+
   return mapAttemptSessionPageData({
     attempt,
-    items: await Promise.all(
-      items.map(async (item) => ({
-        ...item,
-        questionImageUrl: await createSignedMediaUrl(client, item.questionImagePath),
-      })),
-    ),
+    items: items.map((item, index) => ({
+      ...item,
+      questionImageUrl: imageUrls[index] ?? null,
+    })),
     answers,
     now,
   });
@@ -1104,6 +1151,16 @@ export async function getAttemptReviewPageData(
     ? summaryRow.attempt_result[0] ?? null
     : summaryRow?.attempt_result ?? null;
 
+  const questionImageUrls = await createSignedMediaUrls(
+    client,
+    items.map((item) => item.questionImagePath)
+  );
+
+  const explanationImageUrls = await createSignedMediaUrls(
+    client,
+    explanations.map((item) => item.explanation_image_path)
+  );
+
   return mapAttemptReviewPageData({
     summary: {
       title: relatedTemplate?.title ?? "Try out",
@@ -1112,20 +1169,16 @@ export async function getAttemptReviewPageData(
       correctAnswers: relatedResult?.correct_answers ?? 0,
       wrongAnswers: relatedResult?.wrong_answers ?? 0,
     },
-    items: await Promise.all(
-      items.map(async (item) => ({
-        ...item,
-        questionImageUrl: await createSignedMediaUrl(client, item.questionImagePath),
-      })),
-    ),
+    items: items.map((item, index) => ({
+      ...item,
+      questionImageUrl: questionImageUrls[index] ?? null,
+    })),
     answers,
-    explanations: await Promise.all(
-      explanations.map(async (item) => ({
-        questionId: item.question_id,
-        explanationText: item.explanation,
-        explanationImageUrl: await createSignedMediaUrl(client, item.explanation_image_path),
-      })),
-    ),
+    explanations: explanations.map((item, index) => ({
+      questionId: item.question_id,
+      explanationText: item.explanation,
+      explanationImageUrl: explanationImageUrls[index] ?? null,
+    })),
   });
 }
 

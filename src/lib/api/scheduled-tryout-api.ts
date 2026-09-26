@@ -322,6 +322,43 @@ async function createSignedMediaUrl(
   return data?.signedUrl ?? null;
 }
 
+async function createSignedMediaUrls(
+  client: ScheduledTryoutClient,
+  paths: string[],
+): Promise<Record<string, string>> {
+  if (paths.length === 0) {
+    return {};
+  }
+
+  const { data, error } = await client.storage
+    .from("question-media")
+    .createSignedUrls(paths, 3600);
+
+  if (error) {
+    // Bulk API is atomic — if any file is missing, the entire request fails.
+    // Fall back to individual requests so missing files get null instead of
+    // crashing the whole page.
+    const results = await Promise.allSettled(
+      paths.map((p) => createSignedMediaUrl(client, p)),
+    );
+
+    const fallback: Record<string, string> = {};
+    results.forEach((result, i) => {
+      if (result.status === "fulfilled" && result.value) {
+        fallback[paths[i]] = result.value;
+      }
+    });
+    return fallback;
+  }
+
+  return data.reduce((acc, item) => {
+    if (item.signedUrl) {
+      acc[item.path] = item.signedUrl;
+    }
+    return acc;
+  }, {} as Record<string, string>);
+}
+
 function mapAttempt(row: ScheduledAttemptRow): ScheduledPersistedAttempt {
   return {
     id: row.id,
@@ -849,14 +886,15 @@ export async function getScheduledAttemptSessionPageData(
     getScheduledAnswersByAttemptId(client, attemptId),
   ]);
 
+  const imagePaths = Array.from(new Set(items.map((item) => item.questionImagePath).filter((value): value is string => Boolean(value))));
+  const signedUrls = await createSignedMediaUrls(client, imagePaths);
+
   return mapScheduledAttemptSessionPageData({
     attempt,
-    items: await Promise.all(
-      items.map(async (item) => ({
-        ...item,
-        questionImageUrl: await createSignedMediaUrl(client, item.questionImagePath),
-      })),
-    ),
+    items: items.map((item) => ({
+      ...item,
+      questionImageUrl: item.questionImagePath ? (signedUrls[item.questionImagePath] ?? null) : null,
+    })),
     answers,
     now,
   });
@@ -1075,34 +1113,36 @@ export async function getScheduledEventEditorData(
     throw new Error(questionError.message);
   }
 
-  const questions = await Promise.all(
-    ((questionData as ScheduledEventQuestionRow[] | null) ?? []).map(async (row) => {
-      const block = resolveRelatedRow(row.block);
-      const topic = resolveRelatedRow(row.topic);
+  const questionRows = (questionData as ScheduledEventQuestionRow[] | null) ?? [];
+  const imagePaths = Array.from(new Set(questionRows.flatMap((row) => [row.question_image_path, row.explanation_image_path]).filter((value): value is string => Boolean(value))));
+  const signedUrls = await createSignedMediaUrls(client, imagePaths);
 
-      return {
-        id: row.id,
-        order: row.question_order,
-        stem: row.stem,
-        questionImagePath: row.question_image_path,
-        questionImageUrl: await createSignedMediaUrl(client, row.question_image_path),
-        explanationText: row.explanation_text,
-        explanationImagePath: row.explanation_image_path,
-        explanationImageUrl: await createSignedMediaUrl(client, row.explanation_image_path),
-        blockId: block?.id ?? null,
-        blockName: block?.name ?? null,
-        topicId: topic?.id ?? null,
-        topicName: topic?.name ?? null,
-        correctOptionKey: row.correct_option_key,
-        options: (row.options ?? []).map((option) => ({
-          id: option.id,
-          key: option.option_key,
-          text: option.option_text,
-          sortOrder: option.sort_order,
-        })),
-      };
-    }),
-  );
+  const questions = questionRows.map((row) => {
+    const block = resolveRelatedRow(row.block);
+    const topic = resolveRelatedRow(row.topic);
+
+    return {
+      id: row.id,
+      order: row.question_order,
+      stem: row.stem,
+      questionImagePath: row.question_image_path,
+      questionImageUrl: row.question_image_path ? (signedUrls[row.question_image_path] ?? null) : null,
+      explanationText: row.explanation_text,
+      explanationImagePath: row.explanation_image_path,
+      explanationImageUrl: row.explanation_image_path ? (signedUrls[row.explanation_image_path] ?? null) : null,
+      blockId: block?.id ?? null,
+      blockName: block?.name ?? null,
+      topicId: topic?.id ?? null,
+      topicName: topic?.name ?? null,
+      correctOptionKey: row.correct_option_key,
+      options: (row.options ?? []).map((option) => ({
+        id: option.id,
+        key: option.option_key,
+        text: option.option_text,
+        sortOrder: option.sort_order,
+      })),
+    };
+  });
 
   return mapScheduledEventEditorData({
     event: {
@@ -1344,6 +1384,9 @@ export async function getScheduledAttemptReviewPageData(
   const eventTitle = (eventResponse.data as { title?: string } | null)?.title ?? "Try Out Terjadwal";
   const result = resultResponse.data as ScheduledAttemptResultRow | null;
 
+  const imagePaths = Array.from(new Set(items.flatMap((item) => [item.questionImagePath, item.explanationImagePath]).filter((value): value is string => Boolean(value))));
+  const signedUrls = await createSignedMediaUrls(client, imagePaths);
+
   return mapScheduledAttemptReviewPageData({
     summary: {
       title: eventTitle,
@@ -1352,13 +1395,11 @@ export async function getScheduledAttemptReviewPageData(
       correctAnswers: result?.correct_count ?? 0,
       wrongAnswers: result?.wrong_count ?? 0,
     },
-    items: await Promise.all(
-      items.map(async (item) => ({
-        ...item,
-        questionImageUrl: await createSignedMediaUrl(client, item.questionImagePath),
-        explanationImageUrl: await createSignedMediaUrl(client, item.explanationImagePath),
-      })),
-    ),
+    items: items.map((item) => ({
+      ...item,
+      questionImageUrl: item.questionImagePath ? (signedUrls[item.questionImagePath] ?? null) : null,
+      explanationImageUrl: item.explanationImagePath ? (signedUrls[item.explanationImagePath] ?? null) : null,
+    })),
     answers,
   });
 }

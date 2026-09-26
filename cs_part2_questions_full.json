@@ -1,0 +1,3106 @@
+{
+  "questions": [
+    {
+      "id": "c5a753cf-78ea-46b6-8f56-deecc7d25102",
+      "stem": "Seorang apoteker di laboratorium control kualitas sebuah industry farmasi diminta menganalisis distribusi ukuran partikel dari sediaan suspensi antacid menggunakan mikroskop. Diperoleh data ukuran dalam mikrometer dan jumlah partikel (frekuensi) pada masing-masing ukuran seperti dibawah. Berdasarkan data tersebut, berapakah ukuran partikel rata-rata?",
+      "question_order": 1,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "70691c6c-a9fc-4f47-be3b-35a030e91a4c",
+      "stem": "Seorang Apoteker QC di industri farmasi melakukan ppengujian kadar air yang terkandung dalam massa granul. Diketahui bobot awal granul adalah 5,4 gram. Setelah dilakukan pengeringan, bobot akhir granul menjadi 4,9 gram. Berapakah kadar air granul tersebut?",
+      "question_order": 2,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "8c21f959-2324-4905-9c2a-135a5a07af91",
+      "stem": "Seorang apoteker di R & D industri Pawang Apoteker akan mengembangkan sediaan suspense kloramfenikol. Untuk meningkatkan kemampuan dispersinya, bahan manakah yang sebaiknya ditambahkan agar zat aktif mudah terbasahi?",
+      "question_order": 3,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "9871151e-dd35-4e1e-8822-edf82c078a80",
+      "stem": "Seorang apoteker di industry farmasi Pawang Apoteker sedang membuat suppositoria fenobarbital 10 mg sebanyak 10 buah dengan basis oleum cacao. Supositoria akan dibuat dengan berat basis 2 gram, berapakah bobot suppositoria dengan zat aktif fenobarbital?",
+      "question_order": 4,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "f78913a7-857a-4649-9365-0d6fbc729f4a",
+      "stem": "Seorang apoteker di bagian Quality Control industry Pawang Apoteker sedang mengukur viskositas cairan sediaan sirup Bromhexine HClmenggunakan viscometer bola jatuh. Adapun hasil pengujian ialah sebagai berikut :\r\nBerapakah viskositas sirup parasetamol tersebut?",
+      "question_order": 5,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "3cd5f5a2-e1c5-4296-9dfe-d7a1fb4f8c8d",
+      "stem": "Pada suatu percobaan dalam skala lab, bagian R&D PT Pawang Apoteker menghitung kecepatan pengendapan suatu sediaan suspensi sebesar 0,02 cm/detik. Diketahui diameter partikel padatan suspense sebesar 2 x 10-1 cm, sebesar 1 gram/mL. Apabila diketahui percepatan gravitasi sebesar 980 cm/s2, maka berapakah viskositas dari sediaan suspensi tersebut?",
+      "question_order": 6,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "399ea043-5bbf-481e-8002-23c7621d283d",
+      "stem": "Suatu industri farmasi akan memproduksi injeksi kloramfenikol. Salah satu syarat yang harus dipenuhi ialah bebas dari endotoksin. Untuk memenuhi uji endotoksin, maka harus dilakukan pengujian?",
+      "question_order": 7,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "33bdf11b-663d-4d23-b08f-3d643841fb29",
+      "stem": "Apoteker Royhan di industri farmasi Pawang Apoteker akan memilih tipe gelas untuk digunakan sebagai wadah vitamin C sebagai suplemen makanan. Apakah tipe gelas yang tepat untuk digunakan dalam sediaan tersebut?",
+      "question_order": 8,
+      "correct_option_key": "E"
+    },
+    {
+      "id": "81ffff3a-0fb4-4b8c-ae16-9496b13340c2",
+      "stem": "Terdapat obat baru yang baru ditemukan dan diuji efektivitasnya dengan uji secara klinik. Uji klinik tersebut menggunakan lebih dari 600 responden manusia dengan penyakit tertentu, termasuk pada tahap uji klinik apakah?",
+      "question_order": 9,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "c6c54c1c-f2a5-4663-a3df-565ed29f70bd",
+      "stem": "Apoteker di IOT sedang melakukan ekstraksi daun meniran sebagai immunomodulator. Apa senyawa marker dari meniran?",
+      "question_order": 10,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "82367a29-5c4c-483a-8f81-3a37426fd3e3",
+      "stem": "Seorang Apoteker di sebuah industry farmasi Pawang Apoteker akan mengembangkan produk baru implan kontrasepsi. Industri farmasi membeli alat produksi dari jepang karena alat untu produksi implant tersebut tidak tersedia di Indonesia. Berdasarkan peraturan BPOM tentang registrasi obat, temasuk kedalam kategori nomor berapa apoteker tersebut harus mendaftarkan produk implan kontrasepsi ini?",
+      "question_order": 11,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "b4253ade-405a-464c-9f1e-65309b2934bd",
+      "stem": "Industri farmasi Pawang Apoteker hendak membuat sediaan steril salep mata yang diketahui bahan yang digunakan tidak tahan terhadap pemanasan. Metode sterilisasi apakah yang tepat untuk sediaan tersebut?",
+      "question_order": 12,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "0b63cb37-307d-47d5-8a80-4bb6400104cf",
+      "stem": "Sebuah industri farmasi Pawang Apoteker sedang mempersiapkan pengadaan mesin baru untuk proses produksi tablet. Salah satu tahapan adalah pihak supplier mesin diundang ke Lokasi industri farmasi untuk melakukan pengujian langsung terhadap kemampuan dan kesesuaian mesin dengan kebutuhan produksi. Pengujian ini dilakukan untuk memastikan bahwa mesin dapat memenuhi spesifikasi yang dibutuhkan. Apa nama kegiatan pengujian yang dilakukan pada kasus tersebut?",
+      "question_order": 13,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "54dcf159-61d7-4c99-b2eb-20a7801b578e",
+      "stem": "Sebuah industri farmasi Pawang Apoteker sedang melakukan validasi pembersihan pada peralatan yang digunakan untuk memproduksi obat X dan Y secara berurutan. Untuk menghitung batas maksimum residu yang diizinkan (Maximum Allowable Carryover atau MACO), informasi berikut tersedia :\r\nPermittted Daily Exposure (PDEp) = 10 mg\r\nDosis maksimum harian produk obat Y (TDDn) = 1000 mg\r\nBerat batch produk obat Y (mBSn) = 500-700 kg/batch\r\nSafety Factor (SF) = 1.000\r\nJika validasi pembersihan dilakukan pada mesin dengan total surface area 1.000 cm2 dengan metode swab pada area sampling 5 x 5 cm2. Berdasarkan data tersebut, berapakah swab limit dalam mg/swab?",
+      "question_order": 14,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "72503415-f407-44d2-a3b2-d531efc7317b",
+      "stem": "Departemen QC di industry farmasi sedang melakukan evaluasi stabilitas fisik terhadap sediaan suspensi rekonstitusi cefadroxil 125 mg/5 mL. Pengujian dilakukan dengan memasukkan 100 mL suspensi yang telah dikocok homogen kedalam gelas ukur beskala. Pemantauan perubahan volume sediaan suspensi akibat pemisahan fase dilakukan selama 10 hari dan hasilnya tercatat pada table berikut.\r\nBerapa rasio volume sedimentasi dari sediaan suspensi tersebut pada pengamatan hari ke-7?",
+      "question_order": 15,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "cbc715fc-0b4f-4fe4-a4e9-bea7e8edacf7",
+      "stem": "Apoteker Royhan sebagai staff QC di industri Pawang Apoteker akan melakukan validasi metode Analisa kadar Phenytoin dalam larutan injeki dengan menggunakan instrument HPLC dari pengujian dengan larutan standar didapat persamaan regresi linier y = 32975,12 + 57500x dan standar deviasi 1545. Berapakah batas terkecil analit yang dapat terdeteksi dengan metode Analisa tersebut?",
+      "question_order": 16,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "82cd721f-10ed-492d-91d3-220e93201cf1",
+      "stem": "Sebuah perusahaan akan melakukan uji kesesuaian sistem untuk penetapan kadar Nifedipin kapsul dengan menggunakan KCKT. Hasil yang diperoleh ialah nilai Tr uji adalah 4 dan Tr cemaran senyawa A adalah 20 menit. Lebar masing-masing puncak senyawa ialah 1 dan 2 menit. Berapakah nilai resolusi yang diperoleh?",
+      "question_order": 17,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "1ae45624-e31e-47c3-88e4-ecfaf7a0c993",
+      "stem": "Seorang Apoteker di QC sedang melakukan pengujian viskositas gel topikal menggunakan viscometer stromer. Kemudian ditambahkan beban hingga mencapai bobot total 680 gram dan silinder berputar dengan kecepatan 200 rpm. Jika beban awal untuk memulai pergerakan (Wf) adalah 80 gram dan nilai konstanta Kv dari alat viscometer stormer adalah 0,15, maa berapa nilai viskositas sediaan tersebut?",
+      "question_order": 18,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "c5c2856c-3a9d-4c90-9668-e54f0be5fbba",
+      "stem": "Dalam formulasi tablet, bahan tambahan ditambahkan untuk memperkuat kohesi partikel sehingga tablet memiliki kekuatan mekanik yang baik. Formulator memilih polivinilpirolidon (PVP) sebagai salah satu eksipien dalam formulasi tersebut. Apa fungsi utama PVP dalam formulasi tablet?",
+      "question_order": 19,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "a8e83914-07b6-454d-b537-483833b444d9",
+      "stem": "Industri farmasi Pawang Apoteker ingin membuat sediaan ibuprofen 400 mg. Bagian quality control ingin melakukan proses IPC granul dengan uji distribusi partikel, didapatkan hasil bobot awal 10 g dan bobot akhir 9,2 g. Berapakah % distribusi ukuran partikel granul tersebut?",
+      "question_order": 20,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "f9c3cdae-81ca-47c8-a005-d33dbd25dacf",
+      "stem": "Apoteker Royhan di bagian QC sedang melakukan uji disolusi tahap pertama terhadap tablet metilprednisolon 16 mg menggunakan 6 tablet, namun hasilnya tidak memenuhi persyaratan S1. Berapa total sampel yang perlu ditambahkan untuk tahap S2?",
+      "question_order": 21,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "1fc764ae-1012-4f8d-922c-65f8938b3d0d",
+      "stem": "Seorang apotekerdi bagian QC Pawang Apoteker sedang melakukan penetapan bilangan peroksida untuk sediaan paracetamol suppositoria. Apoteker menimbang 2 gram basis tersebut dan menambahkannya dengan 25 mL campuran asam asetat dan kloroform dalam perbandingan 5:2. Setelah penambahan 50 mL air suling, larutan tersbut dititrasi dengan larutan Na2S2O2 0,02 N hingga warnanya hilang. Volume titrasi yang diperoleh adalah 6 ml. Penetapan blanko menunjukkan bahwa volume titrasi yang diperlukan adalah 3 ml. Berapakah nilai bilangan peroksida minyak tersebut dalam satua mili-ekivalen per kilogram (meq/kg) ?",
+      "question_order": 22,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "ad9c3c63-6a49-41d9-8f9e-2be42e8c56dd",
+      "stem": "Departemen QC suatu industri farmasi sedang melakukan uji penetapan partikel logam pada sediaan salep mata kloramfenikol 1% tahap pertama. Pengujian dilakukan menggunakan metode mikroskopis untuk menghitung partikel logam yang berukuran ≥ 50 μm. Data pengamatan dari 10 tube sampel terdapat pada table berikut.\r\nBagaimana kesimpulan dari pengujian salep mata tersebut?",
+      "question_order": 23,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "4b05c9a3-d766-4159-9aa6-d26ca2854da7",
+      "stem": "Suatu industri farmasi sedang merancang ruang antara atau penyangga untuk produksi sediaan methotrexate. Desain ruangan ini mengharuskan pengaturan tekanan udara yang dapat meminimalkan risiko kontaminasi silang antar produk.Tipe pengaturan udara ruang antara apakah yang sesuai digunakan dalam situasi ini?",
+      "question_order": 24,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "2f42f543-108d-48c3-8a7e-ffd0244c8112",
+      "stem": "Seorang auditor menemukan bahwa disebuah industri farmasi, personel pencatatan data sering menulis catatan awal di kertas coretan sebelum memindahkannya ke formular resmi. Hal ini dilakukan untuk menghindari kesalahan pada dokumen resmi. Auditor menyoroti bahwa Tindakan ini melanggar prinsip data integrity dan dapat mempengaruhi kepercayaan terhadap dokumen yang dihasilkan. Aspek data integrity apa yang tidak terpenuhi dalam kasus ini?",
+      "question_order": 25,
+      "correct_option_key": "E"
+    },
+    {
+      "id": "619c3bca-dd4f-4f17-bc8c-5a6b7f90d19c",
+      "stem": "Apoteker Royhan ingin menghitung HLB suatu formula emulsi yang ingin dibuat, diketahui Tween 71% HLB 15 dan Span 29% HLB 4,5. Berapakah HLB campuran?",
+      "question_order": 26,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "70e27f96-46ba-45a2-bf00-661fecddb781",
+      "stem": "Apoteker Royhan seorang apoteker industri farmasi sedang Menyusun SOP terkait kapasitas muat untuk autoklaf baru di area steril kelas A/B. Apoteker perlu menentukan kapasitas maksimum bahan baku berdensitas tinggi yang dapat dimuat kedalam chamber autoklaf dalam satu siklus sterilisasi. Data spesifikasi autoklaf terdapat pada table berikut.\r\nJika diketahui densitas ruahan bahan baku adalah 1,25 g/cm3 , maka berapa kapasitas maksimum bahan yang dapat disterilisasi autoklaf tersebut?",
+      "question_order": 27,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "b48d0108-9315-4421-8ec0-a94ba0f04964",
+      "stem": "Apoteker di PT. Pawang Apoteker sedang melakukan pengujian wkatu hancur pada suppositoria bisakodil yang menggunakan basis oleum cacao. Suppositoria diletakkan pada cakram kemudian dimasukkan ke dalam tabung transparan berisi 4 liter air dengan suhu tertentu. Berapa suhu air yang digunakan dalam pengujian ini?",
+      "question_order": 28,
+      "correct_option_key": "E"
+    },
+    {
+      "id": "7a1df609-29a1-4803-824d-1bdda297a6cc",
+      "stem": "Industri farmasi Pawang Apoteker sedang emngembangkan bentuk sediaan sirup Ambroxol. Ambroxol memiliki sifat sukar larut dalam air. Oleh karena itu, ditambahkan betasiklodekstrin. Metode apakah yang digunakan untuk meningkatkan kelarutan Ambroxol?",
+      "question_order": 29,
+      "correct_option_key": "E"
+    },
+    {
+      "id": "7bd7dc40-fe12-46b5-b757-d69b98d64a9e",
+      "stem": "Apoteker Royhan di industri farmasi akan melakukan produksi sediaan injeksi ceftriaxone dalam vial. Sebelum proses filling, vial dicuci terlebih dahulu. Dimana ruangan yang cocok untuk kegiatan tersebut?",
+      "question_order": 30,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "5edfca82-97e6-4d7e-9a6c-82ef0f0b3349",
+      "stem": "Diketahui formulasi sediaan sebagai berikut :\r\nAsam borat 0,4 g (E= 0,5)\r\nFenakain HCl 0,08 g (E= 0,2)\r\nAqua bidest steril ad 100 mL\r\nBerapa volume larutan pengisotonis (NaCl 0,9%) yang diperlukan agar formula tersebut menjadi isotonis?",
+      "question_order": 31,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "28690ed0-16f4-4642-b35b-d0e1e08f96fc",
+      "stem": "Industri Pawang Apoteker merupakan suatu industry yang khusus membuat sediaan dalam bentuk ekstrak sebagai produk akhir. Industri X disebut sebagai?",
+      "question_order": 32,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "f290ad11-178d-4558-87c5-98f18c1c21f1",
+      "stem": "Industri Pawang Apoteker hendak membangun fasilitas baru untuk produksi sediaan liquid non betalaktam. Dalam pembuatan fasilitas baru, perlu adanya pengaturan tekanan udara. Sesuai dengan peraturan CPOB bagaimana pengaturan tekanan udara pada ruang mixing – koridor – ruang filling – tekanan luar?",
+      "question_order": 33,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "daa74d14-1552-478c-a494-b7698f4cd326",
+      "stem": "Apoteker Royhan dari bagian R&D baru saja mengembangkan suatu produk obat. Produk obat tersebut merupakan sediaan suspensi dengan zat aktif yang stabil dan akan segera melakukan registrasi. Namun sebelum diregistrasi, perlu dilakukan uji stabilitas terhadap produk obat tersebut. Berapa banyak jumlah sampel yang harus digunakan untuk uji stabilitas produk obat tersebut?",
+      "question_order": 34,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "7cfd31a3-3309-46f5-9d6c-33220066c179",
+      "stem": "Suatu industri akan didirikan di daerah kawasan Tasikmalaya. Kemanakah pemohon mengajukan izin pendirian Industri tersebut?",
+      "question_order": 35,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "497c3521-1743-4abb-a095-c566979a5b7c",
+      "stem": "Apoteker Royhan dari bagian QA sedang melakukan pengawasan terhadap validasi pembersihan alat yang sedang dilakukan. Validasi pembersihan tersebut dilakukan menggunakan sampel dari air bilasan yang digunakan untuk mencuci alat. Metode apa yang dilakukan?",
+      "question_order": 36,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "58236b37-8b1d-46d6-8a7a-e30a3410d373",
+      "stem": "Apoteker Royhan bagian R&D Industri Pawang Apoteker melakukan analisis kadar asam mefenamat dengan  HPLC dengan fase diam C18 dan fase Gerak asetonitril; buffer fosfat; etanol. Kromatografi jenis apakah yang digunakan oleh apoteker?",
+      "question_order": 37,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "b0e09854-99ed-4b9c-9b11-bc1f50979460",
+      "stem": "QC industri Pawang Apoteker sedang melakukan pengujian kadar glibenklamid sampel secara KCKT. Sebelum menguji kadar, dilakukan uji kesesuaian sistem dengan menginjeksikan larutan standar sebanyak 1 kali. Dari hasil pengujian, didapatkan kromatogram dengan lebar puncak depan (a) 0,2 dan lebar puncak belakang (b) 0,5. Berapakah factor ikutan dari hasil uji kesesuaian sistem tersebut?",
+      "question_order": 38,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "a9f7e9a7-c10c-4dbb-832b-445b22d9ec15",
+      "stem": "Suatu industri farmasi memproduksi sediaan yang tahan terhadap panas sehingga sterilisasi dilakukan dengan oven Sebelum sterilisasi, dilakukan kualifikasi menggunakan bioindicator. Bioindicator apa yang tepat?",
+      "question_order": 39,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "afa2f40b-62e4-4aac-9b1a-7b4851cda7be",
+      "stem": "PT. Pawang Apoteker sedang mengembangkan sediaan emulsi minyak ikan. Apa sifat alir yang paling cocok untuk sediaan emulsi tersebut?",
+      "question_order": 40,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "fe363fd1-3b64-4a94-8b25-904901420dd7",
+      "stem": "Industri farmasi Pawang Apoteker akan memproduksi sediaan steril tetes hidung. Sediaan tersebut disterilisasi dengan metode sterilisasi akhir. Pada ruang kelas apakah proses filling dilakukan?",
+      "question_order": 41,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "cc2c0964-e861-4db4-9e63-bf7293ae2b72",
+      "stem": "Industri farmasi Pawang Apoteker sedang mengembangkan tablet nitrogliserin, bagian IPC melakukan pengujian waktu hancur mendapatkan tidak lebih dari 2 menit. Smua tablet harus hancur, apabila 1 tablet atau 2 tablet tidak hancur sempurna, ulangi pengujian dengan 12 tablet lainnya. Tidak kurang 16 dari 18 tablet yang diuji harus hancur sempurna. Diperoleh hasil sebagai berikut:\r\nApakah yang perlu dilakukan dari hasil pengujian tersebut?",
+      "question_order": 42,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "51892406-cafb-4780-a13c-a640c2f38c53",
+      "stem": "PT. Pawang Apoteker akan mengembangkan produk copy obat Captopril dan melakukan perbandingak profil disolusi dengan produk inovatornya. Berapa nilai kemiripan haril uji disolusi tersebut?",
+      "question_order": 43,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "c9874dac-0bc2-4e82-9e69-d180c57da2ba",
+      "stem": "PT. Pawang Apoteker melakukan uji stabilitas dipercepat untuk tablet hisap vitamin C dosis 1000 mg dalam cimatic chamber, memiliki laju konstanta degradasi 0,4 mg/tahun. Berapakah suhu dan kelembapan relatif yang dibutuhkan pada uji tersebut?",
+      "question_order": 44,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "f480ef05-2bc7-4d91-a0ff-eaccfe21f768",
+      "stem": "Apoteker Royhan yang bekerja di bagian R&D akan membuat 12 supppositoria berisi aspirin 100 mg dengan basis lemak coklat. Berat suppositoria yang akan dibuat adalah 2 g. Berapa basis suppositoria jika factor density 0,88??",
+      "question_order": 45,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "be97a670-125b-40c7-accf-990cd90d89b3",
+      "stem": "Seorang apoteker QC di industri Pawang Apoteker sedang melakukan evaluasi bilangan asam untuk mengetahui kualitas sediaan suppositoria. Evaluasi dilakukan dengan metode titrasi asam basa terhadap asam lemak bebas. Diketahui bahwa berat sampel adalah 5 gram. Volume KOH 0,1 N yang digunakan dalam titrasi sampel adalah 2 ml, dan berat molekul KOH adalah 57,12 gram/mol. Berapakah nilai bilangan asam dari sampel suppositoria tersebut?",
+      "question_order": 46,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "4c0319cc-6c18-4b8f-9e54-866b9059607b",
+      "stem": "Apoteker Royhan di PT. Pawang Apoteker sedang melakukan evaluasi sediaan gel sebanyak 1 gram dan diletakkan ditengah kaca bulat berskal dan diatasnya diberi kaca bulat lain serta diberi pemberat diatasnya. Setelah itu didiamkan selama 1 menit dan dicatat penyebarannya. Berapa syarat diameter daya sebar yang baik dari sediaan tersebut?",
+      "question_order": 47,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "b79755a2-eaec-4b60-9ddc-478605ae9bcd",
+      "stem": "Suatu industri farmasi memproduksi vaksin covid yang sangat dibutuhkan di era pandemi. Namun, industri tersebut tidak nenyelesaikan program validasi sebelum produksi rutin dilaksanakan sehingga proses validasi dilakukan sejalan dengan produksi dan penjualan vaksin tersebut. Apa jenis validasi yang dilakukan?",
+      "question_order": 48,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "e810afa0-be56-4718-8282-87e1adbec9fd",
+      "stem": "Apoteker QA di Pawang Apoteker melakukan penanganan keluhan terhadap produk tablet vitamin C yang telah dipasarkan karena memiliki warna coklat dan berbau. Untuk mengatasi keluhan tersebut, dilakukan pemeriksaan terhadap produk yang dicurigai. Apa yang digunakan sebagai pembanding untuk pemeriksaan tersebut?",
+      "question_order": 49,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "fb69a82c-1ef4-416a-9971-7462d95c6d07",
+      "stem": "Suatu senyawa pada sampel volatile ekstrak kayu putih (Melaleuca leucandendra) akan dilakukan pemisahan dengan menggunakan instrument. Apakah instrument yang tepat untuk digunakan dalam proses pemisahan?",
+      "question_order": 50,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "3bfd9920-c024-476c-a802-cf31e31ed27c",
+      "stem": "Suatu industri sedang melakukan uji stabilitas antibiotik ciprofloxacin. Didapatkan profil stabilitas obat tersebut pada suhu 25ºC adalah sebagai berikut:\r\nBerapakah pH optimum untuk mendapatkan stabilitas yang baik?",
+      "question_order": 51,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "a08cc3bd-8bed-4e45-a1a9-093344284ba6",
+      "stem": "Apoteker RnD akan mengembangkan suspensi antasida. Komposisi per 5 mL suspense terdiri dari Magnesium Hidroksida 254 mg, Aluminium Hidroksida 290 mg, Simethicone 30 mg. Jika diketahui tiap 325 Mg(OH)2 dapat menetralkan 12,1 mEq HCl dan tiap gram Al(OH)3 dapat menetralkan 15 mEq HCl. Berapa mEq HCl yang dapat dinetralkan oleh sediaan suspense antasida tersebut?",
+      "question_order": 52,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "b444aeac-286f-49df-8e3f-99284da8b090",
+      "stem": "Bagian QC di Pawang Apoteker melakukan uji disolusi dari tablet salut enterik. Dihasilkan bahwa tablet hancur pada kondisi pH lambung. Eksipien apa yang berpengaruh terhadap disolusi tablet salut enterik tersebut?",
+      "question_order": 53,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "18d798cd-b96d-4e9f-a9dd-560dfc5a6b71",
+      "stem": "Apoteker Royhan di bagian R&D sedang merancang formulasi tablet sublingual ISDN dengan formula ISDN 73%, PVP 2%, Crosscarmellose 4%, aerosol 1%, aspartame 1% dan laktosa qs. Bobot tablet adalah 12 mg dan akan diproduksi sebanyak 5000 tablet. Berapa jumlah laktosa yang dibutuhkan untuk satu kali proses produksi?",
+      "question_order": 54,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "daf53584-f3a0-421c-a28e-889a87fa2244",
+      "stem": "Seorang apoteker QC akan melakukan analisis kadar tablet allopurinol 100 mg menggunakan instrumen spektrofotometer UV-Vis. Sebanyak 20 tablet digerus dan ditimbang setara dengan 25 mg lalu dilarutkan dengan 50 ml pelarut. Kemudian diambil 1 ml dan dimasukkan ke labu ukur 10 ml dan ditambahkan pelarut hingga tanda. Nilai absorbansi diperoleh 0,286 dan absorbansi standar 25 ppm adalah 0,298. Berapa kandungan allopuirinol dalam tablet?",
+      "question_order": 55,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "f20bbc54-887d-4b5d-8667-6c853a4697de",
+      "stem": "Industri farmasi akan memproduksi tablet Meloxicam. Setelah proses produksi didapatkan tablet cacat dengan data sebagai berikut:\r\nBiaya yang yang diperlukan untuk satu kali produksi adalah Rp10.000.000. Berapakah kerugian yang dialami oleh industri tersebut?",
+      "question_order": 56,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "6b0c49bd-2159-4c52-9e18-ed69b4f6504a",
+      "stem": "Industri farmasi melaksanakan pengujian rotasi jenis pada sampel amoksisilin sebagai baku tetes telingan. Bahan baku dilarutkan dengan alkohol absolut 1,25g/50 ml. Pengujian dengan menggunakan polarimeter dengan panjang kolom 400 cm dan rotasi optis 5º. Berapakah rotasi jenis sediaan tersebut?",
+      "question_order": 57,
+      "correct_option_key": "E"
+    },
+    {
+      "id": "4d6605e7-79a3-4c15-8c8b-86f5b6fc10e7",
+      "stem": "Suatu laboratorium farmasi sedang melakukan pembuatan larutan dapar dengan mencampurkan sodium asetat 0,4 M dan asam asetat 4,0 M dengan volume yang sama. Diketahui pKa asam asetat adalah 5,89. Berapakah pH dapar tersebut?",
+      "question_order": 58,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "ac37ad67-8f1d-424a-ad11-5f05be4ace6e",
+      "stem": "Seorang apoteker RnD sedang mengembangkan formulasi sediaan gel capsaicin 0,025% sebagai anti nyeri topical. Bahan tambahan yang digunakan pada sediaan tersebut adalah Trietanolamin, isopropyl miristat, Carbopol, metil paraben, Tween 80, dan Span 80. Apafungsi bahan tambahan isopropyl miristat pada sediaan tersebut?",
+      "question_order": 59,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "44f856a8-21c2-4f97-847b-2b6c79965169",
+      "stem": "Suatu industri farmasi melakukan sampling bahan baku daun jambu biji. Bahan baku tersebut berasal dari pemasok yang belum terkualifikasi. Jumlah bahan baku yang diterima adalah 90 sak. Berapakah sampel yang akan diuji?",
+      "question_order": 60,
+      "correct_option_key": "E"
+    },
+    {
+      "id": "8e0ff4f1-11dc-4f79-b91c-fda655fc3169",
+      "stem": "Seorang apoteker sedang membuat larutan asam oksalat dihidrat (Mr H2C2O4.2H2O = 126). Apoteker tersebut menimbang dengan teliti 6,3 gram kristal asam oksalat dihidrat dan melarutkannya dengan aquades di dalam labu takar hingga volume tepat 500 mL. Berapa nilai normalitas dari larutan tersebut?",
+      "question_order": 61,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "56f9428a-d351-40a0-81e2-1e2a0d1c611c",
+      "stem": "Suatu industri farmasi sedang memproduksi tablet salut gula. Pada salah satu tahapan coating tablet, terdapat tahapan untuk membangun lapisan dasar yang membulatkan sudut tablet serta menambah bobot tablet. Apa nama tahap tersebut dan bahan apa yang digunakan?",
+      "question_order": 62,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "9ef3e343-7119-420e-9930-16b58c83cff5",
+      "stem": "Industri farmasi sedang melakukan instalasi dan kualifikasi sistem pengolahan air untuk memproduksi WFI. Pada salah satu tahapan, air dialirkan melewati softener filter yang berisi resin penukar ion sebelum masuk ke sistem reverse osmosis. Apa tujuan dari penggunaan filter tersebut?",
+      "question_order": 63,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "f479bec6-ec72-48b6-acf8-412e7b9e1b5d",
+      "stem": "Sebuah perusahaan farmasi baru saja melakukan uji klinik pada obat baru yang dikembangkan untuk pengobatan kanker paru-paru. Uji klinik dilakukan pada kelompok kecil subjek uji sehat dengan dosis yang sangat rendah untuk mengevaluasi toleransi tubuh terhadap obat tersebut dan mendapatkan data keamanan. Studi ini tidak melibatkan kelompok control atau pembandingan dengan terapi yang sudah ada. Fase uji klinik apakah yang sedang dilakukan pada penelitian obat kanker paru-paru ini?",
+      "question_order": 64,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "620aefe5-00e3-44fe-befc-38e5d41fe639",
+      "stem": "Bagian QC di industri farmasi sedang melakukan pengujian IPC terhadap tablet sulfasalazine 500 mg. Salah satu parameter fisik yang dievaluasi adalah keregasan tablet. Dari sampling acak terhadap 20 tablet, didapatkan data penimbangan sebagai berikut: Bobot tablet sebelum pengujian: 15,245 g Bobot tablet setelah pengujian: 15,071 g Berapa nilai persentase keregasan dari tablet sulfasalazine tersebut?",
+      "question_order": 65,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "b3a0a5cb-66c1-4aa8-aefe-e75c03259954",
+      "stem": "Seorang analis QC sedang melakukan pengujian kadar tablet linezolid menggunakan spektrofotometri UV-Vis. Preparasi sampel dilakukan dengan melarutkan sejumlah sampel ke dalam pelarut yang sesuai. Selanjutnya, sampel dipipet 1 mL dan diencerkan dengan pelarut hingga 10 mL, karena absorbansi masih terlalu tinggi maka dilakukan pengenceran kembali dengan memipet 200 µL dan diencerkan hingga volume 5 mL. Hasil pengukuran sampel memberikan nilai absorbansi sebesar 0,42. Jika diketahui persamaan kurva baku adalah y = 0,05x + 0,028 (dengan x adalah kadar dalam ppm). Berapa kadar tablet linezolid tersebut dalam satuan ppm?",
+      "question_order": 66,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "8a771725-6232-4a2f-ae3a-10e5b1ff584e",
+      "stem": "Industri farmasi akan menetapkan batas keamanan sediaan dalam rangka uji klinis fase I untuk senyawa kimia baru. Diketahui hasil uji toksisitas akut memberikan data LD50 sebesar 8.000 mg/kg. Berapa nilai NOEL senyawa tersebut jika dikonversikan untuk berat badan sukarelawan sehat rata-rata sebesar 70 kg??",
+      "question_order": 67,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "3ec525b8-66f4-48be-8766-33cfc05ab4d1",
+      "stem": "Departemen QC akan menguji tablet furosemid 40 mg dalam rangka melakukan uji disolusi terbanding. Berat total dari 20 tablet furosemid yang digerus adalah 2.400 mg. Untuk pembuatan larutan stok standar, analis perlu menimbang sejumlah serbuk tablet yang setara dengan 15 mg zat aktif furosemid. Berapa bobot serbuk yang tepat ditimbang?",
+      "question_order": 68,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "be1e7b30-0a35-4b22-ae99-bef49da31993",
+      "stem": "Sebuah UKOT Bernama Pawang Apoteker ingin memproduksi minuman kesehatan komersial dari daun sirsak dengan klaim pemeliharaan daya tahan tubuh. Produksi minuman tersebut harus penggunaan pelarut air jenuh, biaya operasional murah, dan proses ekstraksi hanya memakan waktu 30 menit dihitung sejak suhu cairan mencapai 90°C. Metode ekstraksi konvensional apa yang paling sesuai dengan kriteria tersebut?",
+      "question_order": 69,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "ff0b55e7-dd80-455b-8ae8-2df3abd84caf",
+      "stem": "Apoteker QA menerima laporan keluhan dari konsumen bahwa ditemukan adanya kontaminasi silang berupa residu antibiotik penisilin pada bets produk tablet parasetamol. Investigasi menunjukkan adanya kebocoran sistem tata udara pada ruang antara produksi. Apa tingkat kategori penyimpangan yang tepat untuk kasus tersebut?",
+      "question_order": 70,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "b92c1de2-0791-4487-8e7d-651dbfb26ce4",
+      "stem": "Apoteker produksi sedang meninjau efisiensi lini pengemasan primer terhadap mesin stripping tablet. Jam operasional pabrik adalah 9 jam per shift (07.30-16.30 WIB) dengan jeda istirahat makan siang selama 1 jam dan satu kali rehat singkat selama 15 menit. Kegiatan heating setup di awal memerlukan waktu 45 menit. Kapasitas ideal mesin pengemas tersebut adalah 10.000 strip per jam. Dalam satu shift, mesin berhasil menghasilkan 56.000 strip, di mana sebanyak 53.200 strip lolos standar mutu. Berapa %OEE mesin tersebut?",
+      "question_order": 71,
+      "correct_option_key": "E"
+    },
+    {
+      "id": "ad742d6e-7dc8-409e-9d38-848466ec1cc0",
+      "stem": "Suatu industri kosmetik memproduksi foundation dalam kemasan tube dengan batch size sebesar 360 L. Foundation cair tersebut akan diisikan ke dalam tube (setiap tube berisi 10 mL) menggunakan mesin filling tube otomatis. Dari hasil proses filling, total produk yang berhasil dikemas adalah sebanyak 36.000 tube, namun sebanyak 1.800 tube cacat pada bagian segel. Berapa nilai %yield dari proses filling tersebut??",
+      "question_order": 72,
+      "correct_option_key": "E"
+    },
+    {
+      "id": "f99a9908-c486-4631-a459-37483f815d06",
+      "stem": "Departemen QA di industri Pawang Apoteker sedang mengevaluasi proses produksi sediaan tablet metformin. Pada proses pencetakan tablet metformin, spesifikasi bobot tablet yang ditetapkan adalah 620 mg hingga 680 mg. Dari hasil pengujian 30 bets berturut-turut, ditemukan bahwa variabilitas proses memiliki standar deviasi sebesar 6,2 mg. Berapa nilai Cp proses tersebut?",
+      "question_order": 73,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "c5b8093b-0573-4719-b496-3cea753a5bf9",
+      "stem": "Industri farmasi Pawang Apoteker sedang melakukan UDT untuk produk copy suspensi sukralfat terhadap inovatornya. Uji dilakukan pada 3 medium dengan pH yang berbeda. Dari data hasil uji di bawah ini, manakah kombinasi nilai F1 dan F2 yang menunjukkan bahwa produk copy tersebut similar dengan produk inovator?",
+      "question_order": 74,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "8484eb3d-b591-471a-905f-88c9af2d445d",
+      "stem": "Apoteker Royhan di PT. Pawang Apoteker sedang melakukan uji efisiensi kolom dalam metode KCKT. Diketahui panjang kolom yang digunakan adalah 10 cm dan jumlah lempeng teoritis (N) yang dihitung dari analisis adalah 1000. Berapakah nilai HETP dari kolom ini?",
+      "question_order": 75,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "5d145ad2-1823-414f-b514-f5dfe0ea6cc5",
+      "stem": "Apteker R&D industri farmasi Pawang Apoteker akan membuat gel hidrokortisone sebagai antiinflamasi untuk mencegah kemerahan pasa kulit. Formulasi yang dihasilkan memiliki masalah kekeruhan dan viskositas yang tidak sesuai standar. Bahan eksipien yang tepat untuk mengatasi masalah tersebut?",
+      "question_order": 76,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "185078c3-b852-4fcc-aa84-0460f7d581c1",
+      "stem": "Seorang apoteker QC di industri farmasi melakukan penetapan potensi antibiotik amoksisilin trihidrat secara mikrobiologi menggunakan metode difusi agar. Hasil pengukuran menunjukkan rata-rata diameter hambat baku sebelum terkoreksi adalah 16,45 mm, rata-rata diameter hambat baku pembanding pada lempeng uji adalah 17,12 mm, dan angka terkoreksi yang ditetapkan pada kurva baku adalah 17,05 mm. Berapa nilai rata-rata diameter hambat baku terkoreksi untuk sampel tersebut?",
+      "question_order": 77,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "f29ddaae-217a-4eae-8443-5d4a4f905182",
+      "stem": "Apoteker Royhan dari industri farmasi Pawang Apoteker sedang melakukan pengujian cemaran mikroba pada sampel sirup herbal. Hasil pertumbuhan koloni setelah inkubasi adalah sebagai berikut :\r\nBerapakah nilai ALT dari sampel sirup tersebut dalam cfu/mL?",
+      "question_order": 78,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "1d71e77a-bf1e-4161-9d6e-27639ce031a6",
+      "stem": "Seorang analis di laboratorium farmasi sedang melakukan validasi menggunakan metode HPLC (High Performance Liquid Chromatography) untuk menguji kemurnian suatu senyawa aktif. Dari kromatogram yang diperoleh, parameter berikut diukur untuk salah satu puncak utama :\r\nWaktu retensi = 5,8 menit\r\nLebar puncak pada setengah tinggi = 0,45 menit\r\nAnalis ingin menghitung jumlah lempeng teoritis untuk menilai efesiensi kolom kromatografi yang digunakan. Berapakah jumlah lempeng teoritis dalam sistem kromatografi ini?",
+      "question_order": 79,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "63714f39-7f42-43c3-92d2-b7d12f1be7d8",
+      "stem": "Seorang apoteker di departemen produksi farmasi sedang memantau proses pencetakan tablet ibuprofen. Setelah proses pencetakan, ditemukan bahwa Sebagian besar tablet memiliki permukaan yang tidak halus, dengan lapisan tipis material tablet yang menempel pada permukaan upper punch dan lower punch. Kondisi ini yang menyebabkan tablet yang dihasilkan tidak memenuhi spesifikasi estetika dan dapat mempengaruhi keseragaman dosis. Berdasarkan kasus diatas, apa penyebab paling mungkin dari masalah tablet tersebut?",
+      "question_order": 80,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "26319213-6445-480b-8525-0ad283f3aae2",
+      "stem": "Seorang apoteker di laboratorium farmasi sedang melakukan uji mikrobiologi untuk mendeteksi bakteri pathogen dalam produk obat. Media yang digunakan adalah Xylose Lysisne Deoxycholate agar, yang idrancang khusus untuk selektif dan diferensial dalam mendeteksi bakteri gram negatif. Bakteri manakah yang diidentifijasi oleh media XLD jika ditemukan hasil pembentukan koloni berwarna merah dengan pusat hitam?",
+      "question_order": 81,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "a58586cf-7d06-40c8-b7f6-18d2668e03e7",
+      "stem": "Apoteker Royhan yang bekerja di industri farmasi Pawang Apoteker akan melakukan evaluasi ketebalan tablet. Menurut FI V, berapa jumlah tablet yang dibutuhkan dalam evaluasi?",
+      "question_order": 82,
+      "correct_option_key": "E"
+    },
+    {
+      "id": "db111738-d55c-425e-bc2f-c2ceefca2c9d",
+      "stem": "Apoteker Royhan di bagain Qulity Control sedang melakukan evaluasi keseragaman kandungan tablet salbutamol 2 mg. Berikut adalah hasil pengujian kadar salbutamol dari 10 tablet yang diambil secara acak, didapatkan rata-rata kandungan salbutamol dari 10 tablet adalah 1,99 mg (X = 99,5%) dengan (SD = 1,120). Bagaimana interpretasi nilai penerimaan dari hasil evaluasi tersebut?",
+      "question_order": 83,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "311dc144-eec4-4f8c-a5fa-54b39e0f9405",
+      "stem": "Apoteker Royhan di bagian R&D sedang mengembangkan sediaan injeksi Levofloksasin dengan formula sebagai berikut :\r\nLevofloksasin 500 mg/100 mL (PTB 1% = 0,250)\r\nDinatrium edetat 0,1% (PTB 1% = 0,125)\r\nNaCl ad isotonis (PTB 1% = 0,576)\r\nWFI ad 100 mL\r\nApoteker perlu menentukan jumlah NaCl yang harus ditambahkan agar larutan menjadi isotonis. Berapa banyak mg NaCl yang harus ditambahkan untuk memperoleh larutan isotonis?",
+      "question_order": 84,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "7c3c25b4-ccb2-49d7-ac90-63c10ceb2296",
+      "stem": "Apoteker Royhan bertugas memilih wadah untuk injeksi vitamin K yan diketahui sangat sensitive terhadap cahaya. Wadah harus melindungi produk dari oksidasi akibat paparan cahaya. Jenis wadah apa yang paling tepat untuk sediaan tersebut?",
+      "question_order": 85,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "2fcb89bd-0221-48e1-a455-eb6c1022fb92",
+      "stem": "Bagian R&D PT. Pawang Apoteker melakukan pengembangan antibiotik amoksisilin trihidrat untuk H.pylori. Diinginkan sediaan dengan pelepasan lama di lambung. Bentuk sediaan apa yang cocok?",
+      "question_order": 86,
+      "correct_option_key": "D"
+    },
+    {
+      "id": "e0cdb4e0-3426-4ac4-9a5e-b19e2efe7209",
+      "stem": "Apoteker QC di Industri Pawang Apoteker sedang melakukan analisa senyawa paracetamol Ibuprofen menggunakan instrument HPLC. Dalam metode yang digunakan, tercatat hasil hold-up time sebesar 3 menit, dan laju fase gerak adalah 0,8 mL/menit. Berapakah hold-up volume dalam sistem kromatografi ini?",
+      "question_order": 87,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "c345a83b-3066-4477-af78-aec05e41373f",
+      "stem": "Suatu sampel dianalisis menggunakan KCKT dengan didapatkan hasil yang menunjukkan empat senyawa yang terdeteksi, diantaranya asam sitrat, asam laktat, asam formar, dan asam asetat. Diantara keempat senyawa tersebut asam format memiliki waktu retensi tercepat. Faktor apa saja yang mempengaruhi waktu retensi tersebut ?",
+      "question_order": 88,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "8b8420a2-a354-4a1c-a650-a37acc890ddf",
+      "stem": "Seorang apoteker ingin melakukan pengecekkan terhadap obat dengan kandungan beberapa zat aktif sebagai berikut :\r\nJika pengujian menggunakan instrument KCKT dengan fase diam berupa silika, manakah urutan sampel yang akan terelusi dari paling pertama hingga terakhir?",
+      "question_order": 89,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "38375365-6377-411c-975e-6600c5b5e8ff",
+      "stem": "Seorang apoteker di bagian pengawasan mutu di industri farmasi Pawang Apoteker sedang melakukan uji disolusi untuk tablet Na Diklofenak 250 mg (Q=80%). Dalam pengujian disolusi tahap pertama (S1), dilakukan pengujain terhadap 6 unit tablet. Berapakah batas minimal persen terdisolusi dari tiap unit agar memenuhi syarat S1?",
+      "question_order": 90,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "4ff20b18-77ff-4e7f-80d0-f88046f44538",
+      "stem": "Bagian QC melakukan analisis kadar senyawa  asetlkolin klorida. Sebanyak 500 mg sampel  dilarutkan dengan 15mL aquadest dan 40mL  NaOH 0,1 N, dan dipanaskan. Setelah dingin, ditambahkan indikator fenolftalein dan ditirasi  kelebihan basa dengan H2SO4 0,1N. Diketahui volume blanko 47,3 mL dan  volume titran 17,9 mL. Diketahui tiap mL natrium hidroksida 0,1 N setara dengan 16,58 mg asetilkolin klorida. Berapakah % kemurnian asetilkolin klorida tersebut?",
+      "question_order": 91,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "ffad3735-d38a-44c3-82d2-8caf89fa1e66",
+      "stem": "Industri farmasi sedang melakukan pengembangan obat baru. Hasil pengujian pada tahap pre klinis menunjukkan nilai LD50 yaitu 14000 mg/kg. Jika diketahui berat badan rata-rata orang dewasa adalah 70 Kg, Berapakah nilai NOEL pada pengujian tersebut?",
+      "question_order": 92,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "a2ffdedd-46b2-4a65-8c03-f613dca15568",
+      "stem": "Dalam pembuatan suppositoria dengan basis Oleum Cacao terkandung 300 mg Aminofilin sebagai zat aktif. Jumlah suppositoria yang dibuat adalah 10 buah dengan berat masing masing 2 gram. Jika nilai tukar aminofilin adalah 0,86 berapa jumlah basis yang digunakan?",
+      "question_order": 93,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "30c7a029-2e07-4fb3-89ac-d3f8942fc244",
+      "stem": "Suatu industri farmasi akan memproduksi suppositoria dengan zat aktif aspirin 500 mg menggunakan basis teobroma. Cetakan yang digunakan sebesar 2 gram. Berapakah basis yang diperlukan untuk membuat 12 suppositoria jika diketahui nilai displacement value 4,7?",
+      "question_order": 94,
+      "correct_option_key": "A"
+    },
+    {
+      "id": "6e191983-fec8-4e15-9618-542ed087bb87",
+      "stem": "BPOM mendeteksi sediaan yang mengandung parasetamol dan ibuprofen dengan KCKT. Waktu retensi secara berturut turut adalah 6 menit dan 8 menit, lebar puncak masing masing 0,5 cm dan 2,5 cm. Berapa resolusi dari obat tersebut ?",
+      "question_order": 95,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "0f38e852-ecbc-4f94-8af4-2607a3d95681",
+      "stem": "Seorang apoteker penanggung jawab QA di industri farmasi akan melakukan validasi proses produksi  sebelum produk tersebut dipasarkan untuk memastikan bahwa proses produksi mampu menghasilkan produk yang bermutu secara konsisten. Berapa batch yang harus divalidasi?",
+      "question_order": 96,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "638b25f1-1907-43af-8eab-455b342c7d96",
+      "stem": "Apoteker RnD akan merancang sediaan krim anti aging. Pada formula krim tersebut, digunakan kombinasi dua surfaktan, yaitu 3 bagian tween 80 (HLB 15) dan 2 bagian span 80 (HLB 4). Berapakah HLB campuran dalam pembuatan krim tersebut?",
+      "question_order": 97,
+      "correct_option_key": "C"
+    },
+    {
+      "id": "f8958198-8da3-41b4-9612-d3d1b969e04f",
+      "stem": "Seorang apoteker melakukan pengukuran zat aktif asam mefenamat (BM = 241,29 g/mol) yang dilarutkan dalam 100 ml pelarut dan diukur absorbansi. Didapatkan nilai absorbansi = 0,6 dengan 𝐴1𝑐𝑚 1% =5; kuvet 1 cm. Berapa molaritas sampel tersebut?",
+      "question_order": 98,
+      "correct_option_key": "B"
+    },
+    {
+      "id": "564a325c-ec50-4eda-a64d-85144ea6a31e",
+      "stem": "Apoteker bagian QC melakukan pemisahan  menggunakan KLT. Fase diam yang  digunakan adalah silica gel 254 nm, sedangkan fase gerak yang digunakan adalah  air:metanol (25:75). Diketahui indeks polaritas air adalah 10 dan metanol adalah 5. Berapa polaritas yang dimiliki fase gerak?",
+      "question_order": 99,
+      "correct_option_key": "E"
+    },
+    {
+      "id": "4681ec55-cdb8-4634-b590-5882db7dded9",
+      "stem": "Apoteker QC Suatu industri farmasi melakukan penetepan kadar cemaran 4-aminofenol dalam sediaan tablet paracetamol. Dari hasil pengujian tersebut, waktu retensi 4-aminofenol adalah 8 menit sementara waktu retensi pelarut yang digunakan adalah 3,7 menit Berapakah faktor kapasitas kolom?",
+      "question_order": 100,
+      "correct_option_key": "A"
+    }
+  ],
+  "allOptions": [
+    {
+      "event_question_id": "0b63cb37-307d-47d5-8a80-4bb6400104cf",
+      "option_key": "A",
+      "option_text": "Kualifikasi desain"
+    },
+    {
+      "event_question_id": "0b63cb37-307d-47d5-8a80-4bb6400104cf",
+      "option_key": "B",
+      "option_text": "Validasi proses"
+    },
+    {
+      "event_question_id": "0b63cb37-307d-47d5-8a80-4bb6400104cf",
+      "option_key": "C",
+      "option_text": "Factory Acceptance Test (FAT)"
+    },
+    {
+      "event_question_id": "0b63cb37-307d-47d5-8a80-4bb6400104cf",
+      "option_key": "D",
+      "option_text": "Site Acceptance Test (SAT)"
+    },
+    {
+      "event_question_id": "0b63cb37-307d-47d5-8a80-4bb6400104cf",
+      "option_key": "E",
+      "option_text": "Kualifikasi kinerja"
+    },
+    {
+      "event_question_id": "1ae45624-e31e-47c3-88e4-ecfaf7a0c993",
+      "option_key": "A",
+      "option_text": "0,05 poise"
+    },
+    {
+      "event_question_id": "1ae45624-e31e-47c3-88e4-ecfaf7a0c993",
+      "option_key": "B",
+      "option_text": "0,10 poise"
+    },
+    {
+      "event_question_id": "1ae45624-e31e-47c3-88e4-ecfaf7a0c993",
+      "option_key": "C",
+      "option_text": "0,15 poise"
+    },
+    {
+      "event_question_id": "1ae45624-e31e-47c3-88e4-ecfaf7a0c993",
+      "option_key": "D",
+      "option_text": "0,30 poise"
+    },
+    {
+      "event_question_id": "1ae45624-e31e-47c3-88e4-ecfaf7a0c993",
+      "option_key": "E",
+      "option_text": "0,45 poise"
+    },
+    {
+      "event_question_id": "1fc764ae-1012-4f8d-922c-65f8938b3d0d",
+      "option_key": "A",
+      "option_text": "20 (meq/kg)"
+    },
+    {
+      "event_question_id": "1fc764ae-1012-4f8d-922c-65f8938b3d0d",
+      "option_key": "B",
+      "option_text": "30 (meq/kg)"
+    },
+    {
+      "event_question_id": "1fc764ae-1012-4f8d-922c-65f8938b3d0d",
+      "option_key": "C",
+      "option_text": "40 (meq/kg)"
+    },
+    {
+      "event_question_id": "1fc764ae-1012-4f8d-922c-65f8938b3d0d",
+      "option_key": "D",
+      "option_text": "50 (meq/kg)"
+    },
+    {
+      "event_question_id": "1fc764ae-1012-4f8d-922c-65f8938b3d0d",
+      "option_key": "E",
+      "option_text": "60 (meq/kg)"
+    },
+    {
+      "event_question_id": "2f42f543-108d-48c3-8a7e-ffd0244c8112",
+      "option_key": "A",
+      "option_text": "Contemporaneous"
+    },
+    {
+      "event_question_id": "2f42f543-108d-48c3-8a7e-ffd0244c8112",
+      "option_key": "B",
+      "option_text": "Attributable"
+    },
+    {
+      "event_question_id": "2f42f543-108d-48c3-8a7e-ffd0244c8112",
+      "option_key": "C",
+      "option_text": "Original"
+    },
+    {
+      "event_question_id": "2f42f543-108d-48c3-8a7e-ffd0244c8112",
+      "option_key": "D",
+      "option_text": "Complete"
+    },
+    {
+      "event_question_id": "2f42f543-108d-48c3-8a7e-ffd0244c8112",
+      "option_key": "E",
+      "option_text": "Consistent"
+    },
+    {
+      "event_question_id": "33bdf11b-663d-4d23-b08f-3d643841fb29",
+      "option_key": "A",
+      "option_text": "Tipe I"
+    },
+    {
+      "event_question_id": "33bdf11b-663d-4d23-b08f-3d643841fb29",
+      "option_key": "B",
+      "option_text": "Tipe II"
+    },
+    {
+      "event_question_id": "33bdf11b-663d-4d23-b08f-3d643841fb29",
+      "option_key": "C",
+      "option_text": "Tipe III"
+    },
+    {
+      "event_question_id": "33bdf11b-663d-4d23-b08f-3d643841fb29",
+      "option_key": "D",
+      "option_text": "Tipe IV"
+    },
+    {
+      "event_question_id": "33bdf11b-663d-4d23-b08f-3d643841fb29",
+      "option_key": "E",
+      "option_text": "Tipe NP"
+    },
+    {
+      "event_question_id": "399ea043-5bbf-481e-8002-23c7621d283d",
+      "option_key": "A",
+      "option_text": "Uji angka lempeng total"
+    },
+    {
+      "event_question_id": "399ea043-5bbf-481e-8002-23c7621d283d",
+      "option_key": "B",
+      "option_text": "Uji sterilitas"
+    },
+    {
+      "event_question_id": "399ea043-5bbf-481e-8002-23c7621d283d",
+      "option_key": "C",
+      "option_text": "Uji LAL"
+    },
+    {
+      "event_question_id": "399ea043-5bbf-481e-8002-23c7621d283d",
+      "option_key": "D",
+      "option_text": "Uji fertilitas"
+    },
+    {
+      "event_question_id": "399ea043-5bbf-481e-8002-23c7621d283d",
+      "option_key": "E",
+      "option_text": "Media fill"
+    },
+    {
+      "event_question_id": "3cd5f5a2-e1c5-4296-9dfe-d7a1fb4f8c8d",
+      "option_key": "A",
+      "option_text": "1,20"
+    },
+    {
+      "event_question_id": "3cd5f5a2-e1c5-4296-9dfe-d7a1fb4f8c8d",
+      "option_key": "B",
+      "option_text": "0,004"
+    },
+    {
+      "event_question_id": "3cd5f5a2-e1c5-4296-9dfe-d7a1fb4f8c8d",
+      "option_key": "C",
+      "option_text": "15,97"
+    },
+    {
+      "event_question_id": "3cd5f5a2-e1c5-4296-9dfe-d7a1fb4f8c8d",
+      "option_key": "D",
+      "option_text": "10,89"
+    },
+    {
+      "event_question_id": "3cd5f5a2-e1c5-4296-9dfe-d7a1fb4f8c8d",
+      "option_key": "E",
+      "option_text": "28,97"
+    },
+    {
+      "event_question_id": "4b05c9a3-d766-4159-9aa6-d26ca2854da7",
+      "option_key": "A",
+      "option_text": "Sink airlock"
+    },
+    {
+      "event_question_id": "4b05c9a3-d766-4159-9aa6-d26ca2854da7",
+      "option_key": "B",
+      "option_text": "Bubble airlock"
+    },
+    {
+      "event_question_id": "4b05c9a3-d766-4159-9aa6-d26ca2854da7",
+      "option_key": "C",
+      "option_text": "Cascade airlock"
+    },
+    {
+      "event_question_id": "4b05c9a3-d766-4159-9aa6-d26ca2854da7",
+      "option_key": "D",
+      "option_text": "Positive airlock"
+    },
+    {
+      "event_question_id": "4b05c9a3-d766-4159-9aa6-d26ca2854da7",
+      "option_key": "E",
+      "option_text": "Negative airlock"
+    },
+    {
+      "event_question_id": "54dcf159-61d7-4c99-b2eb-20a7801b578e",
+      "option_key": "A",
+      "option_text": "5,3"
+    },
+    {
+      "event_question_id": "54dcf159-61d7-4c99-b2eb-20a7801b578e",
+      "option_key": "B",
+      "option_text": "7,8"
+    },
+    {
+      "event_question_id": "54dcf159-61d7-4c99-b2eb-20a7801b578e",
+      "option_key": "C",
+      "option_text": "125"
+    },
+    {
+      "event_question_id": "54dcf159-61d7-4c99-b2eb-20a7801b578e",
+      "option_key": "D",
+      "option_text": "30,9"
+    },
+    {
+      "event_question_id": "54dcf159-61d7-4c99-b2eb-20a7801b578e",
+      "option_key": "E",
+      "option_text": "55,2"
+    },
+    {
+      "event_question_id": "619c3bca-dd4f-4f17-bc8c-5a6b7f90d19c",
+      "option_key": "A",
+      "option_text": "11,95"
+    },
+    {
+      "event_question_id": "619c3bca-dd4f-4f17-bc8c-5a6b7f90d19c",
+      "option_key": "B",
+      "option_text": "11,35"
+    },
+    {
+      "event_question_id": "619c3bca-dd4f-4f17-bc8c-5a6b7f90d19c",
+      "option_key": "C",
+      "option_text": "11,85"
+    },
+    {
+      "event_question_id": "619c3bca-dd4f-4f17-bc8c-5a6b7f90d19c",
+      "option_key": "D",
+      "option_text": "11,5"
+    },
+    {
+      "event_question_id": "619c3bca-dd4f-4f17-bc8c-5a6b7f90d19c",
+      "option_key": "E",
+      "option_text": "2,75"
+    },
+    {
+      "event_question_id": "70691c6c-a9fc-4f47-be3b-35a030e91a4c",
+      "option_key": "A",
+      "option_text": "10,2%"
+    },
+    {
+      "event_question_id": "70691c6c-a9fc-4f47-be3b-35a030e91a4c",
+      "option_key": "B",
+      "option_text": "7,5%"
+    },
+    {
+      "event_question_id": "70691c6c-a9fc-4f47-be3b-35a030e91a4c",
+      "option_key": "C",
+      "option_text": "9,2%"
+    },
+    {
+      "event_question_id": "70691c6c-a9fc-4f47-be3b-35a030e91a4c",
+      "option_key": "D",
+      "option_text": "6,8%"
+    },
+    {
+      "event_question_id": "70691c6c-a9fc-4f47-be3b-35a030e91a4c",
+      "option_key": "E",
+      "option_text": "8,6%"
+    },
+    {
+      "event_question_id": "70e27f96-46ba-45a2-bf00-661fecddb781",
+      "option_key": "A",
+      "option_text": "96 kg"
+    },
+    {
+      "event_question_id": "70e27f96-46ba-45a2-bf00-661fecddb781",
+      "option_key": "B",
+      "option_text": "120 kg"
+    },
+    {
+      "event_question_id": "70e27f96-46ba-45a2-bf00-661fecddb781",
+      "option_key": "C",
+      "option_text": "150 kg"
+    },
+    {
+      "event_question_id": "70e27f96-46ba-45a2-bf00-661fecddb781",
+      "option_key": "D",
+      "option_text": "180 kg"
+    },
+    {
+      "event_question_id": "70e27f96-46ba-45a2-bf00-661fecddb781",
+      "option_key": "E",
+      "option_text": "200 kg"
+    },
+    {
+      "event_question_id": "72503415-f407-44d2-a3b2-d531efc7317b",
+      "option_key": "A",
+      "option_text": "0,18"
+    },
+    {
+      "event_question_id": "72503415-f407-44d2-a3b2-d531efc7317b",
+      "option_key": "B",
+      "option_text": "0,22"
+    },
+    {
+      "event_question_id": "72503415-f407-44d2-a3b2-d531efc7317b",
+      "option_key": "C",
+      "option_text": "0,78"
+    },
+    {
+      "event_question_id": "72503415-f407-44d2-a3b2-d531efc7317b",
+      "option_key": "D",
+      "option_text": "0,82"
+    },
+    {
+      "event_question_id": "72503415-f407-44d2-a3b2-d531efc7317b",
+      "option_key": "E",
+      "option_text": "11,00"
+    },
+    {
+      "event_question_id": "7a1df609-29a1-4803-824d-1bdda297a6cc",
+      "option_key": "A",
+      "option_text": "Dispersi padat"
+    },
+    {
+      "event_question_id": "7a1df609-29a1-4803-824d-1bdda297a6cc",
+      "option_key": "B",
+      "option_text": "Ko-solvensi"
+    },
+    {
+      "event_question_id": "7a1df609-29a1-4803-824d-1bdda297a6cc",
+      "option_key": "C",
+      "option_text": "Solubilisasi"
+    },
+    {
+      "event_question_id": "7a1df609-29a1-4803-824d-1bdda297a6cc",
+      "option_key": "D",
+      "option_text": "Pembentukan garam"
+    },
+    {
+      "event_question_id": "7a1df609-29a1-4803-824d-1bdda297a6cc",
+      "option_key": "E",
+      "option_text": "Kompleks inklusi"
+    },
+    {
+      "event_question_id": "7bd7dc40-fe12-46b5-b757-d69b98d64a9e",
+      "option_key": "A",
+      "option_text": "Kelas A"
+    },
+    {
+      "event_question_id": "7bd7dc40-fe12-46b5-b757-d69b98d64a9e",
+      "option_key": "B",
+      "option_text": "Kelas B"
+    },
+    {
+      "event_question_id": "7bd7dc40-fe12-46b5-b757-d69b98d64a9e",
+      "option_key": "C",
+      "option_text": "Kelas C"
+    },
+    {
+      "event_question_id": "7bd7dc40-fe12-46b5-b757-d69b98d64a9e",
+      "option_key": "D",
+      "option_text": "Kelas D"
+    },
+    {
+      "event_question_id": "7bd7dc40-fe12-46b5-b757-d69b98d64a9e",
+      "option_key": "E",
+      "option_text": "Kelas E"
+    },
+    {
+      "event_question_id": "81ffff3a-0fb4-4b8c-ae16-9496b13340c2",
+      "option_key": "A",
+      "option_text": "Uji klinik tahap 1"
+    },
+    {
+      "event_question_id": "81ffff3a-0fb4-4b8c-ae16-9496b13340c2",
+      "option_key": "B",
+      "option_text": "Uji klinik tahap 2"
+    },
+    {
+      "event_question_id": "81ffff3a-0fb4-4b8c-ae16-9496b13340c2",
+      "option_key": "C",
+      "option_text": "Uji klinik tahap 3"
+    },
+    {
+      "event_question_id": "81ffff3a-0fb4-4b8c-ae16-9496b13340c2",
+      "option_key": "D",
+      "option_text": "Uji klinik tahap 4"
+    },
+    {
+      "event_question_id": "81ffff3a-0fb4-4b8c-ae16-9496b13340c2",
+      "option_key": "E",
+      "option_text": "Uji praklinik"
+    },
+    {
+      "event_question_id": "82367a29-5c4c-483a-8f81-3a37426fd3e3",
+      "option_key": "A",
+      "option_text": "Kategori 1"
+    },
+    {
+      "event_question_id": "82367a29-5c4c-483a-8f81-3a37426fd3e3",
+      "option_key": "B",
+      "option_text": "Kategori 2"
+    },
+    {
+      "event_question_id": "82367a29-5c4c-483a-8f81-3a37426fd3e3",
+      "option_key": "C",
+      "option_text": "Kategori 3"
+    },
+    {
+      "event_question_id": "82367a29-5c4c-483a-8f81-3a37426fd3e3",
+      "option_key": "D",
+      "option_text": "Kategori 4"
+    },
+    {
+      "event_question_id": "82367a29-5c4c-483a-8f81-3a37426fd3e3",
+      "option_key": "E",
+      "option_text": "Kategori 5"
+    },
+    {
+      "event_question_id": "82cd721f-10ed-492d-91d3-220e93201cf1",
+      "option_key": "A",
+      "option_text": "16"
+    },
+    {
+      "event_question_id": "82cd721f-10ed-492d-91d3-220e93201cf1",
+      "option_key": "B",
+      "option_text": "10,7"
+    },
+    {
+      "event_question_id": "82cd721f-10ed-492d-91d3-220e93201cf1",
+      "option_key": "C",
+      "option_text": "5,3"
+    },
+    {
+      "event_question_id": "82cd721f-10ed-492d-91d3-220e93201cf1",
+      "option_key": "D",
+      "option_text": "9"
+    },
+    {
+      "event_question_id": "82cd721f-10ed-492d-91d3-220e93201cf1",
+      "option_key": "E",
+      "option_text": "6"
+    },
+    {
+      "event_question_id": "8c21f959-2324-4905-9c2a-135a5a07af91",
+      "option_key": "A",
+      "option_text": "Glycerol"
+    },
+    {
+      "event_question_id": "8c21f959-2324-4905-9c2a-135a5a07af91",
+      "option_key": "B",
+      "option_text": "Metil paraben"
+    },
+    {
+      "event_question_id": "8c21f959-2324-4905-9c2a-135a5a07af91",
+      "option_key": "C",
+      "option_text": "Aquades"
+    },
+    {
+      "event_question_id": "8c21f959-2324-4905-9c2a-135a5a07af91",
+      "option_key": "D",
+      "option_text": "Sirupus simplex"
+    },
+    {
+      "event_question_id": "8c21f959-2324-4905-9c2a-135a5a07af91",
+      "option_key": "E",
+      "option_text": "Karbomer"
+    },
+    {
+      "event_question_id": "9871151e-dd35-4e1e-8822-edf82c078a80",
+      "option_key": "A",
+      "option_text": "2,019"
+    },
+    {
+      "event_question_id": "9871151e-dd35-4e1e-8822-edf82c078a80",
+      "option_key": "B",
+      "option_text": "2,190"
+    },
+    {
+      "event_question_id": "9871151e-dd35-4e1e-8822-edf82c078a80",
+      "option_key": "C",
+      "option_text": "2,0091"
+    },
+    {
+      "event_question_id": "9871151e-dd35-4e1e-8822-edf82c078a80",
+      "option_key": "D",
+      "option_text": "2,0019"
+    },
+    {
+      "event_question_id": "9871151e-dd35-4e1e-8822-edf82c078a80",
+      "option_key": "E",
+      "option_text": "3,0019"
+    },
+    {
+      "event_question_id": "a8e83914-07b6-454d-b537-483833b444d9",
+      "option_key": "A",
+      "option_text": "7,2%"
+    },
+    {
+      "event_question_id": "a8e83914-07b6-454d-b537-483833b444d9",
+      "option_key": "B",
+      "option_text": "8,0%"
+    },
+    {
+      "event_question_id": "a8e83914-07b6-454d-b537-483833b444d9",
+      "option_key": "C",
+      "option_text": "8,7%"
+    },
+    {
+      "event_question_id": "a8e83914-07b6-454d-b537-483833b444d9",
+      "option_key": "D",
+      "option_text": "7,0%"
+    },
+    {
+      "event_question_id": "a8e83914-07b6-454d-b537-483833b444d9",
+      "option_key": "E",
+      "option_text": "9,8%"
+    },
+    {
+      "event_question_id": "ad9c3c63-6a49-41d9-8f9e-2be42e8c56dd",
+      "option_key": "A",
+      "option_text": "Memenuhi syarat, karena total partikel logam kurang dari 50 partikel"
+    },
+    {
+      "event_question_id": "ad9c3c63-6a49-41d9-8f9e-2be42e8c56dd",
+      "option_key": "B",
+      "option_text": "Memenuhi syarat, karena rata-rata partikel logam kurang drai 5 partikel"
+    },
+    {
+      "event_question_id": "ad9c3c63-6a49-41d9-8f9e-2be42e8c56dd",
+      "option_key": "C",
+      "option_text": "Tidak memenuhi syarat, uji harus dilanjutkan dengan menguji 20 tube tambahan"
+    },
+    {
+      "event_question_id": "ad9c3c63-6a49-41d9-8f9e-2be42e8c56dd",
+      "option_key": "D",
+      "option_text": "Tidak memenuhi syarat, uji harus dilanjutkan dengan menguji 30 tube tambahan"
+    },
+    {
+      "event_question_id": "ad9c3c63-6a49-41d9-8f9e-2be42e8c56dd",
+      "option_key": "E",
+      "option_text": "Tidak memenuhi syarat, batch ditolak"
+    },
+    {
+      "event_question_id": "b4253ade-405a-464c-9f1e-65309b2934bd",
+      "option_key": "A",
+      "option_text": "Panas kering"
+    },
+    {
+      "event_question_id": "b4253ade-405a-464c-9f1e-65309b2934bd",
+      "option_key": "B",
+      "option_text": "Panas basah"
+    },
+    {
+      "event_question_id": "b4253ade-405a-464c-9f1e-65309b2934bd",
+      "option_key": "C",
+      "option_text": "Teknik aseptis"
+    },
+    {
+      "event_question_id": "b4253ade-405a-464c-9f1e-65309b2934bd",
+      "option_key": "D",
+      "option_text": "Filtrasi membran"
+    },
+    {
+      "event_question_id": "b4253ade-405a-464c-9f1e-65309b2934bd",
+      "option_key": "E",
+      "option_text": "Gas etilen oksida"
+    },
+    {
+      "event_question_id": "b48d0108-9315-4421-8ec0-a94ba0f04964",
+      "option_key": "A",
+      "option_text": "25 ºC"
+    },
+    {
+      "event_question_id": "b48d0108-9315-4421-8ec0-a94ba0f04964",
+      "option_key": "B",
+      "option_text": "29 ºC"
+    },
+    {
+      "event_question_id": "b48d0108-9315-4421-8ec0-a94ba0f04964",
+      "option_key": "C",
+      "option_text": "28 ºC"
+    },
+    {
+      "event_question_id": "b48d0108-9315-4421-8ec0-a94ba0f04964",
+      "option_key": "D",
+      "option_text": "30 ºC"
+    },
+    {
+      "event_question_id": "b48d0108-9315-4421-8ec0-a94ba0f04964",
+      "option_key": "E",
+      "option_text": "37 ºC"
+    },
+    {
+      "event_question_id": "c5a753cf-78ea-46b6-8f56-deecc7d25102",
+      "option_key": "A",
+      "option_text": "101,5 μm"
+    },
+    {
+      "event_question_id": "c5a753cf-78ea-46b6-8f56-deecc7d25102",
+      "option_key": "B",
+      "option_text": "102,3 μm"
+    },
+    {
+      "event_question_id": "c5a753cf-78ea-46b6-8f56-deecc7d25102",
+      "option_key": "C",
+      "option_text": "103,8 μm"
+    },
+    {
+      "event_question_id": "c5a753cf-78ea-46b6-8f56-deecc7d25102",
+      "option_key": "D",
+      "option_text": "104,9 μm"
+    },
+    {
+      "event_question_id": "c5a753cf-78ea-46b6-8f56-deecc7d25102",
+      "option_key": "E",
+      "option_text": "105,6  μm"
+    },
+    {
+      "event_question_id": "c5c2856c-3a9d-4c90-9668-e54f0be5fbba",
+      "option_key": "A",
+      "option_text": "Pelicin"
+    },
+    {
+      "event_question_id": "c5c2856c-3a9d-4c90-9668-e54f0be5fbba",
+      "option_key": "B",
+      "option_text": "Pengikat"
+    },
+    {
+      "event_question_id": "c5c2856c-3a9d-4c90-9668-e54f0be5fbba",
+      "option_key": "C",
+      "option_text": "Pengisi"
+    },
+    {
+      "event_question_id": "c5c2856c-3a9d-4c90-9668-e54f0be5fbba",
+      "option_key": "D",
+      "option_text": "Pelicin"
+    },
+    {
+      "event_question_id": "c5c2856c-3a9d-4c90-9668-e54f0be5fbba",
+      "option_key": "E",
+      "option_text": "Disintegran"
+    },
+    {
+      "event_question_id": "c6c54c1c-f2a5-4663-a3df-565ed29f70bd",
+      "option_key": "A",
+      "option_text": "Scopolantine"
+    },
+    {
+      "event_question_id": "c6c54c1c-f2a5-4663-a3df-565ed29f70bd",
+      "option_key": "B",
+      "option_text": "Filantin"
+    },
+    {
+      "event_question_id": "c6c54c1c-f2a5-4663-a3df-565ed29f70bd",
+      "option_key": "C",
+      "option_text": "Zingiberin"
+    },
+    {
+      "event_question_id": "c6c54c1c-f2a5-4663-a3df-565ed29f70bd",
+      "option_key": "D",
+      "option_text": "Apigenin"
+    },
+    {
+      "event_question_id": "c6c54c1c-f2a5-4663-a3df-565ed29f70bd",
+      "option_key": "E",
+      "option_text": "Andrigrafolid"
+    },
+    {
+      "event_question_id": "cbc715fc-0b4f-4fe4-a4e9-bea7e8edacf7",
+      "option_key": "A",
+      "option_text": "0,15"
+    },
+    {
+      "event_question_id": "cbc715fc-0b4f-4fe4-a4e9-bea7e8edacf7",
+      "option_key": "B",
+      "option_text": "0,081"
+    },
+    {
+      "event_question_id": "cbc715fc-0b4f-4fe4-a4e9-bea7e8edacf7",
+      "option_key": "C",
+      "option_text": "0,85"
+    },
+    {
+      "event_question_id": "cbc715fc-0b4f-4fe4-a4e9-bea7e8edacf7",
+      "option_key": "D",
+      "option_text": "0,26"
+    },
+    {
+      "event_question_id": "cbc715fc-0b4f-4fe4-a4e9-bea7e8edacf7",
+      "option_key": "E",
+      "option_text": "0,18"
+    },
+    {
+      "event_question_id": "f78913a7-857a-4649-9365-0d6fbc729f4a",
+      "option_key": "A",
+      "option_text": "40,18"
+    },
+    {
+      "event_question_id": "f78913a7-857a-4649-9365-0d6fbc729f4a",
+      "option_key": "B",
+      "option_text": "42,28"
+    },
+    {
+      "event_question_id": "f78913a7-857a-4649-9365-0d6fbc729f4a",
+      "option_key": "C",
+      "option_text": "43,18"
+    },
+    {
+      "event_question_id": "f78913a7-857a-4649-9365-0d6fbc729f4a",
+      "option_key": "D",
+      "option_text": "45,18"
+    },
+    {
+      "event_question_id": "f78913a7-857a-4649-9365-0d6fbc729f4a",
+      "option_key": "E",
+      "option_text": "46,18"
+    },
+    {
+      "event_question_id": "f9c3cdae-81ca-47c8-a005-d33dbd25dacf",
+      "option_key": "A",
+      "option_text": "6 Tablet"
+    },
+    {
+      "event_question_id": "f9c3cdae-81ca-47c8-a005-d33dbd25dacf",
+      "option_key": "B",
+      "option_text": "12 Tablet"
+    },
+    {
+      "event_question_id": "f9c3cdae-81ca-47c8-a005-d33dbd25dacf",
+      "option_key": "C",
+      "option_text": "18 Tablet"
+    },
+    {
+      "event_question_id": "f9c3cdae-81ca-47c8-a005-d33dbd25dacf",
+      "option_key": "D",
+      "option_text": "24 Tablet"
+    },
+    {
+      "event_question_id": "f9c3cdae-81ca-47c8-a005-d33dbd25dacf",
+      "option_key": "E",
+      "option_text": "28 Tablet"
+    },
+    {
+      "event_question_id": "18d798cd-b96d-4e9f-a9dd-560dfc5a6b71",
+      "option_key": "A",
+      "option_text": "148,5 g"
+    },
+    {
+      "event_question_id": "18d798cd-b96d-4e9f-a9dd-560dfc5a6b71",
+      "option_key": "B",
+      "option_text": "11,4 g"
+    },
+    {
+      "event_question_id": "18d798cd-b96d-4e9f-a9dd-560dfc5a6b71",
+      "option_key": "C",
+      "option_text": "1,14 g"
+    },
+    {
+      "event_question_id": "18d798cd-b96d-4e9f-a9dd-560dfc5a6b71",
+      "option_key": "D",
+      "option_text": "4,85 g"
+    },
+    {
+      "event_question_id": "18d798cd-b96d-4e9f-a9dd-560dfc5a6b71",
+      "option_key": "E",
+      "option_text": "0,48 g"
+    },
+    {
+      "event_question_id": "28690ed0-16f4-4642-b35b-d0e1e08f96fc",
+      "option_key": "A",
+      "option_text": "Industri jamu"
+    },
+    {
+      "event_question_id": "28690ed0-16f4-4642-b35b-d0e1e08f96fc",
+      "option_key": "B",
+      "option_text": "UKOT"
+    },
+    {
+      "event_question_id": "28690ed0-16f4-4642-b35b-d0e1e08f96fc",
+      "option_key": "C",
+      "option_text": "IOT"
+    },
+    {
+      "event_question_id": "28690ed0-16f4-4642-b35b-d0e1e08f96fc",
+      "option_key": "D",
+      "option_text": "IEBA"
+    },
+    {
+      "event_question_id": "28690ed0-16f4-4642-b35b-d0e1e08f96fc",
+      "option_key": "E",
+      "option_text": "UMOT"
+    },
+    {
+      "event_question_id": "3bfd9920-c024-476c-a802-cf31e31ed27c",
+      "option_key": "A",
+      "option_text": "pH 8,6"
+    },
+    {
+      "event_question_id": "3bfd9920-c024-476c-a802-cf31e31ed27c",
+      "option_key": "B",
+      "option_text": "pH 4"
+    },
+    {
+      "event_question_id": "3bfd9920-c024-476c-a802-cf31e31ed27c",
+      "option_key": "C",
+      "option_text": "pH 5"
+    },
+    {
+      "event_question_id": "3bfd9920-c024-476c-a802-cf31e31ed27c",
+      "option_key": "D",
+      "option_text": "pH 10,6"
+    },
+    {
+      "event_question_id": "3bfd9920-c024-476c-a802-cf31e31ed27c",
+      "option_key": "E",
+      "option_text": "pH 6"
+    },
+    {
+      "event_question_id": "44f856a8-21c2-4f97-847b-2b6c79965169",
+      "option_key": "A",
+      "option_text": "4"
+    },
+    {
+      "event_question_id": "44f856a8-21c2-4f97-847b-2b6c79965169",
+      "option_key": "B",
+      "option_text": "7"
+    },
+    {
+      "event_question_id": "44f856a8-21c2-4f97-847b-2b6c79965169",
+      "option_key": "C",
+      "option_text": "10"
+    },
+    {
+      "event_question_id": "44f856a8-21c2-4f97-847b-2b6c79965169",
+      "option_key": "D",
+      "option_text": "11"
+    },
+    {
+      "event_question_id": "44f856a8-21c2-4f97-847b-2b6c79965169",
+      "option_key": "E",
+      "option_text": "15"
+    },
+    {
+      "event_question_id": "497c3521-1743-4abb-a095-c566979a5b7c",
+      "option_key": "A",
+      "option_text": "Metode rinse"
+    },
+    {
+      "event_question_id": "497c3521-1743-4abb-a095-c566979a5b7c",
+      "option_key": "B",
+      "option_text": "Metode usap"
+    },
+    {
+      "event_question_id": "497c3521-1743-4abb-a095-c566979a5b7c",
+      "option_key": "C",
+      "option_text": "Metode swab"
+    },
+    {
+      "event_question_id": "497c3521-1743-4abb-a095-c566979a5b7c",
+      "option_key": "D",
+      "option_text": "Metode placebo"
+    },
+    {
+      "event_question_id": "497c3521-1743-4abb-a095-c566979a5b7c",
+      "option_key": "E",
+      "option_text": "Metode gloves"
+    },
+    {
+      "event_question_id": "4c0319cc-6c18-4b8f-9e54-866b9059607b",
+      "option_key": "A",
+      "option_text": "5-7 cm"
+    },
+    {
+      "event_question_id": "4c0319cc-6c18-4b8f-9e54-866b9059607b",
+      "option_key": "B",
+      "option_text": "5-8 cm"
+    },
+    {
+      "event_question_id": "4c0319cc-6c18-4b8f-9e54-866b9059607b",
+      "option_key": "C",
+      "option_text": "6-7 cm"
+    },
+    {
+      "event_question_id": "4c0319cc-6c18-4b8f-9e54-866b9059607b",
+      "option_key": "D",
+      "option_text": "7-8 cm"
+    },
+    {
+      "event_question_id": "4c0319cc-6c18-4b8f-9e54-866b9059607b",
+      "option_key": "E",
+      "option_text": "5-6 cm"
+    },
+    {
+      "event_question_id": "4d6605e7-79a3-4c15-8c8b-86f5b6fc10e7",
+      "option_key": "A",
+      "option_text": "5,89"
+    },
+    {
+      "event_question_id": "4d6605e7-79a3-4c15-8c8b-86f5b6fc10e7",
+      "option_key": "B",
+      "option_text": "5,98"
+    },
+    {
+      "event_question_id": "4d6605e7-79a3-4c15-8c8b-86f5b6fc10e7",
+      "option_key": "C",
+      "option_text": "6,89"
+    },
+    {
+      "event_question_id": "4d6605e7-79a3-4c15-8c8b-86f5b6fc10e7",
+      "option_key": "D",
+      "option_text": "6,98"
+    },
+    {
+      "event_question_id": "4d6605e7-79a3-4c15-8c8b-86f5b6fc10e7",
+      "option_key": "E",
+      "option_text": "7,89"
+    },
+    {
+      "event_question_id": "51892406-cafb-4780-a13c-a640c2f38c53",
+      "option_key": "A",
+      "option_text": "3,656"
+    },
+    {
+      "event_question_id": "51892406-cafb-4780-a13c-a640c2f38c53",
+      "option_key": "B",
+      "option_text": "2,634"
+    },
+    {
+      "event_question_id": "51892406-cafb-4780-a13c-a640c2f38c53",
+      "option_key": "C",
+      "option_text": "4,654"
+    },
+    {
+      "event_question_id": "51892406-cafb-4780-a13c-a640c2f38c53",
+      "option_key": "D",
+      "option_text": "2,643"
+    },
+    {
+      "event_question_id": "51892406-cafb-4780-a13c-a640c2f38c53",
+      "option_key": "E",
+      "option_text": "4,362"
+    },
+    {
+      "event_question_id": "58236b37-8b1d-46d6-8a7a-e30a3410d373",
+      "option_key": "A",
+      "option_text": "Kromatografi fase terbalik"
+    },
+    {
+      "event_question_id": "58236b37-8b1d-46d6-8a7a-e30a3410d373",
+      "option_key": "B",
+      "option_text": "Kromatografi fase normal"
+    },
+    {
+      "event_question_id": "58236b37-8b1d-46d6-8a7a-e30a3410d373",
+      "option_key": "C",
+      "option_text": "Kromatografi pertukaran ion"
+    },
+    {
+      "event_question_id": "58236b37-8b1d-46d6-8a7a-e30a3410d373",
+      "option_key": "D",
+      "option_text": "Kromatografi lapis tipis"
+    },
+    {
+      "event_question_id": "58236b37-8b1d-46d6-8a7a-e30a3410d373",
+      "option_key": "E",
+      "option_text": "Kromatografi adsorbs normal"
+    },
+    {
+      "event_question_id": "5edfca82-97e6-4d7e-9a6c-82ef0f0b3349",
+      "option_key": "A",
+      "option_text": "24 mL"
+    },
+    {
+      "event_question_id": "5edfca82-97e6-4d7e-9a6c-82ef0f0b3349",
+      "option_key": "B",
+      "option_text": "82,5 mL"
+    },
+    {
+      "event_question_id": "5edfca82-97e6-4d7e-9a6c-82ef0f0b3349",
+      "option_key": "C",
+      "option_text": "100 mL"
+    },
+    {
+      "event_question_id": "5edfca82-97e6-4d7e-9a6c-82ef0f0b3349",
+      "option_key": "D",
+      "option_text": "76 mL"
+    },
+    {
+      "event_question_id": "5edfca82-97e6-4d7e-9a6c-82ef0f0b3349",
+      "option_key": "E",
+      "option_text": "8 mL"
+    },
+    {
+      "event_question_id": "6b0c49bd-2159-4c52-9e18-ed69b4f6504a",
+      "option_key": "A",
+      "option_text": "1"
+    },
+    {
+      "event_question_id": "6b0c49bd-2159-4c52-9e18-ed69b4f6504a",
+      "option_key": "B",
+      "option_text": "3"
+    },
+    {
+      "event_question_id": "6b0c49bd-2159-4c52-9e18-ed69b4f6504a",
+      "option_key": "C",
+      "option_text": "12"
+    },
+    {
+      "event_question_id": "6b0c49bd-2159-4c52-9e18-ed69b4f6504a",
+      "option_key": "D",
+      "option_text": "0,5"
+    },
+    {
+      "event_question_id": "6b0c49bd-2159-4c52-9e18-ed69b4f6504a",
+      "option_key": "E",
+      "option_text": "5"
+    },
+    {
+      "event_question_id": "7cfd31a3-3309-46f5-9d6c-33220066c179",
+      "option_key": "A",
+      "option_text": "Kemenkes"
+    },
+    {
+      "event_question_id": "7cfd31a3-3309-46f5-9d6c-33220066c179",
+      "option_key": "B",
+      "option_text": "Dinkes Provinsi"
+    },
+    {
+      "event_question_id": "7cfd31a3-3309-46f5-9d6c-33220066c179",
+      "option_key": "C",
+      "option_text": "Dinkes Kab/Kota"
+    },
+    {
+      "event_question_id": "7cfd31a3-3309-46f5-9d6c-33220066c179",
+      "option_key": "D",
+      "option_text": "Balam POM"
+    },
+    {
+      "event_question_id": "7cfd31a3-3309-46f5-9d6c-33220066c179",
+      "option_key": "E",
+      "option_text": "BPOM"
+    },
+    {
+      "event_question_id": "a08cc3bd-8bed-4e45-a1a9-093344284ba6",
+      "option_key": "A",
+      "option_text": "9,93 mEq"
+    },
+    {
+      "event_question_id": "a08cc3bd-8bed-4e45-a1a9-093344284ba6",
+      "option_key": "B",
+      "option_text": "5,00 mEq"
+    },
+    {
+      "event_question_id": "a08cc3bd-8bed-4e45-a1a9-093344284ba6",
+      "option_key": "C",
+      "option_text": "13,81 mEq"
+    },
+    {
+      "event_question_id": "a08cc3bd-8bed-4e45-a1a9-093344284ba6",
+      "option_key": "D",
+      "option_text": "12,56 mEq"
+    },
+    {
+      "event_question_id": "a08cc3bd-8bed-4e45-a1a9-093344284ba6",
+      "option_key": "E",
+      "option_text": "11,29 mEq"
+    },
+    {
+      "event_question_id": "a9f7e9a7-c10c-4dbb-832b-445b22d9ec15",
+      "option_key": "A",
+      "option_text": "Bacillus brevis"
+    },
+    {
+      "event_question_id": "a9f7e9a7-c10c-4dbb-832b-445b22d9ec15",
+      "option_key": "B",
+      "option_text": "Bacillus stearothermophilus"
+    },
+    {
+      "event_question_id": "a9f7e9a7-c10c-4dbb-832b-445b22d9ec15",
+      "option_key": "C",
+      "option_text": "Bacillus subtilis"
+    },
+    {
+      "event_question_id": "a9f7e9a7-c10c-4dbb-832b-445b22d9ec15",
+      "option_key": "D",
+      "option_text": "Bacillus pumilus"
+    },
+    {
+      "event_question_id": "a9f7e9a7-c10c-4dbb-832b-445b22d9ec15",
+      "option_key": "E",
+      "option_text": "Bacillus cereus"
+    },
+    {
+      "event_question_id": "ac37ad67-8f1d-424a-ad11-5f05be4ace6e",
+      "option_key": "A",
+      "option_text": "Emulgator"
+    },
+    {
+      "event_question_id": "ac37ad67-8f1d-424a-ad11-5f05be4ace6e",
+      "option_key": "B",
+      "option_text": "Viscosity agent"
+    },
+    {
+      "event_question_id": "ac37ad67-8f1d-424a-ad11-5f05be4ace6e",
+      "option_key": "C",
+      "option_text": "Pentration enhancer"
+    },
+    {
+      "event_question_id": "ac37ad67-8f1d-424a-ad11-5f05be4ace6e",
+      "option_key": "D",
+      "option_text": "pH adjuster"
+    },
+    {
+      "event_question_id": "ac37ad67-8f1d-424a-ad11-5f05be4ace6e",
+      "option_key": "E",
+      "option_text": "Gelling agent"
+    },
+    {
+      "event_question_id": "afa2f40b-62e4-4aac-9b1a-7b4851cda7be",
+      "option_key": "A",
+      "option_text": "Plastis"
+    },
+    {
+      "event_question_id": "afa2f40b-62e4-4aac-9b1a-7b4851cda7be",
+      "option_key": "B",
+      "option_text": "Pseudoplastis"
+    },
+    {
+      "event_question_id": "afa2f40b-62e4-4aac-9b1a-7b4851cda7be",
+      "option_key": "C",
+      "option_text": "Dilatan"
+    },
+    {
+      "event_question_id": "afa2f40b-62e4-4aac-9b1a-7b4851cda7be",
+      "option_key": "D",
+      "option_text": "Newton"
+    },
+    {
+      "event_question_id": "afa2f40b-62e4-4aac-9b1a-7b4851cda7be",
+      "option_key": "E",
+      "option_text": "Antitiksotropik"
+    },
+    {
+      "event_question_id": "b0e09854-99ed-4b9c-9b11-bc1f50979460",
+      "option_key": "A",
+      "option_text": "0,8"
+    },
+    {
+      "event_question_id": "b0e09854-99ed-4b9c-9b11-bc1f50979460",
+      "option_key": "B",
+      "option_text": "0,5"
+    },
+    {
+      "event_question_id": "b0e09854-99ed-4b9c-9b11-bc1f50979460",
+      "option_key": "C",
+      "option_text": "1,5"
+    },
+    {
+      "event_question_id": "b0e09854-99ed-4b9c-9b11-bc1f50979460",
+      "option_key": "D",
+      "option_text": "1,75"
+    },
+    {
+      "event_question_id": "b0e09854-99ed-4b9c-9b11-bc1f50979460",
+      "option_key": "E",
+      "option_text": "1,25"
+    },
+    {
+      "event_question_id": "b444aeac-286f-49df-8e3f-99284da8b090",
+      "option_key": "A",
+      "option_text": "Sukrosa"
+    },
+    {
+      "event_question_id": "b444aeac-286f-49df-8e3f-99284da8b090",
+      "option_key": "B",
+      "option_text": "Selulosa asetat flatalat"
+    },
+    {
+      "event_question_id": "b444aeac-286f-49df-8e3f-99284da8b090",
+      "option_key": "C",
+      "option_text": "Crospovidone"
+    },
+    {
+      "event_question_id": "b444aeac-286f-49df-8e3f-99284da8b090",
+      "option_key": "D",
+      "option_text": "Mikrokristalin selulosa"
+    },
+    {
+      "event_question_id": "b444aeac-286f-49df-8e3f-99284da8b090",
+      "option_key": "E",
+      "option_text": "Metil selulosa"
+    },
+    {
+      "event_question_id": "b79755a2-eaec-4b60-9ddc-478605ae9bcd",
+      "option_key": "A",
+      "option_text": "Validasi konkuren"
+    },
+    {
+      "event_question_id": "b79755a2-eaec-4b60-9ddc-478605ae9bcd",
+      "option_key": "B",
+      "option_text": "Validasi proses tradisional"
+    },
+    {
+      "event_question_id": "b79755a2-eaec-4b60-9ddc-478605ae9bcd",
+      "option_key": "C",
+      "option_text": "Validasi proses kontinyu"
+    },
+    {
+      "event_question_id": "b79755a2-eaec-4b60-9ddc-478605ae9bcd",
+      "option_key": "D",
+      "option_text": "Validasi ulang"
+    },
+    {
+      "event_question_id": "b79755a2-eaec-4b60-9ddc-478605ae9bcd",
+      "option_key": "E",
+      "option_text": "Pendekatan hibrida"
+    },
+    {
+      "event_question_id": "be97a670-125b-40c7-accf-990cd90d89b3",
+      "option_key": "A",
+      "option_text": "1,243"
+    },
+    {
+      "event_question_id": "be97a670-125b-40c7-accf-990cd90d89b3",
+      "option_key": "B",
+      "option_text": "2,651"
+    },
+    {
+      "event_question_id": "be97a670-125b-40c7-accf-990cd90d89b3",
+      "option_key": "C",
+      "option_text": "2,812"
+    },
+    {
+      "event_question_id": "be97a670-125b-40c7-accf-990cd90d89b3",
+      "option_key": "D",
+      "option_text": "2,285"
+    },
+    {
+      "event_question_id": "be97a670-125b-40c7-accf-990cd90d89b3",
+      "option_key": "E",
+      "option_text": "3,293"
+    },
+    {
+      "event_question_id": "c9874dac-0bc2-4e82-9e69-d180c57da2ba",
+      "option_key": "A",
+      "option_text": "Suhu 40ºC dan RH 75%"
+    },
+    {
+      "event_question_id": "c9874dac-0bc2-4e82-9e69-d180c57da2ba",
+      "option_key": "B",
+      "option_text": "Suhu 30ºC dan RH 75%"
+    },
+    {
+      "event_question_id": "c9874dac-0bc2-4e82-9e69-d180c57da2ba",
+      "option_key": "C",
+      "option_text": "Suhu 40ºC dan RH 65%"
+    },
+    {
+      "event_question_id": "c9874dac-0bc2-4e82-9e69-d180c57da2ba",
+      "option_key": "D",
+      "option_text": "Suhu 40ºC dan RH 55%"
+    },
+    {
+      "event_question_id": "c9874dac-0bc2-4e82-9e69-d180c57da2ba",
+      "option_key": "E",
+      "option_text": "Suhu 50ºC dan RH 75%"
+    },
+    {
+      "event_question_id": "cc2c0964-e861-4db4-9e63-bf7293ae2b72",
+      "option_key": "A",
+      "option_text": "Mengulangi pengujian dengan 6 tablet"
+    },
+    {
+      "event_question_id": "cc2c0964-e861-4db4-9e63-bf7293ae2b72",
+      "option_key": "B",
+      "option_text": "Mengulangi pengujian dengan 12 tablet"
+    },
+    {
+      "event_question_id": "cc2c0964-e861-4db4-9e63-bf7293ae2b72",
+      "option_key": "C",
+      "option_text": "Mengulangi pengujian dengan 18 tablet"
+    },
+    {
+      "event_question_id": "cc2c0964-e861-4db4-9e63-bf7293ae2b72",
+      "option_key": "D",
+      "option_text": "Menolak batch tablet"
+    },
+    {
+      "event_question_id": "cc2c0964-e861-4db4-9e63-bf7293ae2b72",
+      "option_key": "E",
+      "option_text": "Meloloskan batch tablet"
+    },
+    {
+      "event_question_id": "daa74d14-1552-478c-a494-b7698f4cd326",
+      "option_key": "A",
+      "option_text": "1 bets skala komersil"
+    },
+    {
+      "event_question_id": "daa74d14-1552-478c-a494-b7698f4cd326",
+      "option_key": "B",
+      "option_text": "2 bets skala pilot"
+    },
+    {
+      "event_question_id": "daa74d14-1552-478c-a494-b7698f4cd326",
+      "option_key": "C",
+      "option_text": "2 bets skala komersil"
+    },
+    {
+      "event_question_id": "daa74d14-1552-478c-a494-b7698f4cd326",
+      "option_key": "D",
+      "option_text": "3 bets skala komersil"
+    },
+    {
+      "event_question_id": "daa74d14-1552-478c-a494-b7698f4cd326",
+      "option_key": "E",
+      "option_text": "3 bets skala pilot"
+    },
+    {
+      "event_question_id": "daf53584-f3a0-421c-a28e-889a87fa2244",
+      "option_key": "A",
+      "option_text": "28 mg"
+    },
+    {
+      "event_question_id": "daf53584-f3a0-421c-a28e-889a87fa2244",
+      "option_key": "B",
+      "option_text": "48 mg"
+    },
+    {
+      "event_question_id": "daf53584-f3a0-421c-a28e-889a87fa2244",
+      "option_key": "C",
+      "option_text": "37 mg"
+    },
+    {
+      "event_question_id": "daf53584-f3a0-421c-a28e-889a87fa2244",
+      "option_key": "D",
+      "option_text": "52 mg"
+    },
+    {
+      "event_question_id": "daf53584-f3a0-421c-a28e-889a87fa2244",
+      "option_key": "E",
+      "option_text": "86 mg"
+    },
+    {
+      "event_question_id": "e810afa0-be56-4718-8282-87e1adbec9fd",
+      "option_key": "A",
+      "option_text": "Sampel pembanding"
+    },
+    {
+      "event_question_id": "e810afa0-be56-4718-8282-87e1adbec9fd",
+      "option_key": "B",
+      "option_text": "Sampel innovator"
+    },
+    {
+      "event_question_id": "e810afa0-be56-4718-8282-87e1adbec9fd",
+      "option_key": "C",
+      "option_text": "Sampel pertinggal"
+    },
+    {
+      "event_question_id": "e810afa0-be56-4718-8282-87e1adbec9fd",
+      "option_key": "D",
+      "option_text": "Sampel karantina"
+    },
+    {
+      "event_question_id": "e810afa0-be56-4718-8282-87e1adbec9fd",
+      "option_key": "E",
+      "option_text": "Sampel dari bets lain"
+    },
+    {
+      "event_question_id": "f20bbc54-887d-4b5d-8667-6c853a4697de",
+      "option_key": "A",
+      "option_text": "Rp 940.000"
+    },
+    {
+      "event_question_id": "f20bbc54-887d-4b5d-8667-6c853a4697de",
+      "option_key": "B",
+      "option_text": "Rp 400.000"
+    },
+    {
+      "event_question_id": "f20bbc54-887d-4b5d-8667-6c853a4697de",
+      "option_key": "C",
+      "option_text": "Rp 300.000"
+    },
+    {
+      "event_question_id": "f20bbc54-887d-4b5d-8667-6c853a4697de",
+      "option_key": "D",
+      "option_text": "Rp 240.000"
+    },
+    {
+      "event_question_id": "f20bbc54-887d-4b5d-8667-6c853a4697de",
+      "option_key": "E",
+      "option_text": "Rp 760.000"
+    },
+    {
+      "event_question_id": "f290ad11-178d-4558-87c5-98f18c1c21f1",
+      "option_key": "A",
+      "option_text": "++/+++/++/0"
+    },
+    {
+      "event_question_id": "f290ad11-178d-4558-87c5-98f18c1c21f1",
+      "option_key": "B",
+      "option_text": "+++/++/+++/+"
+    },
+    {
+      "event_question_id": "f290ad11-178d-4558-87c5-98f18c1c21f1",
+      "option_key": "C",
+      "option_text": "+++/+++/+++/+"
+    },
+    {
+      "event_question_id": "f290ad11-178d-4558-87c5-98f18c1c21f1",
+      "option_key": "D",
+      "option_text": "+/++/+++/+"
+    },
+    {
+      "event_question_id": "f290ad11-178d-4558-87c5-98f18c1c21f1",
+      "option_key": "E",
+      "option_text": "0/++/+++/0"
+    },
+    {
+      "event_question_id": "f480ef05-2bc7-4d91-a0ff-eaccfe21f768",
+      "option_key": "A",
+      "option_text": "22,68"
+    },
+    {
+      "event_question_id": "f480ef05-2bc7-4d91-a0ff-eaccfe21f768",
+      "option_key": "B",
+      "option_text": "26,28"
+    },
+    {
+      "event_question_id": "f480ef05-2bc7-4d91-a0ff-eaccfe21f768",
+      "option_key": "C",
+      "option_text": "26,82"
+    },
+    {
+      "event_question_id": "f480ef05-2bc7-4d91-a0ff-eaccfe21f768",
+      "option_key": "D",
+      "option_text": "22,49"
+    },
+    {
+      "event_question_id": "f480ef05-2bc7-4d91-a0ff-eaccfe21f768",
+      "option_key": "E",
+      "option_text": "26,22"
+    },
+    {
+      "event_question_id": "fb69a82c-1ef4-416a-9971-7462d95c6d07",
+      "option_key": "A",
+      "option_text": "Spektrofotometri"
+    },
+    {
+      "event_question_id": "fb69a82c-1ef4-416a-9971-7462d95c6d07",
+      "option_key": "B",
+      "option_text": "Kromatografi gas"
+    },
+    {
+      "event_question_id": "fb69a82c-1ef4-416a-9971-7462d95c6d07",
+      "option_key": "C",
+      "option_text": "Kromatografi cair kinerja tinggi"
+    },
+    {
+      "event_question_id": "fb69a82c-1ef4-416a-9971-7462d95c6d07",
+      "option_key": "D",
+      "option_text": "Kompleksometri"
+    },
+    {
+      "event_question_id": "fb69a82c-1ef4-416a-9971-7462d95c6d07",
+      "option_key": "E",
+      "option_text": "Kromatografi kolom"
+    },
+    {
+      "event_question_id": "fe363fd1-3b64-4a94-8b25-904901420dd7",
+      "option_key": "A",
+      "option_text": "Kelas A"
+    },
+    {
+      "event_question_id": "fe363fd1-3b64-4a94-8b25-904901420dd7",
+      "option_key": "B",
+      "option_text": "Kelas B"
+    },
+    {
+      "event_question_id": "fe363fd1-3b64-4a94-8b25-904901420dd7",
+      "option_key": "C",
+      "option_text": "Kelas C"
+    },
+    {
+      "event_question_id": "fe363fd1-3b64-4a94-8b25-904901420dd7",
+      "option_key": "D",
+      "option_text": "Kelas D"
+    },
+    {
+      "event_question_id": "fe363fd1-3b64-4a94-8b25-904901420dd7",
+      "option_key": "E",
+      "option_text": "Kelas E"
+    },
+    {
+      "event_question_id": "185078c3-b852-4fcc-aa84-0460f7d581c1",
+      "option_key": "A",
+      "option_text": "15,38 mm"
+    },
+    {
+      "event_question_id": "185078c3-b852-4fcc-aa84-0460f7d581c1",
+      "option_key": "B",
+      "option_text": "16,38 mm"
+    },
+    {
+      "event_question_id": "185078c3-b852-4fcc-aa84-0460f7d581c1",
+      "option_key": "C",
+      "option_text": "16,52 mm"
+    },
+    {
+      "event_question_id": "185078c3-b852-4fcc-aa84-0460f7d581c1",
+      "option_key": "D",
+      "option_text": "17,20 mm"
+    },
+    {
+      "event_question_id": "185078c3-b852-4fcc-aa84-0460f7d581c1",
+      "option_key": "E",
+      "option_text": "17,52 mm"
+    },
+    {
+      "event_question_id": "1d71e77a-bf1e-4161-9d6e-27639ce031a6",
+      "option_key": "A",
+      "option_text": "920,32"
+    },
+    {
+      "event_question_id": "1d71e77a-bf1e-4161-9d6e-27639ce031a6",
+      "option_key": "B",
+      "option_text": "1.458,75"
+    },
+    {
+      "event_question_id": "1d71e77a-bf1e-4161-9d6e-27639ce031a6",
+      "option_key": "C",
+      "option_text": "1.667,83"
+    },
+    {
+      "event_question_id": "1d71e77a-bf1e-4161-9d6e-27639ce031a6",
+      "option_key": "D",
+      "option_text": "2.543,76"
+    },
+    {
+      "event_question_id": "1d71e77a-bf1e-4161-9d6e-27639ce031a6",
+      "option_key": "E",
+      "option_text": "8.963,42"
+    },
+    {
+      "event_question_id": "26319213-6445-480b-8525-0ad283f3aae2",
+      "option_key": "A",
+      "option_text": "Eschericia coli"
+    },
+    {
+      "event_question_id": "26319213-6445-480b-8525-0ad283f3aae2",
+      "option_key": "B",
+      "option_text": "Shigella spp."
+    },
+    {
+      "event_question_id": "26319213-6445-480b-8525-0ad283f3aae2",
+      "option_key": "C",
+      "option_text": "Salmonella spp."
+    },
+    {
+      "event_question_id": "26319213-6445-480b-8525-0ad283f3aae2",
+      "option_key": "D",
+      "option_text": "Proteus mirabilis"
+    },
+    {
+      "event_question_id": "26319213-6445-480b-8525-0ad283f3aae2",
+      "option_key": "E",
+      "option_text": "Klebsiella pneumoniae"
+    },
+    {
+      "event_question_id": "2fcb89bd-0221-48e1-a455-eb6c1022fb92",
+      "option_key": "A",
+      "option_text": "Tablet sublingual"
+    },
+    {
+      "event_question_id": "2fcb89bd-0221-48e1-a455-eb6c1022fb92",
+      "option_key": "B",
+      "option_text": "Tablet bukal"
+    },
+    {
+      "event_question_id": "2fcb89bd-0221-48e1-a455-eb6c1022fb92",
+      "option_key": "C",
+      "option_text": "Tablet salut gula"
+    },
+    {
+      "event_question_id": "2fcb89bd-0221-48e1-a455-eb6c1022fb92",
+      "option_key": "D",
+      "option_text": "Tablet floating"
+    },
+    {
+      "event_question_id": "2fcb89bd-0221-48e1-a455-eb6c1022fb92",
+      "option_key": "E",
+      "option_text": "Tablet salut enterik"
+    },
+    {
+      "event_question_id": "311dc144-eec4-4f8c-a5fa-54b39e0f9405",
+      "option_key": "A",
+      "option_text": "664,0 mg"
+    },
+    {
+      "event_question_id": "311dc144-eec4-4f8c-a5fa-54b39e0f9405",
+      "option_key": "B",
+      "option_text": "576,1 mg"
+    },
+    {
+      "event_question_id": "311dc144-eec4-4f8c-a5fa-54b39e0f9405",
+      "option_key": "C",
+      "option_text": "657,5 mg"
+    },
+    {
+      "event_question_id": "311dc144-eec4-4f8c-a5fa-54b39e0f9405",
+      "option_key": "D",
+      "option_text": "765,7 mg"
+    },
+    {
+      "event_question_id": "311dc144-eec4-4f8c-a5fa-54b39e0f9405",
+      "option_key": "E",
+      "option_text": "856,9 mg"
+    },
+    {
+      "event_question_id": "38375365-6377-411c-975e-6600c5b5e8ff",
+      "option_key": "A",
+      "option_text": "200 mg"
+    },
+    {
+      "event_question_id": "38375365-6377-411c-975e-6600c5b5e8ff",
+      "option_key": "B",
+      "option_text": "211 mg"
+    },
+    {
+      "event_question_id": "38375365-6377-411c-975e-6600c5b5e8ff",
+      "option_key": "C",
+      "option_text": "212,5 mg"
+    },
+    {
+      "event_question_id": "38375365-6377-411c-975e-6600c5b5e8ff",
+      "option_key": "D",
+      "option_text": "212,6 mg"
+    },
+    {
+      "event_question_id": "38375365-6377-411c-975e-6600c5b5e8ff",
+      "option_key": "E",
+      "option_text": "213 mg"
+    },
+    {
+      "event_question_id": "3ec525b8-66f4-48be-8766-33cfc05ab4d1",
+      "option_key": "A",
+      "option_text": "30 mg"
+    },
+    {
+      "event_question_id": "3ec525b8-66f4-48be-8766-33cfc05ab4d1",
+      "option_key": "B",
+      "option_text": "45 mg"
+    },
+    {
+      "event_question_id": "3ec525b8-66f4-48be-8766-33cfc05ab4d1",
+      "option_key": "C",
+      "option_text": "60 mg"
+    },
+    {
+      "event_question_id": "3ec525b8-66f4-48be-8766-33cfc05ab4d1",
+      "option_key": "D",
+      "option_text": "75 mg"
+    },
+    {
+      "event_question_id": "3ec525b8-66f4-48be-8766-33cfc05ab4d1",
+      "option_key": "E",
+      "option_text": "90 mg"
+    },
+    {
+      "event_question_id": "56f9428a-d351-40a0-81e2-1e2a0d1c611c",
+      "option_key": "A",
+      "option_text": "Sealing - shellac"
+    },
+    {
+      "event_question_id": "56f9428a-d351-40a0-81e2-1e2a0d1c611c",
+      "option_key": "B",
+      "option_text": "Sealing - gom akasia"
+    },
+    {
+      "event_question_id": "56f9428a-d351-40a0-81e2-1e2a0d1c611c",
+      "option_key": "C",
+      "option_text": "Subcoating – gom akasia"
+    },
+    {
+      "event_question_id": "56f9428a-d351-40a0-81e2-1e2a0d1c611c",
+      "option_key": "D",
+      "option_text": "Polishing – carnauba wax"
+    },
+    {
+      "event_question_id": "56f9428a-d351-40a0-81e2-1e2a0d1c611c",
+      "option_key": "E",
+      "option_text": "Polishing paraffin"
+    },
+    {
+      "event_question_id": "5d145ad2-1823-414f-b514-f5dfe0ea6cc5",
+      "option_key": "A",
+      "option_text": "Povidone"
+    },
+    {
+      "event_question_id": "5d145ad2-1823-414f-b514-f5dfe0ea6cc5",
+      "option_key": "B",
+      "option_text": "CMC Na"
+    },
+    {
+      "event_question_id": "5d145ad2-1823-414f-b514-f5dfe0ea6cc5",
+      "option_key": "C",
+      "option_text": "Metilselulosa"
+    },
+    {
+      "event_question_id": "5d145ad2-1823-414f-b514-f5dfe0ea6cc5",
+      "option_key": "D",
+      "option_text": "Gliserin"
+    },
+    {
+      "event_question_id": "5d145ad2-1823-414f-b514-f5dfe0ea6cc5",
+      "option_key": "E",
+      "option_text": "Alginat"
+    },
+    {
+      "event_question_id": "620aefe5-00e3-44fe-befc-38e5d41fe639",
+      "option_key": "A",
+      "option_text": "0,0114%"
+    },
+    {
+      "event_question_id": "620aefe5-00e3-44fe-befc-38e5d41fe639",
+      "option_key": "B",
+      "option_text": "0,0121%"
+    },
+    {
+      "event_question_id": "620aefe5-00e3-44fe-befc-38e5d41fe639",
+      "option_key": "C",
+      "option_text": "1,14%"
+    },
+    {
+      "event_question_id": "620aefe5-00e3-44fe-befc-38e5d41fe639",
+      "option_key": "D",
+      "option_text": "1,16%"
+    },
+    {
+      "event_question_id": "620aefe5-00e3-44fe-befc-38e5d41fe639",
+      "option_key": "E",
+      "option_text": "1,21%"
+    },
+    {
+      "event_question_id": "63714f39-7f42-43c3-92d2-b7d12f1be7d8",
+      "option_key": "A",
+      "option_text": "Granul yang terlalu basah"
+    },
+    {
+      "event_question_id": "63714f39-7f42-43c3-92d2-b7d12f1be7d8",
+      "option_key": "B",
+      "option_text": "Terlalu banyak pengikat"
+    },
+    {
+      "event_question_id": "63714f39-7f42-43c3-92d2-b7d12f1be7d8",
+      "option_key": "C",
+      "option_text": "Granul yang terlalu kering"
+    },
+    {
+      "event_question_id": "63714f39-7f42-43c3-92d2-b7d12f1be7d8",
+      "option_key": "D",
+      "option_text": "Terlalu banyak lubrikan"
+    },
+    {
+      "event_question_id": "63714f39-7f42-43c3-92d2-b7d12f1be7d8",
+      "option_key": "E",
+      "option_text": "Terlalu banyak penghancur"
+    },
+    {
+      "event_question_id": "7c3c25b4-ccb2-49d7-ac90-63c10ceb2296",
+      "option_key": "A",
+      "option_text": "Botol kaca bening tipe I"
+    },
+    {
+      "event_question_id": "7c3c25b4-ccb2-49d7-ac90-63c10ceb2296",
+      "option_key": "B",
+      "option_text": "Ampul kaca amber tipe I"
+    },
+    {
+      "event_question_id": "7c3c25b4-ccb2-49d7-ac90-63c10ceb2296",
+      "option_key": "C",
+      "option_text": "Botol plastik PET jernih"
+    },
+    {
+      "event_question_id": "7c3c25b4-ccb2-49d7-ac90-63c10ceb2296",
+      "option_key": "D",
+      "option_text": "Botol kaca tipe III"
+    },
+    {
+      "event_question_id": "7c3c25b4-ccb2-49d7-ac90-63c10ceb2296",
+      "option_key": "E",
+      "option_text": "Botol HDPE"
+    },
+    {
+      "event_question_id": "8484eb3d-b591-471a-905f-88c9af2d445d",
+      "option_key": "A",
+      "option_text": "0,01 cm"
+    },
+    {
+      "event_question_id": "8484eb3d-b591-471a-905f-88c9af2d445d",
+      "option_key": "B",
+      "option_text": "0,002 cm"
+    },
+    {
+      "event_question_id": "8484eb3d-b591-471a-905f-88c9af2d445d",
+      "option_key": "C",
+      "option_text": "0,005 cm"
+    },
+    {
+      "event_question_id": "8484eb3d-b591-471a-905f-88c9af2d445d",
+      "option_key": "D",
+      "option_text": "0,008 cm"
+    },
+    {
+      "event_question_id": "8484eb3d-b591-471a-905f-88c9af2d445d",
+      "option_key": "E",
+      "option_text": "0,007 cm"
+    },
+    {
+      "event_question_id": "8a771725-6232-4a2f-ae3a-10e5b1ff584e",
+      "option_key": "A",
+      "option_text": "260 mg"
+    },
+    {
+      "event_question_id": "8a771725-6232-4a2f-ae3a-10e5b1ff584e",
+      "option_key": "B",
+      "option_text": "280 mg"
+    },
+    {
+      "event_question_id": "8a771725-6232-4a2f-ae3a-10e5b1ff584e",
+      "option_key": "C",
+      "option_text": "300 mg"
+    },
+    {
+      "event_question_id": "8a771725-6232-4a2f-ae3a-10e5b1ff584e",
+      "option_key": "D",
+      "option_text": "320 mg"
+    },
+    {
+      "event_question_id": "8a771725-6232-4a2f-ae3a-10e5b1ff584e",
+      "option_key": "E",
+      "option_text": "340 mg"
+    },
+    {
+      "event_question_id": "8b8420a2-a354-4a1c-a650-a37acc890ddf",
+      "option_key": "A",
+      "option_text": "Kafein-Ibuprofen-Parasetamol"
+    },
+    {
+      "event_question_id": "8b8420a2-a354-4a1c-a650-a37acc890ddf",
+      "option_key": "B",
+      "option_text": "Ibuprofen-Parasetamol-Kafein"
+    },
+    {
+      "event_question_id": "8b8420a2-a354-4a1c-a650-a37acc890ddf",
+      "option_key": "C",
+      "option_text": "Parasetamol-Kafein-Ibuprofen"
+    },
+    {
+      "event_question_id": "8b8420a2-a354-4a1c-a650-a37acc890ddf",
+      "option_key": "D",
+      "option_text": "Ibuprofen-Kafein-Parasetamol"
+    },
+    {
+      "event_question_id": "8b8420a2-a354-4a1c-a650-a37acc890ddf",
+      "option_key": "E",
+      "option_text": "Kaafein-Parasetamol-Ibuprofen"
+    },
+    {
+      "event_question_id": "8e0ff4f1-11dc-4f79-b91c-fda655fc3169",
+      "option_key": "A",
+      "option_text": "0,05 N"
+    },
+    {
+      "event_question_id": "8e0ff4f1-11dc-4f79-b91c-fda655fc3169",
+      "option_key": "B",
+      "option_text": "0,1 N"
+    },
+    {
+      "event_question_id": "8e0ff4f1-11dc-4f79-b91c-fda655fc3169",
+      "option_key": "C",
+      "option_text": "0,2 N"
+    },
+    {
+      "event_question_id": "8e0ff4f1-11dc-4f79-b91c-fda655fc3169",
+      "option_key": "D",
+      "option_text": "0,4"
+    },
+    {
+      "event_question_id": "8e0ff4f1-11dc-4f79-b91c-fda655fc3169",
+      "option_key": "E",
+      "option_text": "0,5 N"
+    },
+    {
+      "event_question_id": "9ef3e343-7119-420e-9930-16b58c83cff5",
+      "option_key": "A",
+      "option_text": "Menghilangkan bau"
+    },
+    {
+      "event_question_id": "9ef3e343-7119-420e-9930-16b58c83cff5",
+      "option_key": "B",
+      "option_text": "Menyaring endotoksin pembawa pirogen"
+    },
+    {
+      "event_question_id": "9ef3e343-7119-420e-9930-16b58c83cff5",
+      "option_key": "C",
+      "option_text": "Menghilangkan sisa klorin bebas"
+    },
+    {
+      "event_question_id": "9ef3e343-7119-420e-9930-16b58c83cff5",
+      "option_key": "D",
+      "option_text": "Mengurangi kadar ion Ca2+ dan Mg2+ dalam air"
+    },
+    {
+      "event_question_id": "9ef3e343-7119-420e-9930-16b58c83cff5",
+      "option_key": "E",
+      "option_text": "Menurunkan nilai konduktivitas air hingga memenuhi syarat WFI"
+    },
+    {
+      "event_question_id": "a58586cf-7d06-40c8-b7f6-18d2668e03e7",
+      "option_key": "A",
+      "option_text": "3"
+    },
+    {
+      "event_question_id": "a58586cf-7d06-40c8-b7f6-18d2668e03e7",
+      "option_key": "B",
+      "option_text": "6"
+    },
+    {
+      "event_question_id": "a58586cf-7d06-40c8-b7f6-18d2668e03e7",
+      "option_key": "C",
+      "option_text": "18"
+    },
+    {
+      "event_question_id": "a58586cf-7d06-40c8-b7f6-18d2668e03e7",
+      "option_key": "D",
+      "option_text": "12"
+    },
+    {
+      "event_question_id": "a58586cf-7d06-40c8-b7f6-18d2668e03e7",
+      "option_key": "E",
+      "option_text": "20"
+    },
+    {
+      "event_question_id": "ad742d6e-7dc8-409e-9d38-848466ec1cc0",
+      "option_key": "A",
+      "option_text": "91%"
+    },
+    {
+      "event_question_id": "ad742d6e-7dc8-409e-9d38-848466ec1cc0",
+      "option_key": "B",
+      "option_text": "92%"
+    },
+    {
+      "event_question_id": "ad742d6e-7dc8-409e-9d38-848466ec1cc0",
+      "option_key": "C",
+      "option_text": "93%"
+    },
+    {
+      "event_question_id": "ad742d6e-7dc8-409e-9d38-848466ec1cc0",
+      "option_key": "D",
+      "option_text": "94%"
+    },
+    {
+      "event_question_id": "ad742d6e-7dc8-409e-9d38-848466ec1cc0",
+      "option_key": "E",
+      "option_text": "95%"
+    },
+    {
+      "event_question_id": "b3a0a5cb-66c1-4aa8-aefe-e75c03259954",
+      "option_key": "A",
+      "option_text": "1920 ppm"
+    },
+    {
+      "event_question_id": "b3a0a5cb-66c1-4aa8-aefe-e75c03259954",
+      "option_key": "B",
+      "option_text": "1960 ppm"
+    },
+    {
+      "event_question_id": "b3a0a5cb-66c1-4aa8-aefe-e75c03259954",
+      "option_key": "C",
+      "option_text": "2000 ppm"
+    },
+    {
+      "event_question_id": "b3a0a5cb-66c1-4aa8-aefe-e75c03259954",
+      "option_key": "D",
+      "option_text": "2200 ppm"
+    },
+    {
+      "event_question_id": "b3a0a5cb-66c1-4aa8-aefe-e75c03259954",
+      "option_key": "E",
+      "option_text": "2500 ppm"
+    },
+    {
+      "event_question_id": "b92c1de2-0791-4487-8e7d-651dbfb26ce4",
+      "option_key": "A",
+      "option_text": "47,5%"
+    },
+    {
+      "event_question_id": "b92c1de2-0791-4487-8e7d-651dbfb26ce4",
+      "option_key": "B",
+      "option_text": "51,3%"
+    },
+    {
+      "event_question_id": "b92c1de2-0791-4487-8e7d-651dbfb26ce4",
+      "option_key": "C",
+      "option_text": "58,4%"
+    },
+    {
+      "event_question_id": "b92c1de2-0791-4487-8e7d-651dbfb26ce4",
+      "option_key": "D",
+      "option_text": "62,1%"
+    },
+    {
+      "event_question_id": "b92c1de2-0791-4487-8e7d-651dbfb26ce4",
+      "option_key": "E",
+      "option_text": "68,6%"
+    },
+    {
+      "event_question_id": "be1e7b30-0a35-4b22-ae99-bef49da31993",
+      "option_key": "A",
+      "option_text": "Dekoktasi"
+    },
+    {
+      "event_question_id": "be1e7b30-0a35-4b22-ae99-bef49da31993",
+      "option_key": "B",
+      "option_text": "Perkolasi"
+    },
+    {
+      "event_question_id": "be1e7b30-0a35-4b22-ae99-bef49da31993",
+      "option_key": "C",
+      "option_text": "Maserasi"
+    },
+    {
+      "event_question_id": "be1e7b30-0a35-4b22-ae99-bef49da31993",
+      "option_key": "D",
+      "option_text": "Infundasi"
+    },
+    {
+      "event_question_id": "be1e7b30-0a35-4b22-ae99-bef49da31993",
+      "option_key": "E",
+      "option_text": "Sokletasi"
+    },
+    {
+      "event_question_id": "c345a83b-3066-4477-af78-aec05e41373f",
+      "option_key": "A",
+      "option_text": "Jenis kolom, jenis fase diam, laju alir fase gerak"
+    },
+    {
+      "event_question_id": "c345a83b-3066-4477-af78-aec05e41373f",
+      "option_key": "B",
+      "option_text": "Laju alir fase gerak, pH analit, cara penginjeksian sampel"
+    },
+    {
+      "event_question_id": "c345a83b-3066-4477-af78-aec05e41373f",
+      "option_key": "C",
+      "option_text": "Ukuran kolom, laju alir fase gerak, stabilitas fase gerak"
+    },
+    {
+      "event_question_id": "c345a83b-3066-4477-af78-aec05e41373f",
+      "option_key": "D",
+      "option_text": "Cara penginjeksian sampel, stabilitas fase gerak, jenis kolom"
+    },
+    {
+      "event_question_id": "c345a83b-3066-4477-af78-aec05e41373f",
+      "option_key": "E",
+      "option_text": "Jenis fase diam, ukuran kolom, stabilitas fase diam"
+    },
+    {
+      "event_question_id": "c5b8093b-0573-4719-b496-3cea753a5bf9",
+      "option_key": "A",
+      "option_text": "Nilai F1 = 4 dan F2 =45"
+    },
+    {
+      "event_question_id": "c5b8093b-0573-4719-b496-3cea753a5bf9",
+      "option_key": "B",
+      "option_text": "Nilai F1 = 12 dan F2 =65"
+    },
+    {
+      "event_question_id": "c5b8093b-0573-4719-b496-3cea753a5bf9",
+      "option_key": "C",
+      "option_text": "Nilai F1 = 18 dan F2 =55"
+    },
+    {
+      "event_question_id": "c5b8093b-0573-4719-b496-3cea753a5bf9",
+      "option_key": "D",
+      "option_text": "Nilai F1 = 20 dan F2 =80"
+    },
+    {
+      "event_question_id": "c5b8093b-0573-4719-b496-3cea753a5bf9",
+      "option_key": "E",
+      "option_text": "Nilai F1 = 8 dan F2 =35"
+    },
+    {
+      "event_question_id": "db111738-d55c-425e-bc2f-c2ceefca2c9d",
+      "option_key": "A",
+      "option_text": "NP = 2,688. Hasil uji memenuhi syarat"
+    },
+    {
+      "event_question_id": "db111738-d55c-425e-bc2f-c2ceefca2c9d",
+      "option_key": "B",
+      "option_text": "NP = 2,688. Hasil uji tidak memenuhi syarat"
+    },
+    {
+      "event_question_id": "db111738-d55c-425e-bc2f-c2ceefca2c9d",
+      "option_key": "C",
+      "option_text": "NP = 4,285. Hasil uji memenuhi syarat."
+    },
+    {
+      "event_question_id": "db111738-d55c-425e-bc2f-c2ceefca2c9d",
+      "option_key": "D",
+      "option_text": "NP = 4,285. Hasil uji tidak memenuhi syarat. Lanjutkan ke tahap 2"
+    },
+    {
+      "event_question_id": "db111738-d55c-425e-bc2f-c2ceefca2c9d",
+      "option_key": "E",
+      "option_text": "NP = 4,285. Hasil uji tidak memenuhi syarat. Batch ditolak."
+    },
+    {
+      "event_question_id": "e0cdb4e0-3426-4ac4-9a5e-b19e2efe7209",
+      "option_key": "A",
+      "option_text": "2,4 mL"
+    },
+    {
+      "event_question_id": "e0cdb4e0-3426-4ac4-9a5e-b19e2efe7209",
+      "option_key": "B",
+      "option_text": "2,0 mL"
+    },
+    {
+      "event_question_id": "e0cdb4e0-3426-4ac4-9a5e-b19e2efe7209",
+      "option_key": "C",
+      "option_text": "3,5 mL"
+    },
+    {
+      "event_question_id": "e0cdb4e0-3426-4ac4-9a5e-b19e2efe7209",
+      "option_key": "D",
+      "option_text": "3,3 mL"
+    },
+    {
+      "event_question_id": "e0cdb4e0-3426-4ac4-9a5e-b19e2efe7209",
+      "option_key": "E",
+      "option_text": "4,5 mL"
+    },
+    {
+      "event_question_id": "f29ddaae-217a-4eae-8443-5d4a4f905182",
+      "option_key": "A",
+      "option_text": "1,75 x 10-3"
+    },
+    {
+      "event_question_id": "f29ddaae-217a-4eae-8443-5d4a4f905182",
+      "option_key": "B",
+      "option_text": "175 x 10-3"
+    },
+    {
+      "event_question_id": "f29ddaae-217a-4eae-8443-5d4a4f905182",
+      "option_key": "C",
+      "option_text": "17,5 x 10-3"
+    },
+    {
+      "event_question_id": "f29ddaae-217a-4eae-8443-5d4a4f905182",
+      "option_key": "D",
+      "option_text": "1750 x 10-3"
+    },
+    {
+      "event_question_id": "f29ddaae-217a-4eae-8443-5d4a4f905182",
+      "option_key": "E",
+      "option_text": "350 x 10-3"
+    },
+    {
+      "event_question_id": "f479bec6-ec72-48b6-acf8-412e7b9e1b5d",
+      "option_key": "A",
+      "option_text": "Fase I"
+    },
+    {
+      "event_question_id": "f479bec6-ec72-48b6-acf8-412e7b9e1b5d",
+      "option_key": "B",
+      "option_text": "Fase II"
+    },
+    {
+      "event_question_id": "f479bec6-ec72-48b6-acf8-412e7b9e1b5d",
+      "option_key": "C",
+      "option_text": "Fase III"
+    },
+    {
+      "event_question_id": "f479bec6-ec72-48b6-acf8-412e7b9e1b5d",
+      "option_key": "D",
+      "option_text": "Fase IV"
+    },
+    {
+      "event_question_id": "f479bec6-ec72-48b6-acf8-412e7b9e1b5d",
+      "option_key": "E",
+      "option_text": "Fase V"
+    },
+    {
+      "event_question_id": "f99a9908-c486-4631-a459-37483f815d06",
+      "option_key": "A",
+      "option_text": "0,62"
+    },
+    {
+      "event_question_id": "f99a9908-c486-4631-a459-37483f815d06",
+      "option_key": "B",
+      "option_text": "1,34"
+    },
+    {
+      "event_question_id": "f99a9908-c486-4631-a459-37483f815d06",
+      "option_key": "C",
+      "option_text": "1,61"
+    },
+    {
+      "event_question_id": "f99a9908-c486-4631-a459-37483f815d06",
+      "option_key": "D",
+      "option_text": "2,15"
+    },
+    {
+      "event_question_id": "f99a9908-c486-4631-a459-37483f815d06",
+      "option_key": "E",
+      "option_text": "3,22"
+    },
+    {
+      "event_question_id": "ff0b55e7-dd80-455b-8ae8-2df3abd84caf",
+      "option_key": "A",
+      "option_text": "Penyimpangan super kritis"
+    },
+    {
+      "event_question_id": "ff0b55e7-dd80-455b-8ae8-2df3abd84caf",
+      "option_key": "B",
+      "option_text": "Penyimpangan kritis"
+    },
+    {
+      "event_question_id": "ff0b55e7-dd80-455b-8ae8-2df3abd84caf",
+      "option_key": "C",
+      "option_text": "Penyimpangan mayor"
+    },
+    {
+      "event_question_id": "ff0b55e7-dd80-455b-8ae8-2df3abd84caf",
+      "option_key": "D",
+      "option_text": "Penyimpangan minor"
+    },
+    {
+      "event_question_id": "ff0b55e7-dd80-455b-8ae8-2df3abd84caf",
+      "option_key": "E",
+      "option_text": "Penyimpangan tidak terduga"
+    },
+    {
+      "event_question_id": "0f38e852-ecbc-4f94-8af4-2607a3d95681",
+      "option_key": "A",
+      "option_text": "Dua batch produksi"
+    },
+    {
+      "event_question_id": "0f38e852-ecbc-4f94-8af4-2607a3d95681",
+      "option_key": "B",
+      "option_text": "Tiga batch produksi"
+    },
+    {
+      "event_question_id": "0f38e852-ecbc-4f94-8af4-2607a3d95681",
+      "option_key": "C",
+      "option_text": "Dua batch pilot produksi"
+    },
+    {
+      "event_question_id": "0f38e852-ecbc-4f94-8af4-2607a3d95681",
+      "option_key": "D",
+      "option_text": "Tiga batch pilot produksi"
+    },
+    {
+      "event_question_id": "0f38e852-ecbc-4f94-8af4-2607a3d95681",
+      "option_key": "E",
+      "option_text": "Satu batch produksi"
+    },
+    {
+      "event_question_id": "30c7a029-2e07-4fb3-89ac-d3f8942fc244",
+      "option_key": "A",
+      "option_text": "22,72 g"
+    },
+    {
+      "event_question_id": "30c7a029-2e07-4fb3-89ac-d3f8942fc244",
+      "option_key": "B",
+      "option_text": "18,75 g"
+    },
+    {
+      "event_question_id": "30c7a029-2e07-4fb3-89ac-d3f8942fc244",
+      "option_key": "C",
+      "option_text": "18,00 g"
+    },
+    {
+      "event_question_id": "30c7a029-2e07-4fb3-89ac-d3f8942fc244",
+      "option_key": "D",
+      "option_text": "22,87 g"
+    },
+    {
+      "event_question_id": "30c7a029-2e07-4fb3-89ac-d3f8942fc244",
+      "option_key": "E",
+      "option_text": "13,76 g"
+    },
+    {
+      "event_question_id": "4681ec55-cdb8-4634-b590-5882db7dded9",
+      "option_key": "A",
+      "option_text": "1,16"
+    },
+    {
+      "event_question_id": "4681ec55-cdb8-4634-b590-5882db7dded9",
+      "option_key": "B",
+      "option_text": "0,54"
+    },
+    {
+      "event_question_id": "4681ec55-cdb8-4634-b590-5882db7dded9",
+      "option_key": "C",
+      "option_text": "2,35"
+    },
+    {
+      "event_question_id": "4681ec55-cdb8-4634-b590-5882db7dded9",
+      "option_key": "D",
+      "option_text": "1,78"
+    },
+    {
+      "event_question_id": "4681ec55-cdb8-4634-b590-5882db7dded9",
+      "option_key": "E",
+      "option_text": "1,5"
+    },
+    {
+      "event_question_id": "4ff20b18-77ff-4e7f-80d0-f88046f44538",
+      "option_key": "A",
+      "option_text": "97,49%"
+    },
+    {
+      "event_question_id": "4ff20b18-77ff-4e7f-80d0-f88046f44538",
+      "option_key": "B",
+      "option_text": "95,00%"
+    },
+    {
+      "event_question_id": "4ff20b18-77ff-4e7f-80d0-f88046f44538",
+      "option_key": "C",
+      "option_text": "110,93%"
+    },
+    {
+      "event_question_id": "4ff20b18-77ff-4e7f-80d0-f88046f44538",
+      "option_key": "D",
+      "option_text": "135,82%"
+    },
+    {
+      "event_question_id": "4ff20b18-77ff-4e7f-80d0-f88046f44538",
+      "option_key": "E",
+      "option_text": "182,61%"
+    },
+    {
+      "event_question_id": "564a325c-ec50-4eda-a64d-85144ea6a31e",
+      "option_key": "A",
+      "option_text": "5,55"
+    },
+    {
+      "event_question_id": "564a325c-ec50-4eda-a64d-85144ea6a31e",
+      "option_key": "B",
+      "option_text": "6,55"
+    },
+    {
+      "event_question_id": "564a325c-ec50-4eda-a64d-85144ea6a31e",
+      "option_key": "C",
+      "option_text": "7,75"
+    },
+    {
+      "event_question_id": "564a325c-ec50-4eda-a64d-85144ea6a31e",
+      "option_key": "D",
+      "option_text": "5,75"
+    },
+    {
+      "event_question_id": "564a325c-ec50-4eda-a64d-85144ea6a31e",
+      "option_key": "E",
+      "option_text": "6,25"
+    },
+    {
+      "event_question_id": "638b25f1-1907-43af-8eab-455b342c7d96",
+      "option_key": "A",
+      "option_text": "11,0"
+    },
+    {
+      "event_question_id": "638b25f1-1907-43af-8eab-455b342c7d96",
+      "option_key": "B",
+      "option_text": "10,5"
+    },
+    {
+      "event_question_id": "638b25f1-1907-43af-8eab-455b342c7d96",
+      "option_key": "C",
+      "option_text": "10,6"
+    },
+    {
+      "event_question_id": "638b25f1-1907-43af-8eab-455b342c7d96",
+      "option_key": "D",
+      "option_text": "12"
+    },
+    {
+      "event_question_id": "638b25f1-1907-43af-8eab-455b342c7d96",
+      "option_key": "E",
+      "option_text": "11.2"
+    },
+    {
+      "event_question_id": "6e191983-fec8-4e15-9618-542ed087bb87",
+      "option_key": "A",
+      "option_text": "0,7"
+    },
+    {
+      "event_question_id": "6e191983-fec8-4e15-9618-542ed087bb87",
+      "option_key": "B",
+      "option_text": "1,3"
+    },
+    {
+      "event_question_id": "6e191983-fec8-4e15-9618-542ed087bb87",
+      "option_key": "C",
+      "option_text": "2"
+    },
+    {
+      "event_question_id": "6e191983-fec8-4e15-9618-542ed087bb87",
+      "option_key": "D",
+      "option_text": "2,5"
+    },
+    {
+      "event_question_id": "6e191983-fec8-4e15-9618-542ed087bb87",
+      "option_key": "E",
+      "option_text": "3"
+    },
+    {
+      "event_question_id": "a2ffdedd-46b2-4a65-8c03-f613dca15568",
+      "option_key": "A",
+      "option_text": "17,42 gram"
+    },
+    {
+      "event_question_id": "a2ffdedd-46b2-4a65-8c03-f613dca15568",
+      "option_key": "B",
+      "option_text": "22,58 gram"
+    },
+    {
+      "event_question_id": "a2ffdedd-46b2-4a65-8c03-f613dca15568",
+      "option_key": "C",
+      "option_text": "21,95 gram"
+    },
+    {
+      "event_question_id": "a2ffdedd-46b2-4a65-8c03-f613dca15568",
+      "option_key": "D",
+      "option_text": "19,87 gram"
+    },
+    {
+      "event_question_id": "a2ffdedd-46b2-4a65-8c03-f613dca15568",
+      "option_key": "E",
+      "option_text": "18,22 gram"
+    },
+    {
+      "event_question_id": "f8958198-8da3-41b4-9612-d3d1b969e04f",
+      "option_key": "A",
+      "option_text": "0,048 M"
+    },
+    {
+      "event_question_id": "f8958198-8da3-41b4-9612-d3d1b969e04f",
+      "option_key": "B",
+      "option_text": "0,005M"
+    },
+    {
+      "event_question_id": "f8958198-8da3-41b4-9612-d3d1b969e04f",
+      "option_key": "C",
+      "option_text": "0,20 M"
+    },
+    {
+      "event_question_id": "f8958198-8da3-41b4-9612-d3d1b969e04f",
+      "option_key": "D",
+      "option_text": "0,32 M"
+    },
+    {
+      "event_question_id": "f8958198-8da3-41b4-9612-d3d1b969e04f",
+      "option_key": "E",
+      "option_text": "0,66 M"
+    },
+    {
+      "event_question_id": "ffad3735-d38a-44c3-82d2-8caf89fa1e66",
+      "option_key": "A",
+      "option_text": "490 mg"
+    },
+    {
+      "event_question_id": "ffad3735-d38a-44c3-82d2-8caf89fa1e66",
+      "option_key": "B",
+      "option_text": "450 mg"
+    },
+    {
+      "event_question_id": "ffad3735-d38a-44c3-82d2-8caf89fa1e66",
+      "option_key": "C",
+      "option_text": "400 mg"
+    },
+    {
+      "event_question_id": "ffad3735-d38a-44c3-82d2-8caf89fa1e66",
+      "option_key": "D",
+      "option_text": "425 mg"
+    },
+    {
+      "event_question_id": "ffad3735-d38a-44c3-82d2-8caf89fa1e66",
+      "option_key": "E",
+      "option_text": "500 mg"
+    }
+  ]
+}

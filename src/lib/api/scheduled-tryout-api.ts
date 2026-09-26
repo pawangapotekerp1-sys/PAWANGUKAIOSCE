@@ -344,15 +344,16 @@ async function createSignedMediaUrls(
 
     const fallback: Record<string, string> = {};
     results.forEach((result, i) => {
-      if (result.status === "fulfilled" && result.value) {
-        fallback[paths[i]] = result.value;
+      const p = paths[i];
+      if (p && result.status === "fulfilled" && result.value) {
+        fallback[p] = result.value;
       }
     });
     return fallback;
   }
 
   return data.reduce((acc, item) => {
-    if (item.signedUrl) {
+    if (item.path && item.signedUrl) {
       acc[item.path] = item.signedUrl;
     }
     return acc;

@@ -685,7 +685,7 @@ async function createSignedMediaUrls(
   const urlMap = new Map<string, string | null>();
 
   for (const item of (data ?? [])) {
-    if (!item.error && item.signedUrl) {
+    if (!item.error && item.path && item.signedUrl) {
       urlMap.set(item.path, item.signedUrl);
     }
   }

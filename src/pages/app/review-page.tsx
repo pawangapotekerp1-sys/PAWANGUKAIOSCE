@@ -327,10 +327,54 @@ function ReviewPage() {
 
                     {/* Right Main View - Current Question & Pembahasan */}
                     {currentItem ? (
-                      <Card className="shadow-xs order-1">
+                      <div className="flex flex-col md:flex-row gap-4 lg:gap-6 order-1 items-start min-w-0">
+                        {/* Question Info Side Card */}
+                        <Card className="shadow-sm w-full md:w-[11rem] lg:w-[13rem] shrink-0 md:sticky md:top-24">
+                          <CardContent className="p-4 lg:p-5 flex flex-col gap-4">
+                            <div>
+                              <p className="text-sm text-muted-foreground font-semibold mb-1">Soal</p>
+                              <p className="text-4xl font-black text-primary tracking-tight">{currentIndex + 1}</p>
+                            </div>
+                            
+                            <div className="h-px w-full bg-border" />
+                            
+                            <div className="flex flex-col gap-2 items-start">
+                              <Badge
+                                variant={currentItem.isWrong ? "secondary" : "outline"}
+                                className={`text-xs font-bold flex items-center gap-1.5 border ${
+                                  currentItem.isWrong
+                                    ? "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20"
+                                    : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
+                                }`}
+                              >
+                                {currentItem.isWrong ? (
+                                  <>
+                                    <XCircle className="h-3.5 w-3.5 text-destructive" />
+                                    Perlu diulang
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                                    Sudah benar
+                                  </>
+                                )}
+                              </Badge>
+                            </div>
+
+                            <div className="h-px w-full bg-border" />
+
+                            <div>
+                              <p className="text-[0.65rem] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Blok</p>
+                              <p className="text-sm font-semibold text-foreground leading-snug">{currentItem.blockLabel || "-"}</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Main Question Card */}
+                        <Card className="shadow-sm flex-1 min-w-0">
 
 
-                        <CardContent>
+                          <CardContent>
                           {/* Question Text */}
                           <p className="text-base leading-relaxed font-medium text-foreground">
                             {currentItem.question}
@@ -475,6 +519,7 @@ function ReviewPage() {
                           </Button>
                         </div>
                       </Card>
+                      </div>
                     ) : null}
                   </div>
                 )}

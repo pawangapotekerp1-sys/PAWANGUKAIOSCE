@@ -622,7 +622,46 @@ function TryoutSessionPage() {
               </Card>
             ) : null}
 
-            <Card className="shadow-sm order-1">
+            <div className="flex flex-col md:flex-row gap-4 lg:gap-6 order-1 items-start min-w-0">
+              {/* Question Info Side Card */}
+              <Card className="shadow-sm w-full md:w-[11rem] lg:w-[13rem] shrink-0 md:sticky md:top-24">
+                <CardContent className="p-4 lg:p-5 flex flex-col gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground font-semibold mb-1">Soal</p>
+                    <p className="text-4xl font-black text-primary tracking-tight">{currentIndex + 1}</p>
+                  </div>
+                  
+                  <div className="h-px w-full bg-border" />
+                  
+                  <div className="flex flex-col gap-2 items-start">
+                    {hasSelectedAnswer ? (
+                      <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 border-emerald-500/20">
+                        Sudah dijawab
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-muted-foreground bg-muted/50">
+                        Belum dijawab
+                      </Badge>
+                    )}
+
+                    {currentQuestion.isDoubtful && (
+                      <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/20">
+                        Ragu-ragu
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="h-px w-full bg-border" />
+
+                  <div>
+                    <p className="text-[0.65rem] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Blok</p>
+                    <p className="text-sm font-semibold text-foreground leading-snug">{currentQuestion.blockLabel || "-"}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Main Question Card */}
+              <Card className="shadow-sm flex-1 min-w-0">
               {sessionAttempt?.status === "paused" && resumeMutation.isError ? (
                 <div className="m-5 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-4" role="alert">
                   <p className="text-sm font-semibold text-destructive">{resumeErrorMessage}</p>
@@ -730,6 +769,7 @@ function TryoutSessionPage() {
                 </div>
               ) : null}
             </Card>
+            </div>
           </div>
         ) : questionView === "loading" ? (
           <Card className="mt-8 border-dashed shadow-sm">

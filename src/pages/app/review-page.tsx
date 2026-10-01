@@ -329,35 +329,16 @@ function ReviewPage() {
                     {currentItem ? (
                       <div className="flex flex-col md:flex-row gap-4 lg:gap-6 order-1 items-start min-w-0">
                         {/* Question Info Side Card */}
-                        <Card className="w-full md:w-[10rem] lg:w-[11rem] shrink-0 md:sticky md:top-24 rounded-md border-border/70 shadow-sm bg-card/60">
-                          <CardContent className="p-4 flex flex-col gap-3">
-                            <p className="text-base text-foreground">
-                              Soal <strong className="text-lg font-black">{currentIndex + 1}</strong>
+                        <Card className="shadow-sm w-full md:w-40 lg:w-48 shrink-0 md:sticky md:top-24">
+                          <CardContent className="p-4 flex flex-col gap-1.5 text-sm text-foreground/80">
+                            <p className="font-bold text-base text-foreground">Soal {currentIndex + 1}</p>
+                            <p>
+                              {currentItem.isWrong ? "Perlu diulang" : "Sudah benar"}
                             </p>
-                            
-                            <p className={`text-sm font-medium flex items-center gap-1.5 ${currentItem.isWrong ? 'text-destructive' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                                {currentItem.isWrong ? (
-                                  <>
-                                    <XCircle className="h-4 w-4" />
-                                    Perlu diulang
-                                  </>
-                                ) : (
-                                  <>
-                                    <CheckCircle className="h-4 w-4" />
-                                    Sudah benar
-                                  </>
-                                )}
-                            </p>
-                            
-                            <p className="text-sm font-medium text-muted-foreground">
-                              Poin maks 1,00
-                            </p>
-
-                            {source === "tryout" && currentItem.blockLabel && (
-                              <p className="text-sm font-medium text-muted-foreground">
-                                Blok: {currentItem.blockLabel}
-                              </p>
-                            )}
+                            <p>Poin maks 1,00</p>
+                            {source === "tryout" && currentItem.blockLabel ? (
+                              <p>Blok {currentItem.blockLabel}</p>
+                            ) : null}
                           </CardContent>
                         </Card>
 

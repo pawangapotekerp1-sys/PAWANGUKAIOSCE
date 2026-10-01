@@ -594,36 +594,18 @@ function ScheduledTryoutSessionPage() {
 
             <div className="flex flex-col md:flex-row gap-4 lg:gap-6 order-1 items-start min-w-0">
               {/* Question Info Side Card */}
-              <Card className="w-full md:w-[10rem] lg:w-[11rem] shrink-0 md:sticky md:top-24 rounded-md border-border/70 shadow-sm bg-card/60">
-                <div className="p-4 flex flex-col gap-3">
-                  <p className="text-base text-foreground">
-                    Soal <strong className="text-lg font-black">{currentIndex + 1}</strong>
+              <Card className="shadow-sm w-full md:w-40 lg:w-48 shrink-0 md:sticky md:top-24">
+                <CardContent className="p-4 flex flex-col gap-1.5 text-sm text-foreground/80">
+                  <p className="font-bold text-base text-foreground">Soal {currentIndex + 1}</p>
+                  <p>
+                    {currentQuestion.isDoubtful
+                      ? "Ragu-ragu"
+                      : hasSelectedAnswer
+                      ? "Sudah dijawab"
+                      : "Belum dijawab"}
                   </p>
-                  
-                  <p className="text-sm font-medium text-muted-foreground">
-                    {currentQuestion.isDoubtful 
-                      ? "Ragu-ragu" 
-                      : hasSelectedAnswer 
-                        ? "Sudah dijawab" 
-                        : "Belum dijawab"}
-                  </p>
-
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Poin maks 1,00
-                  </p>
-
-                  <div className="pt-2">
-                    <button
-                      type="button"
-                      onClick={toggleDoubtful}
-                      disabled={!hasSelectedAnswer || isAttemptInteractionDisabled || isQuestionMutationPending}
-                      className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={currentQuestion.isDoubtful ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
-                      {currentQuestion.isDoubtful ? "Hapus tanda" : "Tandai soal"}
-                    </button>
-                  </div>
-                </div>
+                  <p>Poin maks 1,00</p>
+                </CardContent>
               </Card>
 
               {/* Main Question Card */}
@@ -682,7 +664,20 @@ function ScheduledTryoutSessionPage() {
                 })}
               </div>
 
-
+              <div className="mt-6 flex justify-start">
+                <Button
+                  className={
+                    currentQuestion.isDoubtful
+                      ? "border-yellow-500/50 bg-yellow-500/20 text-yellow-600 hover:bg-yellow-500/30"
+                      : "hover:bg-yellow-500/10"
+                  }
+                  disabled={!hasSelectedAnswer || isAttemptInteractionDisabled || isQuestionMutationPending}
+                  onClick={toggleDoubtful}
+                  variant="outline"
+                >
+                  {currentQuestion.isDoubtful ? "Batalkan tanda ragu" : "Tandai ragu"}
+                </Button>
+              </div>
 
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Button

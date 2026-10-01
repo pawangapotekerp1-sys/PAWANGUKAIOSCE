@@ -328,40 +328,7 @@ function ReviewPage() {
                     {/* Right Main View - Current Question & Pembahasan */}
                     {currentItem ? (
                       <Card className="shadow-xs order-1">
-                        <CardHeader className="pb-4">
-                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                            <div>
-                              <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">
-                                {currentItem.blockLabel}
-                              </Badge>
-                              <CardTitle className="mt-4 text-2xl font-bold leading-tight">
-                                Soal {currentIndex + 1} <span className="text-muted-foreground font-normal text-lg">dari {items.length}</span>
-                              </CardTitle>
-                            </div>
 
-                            {/* Status Badge */}
-                            <Badge
-                              variant={currentItem.isWrong ? "secondary" : "outline"}
-                              className={`px-3 py-1 text-xs font-bold flex items-center gap-1.5 border ${
-                                currentItem.isWrong
-                                  ? "bg-destructive/10 text-destructive border-destructive/20"
-                                  : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
-                              }`}
-                            >
-                              {currentItem.isWrong ? (
-                                <>
-                                  <XCircle className="h-4 w-4 text-destructive" />
-                                  Perlu diulang
-                                </>
-                              ) : (
-                                <>
-                                  <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                                  Sudah benar
-                                </>
-                              )}
-                            </Badge>
-                          </div>
-                        </CardHeader>
 
                         <CardContent>
                           {/* Question Text */}

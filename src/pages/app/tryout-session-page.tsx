@@ -436,12 +436,12 @@ function TryoutSessionPage() {
 
   const timerLabel = useMemo(() => {
     if (sessionData?.view !== "ready" || !sessionData.attempt) {
-      return "Timer sesi --:--:--";
+      return "Timer --:--:--";
     }
 
     const visibleSeconds = timeRemainingSeconds ?? sessionData.attempt.timeRemainingSeconds;
 
-    return `Timer sesi ${formatDurationAsClock(visibleSeconds)}`;
+    return `Timer ${formatDurationAsClock(visibleSeconds)}`;
   }, [sessionData, timeRemainingSeconds]);
   const timerTone = timeRemainingSeconds !== null && timeRemainingSeconds < 300 ? "danger" : "success";
   const createAttemptErrorMessage = createAttemptMutation.error instanceof Error
@@ -512,7 +512,11 @@ function TryoutSessionPage() {
       disablePadding={true}
     >
       <section id="tryout" className="w-full px-4 sm:px-6 py-4 md:py-6">
-        <div className="flex flex-wrap items-center justify-end gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+          <Badge variant={timerTone === "danger" ? "destructive" : "secondary"} className="text-base py-1.5 px-3 flex items-center gap-1.5">
+            <Timer className="w-5 h-5" />
+            {timerLabel}
+          </Badge>
           <Button
             aria-pressed={isQuestionNavHidden}
             onClick={() => {
@@ -525,10 +529,6 @@ function TryoutSessionPage() {
           >
             {isQuestionNavHidden ? "Tampilkan navigasi soal" : "Sembunyikan navigasi soal"}
           </Button>
-          <Badge variant={timerTone === "danger" ? "destructive" : "secondary"} className="text-sm py-1.5 px-3 flex items-center gap-1.5">
-            <Timer className="w-4 h-4" />
-            {timerLabel}
-          </Badge>
         </div>
 
         {questionView === "ready" && createAttemptMutation.isPending ? (
@@ -642,21 +642,7 @@ function TryoutSessionPage() {
                 </div>
               ) : null}
 
-              <CardHeader className="pb-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">
-                      {currentQuestion.blockLabel}
-                    </Badge>
-                    <CardTitle className="mt-4 text-2xl font-bold leading-tight">
-                      Soal {currentIndex + 1} <span className="text-muted-foreground font-normal text-lg">dari {questions.length}</span>
-                    </CardTitle>
-                  </div>
-                  <Badge variant={sessionData.attempt?.status === "submitted" ? "default" : "secondary"}>
-                    {sessionData.attempt?.status === "submitted" ? "Sudah submit" : "Belum submit"}
-                  </Badge>
-                </div>
-              </CardHeader>
+
 
               <CardContent>
                 <p className="text-base leading-relaxed">{currentQuestion.stem}</p>

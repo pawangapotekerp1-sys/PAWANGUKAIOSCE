@@ -423,8 +423,8 @@ function ScheduledTryoutSessionPage() {
   }, [attemptId, pauseMutation, sessionAttempt?.status, submitMutation.isPending]);
 
   const timerLabel = sessionData?.view !== "ready" || !sessionData.attempt
-    ? "Timer sesi --:--:--"
-    : `Timer sesi ${formatScheduledDurationAsClock(timeRemainingSeconds ?? sessionData.attempt.timeRemainingSeconds)}`;
+    ? "Timer --:--:--"
+    : `Timer ${formatScheduledDurationAsClock(timeRemainingSeconds ?? sessionData.attempt.timeRemainingSeconds)}`;
   const timerTone = timeRemainingSeconds !== null && timeRemainingSeconds < 300 ? "danger" : "success";
   const createAttemptErrorMessage = createAttemptMutation.error instanceof Error
     ? createAttemptMutation.error.message
@@ -485,7 +485,11 @@ function ScheduledTryoutSessionPage() {
       disablePadding={true}
     >
       <section id="scheduled-tryout-session" className="w-full px-4 sm:px-6 py-4 md:py-6">
-        <div className="flex flex-wrap items-center justify-end gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+          <Badge variant={timerTone === "danger" ? "destructive" : "secondary"} className="flex items-center gap-1.5 text-base py-1.5 px-3">
+            <Clock className="h-5 w-5" />
+            {timerLabel}
+          </Badge>
           <Button
             aria-pressed={isQuestionNavHidden}
             onClick={() => {
@@ -498,10 +502,6 @@ function ScheduledTryoutSessionPage() {
           >
             {isQuestionNavHidden ? "Tampilkan daftar soal" : "Sembunyikan daftar soal"}
           </Button>
-          <Badge variant={timerTone === "danger" ? "destructive" : "secondary"} className="flex items-center gap-1">
-            <Clock className="h-4 w-4" />
-            {timerLabel}
-          </Badge>
         </div>
 
         {createAttemptMutation.isPending ? (
@@ -614,17 +614,7 @@ function ScheduledTryoutSessionPage() {
                 </Alert>
               ) : null}
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <Badge variant="secondary">{currentQuestion.blockLabel}</Badge>
-                  <h2 className="mt-4 text-2xl font-semibold leading-tight text-foreground">
-                    Soal {currentIndex + 1} dari {questions.length}
-                  </h2>
-                </div>
-                <Badge variant={sessionAttempt?.status === "submitted" ? "secondary" : "outline"}>
-                  {sessionAttempt?.status === "submitted" ? "Sudah dikirim" : "Belum dikirim"}
-                </Badge>
-              </div>
+
 
               <p className="mt-5 text-base md:text-lg leading-relaxed font-semibold text-foreground tracking-tight">{currentQuestion.stem}</p>
 

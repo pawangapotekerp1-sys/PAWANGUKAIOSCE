@@ -512,31 +512,24 @@ function TryoutSessionPage() {
       disablePadding={true}
     >
       <section id="tryout" className="w-full px-4 sm:px-6 py-4 md:py-6">
-        <SectionHeading
-          title="Sesi try out berjalan"
-          description="Pilih nomor soal untuk berpindah dan kirim hasil saat selesai."
-          eyebrow="Sesi aktif"
-          actions={
-            <div className="flex flex-wrap items-center justify-end gap-3">
-              <Button
-                aria-pressed={isQuestionNavHidden}
-                onClick={() => {
-                  startTransition(() => {
-                    setIsQuestionNavHidden((current) => !current);
-                  });
-                }}
-                size="sm"
-                variant="outline"
-              >
-                {isQuestionNavHidden ? "Tampilkan navigasi soal" : "Sembunyikan navigasi soal"}
-              </Button>
-              <Badge variant={timerTone === "danger" ? "destructive" : "secondary"} className="text-sm py-1.5 px-3 flex items-center gap-1.5">
-                <Timer className="w-4 h-4" />
-                {timerLabel}
-              </Badge>
-            </div>
-          }
-        />
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <Button
+            aria-pressed={isQuestionNavHidden}
+            onClick={() => {
+              startTransition(() => {
+                setIsQuestionNavHidden((current) => !current);
+              });
+            }}
+            size="sm"
+            variant="outline"
+          >
+            {isQuestionNavHidden ? "Tampilkan navigasi soal" : "Sembunyikan navigasi soal"}
+          </Button>
+          <Badge variant={timerTone === "danger" ? "destructive" : "secondary"} className="text-sm py-1.5 px-3 flex items-center gap-1.5">
+            <Timer className="w-4 h-4" />
+            {timerLabel}
+          </Badge>
+        </div>
 
         {questionView === "ready" && createAttemptMutation.isPending ? (
           <Card className="mt-8 border-dashed shadow-sm">
@@ -598,9 +591,9 @@ function TryoutSessionPage() {
             </CardHeader>
           </Card>
         ) : questionView === "ready" && sessionData?.view === "ready" && currentQuestion ? (
-          <div className={["mt-6 grid gap-6", isQuestionNavHidden ? "md:grid-cols-[minmax(0,1fr)]" : "md:grid-cols-[16rem_minmax(0,1fr)] lg:grid-cols-[18rem_minmax(0,1fr)]"].join(" ")}>
+          <div className={["mt-6 grid gap-6", isQuestionNavHidden ? "md:grid-cols-[minmax(0,1fr)]" : "md:grid-cols-[minmax(0,1fr)_16rem] lg:grid-cols-[minmax(0,1fr)_18rem]"].join(" ")}>
             {!isQuestionNavHidden ? (
-              <Card className="shadow-sm h-fit order-2 md:order-1">
+              <Card className="shadow-sm h-fit order-2">
                 <CardHeader className="pb-3 border-b bg-muted/20">
                   <CardDescription className="font-semibold uppercase tracking-wider text-primary text-xs">
                     Navigasi Soal
@@ -629,7 +622,7 @@ function TryoutSessionPage() {
               </Card>
             ) : null}
 
-            <Card className="shadow-sm order-1 md:order-2">
+            <Card className="shadow-sm order-1">
               {sessionAttempt?.status === "paused" && resumeMutation.isError ? (
                 <div className="m-5 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-4" role="alert">
                   <p className="text-sm font-semibold text-destructive">{resumeErrorMessage}</p>

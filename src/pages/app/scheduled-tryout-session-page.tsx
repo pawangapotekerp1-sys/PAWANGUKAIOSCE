@@ -485,31 +485,24 @@ function ScheduledTryoutSessionPage() {
       disablePadding={true}
     >
       <section id="scheduled-tryout-session" className="w-full px-4 sm:px-6 py-4 md:py-6">
-        <SectionHeading
-          title="Sesi try out terjadwal"
-          description="Kerjakan soal, pantau waktu, dan kirim hasil saat selesai."
-          eyebrow="Sesi aktif"
-          actions={(
-            <div className="flex flex-wrap items-center justify-end gap-3">
-              <Button
-                aria-pressed={isQuestionNavHidden}
-                onClick={() => {
-                  startTransition(() => {
-                    setIsQuestionNavHidden((current) => !current);
-                  });
-                }}
-                size="sm"
-                variant="outline"
-              >
-                {isQuestionNavHidden ? "Tampilkan daftar soal" : "Sembunyikan daftar soal"}
-              </Button>
-              <Badge variant={timerTone === "danger" ? "destructive" : "secondary"} className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                {timerLabel}
-              </Badge>
-            </div>
-          )}
-        />
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <Button
+            aria-pressed={isQuestionNavHidden}
+            onClick={() => {
+              startTransition(() => {
+                setIsQuestionNavHidden((current) => !current);
+              });
+            }}
+            size="sm"
+            variant="outline"
+          >
+            {isQuestionNavHidden ? "Tampilkan daftar soal" : "Sembunyikan daftar soal"}
+          </Button>
+          <Badge variant={timerTone === "danger" ? "destructive" : "secondary"} className="flex items-center gap-1">
+            <Clock className="h-4 w-4" />
+            {timerLabel}
+          </Badge>
+        </div>
 
         {createAttemptMutation.isPending ? (
           <div className="mt-8 flex flex-col items-center justify-center space-y-4 py-12 text-center text-muted-foreground border rounded-xl bg-card shadow-sm">
@@ -566,11 +559,11 @@ function ScheduledTryoutSessionPage() {
           <div
             className={[
               "mt-6 grid gap-4",
-              isQuestionNavHidden ? "md:grid-cols-[minmax(0,1fr)]" : "md:grid-cols-[16rem_minmax(0,1fr)] lg:grid-cols-[18rem_minmax(0,1fr)]",
+              isQuestionNavHidden ? "md:grid-cols-[minmax(0,1fr)]" : "md:grid-cols-[minmax(0,1fr)_16rem] lg:grid-cols-[minmax(0,1fr)_18rem]",
             ].join(" ")}
           >
             {!isQuestionNavHidden ? (
-              <Card className="p-5 order-2 md:order-1 h-fit">
+              <Card className="p-5 order-2 h-fit">
                 <p className="font-mono text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-primary">
                   Daftar soal
                 </p>
@@ -595,7 +588,7 @@ function ScheduledTryoutSessionPage() {
               </Card>
             ) : null}
 
-            <Card className="p-5 order-1 md:order-2">
+            <Card className="p-5 order-1">
               {syncNotice ? (
                 <Alert className="mb-5 border-primary text-primary">
                   <AlertDescription className="font-semibold text-sm">{syncNotice}</AlertDescription>

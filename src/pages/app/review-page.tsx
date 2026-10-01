@@ -218,20 +218,6 @@ function ReviewPage() {
           </>
         ) : (
           <>
-            {/* Header Title Section */}
-            <div className="text-center mb-4 max-w-2xl mx-auto">
-              <Badge variant="outline" className="mb-2.5 px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-primary/5 text-primary border-primary/20">
-                <BookOpenCheck className="mr-1.5 h-3.5 w-3.5 inline-block" />
-                Pembahasan Sesi
-              </Badge>
-              <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-2 text-foreground">
-                Jawaban dan Pembahasan
-              </h1>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Navigasikan nomor soal di sebelah kiri untuk melihat pembahasan detail setiap pertanyaan.
-              </p>
-            </div>
-
             {reviewQuery.isLoading ? (
               <div className="mt-6 flex flex-col items-center justify-center space-y-4 py-16 text-center text-muted-foreground border rounded-2xl bg-card/60 shadow-sm backdrop-blur-sm">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -306,9 +292,9 @@ function ReviewPage() {
                   </Alert>
                 ) : (
                   /* 2-Column Tryout Layout (Exact structure of tryout-session-page.tsx) */
-                  <div className="grid gap-6 xl:grid-cols-[18rem_minmax(0,1fr)] items-start">
-                    {/* Left Sidebar - Navigasi Soal Grid (With p-1.5 padding to prevent active ring cutoff) */}
-                    <Card className="shadow-xs h-fit">
+                  <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_18rem] items-start">
+                    {/* Sidebar - Navigasi Soal Grid (With p-1.5 padding to prevent active ring cutoff) */}
+                    <Card className="shadow-xs h-fit order-2">
                       <CardHeader className="pb-3 border-b bg-muted/20">
                         <CardDescription className="font-semibold uppercase tracking-wider text-primary text-xs">
                           Navigasi Soal
@@ -341,7 +327,7 @@ function ReviewPage() {
 
                     {/* Right Main View - Current Question & Pembahasan */}
                     {currentItem ? (
-                      <Card className="shadow-xs">
+                      <Card className="shadow-xs order-1">
                         <CardHeader className="pb-4">
                           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>

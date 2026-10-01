@@ -500,7 +500,7 @@ function ScheduledTryoutSessionPage() {
             size="sm"
             variant="outline"
           >
-            {isQuestionNavHidden ? "Tampilkan daftar soal" : "Sembunyikan daftar soal"}
+            {isQuestionNavHidden ? "Tampilkan navigasi soal" : "Sembunyikan navigasi soal"}
           </Button>
         </div>
 
@@ -563,11 +563,14 @@ function ScheduledTryoutSessionPage() {
             ].join(" ")}
           >
             {!isQuestionNavHidden ? (
-              <Card className="p-5 order-2 h-fit">
-                <p className="font-mono text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-primary">
-                  Daftar soal
-                </p>
-                <div className="mt-5 grid grid-cols-5 sm:grid-cols-6 md:grid-cols-4 gap-3 max-h-[40vh] md:max-h-[70vh] overflow-y-auto">
+              <Card className="shadow-sm h-fit order-2">
+                <CardHeader className="pb-3 border-b bg-muted/20">
+                  <CardDescription className="font-semibold uppercase tracking-wider text-primary text-xs">
+                    Navigasi Soal
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-4 px-3 pb-3">
+                  <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-4 gap-2.5 max-h-[40vh] md:max-h-[70vh] overflow-y-auto p-1.5">
                   {questions.map((question, index) => (
                     <SessionQuestionNavButton
                       key={question.id}
@@ -585,6 +588,7 @@ function ScheduledTryoutSessionPage() {
                     />
                   ))}
                 </div>
+                </CardContent>
               </Card>
             ) : null}
 

@@ -310,7 +310,7 @@ function ReviewPage() {
                                 onClick={() => setCurrentIndex(index)}
                                 aria-label={`Soal ${index + 1}`}
                                 className={[
-                                  "h-10 w-full rounded-2xl border text-sm font-bold transition-all duration-150 flex items-center justify-center cursor-pointer shadow-2xs",
+                                  "h-10 w-full rounded-full border text-sm font-bold transition-all duration-150 flex items-center justify-center cursor-pointer shadow-2xs",
                                   item.isWrong
                                     ? "!border-rose-600 !bg-rose-600 !text-white hover:!bg-rose-700"
                                     : "!border-emerald-600 !bg-emerald-600 !text-white hover:!bg-emerald-700",

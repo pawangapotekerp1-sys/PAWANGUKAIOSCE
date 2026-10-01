@@ -164,17 +164,17 @@ describe("Scheduled tryout session page", () => {
     renderScheduledSession();
 
     expect(await screen.findByText(/timer sesi 00:40:00/i)).toBeInTheDocument();
-    expect(screen.getByText(/^daftar soal$/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /sembunyikan daftar soal/i })).toHaveAttribute("data-variant", "outline");
+    expect(screen.getByText(/^navigasi soal$/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /sembunyikan navigasi soal/i })).toHaveAttribute("data-variant", "outline");
 
-    fireEvent.click(screen.getByRole("button", { name: /sembunyikan daftar soal/i }));
+    fireEvent.click(screen.getByRole("button", { name: /sembunyikan navigasi soal/i }));
 
-    expect(screen.queryByText(/^daftar soal$/i)).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /tampilkan daftar soal/i })).toHaveAttribute("data-variant", "outline");
+    expect(screen.queryByText(/^navigasi soal$/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /tampilkan navigasi soal/i })).toHaveAttribute("data-variant", "outline");
 
-    fireEvent.click(screen.getByRole("button", { name: /tampilkan daftar soal/i }));
+    fireEvent.click(screen.getByRole("button", { name: /tampilkan navigasi soal/i }));
 
-    expect(screen.getByText(/^daftar soal$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^navigasi soal$/i)).toBeInTheDocument();
   });
 
   test("uses the requested timer and answer-state colors", async () => {

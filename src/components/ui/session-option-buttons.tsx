@@ -34,7 +34,7 @@ export function SessionQuestionNavButton({
     <Button
       aria-current={isCurrent ? "step" : undefined}
       className={[
-        "rounded-2xl px-0 transition-all duration-150 text-sm",
+        "rounded-full px-0 transition-all duration-150 text-sm",
         sessionQuestionNavStateClassNames[state],
         isCurrent ? "ring-2 ring-primary ring-offset-2 !border-primary font-bold scale-[1.03]" : "",
         className,

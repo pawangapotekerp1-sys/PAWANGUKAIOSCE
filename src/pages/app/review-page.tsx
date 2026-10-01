@@ -329,47 +329,34 @@ function ReviewPage() {
                     {currentItem ? (
                       <div className="flex flex-col md:flex-row gap-4 lg:gap-6 order-1 items-start min-w-0">
                         {/* Question Info Side Card */}
-                        <Card className="shadow-sm w-full md:w-[11rem] lg:w-[13rem] shrink-0 md:sticky md:top-24">
-                          <CardContent className="p-4 lg:p-5 flex flex-col gap-4">
-                            <div>
-                              <p className="text-sm text-muted-foreground font-semibold mb-1">Soal</p>
-                              <p className="text-4xl font-black text-primary tracking-tight">{currentIndex + 1}</p>
-                            </div>
+                        <Card className="w-full md:w-[10rem] lg:w-[11rem] shrink-0 md:sticky md:top-24 rounded-md border-border/70 shadow-sm bg-card/60">
+                          <CardContent className="p-4 flex flex-col gap-3">
+                            <p className="text-base text-foreground">
+                              Soal <strong className="text-lg font-black">{currentIndex + 1}</strong>
+                            </p>
                             
-                            <div className="h-px w-full bg-border" />
-                            
-                            <div className="flex flex-col gap-2 items-start">
-                              <Badge
-                                variant={currentItem.isWrong ? "secondary" : "outline"}
-                                className={`text-xs font-bold flex items-center gap-1.5 border ${
-                                  currentItem.isWrong
-                                    ? "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20"
-                                    : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
-                                }`}
-                              >
+                            <p className={`text-sm font-medium flex items-center gap-1.5 ${currentItem.isWrong ? 'text-destructive' : 'text-emerald-600 dark:text-emerald-400'}`}>
                                 {currentItem.isWrong ? (
                                   <>
-                                    <XCircle className="h-3.5 w-3.5 text-destructive" />
+                                    <XCircle className="h-4 w-4" />
                                     Perlu diulang
                                   </>
                                 ) : (
                                   <>
-                                    <CheckCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                                    <CheckCircle className="h-4 w-4" />
                                     Sudah benar
                                   </>
                                 )}
-                              </Badge>
-                            </div>
+                            </p>
+                            
+                            <p className="text-sm font-medium text-muted-foreground">
+                              Poin maks 1,00
+                            </p>
 
-                            {source === "tryout" && (
-                              <>
-                                <div className="h-px w-full bg-border" />
-
-                                <div>
-                                  <p className="text-[0.65rem] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Blok</p>
-                                  <p className="text-sm font-semibold text-foreground leading-snug">{currentItem.blockLabel || "-"}</p>
-                                </div>
-                              </>
+                            {source === "tryout" && currentItem.blockLabel && (
+                              <p className="text-sm font-medium text-muted-foreground">
+                                Blok: {currentItem.blockLabel}
+                              </p>
                             )}
                           </CardContent>
                         </Card>

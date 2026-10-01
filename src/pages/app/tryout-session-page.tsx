@@ -624,38 +624,40 @@ function TryoutSessionPage() {
 
             <div className="flex flex-col md:flex-row gap-4 lg:gap-6 order-1 items-start min-w-0">
               {/* Question Info Side Card */}
-              <Card className="shadow-sm w-full md:w-[11rem] lg:w-[13rem] shrink-0 md:sticky md:top-24">
-                <CardContent className="p-4 lg:p-5 flex flex-col gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground font-semibold mb-1">Soal</p>
-                    <p className="text-4xl font-black text-primary tracking-tight">{currentIndex + 1}</p>
-                  </div>
+              <Card className="w-full md:w-[10rem] lg:w-[11rem] shrink-0 md:sticky md:top-24 rounded-md border-border/70 shadow-sm bg-card/60">
+                <CardContent className="p-4 flex flex-col gap-3">
+                  <p className="text-base text-foreground">
+                    Soal <strong className="text-lg font-black">{currentIndex + 1}</strong>
+                  </p>
                   
-                  <div className="h-px w-full bg-border" />
-                  
-                  <div className="flex flex-col gap-2 items-start">
-                    {hasSelectedAnswer ? (
-                      <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 border-emerald-500/20">
-                        Sudah dijawab
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-muted-foreground bg-muted/50">
-                        Belum dijawab
-                      </Badge>
-                    )}
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {currentQuestion.isDoubtful 
+                      ? "Ragu-ragu" 
+                      : hasSelectedAnswer 
+                        ? "Sudah dijawab" 
+                        : "Belum dijawab"}
+                  </p>
 
-                    {currentQuestion.isDoubtful && (
-                      <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/20">
-                        Ragu-ragu
-                      </Badge>
-                    )}
-                  </div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Poin maks 1,00
+                  </p>
 
-                  <div className="h-px w-full bg-border" />
+                  {currentQuestion.blockLabel && (
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Blok: {currentQuestion.blockLabel}
+                    </p>
+                  )}
 
-                  <div>
-                    <p className="text-[0.65rem] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Blok</p>
-                    <p className="text-sm font-semibold text-foreground leading-snug">{currentQuestion.blockLabel || "-"}</p>
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={toggleDoubtful}
+                      disabled={!hasSelectedAnswer || isAttemptInteractionDisabled || isQuestionMutationPending}
+                      className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={currentQuestion.isDoubtful ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
+                      {currentQuestion.isDoubtful ? "Hapus tanda" : "Tandai soal"}
+                    </button>
                   </div>
                 </CardContent>
               </Card>
@@ -712,20 +714,7 @@ function TryoutSessionPage() {
                   })}
                 </div>
 
-                <div className="mt-8 flex justify-start">
-                  <Button
-                    className={
-                      currentQuestion.isDoubtful
-                        ? "border-amber-500/50 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 hover:border-amber-500/60 hover:text-amber-700"
-                        : "hover:bg-amber-500/10 hover:text-amber-600 hover:border-amber-500/30 text-muted-foreground"
-                    }
-                    disabled={!hasSelectedAnswer || isAttemptInteractionDisabled || isQuestionMutationPending}
-                    onClick={toggleDoubtful}
-                    variant="outline"
-                  >
-                    {currentQuestion.isDoubtful ? "Batal ragu-ragu" : "Tandai ragu-ragu"}
-                  </Button>
-                </div>
+
               </CardContent>
 
               <CardFooter className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t bg-muted/10 py-4 mt-4 rounded-b-xl">

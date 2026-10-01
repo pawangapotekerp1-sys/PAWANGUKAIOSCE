@@ -617,12 +617,7 @@ function ScheduledTryoutSessionPage() {
                     )}
                   </div>
 
-                  <div className="h-px w-full bg-border" />
 
-                  <div>
-                    <p className="text-[0.65rem] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Blok</p>
-                    <p className="text-sm font-semibold text-foreground leading-snug">{currentQuestion.blockLabel || "-"}</p>
-                  </div>
                 </div>
               </Card>
 

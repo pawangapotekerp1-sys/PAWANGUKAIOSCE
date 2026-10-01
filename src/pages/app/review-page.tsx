@@ -361,12 +361,16 @@ function ReviewPage() {
                               </Badge>
                             </div>
 
-                            <div className="h-px w-full bg-border" />
+                            {source === "tryout" && (
+                              <>
+                                <div className="h-px w-full bg-border" />
 
-                            <div>
-                              <p className="text-[0.65rem] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Blok</p>
-                              <p className="text-sm font-semibold text-foreground leading-snug">{currentItem.blockLabel || "-"}</p>
-                            </div>
+                                <div>
+                                  <p className="text-[0.65rem] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Blok</p>
+                                  <p className="text-sm font-semibold text-foreground leading-snug">{currentItem.blockLabel || "-"}</p>
+                                </div>
+                              </>
+                            )}
                           </CardContent>
                         </Card>
 

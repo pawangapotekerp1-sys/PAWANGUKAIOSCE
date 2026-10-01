@@ -6,7 +6,7 @@ import ProductShell from "../../components/layout/product-shell";
 import Button, { getButtonStyleProps } from "../../components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 import { Badge } from "../../components/ui/badge";
-import { Card } from "../../components/ui/card";
+import { Card, CardHeader, CardContent, CardDescription } from "../../components/ui/card";
 import SectionHeading from "../../components/ui/section-heading";
 import { SessionAnswerOptionButton, SessionQuestionNavButton } from "../../components/ui/session-option-buttons";
 import {

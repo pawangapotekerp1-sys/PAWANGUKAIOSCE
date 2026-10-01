@@ -594,9 +594,9 @@ function ScheduledTryoutSessionPage() {
 
             <div className="flex flex-col md:flex-row gap-4 lg:gap-6 order-1 items-start min-w-0">
               {/* Question Info Side Card */}
-              <Card className="shadow-sm w-full md:w-40 lg:w-48 shrink-0 md:sticky md:top-24">
+              <Card className="shadow-sm w-full md:w-32 lg:w-36 shrink-0 md:sticky md:top-24">
                 <CardContent className="p-4 flex flex-col gap-1.5 text-sm text-foreground/80">
-                  <p className="font-bold text-base text-foreground">Soal {currentIndex + 1}</p>
+                  <p className="font-bold text-lg text-foreground leading-none mb-1">Soal {currentIndex + 1}</p>
                   <p>
                     {currentQuestion.isDoubtful
                       ? "Ragu-ragu"

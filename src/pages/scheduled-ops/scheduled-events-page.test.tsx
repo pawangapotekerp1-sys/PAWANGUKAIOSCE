@@ -164,16 +164,13 @@ describe("Scheduled events page", () => {
           title: "TO Draft Farmasi Updated",
           description: "Masih dirakit mentor.",
           editorialStatus: "draft",
-          accessStartAt: "2026-06-20T08:00", // Wait, formatDateTimeForInput converts to local time. Let's just match any object since local time might be different based on timezone.
-          accessEndAt: expect.any(String),
+          accessStartAt: "2026-06-20T08:00",
+          accessEndAt: "2026-06-21T21:00",
           totalQuestions: 20,
           durationMinutes: 20,
           maxAttempts: 1,
         }
       });
-      // specific check for accessStartAt because of timezone issues in test
-      const callArgs = mockUpdateScheduledEvent.mock.calls[0][0];
-      expect(callArgs.input.accessStartAt).toMatch(/T/);
     });
   });
 });

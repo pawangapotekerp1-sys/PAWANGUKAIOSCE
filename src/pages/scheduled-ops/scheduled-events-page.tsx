@@ -1,12 +1,12 @@
 import { useState, FormEvent, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useSearchParams, useNavigate } from "react-router";
+import { Link } from "react-router";
 import { Loader2, AlertCircle, Calendar, Eye, Edit3, Trash2, Plus, Search } from "lucide-react";
 import Button from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import ConfirmDialog from "../../components/ui/confirm-dialog";
 import { Alert, AlertTitle, AlertDescription } from "../../components/ui/alert";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "../../components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "../../components/ui/dialog";
 import {
   deleteScheduledEvent,
   listScheduledOpsEvents,
@@ -22,8 +22,8 @@ function formatDateTimeForInput(dateString: string | null) {
   const d = new Date(dateString);
   if (isNaN(d.getTime())) return { date: "", time: "" };
   // Expected local input format: YYYY-MM-DD and HH:mm
-  const date = d.toLocaleDateString("en-CA"); // YYYY-MM-DD
-  const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }); // HH:mm
+  const date = d.toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }); // YYYY-MM-DD
+  const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }); // HH:mm
   return { date, time };
 }
 
@@ -41,7 +41,6 @@ function resolveStatusTone(status: "draft" | "upcoming" | "active" | "expired"):
 
 function ScheduledEventsPage() {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   const [searchQuery, setSearchQuery] = useState("");
   
@@ -155,12 +154,20 @@ function ScheduledEventsPage() {
   function handleFormSubmit(e: FormEvent) {
     e.preventDefault();
     
+    const accessStartAt = combineDateTimeForOutput(formData.startDate, formData.startTime);
+    const accessEndAt = combineDateTimeForOutput(formData.endDate, formData.endTime);
+
+    if (new Date(accessStartAt) >= new Date(accessEndAt)) {
+      alert("Waktu mulai harus sebelum waktu selesai.");
+      return;
+    }
+
     const input: ScheduledEventMutationInput = {
       title: formData.title,
       description: formData.description, 
       editorialStatus: formData.editorialStatus as "draft" | "published",
-      accessStartAt: combineDateTimeForOutput(formData.startDate, formData.startTime),
-      accessEndAt: combineDateTimeForOutput(formData.endDate, formData.endTime),
+      accessStartAt,
+      accessEndAt,
       totalQuestions: parseInt(formData.totalQuestions) || 0,
       durationMinutes: parseInt(formData.durationMinutes) || 0,
       maxAttempts: parseInt(formData.maxAttempts) || 1,
@@ -197,21 +204,21 @@ function ScheduledEventsPage() {
             <AlertDescription>Daftar event belum bisa ditampilkan saat ini.</AlertDescription>
           </Alert>
         ) : (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
             {/* Table Header Controls */}
-            <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 bg-slate-50/50 relative">
+            <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border bg-muted/50 relative">
               <div className="relative max-w-sm w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input 
                   type="text" 
                   placeholder="Cari tryout..."
                   aria-label="Cari tryout"
-                  className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                  className="w-full pl-9 pr-4 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all bg-background text-foreground"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <h2 className="text-lg font-bold text-slate-800 hidden md:block absolute left-1/2 -translate-x-1/2">
+              <h2 className="text-lg font-bold text-foreground hidden md:block absolute left-1/2 -translate-x-1/2">
                 Daftar Tryout
               </h2>
               <Button 
@@ -226,7 +233,7 @@ function ScheduledEventsPage() {
             {/* Table */}
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="text-xs text-slate-500 uppercase bg-slate-100 font-bold tracking-wider">
+                <thead className="text-xs text-muted-foreground uppercase bg-muted font-bold tracking-wider">
                   <tr>
                     <th className="px-4 py-4 text-center whitespace-nowrap">NO</th>
                     <th className="px-4 py-4 min-w-[200px]">JUDUL TRYOUT</th>
@@ -240,10 +247,10 @@ function ScheduledEventsPage() {
                     <th className="px-4 py-4 text-center whitespace-nowrap">AKSI</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700">
+                <tbody className="divide-y divide-border text-foreground">
                   {filteredEvents.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="px-4 py-8 text-center text-slate-500">
+                      <td colSpan={10} className="px-4 py-8 text-center text-muted-foreground">
                         Tidak ada data event.
                       </td>
                     </tr>
@@ -252,9 +259,9 @@ function ScheduledEventsPage() {
                     const endInfo = formatDateTimeForInput(event.accessEndAt);
                     
                     return (
-                      <tr key={event.id} className="hover:bg-slate-50 transition-colors">
+                      <tr key={event.id} className="hover:bg-muted/50 transition-colors">
                         <td className="px-4 py-4 text-center font-medium">{index + 1}</td>
-                        <td className="px-4 py-4 font-bold text-slate-900">{event.title}</td>
+                        <td className="px-4 py-4 font-bold text-foreground">{event.title}</td>
                         <td className="px-4 py-4 text-center font-bold text-blue-600">{event.questionCount}</td>
                         <td className="px-4 py-4 text-center">{event.durationMinutes} mnt</td>
                         <td className="px-4 py-4 text-center">{event.maxAttempts}x</td>
@@ -265,13 +272,13 @@ function ScheduledEventsPage() {
                         </td>
                         <td className="px-4 py-4 text-center text-xs">
                           <div className="font-bold text-emerald-600 mb-0.5">Start:</div>
-                          <div className="text-slate-500 whitespace-nowrap">
+                          <div className="text-muted-foreground whitespace-nowrap">
                             {startInfo.date} {startInfo.time}
                           </div>
                         </td>
                         <td className="px-4 py-4 text-center text-xs">
                           <div className="font-bold text-rose-600 mb-0.5">End:</div>
-                          <div className="text-slate-500 whitespace-nowrap">
+                          <div className="text-muted-foreground whitespace-nowrap">
                             {endInfo.date} {endInfo.time}
                           </div>
                         </td>
@@ -282,7 +289,7 @@ function ScheduledEventsPage() {
                         </td>
                         <td className="px-4 py-4">
                           <div className="flex items-center justify-center gap-1.5">
-                            <Button variant="outline" size="icon-sm" asChild title="Lihat Soal">
+                            <Button variant="outline" size="icon-sm" asChild title="Lihat Soal" aria-label="Lihat soal">
                               <Link to={`/scheduled-ops/events/${event.id}/questions`}>
                                 <Eye className="w-4 h-4" />
                               </Link>
@@ -290,6 +297,7 @@ function ScheduledEventsPage() {
                             <Button 
                               onClick={() => handleOpenEditModal(event)}
                               title="Ubah Event"
+                              aria-label="Ubah event"
                               variant="outline"
                               size="icon-sm"
                             >
@@ -298,6 +306,7 @@ function ScheduledEventsPage() {
                             <Button 
                               onClick={() => handleDeleteRequest(event.id, event.title)}
                               title="Hapus Event"
+                              aria-label="Hapus event"
                               variant="destructive"
                               size="icon-sm"
                             >
@@ -313,15 +322,15 @@ function ScheduledEventsPage() {
             </div>
             
             {/* Pagination Placeholder (Mocked for visual match) */}
-            <div className="p-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+            <div className="p-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
               <div className="flex items-center gap-2">
                 <span>LIMIT: 20</span>
                 <span>Total: {events.length} Data | Hal 1 / 1</span>
               </div>
               <div className="flex items-center gap-2">
-                 <button className="px-3 py-1 rounded border border-slate-200 text-slate-400 cursor-not-allowed">Previous</button>
-                 <button className="w-6 h-6 rounded-full bg-amber-500 text-white font-bold flex items-center justify-center">1</button>
-                 <button className="px-3 py-1 rounded border border-slate-200 text-slate-400 cursor-not-allowed">Next</button>
+                 <button className="px-3 py-1 rounded border border-border text-muted-foreground cursor-not-allowed">Previous</button>
+                 <button className="w-6 h-6 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center">1</button>
+                 <button className="px-3 py-1 rounded border border-border text-muted-foreground cursor-not-allowed">Next</button>
               </div>
             </div>
           </div>
@@ -344,9 +353,9 @@ function ScheduledEventsPage() {
 
         {/* Create/Edit Modal */}
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden bg-white rounded-xl">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <DialogTitle className="text-xl font-bold text-slate-800 text-center w-full">
+          <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden bg-card rounded-xl">
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+              <DialogTitle className="text-xl font-bold text-foreground text-center w-full">
                 {editingEventId ? "Ubah Tryout" : "Tambah Tryout Baru"}
               </DialogTitle>
             </div>
@@ -363,12 +372,12 @@ function ScheduledEventsPage() {
 
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="title" className="block text-sm font-semibold text-slate-700 mb-1.5">Judul Tryout</label>
+                    <label htmlFor="title" className="block text-sm font-semibold text-foreground mb-1.5">Judul Tryout</label>
                     <input 
                       id="title"
                       required
                       type="text"
-                      className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                      className="w-full px-4 py-2.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all bg-background text-foreground"
                       placeholder="Contoh: Tryout UKAI Batch 1"
                       value={formData.title}
                       onChange={(e) => setFormData({...formData, title: e.target.value})}
@@ -377,26 +386,26 @@ function ScheduledEventsPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="totalQuestions" className="block text-sm font-semibold text-slate-700 mb-1.5">Jumlah Soal</label>
+                      <label htmlFor="totalQuestions" className="block text-sm font-semibold text-foreground mb-1.5">Jumlah Soal</label>
                       <input 
                         id="totalQuestions"
                         required
                         type="number"
                         min="1"
-                        className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                        className="w-full px-4 py-2.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all bg-background text-foreground"
                         placeholder="Contoh: 10"
                         value={formData.totalQuestions}
                         onChange={(e) => setFormData({...formData, totalQuestions: e.target.value})}
                       />
                     </div>
                     <div>
-                      <label htmlFor="durationMinutes" className="block text-sm font-semibold text-slate-700 mb-1.5">Durasi (menit)</label>
+                      <label htmlFor="durationMinutes" className="block text-sm font-semibold text-foreground mb-1.5">Durasi (menit)</label>
                       <input 
                         id="durationMinutes"
                         required
                         type="number"
                         min="1"
-                        className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                        className="w-full px-4 py-2.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all bg-background text-foreground"
                         placeholder="Contoh: 90"
                         value={formData.durationMinutes}
                         onChange={(e) => setFormData({...formData, durationMinutes: e.target.value})}
@@ -405,13 +414,13 @@ function ScheduledEventsPage() {
                   </div>
 
                   <div>
-                     <label htmlFor="maxAttempts" className="block text-sm font-semibold text-slate-700 mb-1.5">Maksimum Percobaan</label>
+                     <label htmlFor="maxAttempts" className="block text-sm font-semibold text-foreground mb-1.5">Maksimum Percobaan</label>
                       <input 
                         id="maxAttempts"
                         required
                         type="number"
                         min="1"
-                        className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                        className="w-full px-4 py-2.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all bg-background text-foreground"
                         placeholder="Contoh: 3"
                         value={formData.maxAttempts}
                         onChange={(e) => setFormData({...formData, maxAttempts: e.target.value})}
@@ -420,26 +429,26 @@ function ScheduledEventsPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="startDate" className="block text-sm font-semibold text-slate-700 mb-1.5">Tanggal Mulai (Access Start Date)</label>
+                      <label htmlFor="startDate" className="block text-sm font-semibold text-foreground mb-1.5">Tanggal Mulai (Access Start Date)</label>
                       <div className="relative">
                         <input 
                           id="startDate"
                           required
                           type="date"
-                          className="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                          className="w-full pl-4 pr-10 py-2.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all bg-background text-foreground"
                           value={formData.startDate}
                           onChange={(e) => setFormData({...formData, startDate: e.target.value})}
                         />
                       </div>
                     </div>
                     <div>
-                      <label htmlFor="endDate" className="block text-sm font-semibold text-slate-700 mb-1.5">Tanggal Selesai (Access End Date)</label>
+                      <label htmlFor="endDate" className="block text-sm font-semibold text-foreground mb-1.5">Tanggal Selesai (Access End Date)</label>
                       <div className="relative">
                         <input 
                           id="endDate"
                           required
                           type="date"
-                          className="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                          className="w-full pl-4 pr-10 py-2.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all bg-background text-foreground"
                           value={formData.endDate}
                           onChange={(e) => setFormData({...formData, endDate: e.target.value})}
                         />
@@ -449,26 +458,26 @@ function ScheduledEventsPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="startTime" className="block text-sm font-semibold text-slate-700 mb-1.5">Waktu Mulai</label>
+                      <label htmlFor="startTime" className="block text-sm font-semibold text-foreground mb-1.5">Waktu Mulai</label>
                       <div className="relative">
                         <input 
                           id="startTime"
                           required
                           type="time"
-                          className="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                          className="w-full pl-4 pr-10 py-2.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all bg-background text-foreground"
                           value={formData.startTime}
                           onChange={(e) => setFormData({...formData, startTime: e.target.value})}
                         />
                       </div>
                     </div>
                     <div>
-                      <label htmlFor="endTime" className="block text-sm font-semibold text-slate-700 mb-1.5">Waktu Selesai</label>
+                      <label htmlFor="endTime" className="block text-sm font-semibold text-foreground mb-1.5">Waktu Selesai</label>
                       <div className="relative">
                         <input 
                           id="endTime"
                           required
                           type="time"
-                          className="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                          className="w-full pl-4 pr-10 py-2.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all bg-background text-foreground"
                           value={formData.endTime}
                           onChange={(e) => setFormData({...formData, endTime: e.target.value})}
                         />
@@ -479,19 +488,18 @@ function ScheduledEventsPage() {
                 </div>
               </div>
               
-              <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3">
+              <div className="px-6 py-4 border-t border-border bg-muted/50 flex items-center justify-end gap-3">
                 <Button 
                   type="button" 
                   variant="outline" 
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2 text-sm font-semibold text-slate-600 bg-white border-slate-200 hover:bg-slate-50"
                   disabled={createMutation.isPending || updateMutation.isPending}
                 >
                   Batal
                 </Button>
                 <Button 
                   type="submit" 
-                  className="px-5 py-2 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 shadow-sm"
+                  variant="default"
                   disabled={createMutation.isPending || updateMutation.isPending}
                 >
                   {(createMutation.isPending || updateMutation.isPending) ? (

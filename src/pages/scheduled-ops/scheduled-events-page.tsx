@@ -264,7 +264,7 @@ function ScheduledEventsPage() {
                         <td className="px-4 py-4 font-bold text-foreground">{event.title}</td>
                         <td className="px-4 py-4 text-center font-bold text-blue-600">{event.questionCount}</td>
                         <td className="px-4 py-4 text-center">{event.durationMinutes} mnt</td>
-                        <td className="px-4 py-4 text-center">{event.maxAttempts}x</td>
+                        <td className="px-4 py-4 text-center">{event.maxAttempts ?? 1}x</td>
                         <td className="px-4 py-4 text-center">
                           <Badge variant="outline">
                             0 KELAS
@@ -325,7 +325,7 @@ function ScheduledEventsPage() {
             <div className="p-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
               <div className="flex items-center gap-2">
                 <span>LIMIT: 20</span>
-                <span>Total: {events.length} Data | Hal 1 / 1</span>
+                <span>Total: {filteredEvents.length} Data | Hal 1 / 1</span>
               </div>
               <div className="flex items-center gap-2">
                  <button className="px-3 py-1 rounded border border-border text-muted-foreground cursor-not-allowed">Previous</button>
@@ -363,9 +363,9 @@ function ScheduledEventsPage() {
             <form onSubmit={handleFormSubmit}>
               <div className="px-6 py-6 space-y-5 max-h-[70vh] overflow-y-auto">
                 
-                <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-3 flex items-start gap-3">
-                  <Calendar className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-                  <p className="text-sm text-blue-700 leading-relaxed">
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 flex items-start gap-3">
+                  <Calendar className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                  <p className="text-sm text-primary leading-relaxed">
                     Tryout akan <strong className="font-semibold">terbuka otomatis</strong> sesuai rentang tanggal yang dipilih.
                   </p>
                 </div>

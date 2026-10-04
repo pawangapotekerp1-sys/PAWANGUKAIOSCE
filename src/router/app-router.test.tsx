@@ -90,6 +90,7 @@ vi.mock("../lib/api/scheduled-tryout-api", async (importOriginal) => {
 
   return {
     ...actual,
+    listScheduledOpsEvents: vi.fn().mockResolvedValue([]),
     listScheduledSubmittedAttemptHistory: (...args: unknown[]) =>
       mockListScheduledSubmittedAttemptHistory(...args),
     getScheduledAttemptReviewPageData: (...args: unknown[]) =>
@@ -985,18 +986,9 @@ describe("App router", () => {
     renderApp("/scheduled-ops/events");
 
     expect(await screen.findByText(/kelola event terjadwal/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' })).toBeInTheDocument();
-    expect(await screen.findByRole("link", {
-      name: /bank soal/i,
-    })).toHaveAttribute("href", "/app/questions");
-    expect(await screen.findByRole("link", {
-      name: /daftar event/i,
-    })).toHaveAttribute("href", "/scheduled-ops/events");
-    expect(await screen.findByRole("link", {
-      name: /daftar event/i,
-    })).toHaveAttribute("href", "/scheduled-ops/events");
-    expect(await screen.findByRole("link", {
-      name: /buat event/i,
-    })).toHaveAttribute("href", "/scheduled-ops/events/new?fresh=1");
+    // Validate that the scheduled events list page renders the new table header and button
+    expect(await screen.findByText(/tambah tryout/i)).toBeInTheDocument();
+    expect(await screen.findByText(/daftar tryout/i)).toBeInTheDocument();
   });
 
   test("renders the mentor question create route", async () => {

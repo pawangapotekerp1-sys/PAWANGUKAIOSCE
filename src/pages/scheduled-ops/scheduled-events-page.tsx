@@ -1,56 +1,66 @@
-import { useState } from "react";
+import { useState, FormEvent, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useSearchParams } from "react-router";
-import { Loader2, AlertCircle, Calendar, PlusCircle, Clock, FileText, Sparkles, RefreshCw, Trash2, Edit3, ArrowRight, ArrowLeft, Layers } from "lucide-react";
-import Button, { getButtonStyleProps } from "../../components/ui/button";
+import { Link, useSearchParams, useNavigate } from "react-router";
+import { Loader2, AlertCircle, Calendar, Clock, Eye, Edit3, Trash2, Plus, Search, FileText, Settings2, HelpCircle } from "lucide-react";
+import Button from "../../components/ui/button";
 import ConfirmDialog from "../../components/ui/confirm-dialog";
-import { Card } from "../../components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "../../components/ui/alert";
-import { Badge } from "../../components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "../../components/ui/dialog";
 import {
   deleteScheduledEvent,
   listScheduledOpsEvents,
-  reactivateScheduledEvent,
+  createScheduledEvent,
+  updateScheduledEvent,
+  type ScheduledOpsEventSummary,
+  type ScheduledEventMutationInput,
 } from "../../lib/api/scheduled-tryout-api";
 import ScheduledOpsShell from "./scheduled-ops-shell";
 
-function resolveStatusTone(status: "draft" | "upcoming" | "active" | "expired") {
-  if (status === "active") {
-    return "default";
-  }
-
-  if (status === "expired") {
-    return "secondary";
-  }
-
-  return "outline";
+function formatDateTimeForInput(dateString: string | null) {
+  if (!dateString) return { date: "", time: "" };
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return { date: "", time: "" };
+  // Expected local input format: YYYY-MM-DD and HH:mm
+  const date = d.toLocaleDateString("en-CA"); // YYYY-MM-DD
+  const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }); // HH:mm
+  return { date, time };
 }
 
-function resolveStudentLaneVisibilityNote(status: "draft" | "upcoming" | "active" | "expired") {
-  if (status === "draft") {
-    return "Belum tampil ke peserta. Terbitkan dulu lalu tunggu jadwal mulai.";
-  }
+function combineDateTimeForOutput(date: string, time: string) {
+  if (!date || !time) return new Date().toISOString();
+  return `${date}T${time}:00`;
+}
 
-  if (status === "upcoming") {
-    return "Belum tampil ke peserta. Event akan muncul saat jadwal mulai.";
-  }
-
-  if (status === "expired") {
-    return "Sudah tidak tampil karena jadwalnya selesai.";
-  }
-
-  return "Sudah tampil untuk peserta yang memenuhi akses.";
+function resolveStatusTone(status: "draft" | "upcoming" | "active" | "expired") {
+  if (status === "active") return "text-emerald-600 border-emerald-500 bg-emerald-50";
+  if (status === "expired") return "text-gray-500 border-gray-400 bg-gray-50";
+  if (status === "upcoming") return "text-amber-600 border-amber-500 bg-amber-50";
+  return "text-gray-600 border-gray-300 bg-gray-50";
 }
 
 function ScheduledEventsPage() {
   const queryClient = useQueryClient();
-  const [searchParams] = useSearchParams();
-  const isListView = searchParams.get("view") === "list";
+  const navigate = useNavigate();
 
-  const [pendingDeleteEvent, setPendingDeleteEvent] = useState<{
-    id: string;
-    title: string;
-  } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const [pendingDeleteEvent, setPendingDeleteEvent] = useState<{ id: string; title: string } | null>(null);
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  
+  // Form State
+  const [formData, setFormData] = useState({
+    title: "",
+    totalQuestions: "",
+    durationMinutes: "",
+    maxAttempts: "",
+    startDate: "",
+    startTime: "",
+    endDate: "",
+    endTime: ""
+  });
 
   const eventsQueryKey = ["scheduled-ops-events"] as const;
   const eventsQuery = useQuery({
@@ -58,387 +68,251 @@ function ScheduledEventsPage() {
     queryFn: () => listScheduledOpsEvents(),
   });
 
-  const reactivateMutation = useMutation({
-    mutationFn: ({
-      eventId,
-      accessStartAt,
-      accessEndAt,
-    }: {
-      eventId: string;
-      accessStartAt: string;
-      accessEndAt: string;
-    }) =>
-      reactivateScheduledEvent({
-        eventId,
-        accessStartAt,
-        accessEndAt,
-      }),
+  const createMutation = useMutation({
+    mutationFn: (input: ScheduledEventMutationInput) => createScheduledEvent({ input }),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: eventsQueryKey,
-      });
+      await queryClient.invalidateQueries({ queryKey: eventsQueryKey });
+      setIsModalOpen(false);
+      alert("Tryout berhasil dibuat!");
     },
+    onError: (err) => {
+      alert("Gagal membuat tryout: " + err.message);
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ eventId, input }: { eventId: string; input: ScheduledEventMutationInput }) => updateScheduledEvent({ eventId, input }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: eventsQueryKey });
+      setIsModalOpen(false);
+      alert("Tryout berhasil diperbarui!");
+    },
+    onError: (err) => {
+      alert("Gagal memperbarui tryout: " + err.message);
+    }
   });
 
   const deleteMutation = useMutation({
-    mutationFn: ({ eventId }: { eventId: string }) =>
-      deleteScheduledEvent({
-        eventId,
-      }),
+    mutationFn: ({ eventId }: { eventId: string }) => deleteScheduledEvent({ eventId }),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: eventsQueryKey,
-      });
+      await queryClient.invalidateQueries({ queryKey: eventsQueryKey });
+      setPendingDeleteEvent(null);
     },
   });
 
-  async function handleReactivate(eventId: string) {
-    const accessStartAt = window.prompt("Masukkan akses mulai baru (YYYY-MM-DDTHH:mm)");
-
-    if (!accessStartAt) {
-      return;
-    }
-
-    const accessEndAt = window.prompt("Masukkan akses selesai baru (YYYY-MM-DDTHH:mm)");
-
-    if (!accessEndAt) {
-      return;
-    }
-
-    reactivateMutation.mutate({
-      eventId,
-      accessStartAt,
-      accessEndAt,
-    });
-  }
-
-  function handleDelete(eventId: string) {
-    deleteMutation.mutate({
-      eventId,
-    });
-  }
-
   function handleDeleteRequest(eventId: string, eventTitle: string) {
-    setPendingDeleteEvent({
-      id: eventId,
-      title: eventTitle,
-    });
+    setPendingDeleteEvent({ id: eventId, title: eventTitle });
   }
 
   function handleConfirmDelete() {
-    if (!pendingDeleteEvent) {
-      return;
-    }
+    if (!pendingDeleteEvent) return;
+    deleteMutation.mutate({ eventId: pendingDeleteEvent.id });
+  }
 
-    handleDelete(pendingDeleteEvent.id);
-    setPendingDeleteEvent(null);
+  function handleOpenCreateModal() {
+    setEditingEventId(null);
+    setFormData({
+      title: "",
+      totalQuestions: "",
+      durationMinutes: "",
+      maxAttempts: "",
+      startDate: "",
+      startTime: "",
+      endDate: "",
+      endTime: ""
+    });
+    setIsModalOpen(true);
+  }
+
+  function handleOpenEditModal(event: ScheduledOpsEventSummary) {
+    setEditingEventId(event.id);
+    const start = formatDateTimeForInput(event.accessStartAt);
+    const end = formatDateTimeForInput(event.accessEndAt);
+    
+    setFormData({
+      title: event.title,
+      totalQuestions: event.questionCount.toString(),
+      durationMinutes: event.durationMinutes.toString(),
+      maxAttempts: event.maxAttempts.toString(),
+      startDate: start.date,
+      startTime: start.time,
+      endDate: end.date,
+      endTime: end.time
+    });
+    setIsModalOpen(true);
+  }
+
+  function handleFormSubmit(e: FormEvent) {
+    e.preventDefault();
+    
+    const input: ScheduledEventMutationInput = {
+      title: formData.title,
+      description: "", 
+      editorialStatus: "draft",
+      accessStartAt: combineDateTimeForOutput(formData.startDate, formData.startTime),
+      accessEndAt: combineDateTimeForOutput(formData.endDate, formData.endTime),
+      totalQuestions: parseInt(formData.totalQuestions) || 0,
+      durationMinutes: parseInt(formData.durationMinutes) || 0,
+      maxAttempts: parseInt(formData.maxAttempts) || 1,
+    };
+
+    if (editingEventId) {
+      updateMutation.mutate({ eventId: editingEventId, input });
+    } else {
+      createMutation.mutate(input);
+    }
   }
 
   const events = eventsQuery.data ?? [];
-  const summaryItems = [
-    {
-      label: "Draft",
-      value: events.filter((event) => event.status === "draft").length,
-      note: "Masih dirapikan sebelum dibuka.",
-      tone: "secondary" as const,
-    },
-    {
-      label: "Akan tayang",
-      value: events.filter((event) => event.status === "upcoming").length,
-      note: "Sudah siap dengan jadwal berikutnya.",
-      tone: "outline" as const,
-    },
-    {
-      label: "Sedang aktif",
-      value: events.filter((event) => event.status === "active").length,
-      note: "Perlu dipantau selama akses berjalan.",
-      tone: "default" as const,
-    },
-    {
-      label: "Selesai",
-      value: events.filter((event) => event.status === "expired").length,
-      note: "Bisa diatur ulang bila perlu.",
-      tone: "secondary" as const,
-    },
-  ];
+  const filteredEvents = useMemo(() => {
+    return events.filter(e => e.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [events, searchQuery]);
 
   return (
     <ScheduledOpsShell
       activeHref="/scheduled-ops/events"
       title="Kelola Event Terjadwal"
-      description="Pantau event aktif, draft, dan yang sudah selesai dari satu halaman kerja."
+      description="Pantau event aktif, draft, dan yang sudah selesai."
     >
-      <div className="space-y-8">
-        {!isListView ? (
-          /* Feature Selection Landing View (Only 2 Cards shown) */
-          <section className="space-y-6">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-amber-500" />
-                <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                  Pemilihan Fitur Event Terjadwal
-                </h2>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Pilih salah satu fitur di bawah ini untuk melihat daftar event atau menyusun event baru.
-              </p>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Feature Card 1: Daftar Event */}
-              <Card className="p-6 border-primary/30 bg-card shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/50 relative overflow-hidden flex flex-col justify-between min-h-[220px]">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                      <Calendar className="h-6 w-6" />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
-                      Daftar Event
-                    </h3>
-                    <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
-                      Lihat, kelola, dan pantau status event terjadwal yang sedang aktif, upcoming, draft, maupun yang sudah selesai.
-                    </p>
-                  </div>
-                </div>
-                <div className="pt-4 mt-6 border-t border-border/40 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-foreground font-mono">
-                    {events.length} Total Event
-                  </span>
-                  <Link
-                    {...getButtonStyleProps({
-                      size: "sm",
-                      variant: "primary",
-                      className: "h-9 px-4 text-xs font-bold shadow-xs cursor-pointer gap-1.5",
-                    })}
-                    to="/scheduled-ops/events?view=list"
-                  >
-                    Daftar Event
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                </div>
-              </Card>
-
-              {/* Feature Card 2: Buat Event */}
-              <Card className="p-6 border-amber-500/30 bg-card shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-amber-500/50 relative overflow-hidden flex flex-col justify-between min-h-[220px]">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600">
-                      <PlusCircle className="h-6 w-6" />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
-                      Buat Event
-                    </h3>
-                    <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
-                      Susun dan terbitkan sesi event terjadwal baru lengkap dengan durasi, tanggal akses, dan bank soal.
-                    </p>
-                  </div>
-                </div>
-                <div className="pt-4 mt-6 border-t border-border/40 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-muted-foreground">
-                    Konfigurasi Baru
-                  </span>
-                  <Link
-                    {...getButtonStyleProps({
-                      size: "sm",
-                      variant: "primary",
-                      className: "h-9 px-4 text-xs font-bold shadow-xs cursor-pointer gap-1.5",
-                    })}
-                    to="/scheduled-ops/events/new?fresh=1"
-                  >
-                    Event baru
-                    <PlusCircle className="h-3.5 w-3.5" />
-                  </Link>
-                </div>
-              </Card>
-            </div>
-          </section>
+      <div className="space-y-6">
+        {eventsQuery.isLoading ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground border rounded-2xl bg-card/60 shadow-sm backdrop-blur-sm">
+            <Loader2 className="mb-4 h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm font-medium">Menyiapkan daftar event</p>
+          </div>
+        ) : eventsQuery.isError ? (
+          <Alert variant="destructive" className="border-destructive/50 bg-destructive/5">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Daftar event belum bisa dimuat</AlertTitle>
+            <AlertDescription>Daftar event belum bisa ditampilkan saat ini.</AlertDescription>
+          </Alert>
         ) : (
-          /* Event List Page View (Opened after clicking Daftar Event card) */
-          <div className="space-y-6">
-            {/* Top Back Navigation */}
-            <div className="flex items-center justify-between">
-              <Link
-                to="/scheduled-ops/events"
-                className="inline-flex items-center gap-2 text-xs font-bold text-primary hover:underline"
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            {/* Table Header Controls */}
+            <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 bg-slate-50/50">
+              <div className="relative max-w-sm w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input 
+                  type="text" 
+                  placeholder="Cari tryout..."
+                  className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <h2 className="text-lg font-bold text-slate-800 hidden md:block absolute left-1/2 -translate-x-1/2">
+                Daftar Tryout
+              </h2>
+              <Button 
+                onClick={handleOpenCreateModal}
+                className="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition-all"
               >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                Kembali ke Pemilihan Fitur
-              </Link>
+                <Plus className="h-4 w-4 mr-2" />
+                Tambah Tryout
+              </Button>
             </div>
 
-            {/* List Overview & Status Stats */}
-            {eventsQuery.isLoading ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground border rounded-2xl bg-card/60 shadow-xs backdrop-blur-sm">
-                <Loader2 className="mb-4 h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm font-medium">Menyiapkan daftar event</p>
-              </div>
-            ) : eventsQuery.isError ? (
-              <Alert variant="destructive" className="border-destructive/50 bg-destructive/5">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Daftar event belum bisa dimuat</AlertTitle>
-                <AlertDescription>Daftar event belum bisa ditampilkan saat ini.</AlertDescription>
-              </Alert>
-            ) : !eventsQuery.data?.length ? (
-              <Alert className="border-border/80 bg-card/60 p-5">
-                <AlertCircle className="h-4 w-4 text-primary" />
-                <AlertTitle>Belum ada event</AlertTitle>
-                <AlertDescription>Belum ada event yang dibuat.</AlertDescription>
-              </Alert>
-            ) : (
-              <div className="space-y-6">
-                {/* Stats Overview */}
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  {summaryItems.map((item) => (
-                    <Card
-                      key={item.label}
-                      className="flex min-h-[9rem] flex-col justify-between gap-3 p-5 border-border/80 bg-card shadow-xs transition-all hover:border-primary/30"
-                    >
-                      <Badge className="w-fit text-[10px] font-bold uppercase tracking-wider px-2 py-0.5" variant={item.tone}>
-                        {item.label}
-                      </Badge>
-                      <div className="space-y-1">
-                        <p className="text-3xl font-extrabold tracking-tight text-foreground">
-                          {item.value}
-                        </p>
-                        <p className="text-xs text-muted-foreground leading-normal">{item.note}</p>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-
-                {/* List Control Bar */}
-                <Card className="p-6 border-border/80 bg-card shadow-xs">
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                      <h2 className="text-lg font-extrabold tracking-tight text-foreground flex items-center gap-2">
-                        <Layers className="h-4 w-4 text-primary" />
-                        Daftar event
-                      </h2>
-                      <p className="mt-1 max-w-2xl text-xs text-muted-foreground leading-relaxed">
-                        Buka event yang perlu dirapikan, pantau status aksesnya, lalu lanjutkan aksi dari satu control bar.
-                      </p>
-                    </div>
-                    <Link
-                      {...getButtonStyleProps({
-                        size: "sm",
-                        variant: "primary",
-                        className: "sm:min-w-[10.5rem] h-9 text-xs font-bold cursor-pointer gap-1.5",
-                      })}
-                      to="/scheduled-ops/events/new?fresh=1"
-                    >
-                      <PlusCircle className="h-3.5 w-3.5" />
-                      Event baru
-                    </Link>
-                  </div>
-                </Card>
-
-                {/* Event Items Grid */}
-                <div className="grid gap-4">
-                  {events.map((event) => (
-                    <Card key={event.id} className="p-6 border-border/80 bg-card shadow-xs transition-all duration-300 hover:border-primary/30">
-                      <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-                        <div className="min-w-0 flex-1 space-y-4">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge 
-                              variant={resolveStatusTone(event.status)}
-                              className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 ${
-                                event.status === "active"
-                                  ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
-                                  : event.status === "upcoming"
-                                    ? "bg-amber-500/10 text-amber-600 border-amber-500/30"
-                                    : ""
-                              }`}
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-xs text-slate-500 uppercase bg-slate-100 font-bold tracking-wider">
+                  <tr>
+                    <th className="px-4 py-4 text-center whitespace-nowrap">NO</th>
+                    <th className="px-4 py-4 min-w-[200px]">JUDUL TRYOUT</th>
+                    <th className="px-4 py-4 text-center whitespace-nowrap">SOAL</th>
+                    <th className="px-4 py-4 text-center whitespace-nowrap">DURASI</th>
+                    <th className="px-4 py-4 text-center whitespace-nowrap">LIMIT</th>
+                    <th className="px-4 py-4 text-center whitespace-nowrap">TOTAL KELAS</th>
+                    <th className="px-4 py-4 text-center whitespace-nowrap">MULAI AKSES</th>
+                    <th className="px-4 py-4 text-center whitespace-nowrap">SELESAI AKSES</th>
+                    <th className="px-4 py-4 text-center whitespace-nowrap">STATUS</th>
+                    <th className="px-4 py-4 text-center whitespace-nowrap">AKSI</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-slate-700">
+                  {filteredEvents.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="px-4 py-8 text-center text-slate-500">
+                        Tidak ada data event.
+                      </td>
+                    </tr>
+                  ) : filteredEvents.map((event, index) => {
+                    const startInfo = formatDateTimeForInput(event.accessStartAt);
+                    const endInfo = formatDateTimeForInput(event.accessEndAt);
+                    
+                    return (
+                      <tr key={event.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-4 py-4 text-center font-medium">{index + 1}</td>
+                        <td className="px-4 py-4 font-bold text-slate-900">{event.title}</td>
+                        <td className="px-4 py-4 text-center font-bold text-blue-600">{event.questionCount}</td>
+                        <td className="px-4 py-4 text-center">{event.durationMinutes} mnt</td>
+                        <td className="px-4 py-4 text-center">{event.maxAttempts}x</td>
+                        <td className="px-4 py-4 text-center">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200">
+                            0 KELAS
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-center text-xs">
+                          <div className="font-bold text-emerald-600 mb-0.5">Start:</div>
+                          <div className="text-slate-500 whitespace-nowrap">
+                            {startInfo.date} {startInfo.time}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-center text-xs">
+                          <div className="font-bold text-rose-600 mb-0.5">End:</div>
+                          <div className="text-slate-500 whitespace-nowrap">
+                            {endInfo.date} {endInfo.time}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                           <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border ${resolveStatusTone(event.status)}`}>
+                            {event.statusLabel}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button 
+                              onClick={() => navigate(`/scheduled-ops/events/${event.id}/questions`)}
+                              title="Lihat Soal"
+                              className="p-1.5 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-colors"
                             >
-                              {event.statusLabel}
-                            </Badge>
-                            <Badge variant="secondary" className="text-[10px] font-mono font-semibold px-2 py-0.5">
-                              Cycle {event.currentCycle}
-                            </Badge>
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleOpenEditModal(event)}
+                              title="Ubah Event"
+                              className="p-1.5 rounded-full bg-amber-500 hover:bg-amber-600 text-white transition-colors"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteRequest(event.id, event.title)}
+                              title="Hapus Event"
+                              className="p-1.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
-                          <div className="space-y-1.5">
-                            <h3 className="text-xl font-extrabold leading-tight tracking-tight text-foreground">
-                              {event.title}
-                            </h3>
-                            <p className="max-w-3xl text-xs text-muted-foreground leading-relaxed">
-                              {event.description}
-                            </p>
-                          </div>
-
-                          <div className="rounded-xl border border-border/80 bg-muted/30 p-4 space-y-1">
-                            <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                              <Calendar className="h-3.5 w-3.5 text-primary" />
-                              Jadwal akses
-                            </p>
-                            <p className="text-xs font-semibold text-foreground font-mono">
-                              {event.windowLabel}
-                            </p>
-                          </div>
-
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant="default" className="text-[10px] font-semibold px-2.5 py-0.5">
-                              <FileText className="h-3 w-3 mr-1 inline-block" />
-                              {event.questionCountLabel}
-                            </Badge>
-                            <Badge variant="secondary" className="text-[10px] font-semibold px-2.5 py-0.5">
-                              <Clock className="h-3 w-3 mr-1 inline-block" />
-                              {event.durationLabel}
-                            </Badge>
-                          </div>
-
-                          <p className="text-xs text-muted-foreground leading-relaxed italic">
-                            {resolveStudentLaneVisibilityNote(event.status)}
-                          </p>
-                        </div>
-
-                        <div className="flex shrink-0 flex-col gap-2 border-t border-border/40 pt-4 xl:min-w-[12rem] xl:border-t-0 xl:border-l xl:pl-5 xl:pt-0">
-                          <Link
-                            {...getButtonStyleProps({
-                              size: "sm",
-                              variant: "primary",
-                              className: "h-9 text-xs font-bold cursor-pointer gap-1.5 justify-center",
-                            })}
-                            to={`/scheduled-ops/events/${event.id}/edit`}
-                          >
-                            <Edit3 className="h-3.5 w-3.5" />
-                            Ubah event
-                          </Link>
-                          {event.status === "expired" ? (
-                            <>
-                              <Button
-                                disabled={reactivateMutation.isPending}
-                                onClick={() => {
-                                  void handleReactivate(event.id);
-                                }}
-                                size="sm"
-                                variant="secondary"
-                                className="h-9 text-xs font-semibold cursor-pointer gap-1.5 justify-center"
-                              >
-                                <RefreshCw className="h-3.5 w-3.5 text-primary" />
-                                Aktifkan lagi
-                              </Button>
-                              <Button
-                                disabled={deleteMutation.isPending}
-                                onClick={() => handleDeleteRequest(event.id, event.title)}
-                                size="sm"
-                                variant="destructive"
-                                className="h-9 text-xs font-semibold cursor-pointer gap-1.5 justify-center"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                                Hapus event
-                              </Button>
-                            </>
-                          ) : null}
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Pagination Placeholder (Mocked for visual match) */}
+            <div className="p-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+              <div className="flex items-center gap-2">
+                <span>LIMIT: 20</span>
+                <span>Total: {events.length} Data | Hal 1 / 1</span>
               </div>
-            )}
+              <div className="flex items-center gap-2">
+                 <button className="px-3 py-1 rounded border border-slate-200 text-slate-400 cursor-not-allowed">Previous</button>
+                 <button className="w-6 h-6 rounded-full bg-amber-500 text-white font-bold flex items-center justify-center">1</button>
+                 <button className="px-3 py-1 rounded border border-slate-200 text-slate-400 cursor-not-allowed">Next</button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -456,6 +330,162 @@ function ScheduledEventsPage() {
           pendingLabel="Menghapus..."
           title="Hapus event ini?"
         />
+
+        {/* Create/Edit Modal */}
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden bg-white rounded-xl">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <DialogTitle className="text-xl font-bold text-slate-800 text-center w-full">
+                {editingEventId ? "Ubah Tryout" : "Tambah Tryout Baru"}
+              </DialogTitle>
+            </div>
+            
+            <form onSubmit={handleFormSubmit}>
+              <div className="px-6 py-6 space-y-5 max-h-[70vh] overflow-y-auto">
+                
+                <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-3 flex items-start gap-3">
+                  <Calendar className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                  <p className="text-sm text-blue-700 leading-relaxed">
+                    Tryout akan <strong className="font-semibold">terbuka otomatis</strong> sesuai rentang tanggal yang dipilih.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Judul Tryout</label>
+                    <input 
+                      required
+                      type="text"
+                      className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                      placeholder="Contoh: Tryout UKAI Batch 1"
+                      value={formData.title}
+                      onChange={(e) => setFormData({...formData, title: e.target.value})}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Jumlah Soal</label>
+                      <input 
+                        required
+                        type="number"
+                        min="1"
+                        className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                        placeholder="Contoh: 10"
+                        value={formData.totalQuestions}
+                        onChange={(e) => setFormData({...formData, totalQuestions: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Durasi (menit)</label>
+                      <input 
+                        required
+                        type="number"
+                        min="1"
+                        className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                        placeholder="Contoh: 90"
+                        value={formData.durationMinutes}
+                        onChange={(e) => setFormData({...formData, durationMinutes: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Maksimum Percobaan</label>
+                      <input 
+                        required
+                        type="number"
+                        min="1"
+                        className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                        placeholder="Contoh: 3"
+                        value={formData.maxAttempts}
+                        onChange={(e) => setFormData({...formData, maxAttempts: e.target.value})}
+                      />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tanggal Mulai (Access Start Date)</label>
+                      <div className="relative">
+                        <input 
+                          required
+                          type="date"
+                          className="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                          value={formData.startDate}
+                          onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tanggal Selesai (Access End Date)</label>
+                      <div className="relative">
+                        <input 
+                          required
+                          type="date"
+                          className="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                          value={formData.endDate}
+                          onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Waktu Mulai</label>
+                      <div className="relative">
+                        <input 
+                          required
+                          type="time"
+                          className="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                          value={formData.startTime}
+                          onChange={(e) => setFormData({...formData, startTime: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Waktu Selesai</label>
+                      <div className="relative">
+                        <input 
+                          required
+                          type="time"
+                          className="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                          value={formData.endTime}
+                          onChange={(e) => setFormData({...formData, endTime: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+              
+              <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-5 py-2 text-sm font-semibold text-slate-600 bg-white border-slate-200 hover:bg-slate-50"
+                  disabled={createMutation.isPending || updateMutation.isPending}
+                >
+                  Batal
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="px-5 py-2 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 shadow-sm"
+                  disabled={createMutation.isPending || updateMutation.isPending}
+                >
+                  {(createMutation.isPending || updateMutation.isPending) ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    editingEventId ? "Simpan Perubahan" : "Simpan"
+                  )}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
       </div>
     </ScheduledOpsShell>
   );

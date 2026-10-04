@@ -45,3 +45,4 @@ File utama: `scheduled-event-editor-page.tsx` (akan direfaktor secara fungsional
 ## Open Questions / Edge Cases
 *   *Validation Check*: Saat *event* sudah berjalan (ada percobaan peserta), apakah perubahan metadata (khususnya jumlah soal dan durasi) masih diperbolehkan via modal Edit? Idealnya field krusial ini dikunci (disabled) jika sudah ada attempts.
 *   Upload Soal: Pada mockup Kelola Soal terdapat tombol "Upload Soal". API/logic import via Excel/Word harus dipastikan ketersediaannya di *backend* jika diperlukan integrasi langsung.
+*   *UI Adaptation*: Tampilan layout dan struktur informasi harus mengikuti mockup (Gambar 1-5), namun *styling* (tone warna, font, shadows, dll) harus diadaptasikan dengan sistem *design* atau UI yang sudah ada di aplikasi ini agar selaras.

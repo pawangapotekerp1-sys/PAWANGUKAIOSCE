@@ -34,6 +34,7 @@ export type ScheduledOpsEvent = {
   currentCycle: number;
   questionCount: number;
   durationMinutes: number;
+  maxAttempts?: number;
 };
 
 export type ScheduledOpsEventStatus = "draft" | "upcoming" | "active" | "expired";

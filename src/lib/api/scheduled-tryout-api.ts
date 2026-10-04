@@ -32,6 +32,9 @@ type ScheduledEventRow = {
   access_start_at: string;
   access_end_at: string;
   current_cycle: number;
+  total_questions: number;
+  duration_minutes: number;
+  max_attempts: number;
   updated_at?: string | null;
 };
 
@@ -193,9 +196,12 @@ export type ScheduledEventMutationInput = {
   editorialStatus: "draft" | "published";
   accessStartAt: string;
   accessEndAt: string;
+  totalQuestions: number;
+  durationMinutes: number;
+  maxAttempts: number;
   createdBy?: string | null;
   updatedBy?: string | null;
-  questions: ScheduledEventQuestionDraftInput[];
+  questions?: ScheduledEventQuestionDraftInput[];
 };
 
 export type ScheduledSubmittedAttemptHistoryItem = {
@@ -661,7 +667,7 @@ export async function listScheduledTryoutCatalogEntries(
 ): Promise<ScheduledCatalogEntry[]> {
   const { data: eventData, error: eventError } = await client
     .from("scheduled_tryout_events")
-    .select("id, title, description, editorial_status, access_start_at, access_end_at, current_cycle")
+    .select("id, title, description, editorial_status, access_start_at, access_end_at, current_cycle, total_questions, duration_minutes, max_attempts")
     .eq("editorial_status", "published")
     .order("access_start_at", { ascending: true });
 
@@ -677,14 +683,6 @@ export async function listScheduledTryoutCatalogEntries(
   }
 
   const eventIds = activeEvents.map((event) => event.id);
-  const { data: questionData, error: questionError } = await client
-    .from("scheduled_tryout_event_questions")
-    .select("id, event_id")
-    .in("event_id", eventIds);
-
-  if (questionError) {
-    throw new Error(questionError.message);
-  }
 
   const attemptsResponse = await client
     .from("scheduled_tryout_attempts")
@@ -696,7 +694,6 @@ export async function listScheduledTryoutCatalogEntries(
     throw new Error(attemptsResponse.error.message);
   }
 
-  const questionRows = ((questionData as Array<{ id: string; event_id: string }> | null) ?? []);
   const attemptRows = ((attemptsResponse.data as Array<{
     event_id: string;
     event_cycle: number;
@@ -704,7 +701,6 @@ export async function listScheduledTryoutCatalogEntries(
   }> | null) ?? []);
 
   return activeEvents.map((event) => {
-    const questionCount = questionRows.filter((row) => row.event_id === event.id).length;
     const cycleAttempts = attemptRows.filter((row) =>
       row.event_id === event.id && row.event_cycle === event.current_cycle);
     const submittedAttemptCount = cycleAttempts.filter((row) => row.status === "submitted").length;
@@ -717,9 +713,9 @@ export async function listScheduledTryoutCatalogEntries(
       accessStartAt: event.access_start_at,
       accessEndAt: event.access_end_at,
       currentCycle: event.current_cycle,
-      questionCount,
-      durationMinutes: questionCount,
-      remainingAttempts: Math.max(0, SCHEDULED_MAX_ATTEMPTS_PER_EVENT_CYCLE - submittedAttemptCount),
+      questionCount: event.total_questions,
+      durationMinutes: event.duration_minutes,
+      remainingAttempts: Math.max(0, event.max_attempts - submittedAttemptCount),
       submittedAttemptCount,
       hasActiveAttempt,
     };
@@ -1075,7 +1071,7 @@ export async function listScheduledOpsEvents(
 ): Promise<ScheduledOpsEventSummary[]> {
   const { data: eventData, error: eventError } = await client
     .from("scheduled_tryout_events")
-    .select("id, title, description, editorial_status, access_start_at, access_end_at, current_cycle")
+    .select("id, title, description, editorial_status, access_start_at, access_end_at, current_cycle, total_questions, duration_minutes, max_attempts")
     .order("access_start_at", { ascending: false });
 
   if (eventError) {
@@ -1083,20 +1079,7 @@ export async function listScheduledOpsEvents(
   }
 
   const eventRows = (eventData as ScheduledEventRow[] | null) ?? [];
-  const eventIds = eventRows.map((event) => event.id);
-  const { data: questionData, error: questionError } = await client
-    .from("scheduled_tryout_event_questions")
-    .select("id, event_id")
-    .in("event_id", eventIds);
-
-  if (questionError) {
-    throw new Error(questionError.message);
-  }
-
-  const questionRows = ((questionData as Array<{ id: string; event_id: string }> | null) ?? []);
   const rows: ScheduledOpsEvent[] = eventRows.map((event) => {
-    const questionCount = questionRows.filter((row) => row.event_id === event.id).length;
-
     return {
       id: event.id,
       title: event.title,
@@ -1105,8 +1088,9 @@ export async function listScheduledOpsEvents(
       accessStartAt: event.access_start_at,
       accessEndAt: event.access_end_at,
       currentCycle: event.current_cycle,
-      questionCount,
-      durationMinutes: questionCount,
+      questionCount: event.total_questions,
+      durationMinutes: event.duration_minutes,
+      maxAttempts: event.max_attempts,
     };
   });
 

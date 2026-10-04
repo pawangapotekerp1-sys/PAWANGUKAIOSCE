@@ -152,6 +152,9 @@ function buildInputFromFormState(formState: EventFormState): ScheduledEventMutat
     editorialStatus: formState.editorialStatus,
     accessStartAt: formState.accessStartAt,
     accessEndAt: formState.accessEndAt,
+    totalQuestions: 100,
+    durationMinutes: 100,
+    maxAttempts: 1,
     questions: questions as ScheduledEventMutationInput["questions"],
   };
 }

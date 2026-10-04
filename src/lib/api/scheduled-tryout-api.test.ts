@@ -24,6 +24,9 @@ describe("scheduled-tryout-api", () => {
           access_start_at: "2026-06-09T00:00:00.000Z",
           access_end_at: "2026-06-10T12:00:00.000Z",
           current_cycle: 2,
+          total_questions: 2,
+          duration_minutes: 2,
+          max_attempts: 5,
         },
         {
           id: "event-upcoming",
@@ -33,6 +36,9 @@ describe("scheduled-tryout-api", () => {
           access_start_at: "2026-06-11T00:00:00.000Z",
           access_end_at: "2026-06-12T12:00:00.000Z",
           current_cycle: 1,
+          total_questions: 2,
+          duration_minutes: 2,
+          max_attempts: 5,
         },
         {
           id: "event-expired",
@@ -42,6 +48,9 @@ describe("scheduled-tryout-api", () => {
           access_start_at: "2026-06-01T00:00:00.000Z",
           access_end_at: "2026-06-02T12:00:00.000Z",
           current_cycle: 3,
+          total_questions: 2,
+          duration_minutes: 2,
+          max_attempts: 5,
         },
       ],
       error: null,
@@ -111,6 +120,7 @@ describe("scheduled-tryout-api", () => {
         currentCycle: 2,
         questionCount: 2,
         durationMinutes: 2,
+        maxAttempts: 5,
         remainingAttempts: 3,
         submittedAttemptCount: 2,
         hasActiveAttempt: true,
@@ -350,6 +360,10 @@ describe("scheduled-tryout-api", () => {
       },
       error: null,
     });
+    const createSignedUrls = vi.fn((paths: string[]) => Promise.resolve({
+      data: paths.map(path => ({ path, signedUrl: `https://signed.example/${path}` })),
+      error: null,
+    }));
     const client = {
       rpc,
       from: vi.fn((table: string) => {
@@ -388,6 +402,7 @@ describe("scheduled-tryout-api", () => {
       storage: {
         from: vi.fn(() => ({
           createSignedUrl,
+          createSignedUrls,
         })),
       },
     };
@@ -697,6 +712,10 @@ describe("scheduled-tryout-api", () => {
       },
       error: null,
     }));
+    const createSignedUrls = vi.fn((paths: string[]) => Promise.resolve({
+      data: paths.map(path => ({ path, signedUrl: `https://signed.example/${path}` })),
+      error: null,
+    }));
     const client = {
       from: vi.fn((table: string) => {
         if (table === "scheduled_tryout_attempts") {
@@ -754,6 +773,7 @@ describe("scheduled-tryout-api", () => {
       storage: {
         from: vi.fn(() => ({
           createSignedUrl,
+          createSignedUrls,
         })),
       },
     };
@@ -778,6 +798,12 @@ describe("scheduled-tryout-api", () => {
           blockLabel: "Clinical Science",
           question: "Apa terapi awal yang paling rasional?",
           questionImageUrl: "https://signed.example/question/scheduled-events/event-1-question.png",
+          options: [
+            { key: "A", text: "Pilihan A" },
+            { key: "B", text: "Pilihan B" },
+          ],
+          selectedOptionKey: "A",
+          correctOptionKey: "B",
           userAnswer: "Pilihan A",
           correctAnswer: "Pilihan B",
           explanationText: "ACE inhibitor dipilih sebagai fondasi awal.",
@@ -835,6 +861,10 @@ describe("scheduled-tryout-api", () => {
       },
       error: null,
     }));
+    const createSignedUrls = vi.fn((paths: string[]) => Promise.resolve({
+      data: paths.map(path => ({ path, signedUrl: `https://signed.example/${path}` })),
+      error: null,
+    }));
     const client = {
       from: vi.fn((table: string) => {
         if (table === "scheduled_tryout_events") {
@@ -862,6 +892,7 @@ describe("scheduled-tryout-api", () => {
       storage: {
         from: vi.fn(() => ({
           createSignedUrl,
+          createSignedUrls,
         })),
       },
     };
@@ -925,6 +956,9 @@ describe("scheduled-tryout-api", () => {
         editorialStatus: "published",
         accessStartAt: "2026-06-10T08:00",
         accessEndAt: "2026-06-12T21:00",
+        totalQuestions: 1,
+        durationMinutes: 1,
+        maxAttempts: 1,
         questions: [
           {
             stem: "Apa terapi awal yang paling rasional?",
@@ -972,6 +1006,9 @@ describe("scheduled-tryout-api", () => {
         editorialStatus: "draft",
         accessStartAt: "2026-06-10T08:00",
         accessEndAt: "2026-06-12T21:00",
+        totalQuestions: 1,
+        durationMinutes: 1,
+        maxAttempts: 1,
         questions: [],
       },
     });

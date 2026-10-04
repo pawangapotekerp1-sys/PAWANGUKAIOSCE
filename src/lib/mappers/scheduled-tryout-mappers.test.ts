@@ -22,6 +22,7 @@ describe("scheduled-tryout-mappers", () => {
           questionCount: 40,
           durationMinutes: 40,
           remainingAttempts: 2,
+          maxAttempts: 5,
           submittedAttemptCount: 1,
           hasActiveAttempt: false,
         },

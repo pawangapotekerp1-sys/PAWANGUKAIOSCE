@@ -7,6 +7,7 @@ export type ScheduledCatalogEntry = {
   currentCycle: number;
   questionCount: number;
   durationMinutes: number;
+  maxAttempts: number;
   remainingAttempts: number;
   submittedAttemptCount: number;
   hasActiveAttempt: boolean;
@@ -224,7 +225,7 @@ export function mapScheduledCatalogEntriesToCards(
     subtitle: entry.hasActiveAttempt ? "Lanjutkan event aktif" : "Event terjadwal aktif",
     questionCountLabel: `${entry.questionCount} soal`,
     durationLabel: `${entry.durationMinutes} menit`,
-    attemptsRemainingLabel: `${entry.remainingAttempts} dari ${SCHEDULED_MAX_ATTEMPTS_PER_EVENT_CYCLE} attempt tersisa`,
+    attemptsRemainingLabel: `${entry.remainingAttempts} dari ${entry.maxAttempts} attempt tersisa`,
     windowLabel: formatWindowLabel(entry.accessStartAt, entry.accessEndAt),
     isLocked: entry.remainingAttempts <= 0 && !entry.hasActiveAttempt,
     emphasis: entry.hasActiveAttempt ? "accent" : "default",

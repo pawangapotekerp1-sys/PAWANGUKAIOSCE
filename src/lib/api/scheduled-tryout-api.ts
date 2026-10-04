@@ -715,6 +715,7 @@ export async function listScheduledTryoutCatalogEntries(
       currentCycle: event.current_cycle,
       questionCount: event.total_questions,
       durationMinutes: event.duration_minutes,
+      maxAttempts: event.max_attempts,
       remainingAttempts: Math.max(0, event.max_attempts - submittedAttemptCount),
       submittedAttemptCount,
       hasActiveAttempt,

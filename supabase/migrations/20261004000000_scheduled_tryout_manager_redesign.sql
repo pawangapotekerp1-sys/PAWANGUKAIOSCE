@@ -72,9 +72,9 @@ begin
       access_start_at = (payload->>'accessStartAt')::timestamptz,
       access_end_at = (payload->>'accessEndAt')::timestamptz,
       updated_by = nullif(payload->>'updatedBy', '')::uuid,
-      total_questions = coalesce((payload->>'totalQuestions')::integer, 100),
-      duration_minutes = coalesce((payload->>'durationMinutes')::integer, 100),
-      max_attempts = coalesce((payload->>'maxAttempts')::integer, 1)
+      total_questions = coalesce((payload->>'totalQuestions')::integer, total_questions),
+      duration_minutes = coalesce((payload->>'durationMinutes')::integer, duration_minutes),
+      max_attempts = coalesce((payload->>'maxAttempts')::integer, max_attempts)
     where id = target_event_id
     returning *
     into saved_event;

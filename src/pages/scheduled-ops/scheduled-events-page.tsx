@@ -1,8 +1,9 @@
 import { useState, FormEvent, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useSearchParams, useNavigate } from "react-router";
-import { Loader2, AlertCircle, Calendar, Clock, Eye, Edit3, Trash2, Plus, Search, FileText, Settings2, HelpCircle } from "lucide-react";
+import { Loader2, AlertCircle, Calendar, Eye, Edit3, Trash2, Plus, Search } from "lucide-react";
 import Button from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
 import ConfirmDialog from "../../components/ui/confirm-dialog";
 import { Alert, AlertTitle, AlertDescription } from "../../components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "../../components/ui/dialog";
@@ -28,14 +29,14 @@ function formatDateTimeForInput(dateString: string | null) {
 
 function combineDateTimeForOutput(date: string, time: string) {
   if (!date || !time) return new Date().toISOString();
-  return `${date}T${time}:00`;
+  return `${date}T${time}`;
 }
 
-function resolveStatusTone(status: "draft" | "upcoming" | "active" | "expired") {
-  if (status === "active") return "text-emerald-600 border-emerald-500 bg-emerald-50";
-  if (status === "expired") return "text-gray-500 border-gray-400 bg-gray-50";
-  if (status === "upcoming") return "text-amber-600 border-amber-500 bg-amber-50";
-  return "text-gray-600 border-gray-300 bg-gray-50";
+function resolveStatusTone(status: "draft" | "upcoming" | "active" | "expired"): "default" | "secondary" | "outline" | "destructive" {
+  if (status === "active") return "default";
+  if (status === "expired") return "secondary";
+  if (status === "upcoming") return "outline";
+  return "outline";
 }
 
 function ScheduledEventsPage() {
@@ -53,6 +54,8 @@ function ScheduledEventsPage() {
   // Form State
   const [formData, setFormData] = useState({
     title: "",
+    description: "",
+    editorialStatus: "draft",
     totalQuestions: "",
     durationMinutes: "",
     maxAttempts: "",
@@ -98,6 +101,9 @@ function ScheduledEventsPage() {
       await queryClient.invalidateQueries({ queryKey: eventsQueryKey });
       setPendingDeleteEvent(null);
     },
+    onError: (err) => {
+      alert("Gagal menghapus tryout: " + err.message);
+    }
   });
 
   function handleDeleteRequest(eventId: string, eventTitle: string) {
@@ -113,6 +119,8 @@ function ScheduledEventsPage() {
     setEditingEventId(null);
     setFormData({
       title: "",
+      description: "",
+      editorialStatus: "draft",
       totalQuestions: "",
       durationMinutes: "",
       maxAttempts: "",
@@ -131,9 +139,11 @@ function ScheduledEventsPage() {
     
     setFormData({
       title: event.title,
+      description: event.description || "",
+      editorialStatus: event.editorialStatus || "draft",
       totalQuestions: event.questionCount.toString(),
       durationMinutes: event.durationMinutes.toString(),
-      maxAttempts: event.maxAttempts.toString(),
+      maxAttempts: (event.maxAttempts ?? 1).toString(),
       startDate: start.date,
       startTime: start.time,
       endDate: end.date,
@@ -147,8 +157,8 @@ function ScheduledEventsPage() {
     
     const input: ScheduledEventMutationInput = {
       title: formData.title,
-      description: "", 
-      editorialStatus: "draft",
+      description: formData.description, 
+      editorialStatus: formData.editorialStatus as "draft" | "published",
       accessStartAt: combineDateTimeForOutput(formData.startDate, formData.startTime),
       accessEndAt: combineDateTimeForOutput(formData.endDate, formData.endTime),
       totalQuestions: parseInt(formData.totalQuestions) || 0,
@@ -189,12 +199,13 @@ function ScheduledEventsPage() {
         ) : (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             {/* Table Header Controls */}
-            <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 bg-slate-50/50">
+            <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 bg-slate-50/50 relative">
               <div className="relative max-w-sm w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <input 
                   type="text" 
                   placeholder="Cari tryout..."
+                  aria-label="Cari tryout"
                   className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -205,7 +216,7 @@ function ScheduledEventsPage() {
               </h2>
               <Button 
                 onClick={handleOpenCreateModal}
-                className="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition-all"
+                variant="default"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Tambah Tryout
@@ -248,9 +259,9 @@ function ScheduledEventsPage() {
                         <td className="px-4 py-4 text-center">{event.durationMinutes} mnt</td>
                         <td className="px-4 py-4 text-center">{event.maxAttempts}x</td>
                         <td className="px-4 py-4 text-center">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200">
+                          <Badge variant="outline">
                             0 KELAS
-                          </span>
+                          </Badge>
                         </td>
                         <td className="px-4 py-4 text-center text-xs">
                           <div className="font-bold text-emerald-600 mb-0.5">Start:</div>
@@ -265,33 +276,33 @@ function ScheduledEventsPage() {
                           </div>
                         </td>
                         <td className="px-4 py-4 text-center">
-                           <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border ${resolveStatusTone(event.status)}`}>
+                           <Badge variant={resolveStatusTone(event.status)}>
                             {event.statusLabel}
-                          </span>
+                          </Badge>
                         </td>
                         <td className="px-4 py-4">
                           <div className="flex items-center justify-center gap-1.5">
-                            <button 
-                              onClick={() => navigate(`/scheduled-ops/events/${event.id}/questions`)}
-                              title="Lihat Soal"
-                              className="p-1.5 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-colors"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button 
+                            <Button variant="outline" size="icon-sm" asChild title="Lihat Soal">
+                              <Link to={`/scheduled-ops/events/${event.id}/questions`}>
+                                <Eye className="w-4 h-4" />
+                              </Link>
+                            </Button>
+                            <Button 
                               onClick={() => handleOpenEditModal(event)}
                               title="Ubah Event"
-                              className="p-1.5 rounded-full bg-amber-500 hover:bg-amber-600 text-white transition-colors"
+                              variant="outline"
+                              size="icon-sm"
                             >
                               <Edit3 className="w-4 h-4" />
-                            </button>
-                            <button 
+                            </Button>
+                            <Button 
                               onClick={() => handleDeleteRequest(event.id, event.title)}
                               title="Hapus Event"
-                              className="p-1.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white transition-colors"
+                              variant="destructive"
+                              size="icon-sm"
                             >
                               <Trash2 className="w-4 h-4" />
-                            </button>
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -352,8 +363,9 @@ function ScheduledEventsPage() {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Judul Tryout</label>
+                    <label htmlFor="title" className="block text-sm font-semibold text-slate-700 mb-1.5">Judul Tryout</label>
                     <input 
+                      id="title"
                       required
                       type="text"
                       className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
@@ -365,8 +377,9 @@ function ScheduledEventsPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Jumlah Soal</label>
+                      <label htmlFor="totalQuestions" className="block text-sm font-semibold text-slate-700 mb-1.5">Jumlah Soal</label>
                       <input 
+                        id="totalQuestions"
                         required
                         type="number"
                         min="1"
@@ -377,8 +390,9 @@ function ScheduledEventsPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Durasi (menit)</label>
+                      <label htmlFor="durationMinutes" className="block text-sm font-semibold text-slate-700 mb-1.5">Durasi (menit)</label>
                       <input 
+                        id="durationMinutes"
                         required
                         type="number"
                         min="1"
@@ -391,8 +405,9 @@ function ScheduledEventsPage() {
                   </div>
 
                   <div>
-                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Maksimum Percobaan</label>
+                     <label htmlFor="maxAttempts" className="block text-sm font-semibold text-slate-700 mb-1.5">Maksimum Percobaan</label>
                       <input 
+                        id="maxAttempts"
                         required
                         type="number"
                         min="1"
@@ -405,9 +420,10 @@ function ScheduledEventsPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tanggal Mulai (Access Start Date)</label>
+                      <label htmlFor="startDate" className="block text-sm font-semibold text-slate-700 mb-1.5">Tanggal Mulai (Access Start Date)</label>
                       <div className="relative">
                         <input 
+                          id="startDate"
                           required
                           type="date"
                           className="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
@@ -417,9 +433,10 @@ function ScheduledEventsPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tanggal Selesai (Access End Date)</label>
+                      <label htmlFor="endDate" className="block text-sm font-semibold text-slate-700 mb-1.5">Tanggal Selesai (Access End Date)</label>
                       <div className="relative">
                         <input 
+                          id="endDate"
                           required
                           type="date"
                           className="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
@@ -432,9 +449,10 @@ function ScheduledEventsPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Waktu Mulai</label>
+                      <label htmlFor="startTime" className="block text-sm font-semibold text-slate-700 mb-1.5">Waktu Mulai</label>
                       <div className="relative">
                         <input 
+                          id="startTime"
                           required
                           type="time"
                           className="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
@@ -444,9 +462,10 @@ function ScheduledEventsPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Waktu Selesai</label>
+                      <label htmlFor="endTime" className="block text-sm font-semibold text-slate-700 mb-1.5">Waktu Selesai</label>
                       <div className="relative">
                         <input 
+                          id="endTime"
                           required
                           type="time"
                           className="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"

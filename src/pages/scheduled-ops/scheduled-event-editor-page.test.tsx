@@ -144,8 +144,9 @@ beforeEach(() => {
 });
 
 describe("Scheduled event editor page", () => {
-  test("renders event metadata fields and can add local question blocks before save", async () => {
-    renderScheduledEventEditor(); await screen.findByRole("combobox", { name: /status publikasi/i });
+  test("renders question editor and can add local question blocks before save", async () => {
+    renderScheduledEventEditor();
+    await screen.findByText(/status publikasi/i);
 
     expect(await screen.findByText(/manajemen soal event terjadwal/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' })).toBeInTheDocument();
     
@@ -159,10 +160,45 @@ describe("Scheduled event editor page", () => {
     fireEvent.click(screen.getByRole("button", { name: /tambah soal/i }));
 
     expect(screen.getByLabelText(/^pertanyaan 2$/i)).toBeInTheDocument();
+  });
+
+  test("invokes updateScheduledEvent with form payload on save", async () => {
+    renderScheduledEventEditor("/scheduled-ops/events/event-1/questions");
+    await screen.findByText(/status publikasi/i);
+
+    const firstQuestionInput = screen.getByLabelText(/^pertanyaan 1$/i);
+    fireEvent.change(firstQuestionInput, {
+      target: { value: "Pertanyaan yang telah diedit" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /simpan event/i }));
+
+    await waitFor(() => {
+      expect(mockUpdateScheduledEvent).toHaveBeenCalledWith({
+        eventId: "event-1",
+        input: expect.objectContaining({
+          title: "TO Klinik Juni",
+          description: "Deskripsi",
+          editorialStatus: "draft",
+          accessStartAt: "2026-06-01T07:00:00Z",
+          accessEndAt: "2026-06-01T10:00:00Z",
+          durationMinutes: 100,
+          totalQuestions: 1,
+          maxAttempts: 1,
+          questions: [
+            expect.objectContaining({
+              id: "question-1",
+              stem: "Pertanyaan yang telah diedit",
+              correctOptionKey: "B",
+            }),
+          ],
+        }),
       });
+    });
+  });
 
   test("shows the add-question action only inside the last question card", async () => {
-    renderScheduledEventEditor(); await screen.findByRole("combobox", { name: /status publikasi/i });
+    renderScheduledEventEditor(); await screen.findByText(/status publikasi/i);
 
     
     const firstCard = screen.getByText(/soal 1/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' }).closest('.px-5');
@@ -180,7 +216,7 @@ describe("Scheduled event editor page", () => {
   });
 
   test("shows delete actions per question card only when more than one question exists", async () => {
-    renderScheduledEventEditor(); await screen.findByRole("combobox", { name: /status publikasi/i });
+    renderScheduledEventEditor(); await screen.findByText(/status publikasi/i);
 
     
     await fillValidScheduledEventForm();
@@ -191,7 +227,7 @@ describe("Scheduled event editor page", () => {
   });
 
   test("renders each question card with grouped answer and explanation sections in reading order", async () => {
-    renderScheduledEventEditor(); await screen.findByRole("combobox", { name: /status publikasi/i });
+    renderScheduledEventEditor(); await screen.findByText(/status publikasi/i);
 
     
     const questionCard = screen.getByText(/soal 1/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' }).closest('.px-5');
@@ -217,7 +253,7 @@ describe("Scheduled event editor page", () => {
   });
 
   test("removes a question only after delete confirmation", async () => {
-    renderScheduledEventEditor(); await screen.findByRole("combobox", { name: /status publikasi/i });
+    renderScheduledEventEditor(); await screen.findByText(/status publikasi/i);
 
     await fillValidScheduledEventForm();
     fireEvent.click(screen.getByRole("button", { name: /tambah soal/i }));
@@ -240,7 +276,7 @@ describe("Scheduled event editor page", () => {
       });
 
   test("keeps the question when delete confirmation is cancelled", async () => {
-    renderScheduledEventEditor(); await screen.findByRole("combobox", { name: /status publikasi/i });
+    renderScheduledEventEditor(); await screen.findByText(/status publikasi/i);
 
     await fillValidScheduledEventForm();
     fireEvent.click(screen.getByRole("button", { name: /tambah soal/i }));
@@ -257,7 +293,7 @@ describe("Scheduled event editor page", () => {
       });
 
   test("hides block and topic categorization in the scheduled editor", async () => {
-    renderScheduledEventEditor(); await screen.findByRole("combobox", { name: /status publikasi/i });
+    renderScheduledEventEditor(); await screen.findByText(/status publikasi/i);
 
     
 
@@ -266,7 +302,7 @@ describe("Scheduled event editor page", () => {
   });
 
   test("restores the new-event draft automatically after remount", async () => {
-    const firstRender = renderScheduledEventEditor(); await screen.findByRole("combobox", { name: /status publikasi/i });
+    const firstRender = renderScheduledEventEditor(); await screen.findByText(/status publikasi/i);
 
     
     fireEvent.change(screen.getByLabelText(/^pertanyaan 1$/i), {
@@ -274,7 +310,7 @@ describe("Scheduled event editor page", () => {
     });
 
     firstRender.unmount();
-    renderScheduledEventEditor(); await screen.findByRole("combobox", { name: /status publikasi/i });
+    renderScheduledEventEditor(); await screen.findByText(/status publikasi/i);
 
     expect(screen.getByDisplayValue(/pertanyaan draft yang belum sempat disimpan/i)).toBeInTheDocument();
   });
@@ -314,7 +350,7 @@ describe("Scheduled event editor page", () => {
       ],
     });
 
-    renderScheduledEventEditor("/scheduled-ops/events/event-9/questions"); await screen.findByRole("combobox", { name: /status publikasi/i });
+    renderScheduledEventEditor("/scheduled-ops/events/event-9/questions"); await screen.findByText(/status publikasi/i);
 
     
     
@@ -388,7 +424,7 @@ describe("Scheduled event editor page", () => {
       ],
     });
 
-    renderScheduledEventEditor("/scheduled-ops/events/event-9/questions"); await screen.findByRole("combobox", { name: /status publikasi/i });
+    renderScheduledEventEditor("/scheduled-ops/events/event-9/questions"); await screen.findByText(/status publikasi/i);
 
     
     expect(screen.getByDisplayValue(/soal draft edit lokal/i)).toBeInTheDocument();
@@ -534,7 +570,7 @@ describe("Scheduled event editor page", () => {
       ],
     });
 
-    renderScheduledEventEditor("/scheduled-ops/events/event-9/questions"); await screen.findByRole("combobox", { name: /status publikasi/i });
+    renderScheduledEventEditor("/scheduled-ops/events/event-9/questions"); await screen.findByText(/status publikasi/i);
 
     
     expect(screen.getByDisplayValue(/soal backend 4/i)).toBeInTheDocument();
@@ -680,7 +716,7 @@ describe("Scheduled event editor page", () => {
       ],
     });
 
-    renderScheduledEventEditor("/scheduled-ops/events/event-9/questions"); await screen.findByRole("combobox", { name: /status publikasi/i });
+    renderScheduledEventEditor("/scheduled-ops/events/event-9/questions"); await screen.findByText(/status publikasi/i);
 
     
     expect(screen.getByDisplayValue(/soal backend 4/i)).toBeInTheDocument();
@@ -722,7 +758,7 @@ describe("Scheduled event editor page", () => {
     );
     mockGetScheduledEventEditorData.mockRejectedValue(new Error("Backend operasional tidak tersedia."));
 
-    renderScheduledEventEditor("/scheduled-ops/events/event-9/questions"); await screen.findByRole("combobox", { name: /status publikasi/i });
+    renderScheduledEventEditor("/scheduled-ops/events/event-9/questions"); await screen.findByText(/status publikasi/i);
 
     
     expect(screen.getByDisplayValue(/soal draft yang harus tetap pulih/i)).toBeInTheDocument();
@@ -732,7 +768,7 @@ describe("Scheduled event editor page", () => {
   });
 
   test("uploads scheduled question and explanation images through the scheduled helper", async () => {
-    renderScheduledEventEditor(); await screen.findByRole("combobox", { name: /status publikasi/i });
+    renderScheduledEventEditor(); await screen.findByText(/status publikasi/i);
 
     
     const questionFile = new File(["question"], "question.png", { type: "image/png" });
@@ -744,7 +780,7 @@ describe("Scheduled event editor page", () => {
 
     await waitFor(() => {
       expect(mockUploadScheduledQuestionMedia).toHaveBeenCalledWith({
-        eventId: "draft",
+        eventId: "event-1",
         kind: "question",
         file: questionFile,
       });
@@ -756,7 +792,7 @@ describe("Scheduled event editor page", () => {
 
     await waitFor(() => {
       expect(mockUploadScheduledQuestionMedia).toHaveBeenCalledWith({
-        eventId: "draft",
+        eventId: "event-1",
         kind: "explanation",
         file: explanationFile,
       });
@@ -764,7 +800,7 @@ describe("Scheduled event editor page", () => {
   });
 
   test("renders each scheduled question image input between the stem field and option A", async () => {
-    renderScheduledEventEditor(); await screen.findByRole("combobox", { name: /status publikasi/i });
+    renderScheduledEventEditor(); await screen.findByText(/status publikasi/i);
 
     const stemField = await screen.findByLabelText(/^pertanyaan 1$/i);
     const questionImageInput = screen.getByLabelText(/^gambar pertanyaan 1$/i);

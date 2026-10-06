@@ -1,11 +1,11 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "../../components/ui/card";
+import { Card } from "../../components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "../../components/ui/alert";
 import { Badge } from "../../components/ui/badge";
 import { Loader2, Upload } from "lucide-react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import ConfirmDialog from "../../components/ui/confirm-dialog";
 import Button from "../../components/ui/button";
 
@@ -250,7 +250,6 @@ function ScheduledEventEditorPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { id: eventId } = useParams();
-  const [searchParams] = useSearchParams();
   const isEditMode = Boolean(eventId);
   const [restoredDraft] = useState(() =>
     readScheduledEventDraft(eventId),

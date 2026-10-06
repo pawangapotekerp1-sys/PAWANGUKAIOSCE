@@ -40,17 +40,18 @@ export default function ScheduledEventEditorPage() {
     }
   }, [editorQuery.data]);
 
-  const buildInputFromFormState = (state: { questions: ScheduledEventQuestionDraftInput[] }, event: any): ScheduledEventMutationInput | null => {
+  const buildInputFromFormState = (state: { questions: ScheduledEventQuestionDraftInput[] }, event: any | unknown): ScheduledEventMutationInput | null => {
     if (!event) return null;
+    const e = event as any;
     return {
-      title: event.title,
-      description: event.description,
-      editorialStatus: event.editorialStatus,
-      accessStartAt: event.accessStartAt,
-      accessEndAt: event.accessEndAt,
-      totalQuestions: event.questionCount || 100,
-      durationMinutes: event.durationMinutes || 100,
-      maxAttempts: event.maxAttempts || 1,
+      title: e.title,
+      description: e.description,
+      editorialStatus: e.editorialStatus,
+      accessStartAt: e.accessStartAt,
+      accessEndAt: e.accessEndAt,
+      totalQuestions: e.questionCount || 100,
+      durationMinutes: e.durationMinutes || 100,
+      maxAttempts: e.maxAttempts || 1,
       questions: state.questions as ScheduledEventMutationInput["questions"]
     };
   };
@@ -61,6 +62,10 @@ export default function ScheduledEventEditorPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["scheduled-event-editor", eventId] });
       queryClient.invalidateQueries({ queryKey: ["scheduled-ops-events"] });
+    },
+    onError: () => {
+      alert("Gagal menyimpan perubahan");
+      queryClient.invalidateQueries({ queryKey: ["scheduled-event-editor", eventId] });
     }
   });
 
@@ -113,6 +118,18 @@ export default function ScheduledEventEditorPage() {
     );
   }
 
+  if (editorQuery.isError) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-background p-6 rounded-lg shadow-xl max-w-md w-full text-center">
+          <h2 className="text-xl font-bold text-destructive mb-2">Terjadi Kesalahan</h2>
+          <p className="text-muted-foreground mb-4">Gagal memuat data editor. Silakan coba lagi.</p>
+          <Button onClick={() => navigate("/scheduled-ops/events")}>Kembali</Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm overflow-y-auto flex justify-center p-4 sm:p-6 md:p-8">
       <div className="bg-background w-full max-w-5xl rounded-2xl shadow-xl flex flex-col my-auto max-h-full">
@@ -133,7 +150,7 @@ export default function ScheduledEventEditorPage() {
             <Button onClick={() => navigate("/scheduled-ops/events")} variant="outline" size="sm">
               Selesai
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate("/scheduled-ops/events")} className="rounded-full">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/scheduled-ops/events")} className="rounded-full" aria-label="Tutup">
               <X className="h-5 w-5" />
             </Button>
           </div>
@@ -165,13 +182,14 @@ export default function ScheduledEventEditorPage() {
                   onDelete={() => handleDeleteQuestion(i)}
                 />
               ))}
-              <div 
+              <button
+                type="button" 
                 onClick={handleAddClick}
-                className="border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:border-primary transition-colors cursor-pointer min-h-[250px] p-6 text-center"
+                className="w-full border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:border-primary transition-colors cursor-pointer min-h-[250px] p-6 text-center"
               >
                 <Plus className="h-8 w-8 mb-2" />
                 <span className="font-medium">Tambah Soal Baru</span>
-              </div>
+              </button>
             </div>
           )}
         </div>

@@ -166,4 +166,41 @@ describe("Scheduled event editor page - Grid and Modal", () => {
     const updateCall = mockUpdateScheduledEvent.mock.calls[0][0];
     expect(updateCall.input.questions).toHaveLength(0);
   });
+
+  test("renders empty state when there are no questions", async () => {
+    mockGetScheduledEventEditorData.mockResolvedValueOnce({
+      event: {
+        id: "event-empty",
+        title: "Empty Event",
+        questionCount: 0,
+      },
+      questions: [],
+    });
+
+    renderScheduledEventEditor("/scheduled-ops/events/event-empty/questions");
+
+    expect(await screen.findByText("Belum ada soal")).toBeInTheDocument();
+    expect(screen.getByText("Mulai tambahkan soal untuk event tryout ini. Soal akan otomatis tersimpan.")).toBeInTheDocument();
+  });
+
+  test("does not delete question if confirmation is cancelled", async () => {
+    vi.stubGlobal("confirm", () => false); // Cancel deletion
+
+    renderScheduledEventEditor();
+    expect(await screen.findByText("Daftar Soal Tryout")).toBeInTheDocument();
+    
+    const cards = document.querySelectorAll(".bg-card");
+    const deleteBtn = within(cards[0] as HTMLElement).getAllByRole("button")[1];
+    
+    // Clear previous mock calls from initial render/setup
+    mockUpdateScheduledEvent.mockClear();
+    
+    fireEvent.click(deleteBtn);
+    
+    // Should not call API
+    expect(mockUpdateScheduledEvent).not.toHaveBeenCalled();
+    
+    // Question card should still be in document
+    expect(screen.getByText("Apa terapi awal yang paling rasional?")).toBeInTheDocument();
+  });
 });

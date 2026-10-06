@@ -11,6 +11,7 @@ export interface MaterialFolder {
   created_by: string;
   created_at: string;
   updated_at: string;
+  visible_to: string[];
 }
 
 export interface MaterialLink {
@@ -23,6 +24,7 @@ export interface MaterialLink {
   created_by: string;
   created_at: string;
   updated_at: string;
+  visible_to: string[];
 }
 
 export async function getFolders({
@@ -231,6 +233,44 @@ export async function deleteLink({
   const { error } = await client
     .from("material_links")
     .delete()
+    .eq("id", id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function updateFolderVisibility({
+  client = getSupabaseBrowserClient(),
+  id,
+  visibleTo,
+}: {
+  client?: SupabaseClient;
+  id: string;
+  visibleTo: string[];
+}): Promise<void> {
+  const { error } = await client
+    .from("material_folders")
+    .update({ visible_to: visibleTo })
+    .eq("id", id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function updateLinkVisibility({
+  client = getSupabaseBrowserClient(),
+  id,
+  visibleTo,
+}: {
+  client?: SupabaseClient;
+  id: string;
+  visibleTo: string[];
+}): Promise<void> {
+  const { error } = await client
+    .from("material_links")
+    .update({ visible_to: visibleTo })
     .eq("id", id);
 
   if (error) {

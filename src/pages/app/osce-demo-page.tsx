@@ -54,7 +54,18 @@ export default function OsceDemoPage() {
       disablePadding
     >
       <div className="flex flex-col w-full h-[calc(100vh-4rem)] p-6 overflow-y-auto">
-        {!activeConfig ? (
+        {studentShell.role === "pro" ? (
+          <div className="flex flex-col items-center justify-center h-full text-center max-w-md mx-auto">
+            <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-6">
+              <span className="text-2xl font-bold">!</span>
+            </div>
+            <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Ditolak</h1>
+            <p className="text-slate-500">
+              Maaf, fitur Simulasi OSCE tidak tersedia untuk role pro (Kelas Apoteker). 
+              Fitur ini hanya dapat diakses oleh Kelas OSCE.
+            </p>
+          </div>
+        ) : !activeConfig ? (
           // SCREEN 1: SELECTION LIST
           <div className="w-full space-y-6">
             <div>

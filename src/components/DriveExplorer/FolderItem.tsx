@@ -13,6 +13,7 @@ interface FolderItemProps {
   onClone?: (folder: MaterialFolder) => void;
   onMove?: (folder: MaterialFolder) => void;
   onDelete?: (folder: MaterialFolder) => void;
+  onVisibilityChange?: (folder: MaterialFolder, newVisibleTo: string[]) => void;
   isListView?: boolean;
 }
 
@@ -25,6 +26,7 @@ export function FolderItem({
   onClone,
   onMove,
   onDelete,
+  onVisibilityChange,
   isListView,
 }: FolderItemProps) {
   return (
@@ -56,6 +58,8 @@ export function FolderItem({
             onClone={onClone}
             onMove={onMove}
             onDelete={onDelete}
+            onVisibilityChange={onVisibilityChange}
+            currentVisibleTo={folder.visible_to || ['pro', 'osce_pro']}
             menuHoverClass="hover:text-blue-600"
           />
         )}

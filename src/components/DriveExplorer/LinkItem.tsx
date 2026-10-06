@@ -13,6 +13,7 @@ interface LinkItemProps {
   onClone?: (link: MaterialLink) => void;
   onMove?: (link: MaterialLink) => void;
   onDelete?: (link: MaterialLink) => void;
+  onVisibilityChange?: (link: MaterialLink, newVisibleTo: string[]) => void;
   isListView?: boolean;
 }
 
@@ -25,6 +26,7 @@ export function LinkItem({
   onClone,
   onMove,
   onDelete,
+  onVisibilityChange,
   isListView,
 }: LinkItemProps) {
   const handleClick = () => {
@@ -74,6 +76,8 @@ export function LinkItem({
             onClone={onClone}
             onMove={onMove}
             onDelete={onDelete}
+            onVisibilityChange={onVisibilityChange}
+            currentVisibleTo={link.visible_to || ['pro', 'osce_pro']}
             menuHoverClass="hover:text-emerald-600"
           />
         )}

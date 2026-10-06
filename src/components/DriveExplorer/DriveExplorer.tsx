@@ -12,6 +12,8 @@ import {
   deleteLink,
   cloneItem,
   moveItem,
+  updateFolderVisibility,
+  updateLinkVisibility,
 } from '@/lib/api/material-api';
 import { Breadcrumb, BreadcrumbItem } from './Breadcrumb';
 import { FolderItem } from './FolderItem';
@@ -33,9 +35,10 @@ type SortOption = 'name-asc' | 'name-desc' | 'date-desc' | 'date-asc';
 interface DriveExplorerProps {
   driveType: 'rekaman' | 'ppt';
   isMentorOrAdmin: boolean;
+  userRole?: string | null;
 }
 
-export function DriveExplorer({ driveType, isMentorOrAdmin }: DriveExplorerProps) {
+export function DriveExplorer({ driveType, isMentorOrAdmin, userRole }: DriveExplorerProps) {
   const queryClient = useQueryClient();
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
@@ -158,6 +161,24 @@ export function DriveExplorer({ driveType, isMentorOrAdmin }: DriveExplorerProps
     onError: (err) => toast.error(`Failed to move item: ${err instanceof Error ? err.message : 'Unknown error'}`),
   });
 
+  const visibilityFolderMutation = useMutation({
+    mutationFn: (params: { id: string; visibleTo: string[] }) => updateFolderVisibility({ id: params.id, visibleTo: params.visibleTo }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['material-folders', apiType, currentFolderId] });
+      toast.success('Visibility updated successfully');
+    },
+    onError: (err) => toast.error(`Failed to update visibility: ${err instanceof Error ? err.message : 'Unknown error'}`),
+  });
+
+  const visibilityLinkMutation = useMutation({
+    mutationFn: (params: { id: string; visibleTo: string[] }) => updateLinkVisibility({ id: params.id, visibleTo: params.visibleTo }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['material-links', apiType, currentFolderId] });
+      toast.success('Visibility updated successfully');
+    },
+    onError: (err) => toast.error(`Failed to update visibility: ${err instanceof Error ? err.message : 'Unknown error'}`),
+  });
+
   // Handlers
   const handleNavigate = (folderId: string | null) => {
     setCurrentFolderId(folderId);
@@ -215,7 +236,13 @@ export function DriveExplorer({ driveType, isMentorOrAdmin }: DriveExplorerProps
 
   // Sorted folders and links
   const sortedFolders = useMemo(() => {
-    const sorted = [...folders];
+    let filtered = [...folders];
+    if (!isMentorOrAdmin && userRole) {
+      // Jika visible_to null/undefined, tampilkan. Jika array, periksa apakah role user ada di dalamnya.
+      filtered = filtered.filter(f => !f.visible_to || f.visible_to.includes(userRole));
+    }
+    
+    const sorted = [...filtered];
     switch (sortBy) {
       case 'name-asc':
         sorted.sort((a, b) => a.name.localeCompare(b.name, 'id'));
@@ -231,10 +258,16 @@ export function DriveExplorer({ driveType, isMentorOrAdmin }: DriveExplorerProps
         break;
     }
     return sorted;
-  }, [folders, sortBy]);
+  }, [folders, sortBy, isMentorOrAdmin, userRole]);
 
   const sortedLinks = useMemo(() => {
-    const sorted = [...links];
+    let filtered = [...links];
+    if (!isMentorOrAdmin && userRole) {
+      // Jika visible_to null/undefined, tampilkan. Jika array, periksa apakah role user ada di dalamnya.
+      filtered = filtered.filter(l => !l.visible_to || l.visible_to.includes(userRole));
+    }
+
+    const sorted = [...filtered];
     switch (sortBy) {
       case 'name-asc':
         sorted.sort((a, b) => a.title.localeCompare(b.title, 'id'));
@@ -250,7 +283,7 @@ export function DriveExplorer({ driveType, isMentorOrAdmin }: DriveExplorerProps
         break;
     }
     return sorted;
-  }, [links, sortBy]);
+  }, [links, sortBy, isMentorOrAdmin, userRole]);
 
   const isEmpty = useMemo(() => !isLoading && folders.length === 0 && links.length === 0, [isLoading, folders.length, links.length]);
   
@@ -348,6 +381,7 @@ export function DriveExplorer({ driveType, isMentorOrAdmin }: DriveExplorerProps
                 onClone={() => cloneMutation.mutate({ id: folder.id, type: 'folder' })}
                 onDelete={() => setDeleteFolderTarget(folder)}
                 onMove={() => setMoveItemTarget({ id: folder.id, type: 'folder', name: folder.name })}
+                onVisibilityChange={(folder, visibleTo) => visibilityFolderMutation.mutate({ id: folder.id, visibleTo })}
                 isListView={hasLongName}
               />
             ))}
@@ -362,6 +396,7 @@ export function DriveExplorer({ driveType, isMentorOrAdmin }: DriveExplorerProps
                 onClone={() => cloneMutation.mutate({ id: link.id, type: 'link' })}
                 onDelete={() => setDeleteLinkTarget(link)}
                 onMove={() => setMoveItemTarget({ id: link.id, type: 'link', name: link.title })}
+                onVisibilityChange={(link, visibleTo) => visibilityLinkMutation.mutate({ id: link.id, visibleTo })}
                 isListView={hasLongName}
               />
             ))}

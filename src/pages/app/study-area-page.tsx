@@ -83,6 +83,9 @@ export default function StudyAreaPage() {
             if (studentShell.role === "osce_pro" && item.id === "flash-card") {
               return null;
             }
+            if (studentShell.role === "pro" && item.id === "osce-simulator") {
+              return null;
+            }
             
             const isAiFeature = item.id === "flash-card" || item.id === "osce-simulator";
             const isLocked = isAiFeature && aiStatus.data && !aiStatus.data.hasCredential;

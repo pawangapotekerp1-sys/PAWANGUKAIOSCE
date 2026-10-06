@@ -1,5 +1,5 @@
 import React from 'react';
-import { DotsThree, Trash, Copy, ArrowRight } from '@phosphor-icons/react';
+import { DotsThree, Trash, Copy, ArrowRight, Eye, CaretRight } from '@phosphor-icons/react';
 
 interface ActionMenuProps<T> {
   item: T;
@@ -8,10 +8,12 @@ interface ActionMenuProps<T> {
   onClone?: (item: T) => void;
   onMove?: (item: T) => void;
   onDelete?: (item: T) => void;
+  onVisibilityChange?: (item: T, newVisibleTo: string[]) => void;
+  currentVisibleTo?: string[];
   menuHoverClass?: string;
 }
 
-export function ActionMenu<T>({ item, isOpen, onToggle, onClone, onMove, onDelete, menuHoverClass = 'hover:text-blue-600' }: ActionMenuProps<T>) {
+export function ActionMenu<T>({ item, isOpen, onToggle, onClone, onMove, onDelete, onVisibilityChange, currentVisibleTo = ['pro', 'osce_pro'], menuHoverClass = 'hover:text-blue-600' }: ActionMenuProps<T>) {
   return (
     <>
       <button
@@ -27,9 +29,51 @@ export function ActionMenu<T>({ item, isOpen, onToggle, onClone, onMove, onDelet
 
       {isOpen && (
         <div
-          className="absolute right-0 top-full mt-1 w-48 bg-white border border-slate-200 rounded-lg shadow-xl z-10 py-1"
+          className="absolute right-0 top-full mt-1 w-56 bg-white border border-slate-200 rounded-lg shadow-xl z-10 py-1"
           onMouseDown={(e) => e.stopPropagation()}
         >
+          {onVisibilityChange && (
+            <div className="relative group/visibility">
+              <button
+                className={`w-full flex items-center justify-between px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 ${menuHoverClass}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center">
+                  <Eye className="w-4 h-4 mr-2" /> Munculkan untuk
+                </div>
+                <CaretRight className="w-4 h-4 text-slate-400" />
+              </button>
+              <div className="absolute right-full top-0 mr-1 w-48 bg-white border border-slate-200 rounded-lg shadow-xl z-20 py-1 hidden group-hover/visibility:block">
+                {[
+                  { value: 'pro', label: 'Kelas Apoteker' },
+                  { value: 'osce_pro', label: 'Kelas OSCE' }
+                ].map((role) => {
+                  const isChecked = currentVisibleTo.includes(role.value);
+                  return (
+                    <label key={role.value} className="w-full flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                      <input 
+                        type="checkbox" 
+                        className="mr-3 cursor-pointer" 
+                        checked={isChecked}
+                        onChange={(e) => {
+                          let newVisibleTo = [...currentVisibleTo];
+                          if (e.target.checked) {
+                            if (!newVisibleTo.includes(role.value)) {
+                              newVisibleTo.push(role.value);
+                            }
+                          } else {
+                            newVisibleTo = newVisibleTo.filter(v => v !== role.value);
+                          }
+                          onVisibilityChange(item, newVisibleTo);
+                        }}
+                      />
+                      {role.label}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {onClone && (
             <button
               onClick={(e) => { e.stopPropagation(); onToggle(); onClone(item); }}
@@ -46,7 +90,7 @@ export function ActionMenu<T>({ item, isOpen, onToggle, onClone, onMove, onDelet
               <ArrowRight className="w-4 h-4 mr-2" /> Move
             </button>
           )}
-          {(onClone || onMove) && onDelete && (
+          {(onClone || onMove || onVisibilityChange) && onDelete && (
             <div className="h-px bg-slate-100 my-1" />
           )}
           {onDelete && (

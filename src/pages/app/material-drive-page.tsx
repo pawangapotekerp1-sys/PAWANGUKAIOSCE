@@ -34,7 +34,7 @@ export default function MaterialDrivePage({ driveType }: MaterialDrivePageProps)
 
         {/* Explorer Card Container */}
         <div className="w-full flex-1">
-          <DriveExplorer driveType={driveType} isMentorOrAdmin={isMentorOrAdmin} />
+          <DriveExplorer driveType={driveType} isMentorOrAdmin={isMentorOrAdmin} userRole={studentShell.role} />
         </div>
       </div>
     </ProductShell>

@@ -500,12 +500,14 @@ function ScheduledEventEditorPage() {
 
   function handleAddQuestion() {
     setSaveError(null);
-    const input = buildInputFromFormState(formState, editorQuery.data?.event);
+    if (formState.questions.length > 0) {
+      const input = buildInputFromFormState(formState, editorQuery.data?.event);
 
-    if (!input) {
-      setSaveError("Lengkapi semua soal dan pastikan ada kunci jawaban sebelum menambah soal baru.");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
+      if (!input) {
+        setSaveError("Lengkapi semua soal dan pastikan ada kunci jawaban sebelum menambah soal baru.");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
     }
 
     setFormState((current) => ({

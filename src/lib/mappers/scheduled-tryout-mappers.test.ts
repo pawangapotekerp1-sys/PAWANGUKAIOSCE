@@ -296,6 +296,9 @@ describe("scheduled-tryout-mappers", () => {
         accessEndAt: "2026-06-03T14:00:00.000Z",
         currentCycle: 2,
         updatedAt: "2026-06-05T08:30:00.000Z",
+        durationMinutes: 100,
+        questionCount: 100,
+        maxAttempts: 1,
       },
       questions: [
         expect.objectContaining({

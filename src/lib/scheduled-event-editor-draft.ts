@@ -1,3 +1,5 @@
+import type { ScheduledEventQuestionDraftInput } from "./api/scheduled-tryout-api";
+
 export type ScheduledEventEditorOptionKey = "A" | "B" | "C" | "D" | "E";
 
 export type ScheduledEventEditorDraftQuestion = {
@@ -144,4 +146,21 @@ export function clearScheduledEventDraft(eventId?: string) {
   }
 
   window.localStorage.removeItem(buildScheduledEventDraftStorageKey(eventId));
+}
+
+export function emptyQuestion(): ScheduledEventQuestionDraftInput {
+  return {
+    stem: "",
+    correctOptionKey: "",
+    explanationText: "",
+    questionImagePath: null,
+    explanationImagePath: null,
+    options: [
+      { key: "A", text: "" },
+      { key: "B", text: "" },
+      { key: "C", text: "" },
+      { key: "D", text: "" },
+      { key: "E", text: "" },
+    ],
+  };
 }

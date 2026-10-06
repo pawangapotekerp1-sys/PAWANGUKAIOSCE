@@ -80,7 +80,6 @@ function TryoutSessionPage() {
       findActiveAttemptForUser({
         userId: user!.id,
       }),
-    refetchInterval: 1_000,
   });
   const answerMutation = useMutation({
     mutationFn: (variables: {

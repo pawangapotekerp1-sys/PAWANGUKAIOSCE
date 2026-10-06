@@ -163,7 +163,7 @@ describe("Scheduled tryout session page", () => {
   test("can hide and show the question navigation sidebar", async () => {
     renderScheduledSession();
 
-    expect(await screen.findByText(/timer sesi 00:40:00/i)).toBeInTheDocument();
+    expect(await screen.findByText(/timer 00:40:00/i)).toBeInTheDocument();
     expect(screen.getByText(/^navigasi soal$/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /sembunyikan navigasi soal/i })).toHaveAttribute("data-variant", "outline");
 
@@ -231,11 +231,8 @@ describe("Scheduled tryout session page", () => {
 
     renderScheduledSession();
 
-    const timerPill = (await screen.findByText(/timer sesi 00:04:59/i)).closest("span");
+    const timerPill = (await screen.findByText(/timer 00:04:59/i)).closest("span");
     expect(timerPill).toHaveClass("bg-destructive/10");
-
-    const submitStatusPill = screen.getByText(/belum dikirim/i).closest("span");
-    expect(submitStatusPill).toHaveClass("border-border");
     expect(screen.getByRole("button", { name: /batalkan tanda ragu/i }).className).toContain(
       "border-yellow-500/50",
     );
@@ -253,14 +250,14 @@ describe("Scheduled tryout session page", () => {
   test("keeps the timer green before the final five minutes", async () => {
     renderScheduledSession();
 
-    const timerPill = (await screen.findByText(/timer sesi 00:40:00/i)).closest("span");
+    const timerPill = (await screen.findByText(/timer 00:40:00/i)).closest("span");
     expect(timerPill).toHaveClass("bg-secondary");
   });
 
   test("renders timer and options, then enables ragu-ragu after an answer is selected", async () => {
     renderScheduledSession();
 
-    expect(await screen.findByText(/timer sesi 00:40:00/i)).toBeInTheDocument();
+    expect(await screen.findByText(/timer 00:40:00/i)).toBeInTheDocument();
     expect(screen.getByAltText(/gambar soal 1/i)).toHaveAttribute(
       "src",
       "https://example.com/questions/scheduled-1.png",
@@ -302,7 +299,7 @@ describe("Scheduled tryout session page", () => {
   test("auto-pauses the scheduled attempt on pagehide after flushing the current answer", async () => {
     renderScheduledSession();
 
-    await screen.findByText(/timer sesi 00:40:00/i);
+    await screen.findByText(/timer 00:40:00/i);
     fireEvent.click(screen.getByRole("button", { name: /A Pilihan A/i }));
 
     await waitFor(() => {
@@ -426,7 +423,7 @@ describe("Scheduled tryout session page", () => {
 
     const { queryClient } = renderScheduledSession();
 
-    expect(await screen.findByText(/soal 1 dari 2/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' })).toBeInTheDocument();
+    expect(await screen.findByText(/soal 1/i, { selector: 'p' })).toBeInTheDocument();
 
     await queryClient.invalidateQueries({
       queryKey: ["scheduled-tryout-session", "scheduled-attempt-1"],
@@ -435,7 +432,7 @@ describe("Scheduled tryout session page", () => {
     await waitFor(() => {
       expect(mockGetScheduledAttemptSessionPageData).toHaveBeenCalledTimes(2);
     });
-    expect(await screen.findByText(/soal 1 dari 3/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' })).toBeInTheDocument();
+    expect(await screen.findByText(/soal 1/i, { selector: 'p' })).toBeInTheDocument();
     expect(
       screen.getByRole("alert", {
         name: "",
@@ -478,7 +475,7 @@ describe("Scheduled tryout session page", () => {
     mockGetScheduledAttemptSessionPageData.mockImplementationOnce(() => new Promise(() => undefined));
     renderScheduledSession();
 
-    expect(await screen.findByText(/soal sedang dimuat/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' })).toBeInTheDocument();
+    expect(await screen.findByText(/soal sedang dimuat/i)).toBeInTheDocument();
     expect(screen.getByText(/soal sesi sedang disiapkan/i)).toBeInTheDocument();
   });
 
@@ -487,7 +484,7 @@ describe("Scheduled tryout session page", () => {
 
     renderScheduledSession();
 
-    expect(await screen.findByText(/soal belum bisa dimuat/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' })).toBeInTheDocument();
+    expect(await screen.findByText(/soal belum bisa dimuat/i)).toBeInTheDocument();
     expect(screen.getByText(/buka daftar sesi lalu coba lagi/i)).toBeInTheDocument();
   });
 

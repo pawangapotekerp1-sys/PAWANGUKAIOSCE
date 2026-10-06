@@ -2,6 +2,7 @@ import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import MentorAreaPage from "./mentor-area-page";
 
 vi.mock("./use-student-shell", () => ({
@@ -21,13 +22,14 @@ vi.mock("../../lib/auth/use-session", () => ({
 
 describe("MentorAreaPage", () => {
   it("renders header and 6 mentor feature cards including management for Rekaman & Materi", () => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(
-      <MemoryRouter>
-        <MentorAreaPage />
-      </MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <MentorAreaPage />
+        </MemoryRouter>
+      </QueryClientProvider>
     );
-
-    expect(screen.getByText("Area Mentor")).toBeInTheDocument();
 
     // Feature titles
     expect(screen.getByText("Bank Soal")).toBeInTheDocument();

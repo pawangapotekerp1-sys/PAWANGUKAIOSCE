@@ -27,6 +27,7 @@ describe('MediaPreviewModal', () => {
     created_by: 'user-1',
     created_at: '2026-07-26T00:00:00Z',
     updated_at: '2026-07-26T00:00:00Z',
+    visible_to: ['pro', 'osce_pro'],
   };
 
   const mockPptLink: MaterialLink = {
@@ -39,6 +40,7 @@ describe('MediaPreviewModal', () => {
     created_by: 'user-1',
     created_at: '2026-07-26T00:00:00Z',
     updated_at: '2026-07-26T00:00:00Z',
+    visible_to: ['pro', 'osce_pro'],
   };
 
   it('renders modal with title and embed iframe when link is provided', () => {

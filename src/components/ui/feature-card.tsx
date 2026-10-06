@@ -42,19 +42,16 @@ export function FeatureCard({
   className,
   isLocked = false,
 }: FeatureCardProps) {
-  const CardWrapper = isLocked ? "div" : Link;
+  const wrapperClassName = cn(
+    "group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-border/60 bg-card transition-all duration-500",
+    isLocked 
+      ? "opacity-80 grayscale-[0.5] cursor-not-allowed" 
+      : "hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/5",
+    className
+  );
 
-  return (
-    <CardWrapper
-      to={isLocked ? undefined : href}
-      className={cn(
-        "group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-border/60 bg-card transition-all duration-500",
-        isLocked 
-          ? "opacity-80 grayscale-[0.5] cursor-not-allowed" 
-          : "hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/5",
-        className
-      )}
-    >
+  const content = (
+    <>
       {/* Background Decor */}
       <div
         className={cn(
@@ -109,6 +106,16 @@ export function FeatureCard({
           </div>
         </div>
       </div>
-    </CardWrapper>
+    </>
+  );
+
+  if (isLocked) {
+    return <div className={wrapperClassName}>{content}</div>;
+  }
+
+  return (
+    <Link to={href} className={wrapperClassName}>
+      {content}
+    </Link>
   );
 }

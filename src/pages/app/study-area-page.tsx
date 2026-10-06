@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Stethoscope,
   Lock,
+  type LucideIcon,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import ProductShell from "../../components/layout/product-shell";
@@ -23,7 +24,7 @@ interface StudyFeatureCard {
   description: string;
   href: string;
   buttonText: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: LucideIcon;
 }
 
 const STUDY_FEATURES: StudyFeatureCard[] = [

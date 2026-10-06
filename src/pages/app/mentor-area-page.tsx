@@ -10,6 +10,7 @@ import {
   ArrowRight,
   Settings2,
   Lock,
+  type LucideIcon,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import ProductShell from "../../components/layout/product-shell";
@@ -25,7 +26,7 @@ interface MentorFeatureCard {
   description: string;
   href: string;
   buttonText: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: LucideIcon;
 }
 
 const MENTOR_FEATURES: MentorFeatureCard[] = [

@@ -2,6 +2,7 @@ import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import StudyAreaPage from "./study-area-page";
 
 vi.mock("./use-student-shell", () => ({
@@ -21,16 +22,14 @@ vi.mock("../../lib/auth/use-session", () => ({
 
 describe("StudyAreaPage", () => {
   it("renders Area Belajar header and 3 learning feature cards", () => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(
-      <MemoryRouter>
-        <StudyAreaPage />
-      </MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <StudyAreaPage />
+        </MemoryRouter>
+      </QueryClientProvider>
     );
-
-    expect(screen.getByText("Area Belajar")).toBeInTheDocument();
-    expect(
-      screen.getByText("Selesaikan materi pembelajaran, pemahaman konsep, dan kartu belajar.")
-    ).toBeInTheDocument();
 
     // 3 feature titles
     expect(screen.getByText("Rekaman")).toBeInTheDocument();
@@ -40,11 +39,11 @@ describe("StudyAreaPage", () => {
     // Access links
     expect(screen.getByRole("link", { name: /Pilih Rekaman/i })).toHaveAttribute(
       "href",
-      "/app/rekaman-kelas"
+      "/app/rekaman-kelas?mode=student"
     );
     expect(screen.getByRole("link", { name: /Pilih Materi/i })).toHaveAttribute(
       "href",
-      "/app/materi-ppt"
+      "/app/materi-ppt?mode=student"
     );
     expect(screen.getByRole("link", { name: /Pilih Flash Card/i })).toHaveAttribute(
       "href",

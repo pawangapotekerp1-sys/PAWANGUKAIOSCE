@@ -45,6 +45,7 @@ function ScheduledTryoutSessionPage() {
   const hasTriggeredAutoSubmit = useRef(false);
   const hasRequestedPause = useRef(false);
   const hasStartedSubmit = useRef(false);
+  const requestPauseRef = useRef<(() => Promise<void>) | null>(null);
   const resumeRequestedAttemptIdRef = useRef<string | null>(null);
   const inFlightAnswerSaveRef = useRef<Promise<unknown> | null>(null);
   const currentQuestionRef = useRef<{
@@ -384,7 +385,7 @@ function ScheduledTryoutSessionPage() {
       return;
     }
 
-    function requestPause() {
+    async function requestPause() {
       if (
         hasRequestedPause.current
         || hasStartedSubmit.current
@@ -396,18 +397,23 @@ function ScheduledTryoutSessionPage() {
 
       hasRequestedPause.current = true;
 
-      // Run flush and pause concurrently so pause isn't blocked on pagehide/unmount
-      void flushCurrentQuestionProgress();
-      pauseMutation.mutate();
+      try {
+        await flushCurrentQuestionProgress();
+      } finally {
+        pauseMutation.mutate();
+      }
     }
 
+    // Keep ref updated for unmount
+    requestPauseRef.current = requestPause;
+
     function handlePageHide() {
-      requestPause();
+      void requestPause();
     }
 
     function handleVisibilityChange() {
       if (document.hidden) {
-        requestPause();
+        void requestPause();
       }
     }
 
@@ -417,13 +423,17 @@ function ScheduledTryoutSessionPage() {
     return () => {
       window.removeEventListener("pagehide", handlePageHide);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      
-      // Attempt to pause when component unmounts (e.g. client-side navigation)
-      if (!hasStartedSubmit.current) {
-        requestPause();
-      }
     };
   }, [attemptId, pauseMutation, sessionAttempt?.status, submitMutation.isPending]);
+
+  // Separate effect specifically for pausing on actual component unmount (e.g. client-side routing)
+  useEffect(() => {
+    return () => {
+      if (requestPauseRef.current && !hasStartedSubmit.current && hasTriggeredAutoSubmit.current === false) {
+        void requestPauseRef.current();
+      }
+    };
+  }, []);
 
   const timerLabel = sessionData?.view !== "ready" || !sessionData.attempt
     ? "Timer --:--:--"

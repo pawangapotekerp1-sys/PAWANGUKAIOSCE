@@ -48,6 +48,7 @@ function TryoutSessionPage() {
   const hasStartedSubmit = useRef(false);
   const questionActiveSinceRef = useRef<number | null>(null);
   const activeQuestionIdRef = useRef<string | null>(null);
+  const requestPauseRef = useRef<(() => Promise<void>) | null>(null);
   const resumeRequestedAttemptIdRef = useRef<string | null>(null);
   const inFlightAnswerSaveRef = useRef<Promise<unknown> | null>(null);
   const questionView = usePreviewRouteState("questionView");
@@ -384,7 +385,7 @@ function TryoutSessionPage() {
       return;
     }
 
-    function requestPause() {
+    async function requestPause() {
       if (
         hasRequestedPause.current
         || hasStartedSubmit.current
@@ -396,18 +397,23 @@ function TryoutSessionPage() {
 
       hasRequestedPause.current = true;
 
-      // Run flush and pause concurrently so pause isn't blocked on pagehide/unmount
-      void flushCurrentQuestionProgress();
-      pauseMutation.mutate();
+      try {
+        await flushCurrentQuestionProgress();
+      } finally {
+        pauseMutation.mutate();
+      }
     }
 
+    // Keep ref updated for unmount
+    requestPauseRef.current = requestPause;
+
     function handlePageHide() {
-      requestPause();
+      void requestPause();
     }
 
     function handleVisibilityChange() {
       if (document.hidden) {
-        requestPause();
+        void requestPause();
       }
     }
 
@@ -417,13 +423,18 @@ function TryoutSessionPage() {
     return () => {
       window.removeEventListener("pagehide", handlePageHide);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      
-      // Attempt to pause when component unmounts (e.g. client-side navigation)
-      if (!hasStartedSubmit.current) {
-        requestPause();
-      }
     };
   }, [attemptId, pauseMutation, sessionAttempt?.status, submitMutation.isPending]);
+
+  // Separate effect specifically for pausing on actual component unmount (e.g. client-side routing)
+  // This avoids accidental pausing when the main useEffect re-runs due to dependency changes.
+  useEffect(() => {
+    return () => {
+      if (requestPauseRef.current && !hasStartedSubmit.current && hasTriggeredAutoSubmit.current === false) {
+        void requestPauseRef.current();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!currentQuestion) {

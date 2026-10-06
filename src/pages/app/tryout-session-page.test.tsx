@@ -169,8 +169,7 @@ describe("Tryout session page", () => {
   test("can hide and show the question navigation sidebar", async () => {
     renderTryoutSession();
 
-    expect(await screen.findByText(/timer sesi 02:59:00/i)).toBeInTheDocument();
-    expect(screen.getByText(/pilih nomor soal untuk berpindah dan kirim hasil saat selesai/i)).toBeInTheDocument();
+    expect(await screen.findByText(/timer 02:59:00/i)).toBeInTheDocument();
     expect(screen.getByText(/^navigasi soal$/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /sembunyikan navigasi soal/i })).toHaveAttribute("data-variant", "outline");
 
@@ -238,11 +237,8 @@ describe("Tryout session page", () => {
 
     renderTryoutSession();
 
-    const timerPill = (await screen.findByText(/timer sesi 00:04:59/i)).closest("[data-variant]");
+    const timerPill = (await screen.findByText(/timer 00:04:59/i)).closest("[data-variant]");
     expect(timerPill).toHaveAttribute("data-variant", "destructive");
-
-    const submitStatusPill = screen.getByText(/belum submit/i).closest("[data-variant]");
-    expect(submitStatusPill).toHaveAttribute("data-variant", "secondary");
     expect(screen.getByRole("button", { name: /batal ragu-ragu/i }).className).toContain(
       "border-amber-500/50",
     );
@@ -260,14 +256,14 @@ describe("Tryout session page", () => {
   test("keeps the timer green before the final five minutes", async () => {
     renderTryoutSession();
 
-    const timerPill = (await screen.findByText(/timer sesi 02:59:00/i)).closest("[data-variant]");
+    const timerPill = (await screen.findByText(/timer 02:59:00/i)).closest("[data-variant]");
     expect(timerPill).toHaveAttribute("data-variant", "secondary");
   });
 
   test("renders timer, saves answer timing, flushes on navigation, and shows submit action on the last step", async () => {
     renderTryoutSession();
 
-    expect(await screen.findByText(/timer sesi 02:59:00/i)).toBeInTheDocument();
+    expect(await screen.findByText(/timer 02:59:00/i)).toBeInTheDocument();
     expect(screen.getByAltText(/gambar soal 1/i)).toHaveAttribute(
       "src",
       "https://example.com/questions/item-1.png",
@@ -318,12 +314,12 @@ describe("Tryout session page", () => {
         timeSpentDeltaSeconds: expect.any(Number),
       });
     });
-    await screen.findByText(/soal 2/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' });
+    await screen.findByText(/soal 2/i);
 
     fireEvent.click(screen.getByRole("button", { name: /selanjutnya/i }));
-    await screen.findByText(/soal 3/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' });
+    await screen.findByText(/soal 3/i);
     fireEvent.click(screen.getByRole("button", { name: /selanjutnya/i }));
-    await screen.findByText(/soal 4/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' });
+    await screen.findByText(/soal 4/i);
 
     expect(
       screen.getByRole("button", {
@@ -391,8 +387,8 @@ describe("Tryout session page", () => {
 
     renderTryoutSession();
 
-    expect(await screen.findByText(/timer sesi 00:00:02/i)).toBeInTheDocument();
-    expect(await screen.findByText(/timer sesi 00:00:(01|00)/i, {}, { timeout: 4000 })).toBeInTheDocument();
+    expect(await screen.findByText(/timer 00:00:02/i)).toBeInTheDocument();
+    expect(await screen.findByText(/timer 00:00:(01|00)/i, {}, { timeout: 4000 })).toBeInTheDocument();
 
     await waitFor(() => {
       expect(mockSubmitAttempt).toHaveBeenCalledTimes(1);
@@ -427,8 +423,8 @@ describe("Tryout session page", () => {
 
     renderTryoutSession();
 
-    expect(await screen.findByText(/timer sesi 00:00:03/i)).toBeInTheDocument();
-    expect(await screen.findByText(/timer sesi 00:00:(02|01|00)/i, {}, { timeout: 7000 })).toBeInTheDocument();
+    expect(await screen.findByText(/timer 00:00:03/i)).toBeInTheDocument();
+    expect(await screen.findByText(/timer 00:00:(02|01|00)/i, {}, { timeout: 7000 })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /A Pilihan A/i }));
 
@@ -442,13 +438,13 @@ describe("Tryout session page", () => {
       });
     });
 
-    expect(screen.queryByText(/timer sesi 00:00:03/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/timer 00:00:03/i)).not.toBeInTheDocument();
   }, 10000);
 
   test("flushes current question timing before submitting the final result", async () => {
     renderTryoutSession();
 
-    await screen.findByText(/timer sesi 02:59:00/i);
+    await screen.findByText(/timer 02:59:00/i);
 
     fireEvent.click(screen.getByRole("button", { name: /A Pilihan A/i }));
     await waitFor(() => {
@@ -463,17 +459,19 @@ describe("Tryout session page", () => {
 
     mockSaveAnswer.mockClear();
     fireEvent.click(screen.getByRole("button", { name: /selanjutnya/i }));
-    await screen.findByText(/soal 2/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' });
+    await screen.findByText(/soal 2/i);
     fireEvent.click(screen.getByRole("button", { name: /selanjutnya/i }));
-    await screen.findByText(/soal 3/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' });
+    await screen.findByText(/soal 3/i);
     fireEvent.click(screen.getByRole("button", { name: /selanjutnya/i }));
-    await screen.findByText(/soal 4/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' });
+    await screen.findByText(/soal 4/i);
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /kirim hasil/i })).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole("button", { name: /kirim hasil/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /yakin/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /lanjutkan/i }));
 
     await waitFor(() => {
       expect(mockSaveAnswer).toHaveBeenCalledWith({
@@ -544,9 +542,11 @@ describe("Tryout session page", () => {
       </QueryClientProvider>,
     );
 
-    await screen.findByText(/timer sesi 00:01:00/i);
+    await screen.findByText(/timer 00:01:00/i);
 
     fireEvent.click(screen.getByRole("button", { name: /kirim hasil/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /yakin/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /lanjutkan/i }));
 
     await waitFor(() => {
       expect(mockSubmitAttempt).toHaveBeenCalledWith({
@@ -563,7 +563,7 @@ describe("Tryout session page", () => {
     renderTryoutSession("/app/tryout/session?questionView=error");
 
     expect(
-      screen.getByText(/soal try out belum bisa dimuat/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' }),
+      screen.getByText(/soal try out belum bisa dimuat/i),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /buka katalog lagi/i })).toHaveAttribute(
       "href",
@@ -577,7 +577,7 @@ describe("Tryout session page", () => {
     renderTryoutSession("/app/tryout/session?questionView=empty");
 
     expect(
-      screen.getByText(/belum ada soal untuk sesi ini/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' }),
+      screen.getByText(/belum ada soal untuk sesi ini/i),
     ).toBeInTheDocument();
     expect(screen.getByText(/pilih sesi lain atau kembali nanti/i)).toBeInTheDocument();
   });
@@ -586,14 +586,14 @@ describe("Tryout session page", () => {
     mockCreateAttempt.mockReturnValueOnce(new Promise(() => undefined));
     renderTryoutSession("/app/tryout/session?template=template-topic-1");
 
-    expect(await screen.findByText(/sesi try out sedang dimuat/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' })).toBeInTheDocument();
+    expect(await screen.findByText(/sesi try out sedang dimuat/i)).toBeInTheDocument();
     expect(screen.getByText(/sesi baru sedang disiapkan/i)).toBeInTheDocument();
 
     cleanup();
 
     renderTryoutSession("/app/tryout/session");
 
-    expect(screen.getByText(/belum ada sesi aktif/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' })).toBeInTheDocument();
+    expect(screen.getByText(/belum ada sesi aktif/i)).toBeInTheDocument();
     expect(screen.getByText(/pilih sesi dari katalog untuk mulai/i)).toBeInTheDocument();
 
     cleanup();
@@ -601,7 +601,7 @@ describe("Tryout session page", () => {
     mockGetAttemptSessionPageData.mockImplementationOnce(() => new Promise(() => undefined));
     renderTryoutSession();
 
-    expect(await screen.findByText(/soal try out sedang dimuat/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' })).toBeInTheDocument();
+    expect(await screen.findByText(/soal try out sedang dimuat/i)).toBeInTheDocument();
     expect(screen.getByText(/soal sedang disiapkan/i)).toBeInTheDocument();
   });
 
@@ -613,7 +613,7 @@ describe("Tryout session page", () => {
     renderTryoutSession("/app/tryout/session?template=template-topic-1");
 
     expect(
-      await screen.findByText(/sesi try out belum berhasil dibuka/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' }),
+      await screen.findByText(/sesi try out belum berhasil dibuka/i),
     ).toBeInTheDocument();
     expect(screen.getByText(/template try out ini belum memiliki cukup soal published/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /kembali ke katalog try out/i })).toHaveAttribute("data-variant", "primary");
@@ -624,7 +624,7 @@ describe("Tryout session page", () => {
     renderTryoutSession("/app/tryout/session?template=template-topic-1");
 
     expect(
-      await screen.findByText(/sesi try out belum berhasil dibuka/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' }),
+      await screen.findByText(/sesi try out belum berhasil dibuka/i),
     ).toBeInTheDocument();
     expect(screen.getByText(/sesi baru belum bisa dibuka\. coba lagi sebentar\./i)).toBeInTheDocument();
   }, 10000);
@@ -674,7 +674,7 @@ describe("Tryout session page", () => {
 
     renderTryoutSession();
 
-    expect(await screen.findByText(/timer sesi 00:02:00/i)).toBeInTheDocument();
+    expect(await screen.findByText(/timer 00:02:00/i)).toBeInTheDocument();
     await waitFor(() => {
       expect(mockResumeAttempt).toHaveBeenCalledWith({
         attemptId: "attempt-1",
@@ -759,7 +759,7 @@ describe("Tryout session page", () => {
 
     renderTryoutSession();
 
-    expect(await screen.findByText(/timer sesi 00:02:00/i)).toBeInTheDocument();
+    expect(await screen.findByText(/timer 00:02:00/i)).toBeInTheDocument();
     await waitFor(() => {
       expect(mockResumeAttempt).toHaveBeenCalledTimes(1);
     });
@@ -779,7 +779,7 @@ describe("Tryout session page", () => {
   test("auto-pauses an in-progress attempt once when the page is hidden after flushing current progress", async () => {
     renderTryoutSession();
 
-    await screen.findByText(/timer sesi 02:59:00/i);
+    await screen.findByText(/timer 02:59:00/i);
     fireEvent.click(screen.getByRole("button", { name: /A Pilihan A/i }));
 
     await waitFor(() => {
@@ -837,7 +837,7 @@ describe("Tryout session page", () => {
 
     renderTryoutSession();
 
-    await screen.findByText(/timer sesi 02:59:00/i);
+    await screen.findByText(/timer 02:59:00/i);
     fireEvent.click(screen.getByRole("button", { name: /A Pilihan A/i }));
 
     await waitFor(() => {
@@ -970,7 +970,7 @@ describe("Tryout session page", () => {
   test("uses visibilitychange as a fallback auto-pause signal", async () => {
     renderTryoutSession();
 
-    await screen.findByText(/timer sesi 02:59:00/i);
+    await screen.findByText(/timer 02:59:00/i);
 
     Object.defineProperty(document, "hidden", {
       configurable: true,

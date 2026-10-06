@@ -114,13 +114,7 @@ function ScheduledTryoutCatalogPage() {
       navItems={studentShell.navItems}
     >
       <section id="scheduled-tryout">
-        <SectionHeading
-          title="Try Out Terjadwal"
-          description="Pilih sesi yang sedang dibuka atau lanjutkan sesi yang tertunda."
-          eyebrow="Event aktif"
-        />
-
-        <div className="mt-6">
+        <div className="mt-2">
           {catalogQuery.isPending ? (
             <div className="mt-8 flex flex-col items-center justify-center space-y-4 py-12 text-center text-muted-foreground border rounded-xl bg-card shadow-sm">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />

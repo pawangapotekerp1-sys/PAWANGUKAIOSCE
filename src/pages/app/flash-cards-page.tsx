@@ -38,21 +38,6 @@ function FlashCardsPage() {
       tierLabel={studentShell.tierLabel}
     >
       <div className="flex flex-col gap-8 w-full py-4">
-        {/* Page Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-border/40">
-          <div>
-            <Badge variant="outline" className="mb-2 px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-primary/5 text-primary border-primary/20">
-              <Filter className="mr-1.5 h-3.5 w-3.5 inline-block" />
-              Latihan Mandiri
-            </Badge>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
-              Kartu Belajar
-            </h1>
-            <p className="text-base text-muted-foreground mt-2 max-w-2xl">
-              Pilih submateri lalu ulang poin penting dengan kartu belajar singkat.
-            </p>
-          </div>
-        </div>
 
         {isError ? (
           <div className="w-full">

@@ -110,20 +110,6 @@ function ReviewPage() {
       <div className="flex flex-col gap-8 w-full py-4">
         {!isDetailRoute ? (
           <>
-            {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-border/40">
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-full">
-                  Pembahasan Soal
-                </span>
-                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mt-3 text-foreground">
-                  Riwayat Pembahasan
-                </h1>
-                <p className="text-base text-muted-foreground mt-2 max-w-2xl">
-                  Pilih hasil try out atau sesi terjadwal untuk mendalami pembahasan dan kunci jawaban.
-                </p>
-              </div>
-            </div>
 
             {historyQuery.isLoading ? (
               <div className="mt-6 flex flex-col items-center justify-center space-y-4 py-16 text-center text-muted-foreground border rounded-2xl bg-card/60 shadow-sm backdrop-blur-sm">

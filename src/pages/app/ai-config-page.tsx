@@ -78,17 +78,6 @@ export default function AiConfigPage() {
       navItems={studentShell.navItems}
     >
       <div className="flex flex-col gap-6 w-full py-4">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-border/40">
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-full">
-              Konfigurasi Sistem
-            </span>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mt-3 text-foreground">Pengaturan AI Global</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Kelola Kredensial AI Anda di sini. Sistem menggunakan Bring Your Own Key (BYOK) untuk fitur cerdas.
-            </p>
-          </div>
-        </div>
 
         <div className="space-y-5 rounded-2xl border border-border/80 bg-card p-6 shadow-xs">
           <div className="flex flex-wrap items-center justify-between gap-4">

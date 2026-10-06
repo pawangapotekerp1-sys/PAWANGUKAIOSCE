@@ -39,19 +39,6 @@ export default function OsceListPage() {
       navItems={studentShell.navItems}
     >
       <div className="flex flex-col gap-6 w-full py-4 max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border/40">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">
-              Daftar Stase OSCE
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Kelola daftar stase OSCE yang tersedia untuk simulasi ujian.
-            </p>
-          </div>
-          <Button onClick={() => navigate("/app/mentor/osce-builder")}>
-            <Plus className="mr-2 h-4 w-4" /> Tambah Stase
-          </Button>
-        </div>
 
         {isLoading ? (
           <div className="flex items-center justify-center p-12">

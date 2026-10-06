@@ -45,7 +45,6 @@ function TryoutResultPage() {
   return (
     <ProductShell brand={productShellMeta.brand} tierLabel={studentShell.tierLabel} navItems={studentShell.navItems}>
       <section id="tryout">
-        <SectionHeading title="Hasil try out" description="Skor akhir, hasil per blok, dan akses pembahasan." />
 
         {latestAttemptQuery.isLoading || resultQuery.isLoading ? (
           <Card className="mt-8 border-dashed shadow-sm">

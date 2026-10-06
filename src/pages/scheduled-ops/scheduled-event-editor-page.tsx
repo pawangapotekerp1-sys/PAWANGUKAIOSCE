@@ -131,8 +131,8 @@ export default function ScheduledEventEditorPage() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm overflow-y-auto flex justify-center p-4 sm:p-6 md:p-8">
-      <div className="bg-background w-full max-w-5xl rounded-2xl shadow-xl flex flex-col my-auto max-h-full">
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 md:p-8">
+      <div className="bg-background w-full max-w-[95vw] xl:max-w-[1400px] h-[95vh] rounded-2xl shadow-xl flex flex-col overflow-hidden">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-background flex items-center justify-between border-b px-6 py-4 rounded-t-2xl shrink-0">
           <div>

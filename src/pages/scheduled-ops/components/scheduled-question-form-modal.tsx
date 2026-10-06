@@ -47,12 +47,12 @@ export function ScheduledQuestionFormModal({ isOpen, onClose, question, onSave, 
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-[90vw] xl:max-w-5xl max-h-[95vh] overflow-y-auto p-0">
+        <DialogHeader className="px-6 py-4 border-b border-border">
           <DialogTitle>{question ? "Edit Soal" : "Tambah Soal Baru"}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-6 p-6">
           <div className="space-y-2">
             <Label htmlFor="stem">Pertanyaan</Label>
             <Textarea 
@@ -119,7 +119,7 @@ export function ScheduledQuestionFormModal({ isOpen, onClose, question, onSave, 
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="px-6 py-4 border-t border-border bg-muted/50">
           <Button variant="outline" type="button" onClick={onClose}>Batal</Button>
           <Button type="button" onClick={handleSave}>Simpan Soal</Button>
         </DialogFooter>

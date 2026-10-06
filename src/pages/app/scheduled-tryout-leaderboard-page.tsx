@@ -84,23 +84,6 @@ function ScheduledTryoutLeaderboardPage() {
       navItems={studentShell.navItems}
     >
       <div className="flex flex-col gap-8 w-full py-4">
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-border/40">
-          <div>
-            <Badge variant="outline" className="mb-2 px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-primary/5 text-primary border-primary/20">
-              <Trophy className="mr-1.5 h-3.5 w-3.5 inline-block text-amber-500" />
-              Peringkat Terjadwal
-            </Badge>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
-              Peringkat Event
-            </h1>
-            <p className="text-base text-muted-foreground mt-2 max-w-2xl">
-              {pageData
-                ? `${pageData.eventTitle} - Siklus ${pageData.eventCycle}. Lihat skor terbaik dan peserta tercepat.`
-                : "Lihat skor terbaik dan peserta tercepat di setiap event."}
-            </p>
-          </div>
-        </div>
 
         {!eventId ? (
           <Alert className="mt-6 border-dashed bg-card/60">

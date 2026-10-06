@@ -14,8 +14,8 @@ import {
 type ScheduledOpsShellProps = {
   activeHref: string;
   children: ReactNode;
-  description: string;
-  title: string;
+  description?: string;
+  title?: string;
 };
 
 type ScheduledOpsOutletContext = {
@@ -37,12 +37,7 @@ function ScheduledOpsShell({
         tierLabel={resolveStudentTierLabel(role)}
         navItems={createProductNavItems(activeHref, role)}
       >
-        <SectionHeading
-          description={description}
-          eyebrow="Event terjadwal"
-          title={title}
-        />
-        <div className="mt-6">{children}</div>
+        <div className="mt-2">{children}</div>
       </ProductShell>
     );
   }

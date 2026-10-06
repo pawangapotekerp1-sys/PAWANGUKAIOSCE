@@ -186,11 +186,7 @@ function ScheduledEventsPage() {
   }, [events, searchQuery]);
 
   return (
-    <ScheduledOpsShell
-      activeHref="/scheduled-ops/events"
-      title="Kelola Event Terjadwal"
-      description="Pantau event aktif, draft, dan yang sudah selesai."
-    >
+    <ScheduledOpsShell activeHref="/scheduled-ops/events">
       <div className="space-y-6">
         {eventsQuery.isLoading ? (
           <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground border rounded-2xl bg-card/60 shadow-sm backdrop-blur-sm">
@@ -240,7 +236,6 @@ function ScheduledEventsPage() {
                     <th className="px-4 py-4 text-center whitespace-nowrap">SOAL</th>
                     <th className="px-4 py-4 text-center whitespace-nowrap">DURASI</th>
                     <th className="px-4 py-4 text-center whitespace-nowrap">LIMIT</th>
-                    <th className="px-4 py-4 text-center whitespace-nowrap">TOTAL KELAS</th>
                     <th className="px-4 py-4 text-center whitespace-nowrap">MULAI AKSES</th>
                     <th className="px-4 py-4 text-center whitespace-nowrap">SELESAI AKSES</th>
                     <th className="px-4 py-4 text-center whitespace-nowrap">STATUS</th>
@@ -265,11 +260,6 @@ function ScheduledEventsPage() {
                         <td className="px-4 py-4 text-center font-bold text-blue-600">{event.questionCount}</td>
                         <td className="px-4 py-4 text-center">{event.durationMinutes} mnt</td>
                         <td className="px-4 py-4 text-center">{event.maxAttempts ?? 1}x</td>
-                        <td className="px-4 py-4 text-center">
-                          <Badge variant="outline">
-                            0 KELAS
-                          </Badge>
-                        </td>
                         <td className="px-4 py-4 text-center text-xs">
                           <div className="font-bold text-emerald-600 mb-0.5">Start:</div>
                           <div className="text-muted-foreground whitespace-nowrap">
@@ -353,7 +343,7 @@ function ScheduledEventsPage() {
 
         {/* Create/Edit Modal */}
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden bg-card rounded-xl">
+          <DialogContent className="max-w-[95vw] lg:max-w-4xl p-0 overflow-hidden bg-card rounded-xl">
             <div className="px-6 py-4 border-b border-border flex items-center justify-between">
               <DialogTitle className="text-xl font-bold text-foreground text-center w-full">
                 {editingEventId ? "Ubah Tryout" : "Tambah Tryout Baru"}
@@ -413,18 +403,33 @@ function ScheduledEventsPage() {
                     </div>
                   </div>
 
-                  <div>
-                     <label htmlFor="maxAttempts" className="block text-sm font-semibold text-foreground mb-1.5">Maksimum Percobaan</label>
-                      <input 
-                        id="maxAttempts"
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                       <label htmlFor="maxAttempts" className="block text-sm font-semibold text-foreground mb-1.5">Maksimum Percobaan</label>
+                        <input 
+                          id="maxAttempts"
+                          required
+                          type="number"
+                          min="1"
+                          className="w-full px-4 py-2.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all bg-background text-foreground"
+                          placeholder="Contoh: 3"
+                          value={formData.maxAttempts}
+                          onChange={(e) => setFormData({...formData, maxAttempts: e.target.value})}
+                        />
+                    </div>
+                    <div>
+                      <label htmlFor="editorialStatus" className="block text-sm font-semibold text-foreground mb-1.5">Status Publikasi</label>
+                      <select
+                        id="editorialStatus"
                         required
-                        type="number"
-                        min="1"
                         className="w-full px-4 py-2.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all bg-background text-foreground"
-                        placeholder="Contoh: 3"
-                        value={formData.maxAttempts}
-                        onChange={(e) => setFormData({...formData, maxAttempts: e.target.value})}
-                      />
+                        value={formData.editorialStatus}
+                        onChange={(e) => setFormData({...formData, editorialStatus: e.target.value})}
+                      >
+                        <option value="draft">Draft (Sembunyikan)</option>
+                        <option value="published">Published (Tampilkan)</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">

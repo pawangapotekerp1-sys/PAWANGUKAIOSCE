@@ -31,20 +31,6 @@ export default function MaterialDrivePage({ driveType }: MaterialDrivePageProps)
       navItems={studentShell.navItems}
     >
       <div className="flex flex-col gap-8 w-full py-4">
-        {/* Page Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-border/40">
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-full">
-              {driveType === 'rekaman' ? 'Video & Kelas' : 'Dokumen & Modul'}
-            </span>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mt-3 text-foreground">
-              {title}
-            </h1>
-            <p className="text-base text-muted-foreground mt-2 max-w-2xl">
-              {description}
-            </p>
-          </div>
-        </div>
 
         {/* Explorer Card Container */}
         <div className="w-full flex-1">

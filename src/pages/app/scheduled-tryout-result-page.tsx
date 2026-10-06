@@ -35,12 +35,7 @@ function ScheduledTryoutResultPage() {
       navItems={studentShell.navItems}
     >
       <section id="scheduled-tryout-result">
-        <SectionHeading
-          title="Hasil sesi terjadwal"
-          description="Skor akhir, hasil per blok, dan pembahasan setelah sesi selesai."
-          eyebrow="Hasil akhir"
-        />
-
+        <div className="mt-2" />
         {!attemptId ? (
           <Alert className="mt-6 border-dashed">
             <AlertTitle>Belum ada hasil sesi terjadwal</AlertTitle>

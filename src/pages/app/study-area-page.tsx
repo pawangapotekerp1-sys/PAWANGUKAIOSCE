@@ -15,6 +15,7 @@ import { useStudentShell } from "./use-student-shell";
 import { FeatureCard } from "../../components/ui/feature-card";
 import { getButtonStyleProps } from "../../components/ui/button";
 import { getGlobalAiCredentialStatus } from "../../lib/api/global-ai-credential-api";
+import { canAccessOsceSimulator } from "../../lib/auth/permissions";
 
 interface StudyFeatureCard {
   id: string;
@@ -83,7 +84,7 @@ export default function StudyAreaPage() {
             if (studentShell.role === "osce_pro" && item.id === "flash-card") {
               return null;
             }
-            if (studentShell.role === "pro" && item.id === "osce-simulator") {
+            if (item.id === "osce-simulator" && !canAccessOsceSimulator(studentShell.role)) {
               return null;
             }
             

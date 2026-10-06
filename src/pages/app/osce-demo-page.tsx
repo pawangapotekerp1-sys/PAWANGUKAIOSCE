@@ -6,6 +6,7 @@ import ProductShell from "../../components/layout/product-shell";
 import { productShellMeta } from "../../mocks/student-dashboard";
 import { useStudentShell } from "./use-student-shell";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser-client";
+import { canAccessOsceSimulator } from "../../lib/auth/permissions";
 
 export default function OsceDemoPage() {
   const [stations, setStations] = useState<StationConfig[]>([]);
@@ -13,8 +14,12 @@ export default function OsceDemoPage() {
   const [evalPayload, setEvalPayload] = useState<{ transcript: any[], formData: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const studentShell = useStudentShell("/app/osce-demo");
+  const isRoleKnown = Boolean(studentShell.role);
+  const canAccess = canAccessOsceSimulator(studentShell.role);
 
   useEffect(() => {
+    if (!canAccess) return;
+
     async function loadStations() {
       const supabase = getSupabaseBrowserClient();
       const { data, error } = await supabase
@@ -44,7 +49,7 @@ export default function OsceDemoPage() {
       setIsLoading(false);
     }
     loadStations();
-  }, []);
+  }, [canAccess]);
 
   return (
     <ProductShell
@@ -54,14 +59,16 @@ export default function OsceDemoPage() {
       disablePadding
     >
       <div className="flex flex-col w-full h-[calc(100vh-4rem)] p-6 overflow-y-auto">
-        {studentShell.role === "pro" ? (
+        {!isRoleKnown ? (
+          <div className="text-slate-500">Memuat...</div>
+        ) : !canAccess ? (
           <div className="flex flex-col items-center justify-center h-full text-center max-w-md mx-auto">
             <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-6">
               <span className="text-2xl font-bold">!</span>
             </div>
             <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Ditolak</h1>
             <p className="text-slate-500">
-              Maaf, fitur Simulasi OSCE tidak tersedia untuk role pro (Kelas Apoteker). 
+              Maaf, fitur Simulasi OSCE tidak tersedia untuk Kelas Apoteker.
               Fitur ini hanya dapat diakses oleh Kelas OSCE.
             </p>
           </div>

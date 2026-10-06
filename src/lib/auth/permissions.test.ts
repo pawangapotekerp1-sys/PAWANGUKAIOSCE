@@ -1,9 +1,11 @@
 import { describe, expect, test } from "vitest";
 import {
   buildAccessSnapshot,
+  canAccessOsceSimulator,
   canAccessScheduledTryoutOps,
   canAccessStudentApp,
   canAccessQuestionBank,
+  canViewMaterialItem,
   hasActiveSubscription,
   resolveAuthenticatedHome,
 } from "./permissions";
@@ -110,5 +112,46 @@ describe("permissions", () => {
     expect(canAccessScheduledTryoutOps("pro")).toBe(false);
     expect(canAccessScheduledTryoutOps("pendaftar_baru")).toBe(false);
     expect(canAccessScheduledTryoutOps(null)).toBe(false);
+  });
+});
+
+describe("canAccessOsceSimulator", () => {
+  test("allows osce_pro, mentor and admin", () => {
+    expect(canAccessOsceSimulator("osce_pro")).toBe(true);
+    expect(canAccessOsceSimulator("mentor")).toBe(true);
+    expect(canAccessOsceSimulator("admin")).toBe(true);
+  });
+
+  test("denies pro (Kelas Apoteker) and pendaftar_baru", () => {
+    expect(canAccessOsceSimulator("pro")).toBe(false);
+    expect(canAccessOsceSimulator("pendaftar_baru")).toBe(false);
+  });
+
+  test("fails closed while the role is still unknown", () => {
+    expect(canAccessOsceSimulator(null)).toBe(false);
+    expect(canAccessOsceSimulator(undefined)).toBe(false);
+  });
+});
+
+describe("canViewMaterialItem", () => {
+  test("student sees an item only when their role is listed", () => {
+    expect(canViewMaterialItem(["osce_pro"], "osce_pro")).toBe(true);
+    expect(canViewMaterialItem(["osce_pro"], "pro")).toBe(false);
+    expect(canViewMaterialItem(["pro", "osce_pro"], "pro")).toBe(true);
+  });
+
+  test("empty visibility hides the item from every student", () => {
+    expect(canViewMaterialItem([], "pro")).toBe(false);
+    expect(canViewMaterialItem([], "osce_pro")).toBe(false);
+  });
+
+  test("mentor and admin always see every item, even in student mode", () => {
+    expect(canViewMaterialItem(["osce_pro"], "mentor")).toBe(true);
+    expect(canViewMaterialItem([], "admin")).toBe(true);
+  });
+
+  test("fails closed for restricted items while the role is unknown", () => {
+    expect(canViewMaterialItem(["osce_pro"], null)).toBe(false);
+    expect(canViewMaterialItem(["pro", "osce_pro"], undefined)).toBe(false);
   });
 });

@@ -29,13 +29,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { canViewMaterialItem, type UserRole } from '@/lib/auth/permissions';
 
 type SortOption = 'name-asc' | 'name-desc' | 'date-desc' | 'date-asc';
 
 interface DriveExplorerProps {
   driveType: 'rekaman' | 'ppt';
   isMentorOrAdmin: boolean;
-  userRole?: string | null;
+  userRole?: UserRole | null;
 }
 
 export function DriveExplorer({ driveType, isMentorOrAdmin, userRole }: DriveExplorerProps) {
@@ -236,13 +237,7 @@ export function DriveExplorer({ driveType, isMentorOrAdmin, userRole }: DriveExp
 
   // Sorted folders and links
   const sortedFolders = useMemo(() => {
-    let filtered = [...folders];
-    if (!isMentorOrAdmin && userRole) {
-      // Jika visible_to null/undefined, tampilkan. Jika array, periksa apakah role user ada di dalamnya.
-      filtered = filtered.filter(f => !f.visible_to || f.visible_to.includes(userRole));
-    }
-    
-    const sorted = [...filtered];
+    const sorted = folders.filter((f) => isMentorOrAdmin || canViewMaterialItem(f.visible_to ?? [], userRole));
     switch (sortBy) {
       case 'name-asc':
         sorted.sort((a, b) => a.name.localeCompare(b.name, 'id'));
@@ -261,13 +256,7 @@ export function DriveExplorer({ driveType, isMentorOrAdmin, userRole }: DriveExp
   }, [folders, sortBy, isMentorOrAdmin, userRole]);
 
   const sortedLinks = useMemo(() => {
-    let filtered = [...links];
-    if (!isMentorOrAdmin && userRole) {
-      // Jika visible_to null/undefined, tampilkan. Jika array, periksa apakah role user ada di dalamnya.
-      filtered = filtered.filter(l => !l.visible_to || l.visible_to.includes(userRole));
-    }
-
-    const sorted = [...filtered];
+    const sorted = links.filter((l) => isMentorOrAdmin || canViewMaterialItem(l.visible_to ?? [], userRole));
     switch (sortBy) {
       case 'name-asc':
         sorted.sort((a, b) => a.title.localeCompare(b.title, 'id'));
@@ -285,11 +274,11 @@ export function DriveExplorer({ driveType, isMentorOrAdmin, userRole }: DriveExp
     return sorted;
   }, [links, sortBy, isMentorOrAdmin, userRole]);
 
-  const isEmpty = useMemo(() => !isLoading && folders.length === 0 && links.length === 0, [isLoading, folders.length, links.length]);
-  
+  const isEmpty = !isLoading && sortedFolders.length === 0 && sortedLinks.length === 0;
+
   const hasLongName = useMemo(() => {
-    return folders.some((f) => f.name.length > 20) || links.some((l) => l.title.length > 20);
-  }, [folders, links]);
+    return sortedFolders.some((f) => f.name.length > 20) || sortedLinks.some((l) => l.title.length > 20);
+  }, [sortedFolders, sortedLinks]);
 
   return (
     <div className="w-full p-4 md:p-6 bg-card rounded-2xl shadow-sm border border-border/80">

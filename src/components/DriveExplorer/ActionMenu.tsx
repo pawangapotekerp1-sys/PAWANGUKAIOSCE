@@ -10,10 +10,25 @@ interface ActionMenuProps<T> {
   onDelete?: (item: T) => void;
   onVisibilityChange?: (item: T, newVisibleTo: string[]) => void;
   currentVisibleTo?: string[];
+  availableRoles?: { value: string; label: string }[];
   menuHoverClass?: string;
 }
 
-export function ActionMenu<T>({ item, isOpen, onToggle, onClone, onMove, onDelete, onVisibilityChange, currentVisibleTo = ['pro', 'osce_pro'], menuHoverClass = 'hover:text-blue-600' }: ActionMenuProps<T>) {
+export function ActionMenu<T>({
+  item,
+  isOpen,
+  onToggle,
+  onClone,
+  onMove,
+  onDelete,
+  onVisibilityChange,
+  currentVisibleTo = ['pro', 'osce_pro'],
+  availableRoles = [
+    { value: 'pro', label: 'Kelas Apoteker' },
+    { value: 'osce_pro', label: 'Kelas OSCE' },
+  ],
+  menuHoverClass = 'hover:text-blue-600',
+}: ActionMenuProps<T>) {
   return (
     <>
       <button
@@ -44,10 +59,7 @@ export function ActionMenu<T>({ item, isOpen, onToggle, onClone, onMove, onDelet
                 <CaretRight className="w-4 h-4 text-slate-400" />
               </button>
               <div className="absolute right-full top-0 mr-1 w-48 bg-white border border-slate-200 rounded-lg shadow-xl z-20 py-1 hidden group-hover/visibility:block">
-                {[
-                  { value: 'pro', label: 'Kelas Apoteker' },
-                  { value: 'osce_pro', label: 'Kelas OSCE' }
-                ].map((role) => {
+                {availableRoles.map((role) => {
                   const isChecked = currentVisibleTo.includes(role.value);
                   return (
                     <label key={role.value} className="w-full flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer" onClick={(e) => e.stopPropagation()}>

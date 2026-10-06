@@ -92,6 +92,23 @@ export function canAccessScheduledTryoutOps(role: UserRole | null | undefined): 
   return role === "admin" || role === "mentor";
 }
 
+// Allow-list: unknown roles (including null while the profile is loading) are denied.
+export function canAccessOsceSimulator(role: UserRole | null | undefined): boolean {
+  return role === "osce_pro" || role === "mentor" || role === "admin";
+}
+
+// Mentors/admins see everything (also in ?mode=student); students only see items shared with their role.
+export function canViewMaterialItem(
+  visibleTo: readonly string[],
+  role: UserRole | null | undefined,
+): boolean {
+  if (role === "admin" || role === "mentor") {
+    return true;
+  }
+
+  return Boolean(role) && visibleTo.includes(role as string);
+}
+
 export function resolveAuthenticatedHome(access: AccessSnapshot): "/admin" | "/app" | "/subscription" {
   if (access.role === "admin") {
     return "/admin";

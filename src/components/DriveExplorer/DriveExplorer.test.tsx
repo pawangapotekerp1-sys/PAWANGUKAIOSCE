@@ -74,10 +74,10 @@ describe('DriveExplorer', () => {
 
   it('navigates into a folder when clicked and updates breadcrumbs', async () => {
     (getFolders as any).mockResolvedValueOnce([
-      { id: 'folder-1', name: 'Folder 1', type: 'folder', created_at: '', updated_at: '' }
+      { id: 'folder-1', name: 'Folder 1', type: 'folder', visible_to: ['pro', 'osce_pro'], created_at: '', updated_at: '' }
     ]).mockResolvedValueOnce([]); // Mock for the second query when navigating inside
 
-    renderWithProviders(<DriveExplorer driveType="rekaman" isMentorOrAdmin={false} />);
+    renderWithProviders(<DriveExplorer driveType="rekaman" isMentorOrAdmin={false} userRole="pro" />);
 
     // Wait for the folder to be rendered
     const folderElement = await screen.findByText('Folder 1');
@@ -102,6 +102,42 @@ describe('DriveExplorer', () => {
     // Let's just assert that breadcrumb is gone or back to normal
     await waitFor(() => {
       expect(screen.queryByText('Folder 1', { selector: 'button.text-slate-800' })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('role-based visibility', () => {
+    const osceOnly = { id: 'f-osce', name: 'Folder OSCE', visible_to: ['osce_pro'], created_at: '', updated_at: '' };
+    const shared = { id: 'f-all', name: 'Folder Semua', visible_to: ['pro', 'osce_pro'], created_at: '', updated_at: '' };
+
+    it('hides folders not shared with the student role', async () => {
+      (getFolders as any).mockResolvedValueOnce([osceOnly, shared]);
+      renderWithProviders(<DriveExplorer driveType="ppt" isMentorOrAdmin={false} userRole="pro" />);
+
+      expect(await screen.findByText('Folder Semua')).toBeInTheDocument();
+      expect(screen.queryByText('Folder OSCE')).not.toBeInTheDocument();
+    });
+
+    it('shows every folder to a mentor browsing in student mode', async () => {
+      (getFolders as any).mockResolvedValueOnce([osceOnly, shared]);
+      renderWithProviders(<DriveExplorer driveType="ppt" isMentorOrAdmin={false} userRole="mentor" />);
+
+      expect(await screen.findByText('Folder OSCE')).toBeInTheDocument();
+      expect(screen.getByText('Folder Semua')).toBeInTheDocument();
+    });
+
+    it('hides restricted folders while the role is still unknown', async () => {
+      (getFolders as any).mockResolvedValueOnce([osceOnly]);
+      renderWithProviders(<DriveExplorer driveType="ppt" isMentorOrAdmin={false} userRole={null} />);
+
+      expect(await screen.findByText('No items found')).toBeInTheDocument();
+      expect(screen.queryByText('Folder OSCE')).not.toBeInTheDocument();
+    });
+
+    it('shows the empty state when every item is hidden from the student', async () => {
+      (getFolders as any).mockResolvedValueOnce([osceOnly]);
+      renderWithProviders(<DriveExplorer driveType="ppt" isMentorOrAdmin={false} userRole="pro" />);
+
+      expect(await screen.findByText('No items found')).toBeInTheDocument();
     });
   });
 });

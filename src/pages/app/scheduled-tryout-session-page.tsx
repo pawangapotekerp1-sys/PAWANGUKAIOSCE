@@ -384,7 +384,7 @@ function ScheduledTryoutSessionPage() {
       return;
     }
 
-    async function requestPause() {
+    function requestPause() {
       if (
         hasRequestedPause.current
         || hasStartedSubmit.current
@@ -396,20 +396,18 @@ function ScheduledTryoutSessionPage() {
 
       hasRequestedPause.current = true;
 
-      try {
-        await flushCurrentQuestionProgress();
-      } finally {
-        pauseMutation.mutate();
-      }
+      // Run flush and pause concurrently so pause isn't blocked on pagehide/unmount
+      void flushCurrentQuestionProgress();
+      pauseMutation.mutate();
     }
 
     function handlePageHide() {
-      void requestPause();
+      requestPause();
     }
 
     function handleVisibilityChange() {
       if (document.hidden) {
-        void requestPause();
+        requestPause();
       }
     }
 
@@ -418,7 +416,12 @@ function ScheduledTryoutSessionPage() {
 
     return () => {
       window.removeEventListener("pagehide", handlePageHide);
-      window.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      
+      // Attempt to pause when component unmounts (e.g. client-side navigation)
+      if (!hasStartedSubmit.current) {
+        requestPause();
+      }
     };
   }, [attemptId, pauseMutation, sessionAttempt?.status, submitMutation.isPending]);
 

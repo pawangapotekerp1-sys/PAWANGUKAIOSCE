@@ -151,8 +151,7 @@ function AppRouter() {
           <Route path="/scheduled-ops">
             <Route index element={<Navigate replace to="/scheduled-ops/events" />} />
             <Route path="events" element={<ScheduledOpsEventsPage />} />
-            <Route path="events/new" element={<ScheduledEventEditorPage />} />
-            <Route path="events/:eventId/edit" element={<ScheduledEventEditorPage />} />
+            <Route path="events/:id/questions" element={<ScheduledEventEditorPage />} />
             <Route path="*" element={<Navigate replace to="/scheduled-ops/events" />} />
           </Route>
         </Route>

@@ -21,7 +21,7 @@ vi.mock("../../lib/api/scheduled-tryout-api", () => ({
   uploadScheduledQuestionMedia: (...args: unknown[]) => mockUploadScheduledQuestionMedia(...args),
 }));
 
-function renderScheduledEventEditor(initialEntry = "/scheduled-ops/events/new") {
+function renderScheduledEventEditor(initialEntry = "/scheduled-ops/events/event-1/questions") {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -39,8 +39,8 @@ function renderScheduledEventEditor(initialEntry = "/scheduled-ops/events/new") 
         <Routes>
           <Route element={<Outlet context={{ role: "mentor" as const }} />}>
             <Route path="/scheduled-ops/events" element={<div>Scheduled events list</div>} />
-            <Route path="/scheduled-ops/events/new" element={<ScheduledEventEditorPage />} />
-            <Route path="/scheduled-ops/events/:eventId/edit" element={<ScheduledEventEditorPage />} />
+            <Route path="/scheduled-ops/events/:id/questions" element={<ScheduledEventEditorPage />} />
+            
           </Route>
         </Routes>
       </MemoryRouter>
@@ -54,18 +54,7 @@ function renderScheduledEventEditor(initialEntry = "/scheduled-ops/events/new") 
 }
 
 async function fillValidScheduledEventForm() {
-  fireEvent.change(screen.getByLabelText(/judul event/i), {
-    target: { value: "TO Klinik Juni" },
-  });
-  fireEvent.change(screen.getByLabelText(/deskripsi singkat/i), {
-    target: { value: "Simulasi event klinik untuk peserta pro." },
-  });
-  fireEvent.change(screen.getByLabelText(/akses mulai/i), {
-    target: { value: "2026-06-10T08:00" },
-  });
-  fireEvent.change(screen.getByLabelText(/akses selesai/i), {
-    target: { value: "2026-06-12T21:00" },
-  });
+
   fireEvent.change(screen.getByLabelText(/^pertanyaan 1$/i), {
     target: { value: "Apa terapi awal yang paling rasional?" },
   });
@@ -120,16 +109,9 @@ describe("Scheduled event editor page", () => {
   test("renders event metadata fields and can add local question blocks before save", async () => {
     renderScheduledEventEditor();
 
-    expect(await screen.findByText(/kelola event terjadwal/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' })).toBeInTheDocument();
-    expect(screen.getByText(/siapkan detail event dan jadwal akses sebelum menyusun soal/i)).toBeInTheDocument();
-    expect(screen.getByText(/atur event/i)).toBeInTheDocument();
-    expect(screen.getByText(/mulai dari identitas event, lalu tentukan status tayang dan jadwal aksesnya/i)).toBeInTheDocument();
-    expect(await screen.findByLabelText(/judul event/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/akses mulai/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/akses selesai/i)).toBeInTheDocument();
-    expect(screen.getByText(/identitas event/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' })).toBeInTheDocument();
-    expect(screen.getByText(/status tayang/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' })).toBeInTheDocument();
-    expect(screen.getByText(/jadwal akses/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' })).toBeInTheDocument();
+    expect(await screen.findByText(/manajemen soal event terjadwal/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' })).toBeInTheDocument();
+    
+    expect(screen.getByText(/status publikasi/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' })).toBeInTheDocument();
     expect(screen.getByLabelText(/^pertanyaan 1$/i)).toBeInTheDocument();
     expect(screen.getByText(/durasi otomatis 1 menit/i)).toBeInTheDocument();
     expect(screen.getByText(/perubahan di perangkat ini tersimpan/i)).toBeInTheDocument();
@@ -146,7 +128,7 @@ describe("Scheduled event editor page", () => {
   test("shows the add-question action only inside the last question card", async () => {
     renderScheduledEventEditor();
 
-    await screen.findByLabelText(/judul event/i);
+    
     const firstCard = screen.getByText(/soal 1/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' }).closest('.px-5');
     const firstCardActions = within(firstCard as HTMLElement).getByRole("group", { name: /aksi soal 1/i });
 
@@ -164,7 +146,7 @@ describe("Scheduled event editor page", () => {
   test("shows delete actions per question card only when more than one question exists", async () => {
     renderScheduledEventEditor();
 
-    await screen.findByLabelText(/judul event/i);
+    
     await fillValidScheduledEventForm();
     fireEvent.click(screen.getByRole("button", { name: /tambah soal/i }));
 
@@ -175,7 +157,7 @@ describe("Scheduled event editor page", () => {
   test("renders each question card with grouped answer and explanation sections in reading order", async () => {
     renderScheduledEventEditor();
 
-    await screen.findByLabelText(/judul event/i);
+    
     const questionCard = screen.getByText(/soal 1/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' }).closest('.px-5');
     const card = questionCard as HTMLElement;
     const questionHeading = within(card).getByText(/soal 1/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' });
@@ -243,7 +225,7 @@ describe("Scheduled event editor page", () => {
   test("hides block and topic categorization in the scheduled editor", async () => {
     renderScheduledEventEditor();
 
-    await screen.findByLabelText(/judul event/i);
+    
 
     expect(screen.queryByLabelText(/blok soal 1/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/materi soal 1/i)).not.toBeInTheDocument();
@@ -252,7 +234,7 @@ describe("Scheduled event editor page", () => {
   test("restores the new-event draft automatically after remount", async () => {
     const firstRender = renderScheduledEventEditor();
 
-    await screen.findByLabelText(/judul event/i);
+    
     fireEvent.change(screen.getByLabelText(/judul event/i), {
       target: { value: "TO Klinis Browser Draft" },
     });
@@ -267,61 +249,13 @@ describe("Scheduled event editor page", () => {
     expect(screen.getByDisplayValue(/pertanyaan draft yang belum sempat disimpan/i)).toBeInTheDocument();
   });
 
-  test("starts a clean new event when the list requests a fresh editor", async () => {
-    window.localStorage.setItem(
-      "scheduled-event-editor:draft:new",
-      JSON.stringify({
-        eventId: null,
-        persistedEventId: "event-stale",
-        updatedAt: "2026-06-05T07:00:00.000Z",
-        lastServerSavedAt: "2026-06-05T07:00:00.000Z",
-        lastServerFingerprint: "{\"title\":\"TO Browser Lama\"}",
-        formState: {
-          title: "TO Browser Lama",
-          description: "Draft yang tidak boleh ikut saat klik Event baru.",
-          editorialStatus: "draft",
-          accessStartAt: "2026-06-11T09:00",
-          accessEndAt: "2026-06-13T21:00",
-          questions: [
-            {
-              id: null,
-              stem: "Soal draft lama",
-              correctOptionKey: "A",
-              explanationText: "",
-              questionImagePath: null,
-              questionImageUrl: null,
-              explanationImagePath: null,
-              explanationImageUrl: null,
-              options: {
-                A: "A lama",
-                B: "B lama",
-                C: "",
-                D: "",
-                E: "",
-              },
-            },
-          ],
-        },
-      }),
-    );
-
-    renderScheduledEventEditor("/scheduled-ops/events/new?fresh=1");
-
-    expect(await screen.findByLabelText(/judul event/i)).toHaveValue("");
-    expect(screen.getByLabelText(/^pertanyaan 1$/i)).toHaveValue("");
-    expect(screen.queryByDisplayValue(/to browser lama/i)).not.toBeInTheDocument();
-    expect(window.localStorage.getItem("scheduled-event-editor:draft:new")).not.toContain("TO Browser Lama");
-  });
-
   test("loads existing event questions in edit mode", async () => {
     mockGetScheduledEventEditorData.mockResolvedValue({
       event: {
         id: "event-9",
-        title: "TO Klinik Juni",
-        description: "Simulasi event klinik.",
+        
         editorialStatus: "published",
-        accessStartAt: "2026-06-10T08:00",
-        accessEndAt: "2026-06-12T21:00",
+        
         currentCycle: 2,
       },
       questions: [
@@ -350,10 +284,10 @@ describe("Scheduled event editor page", () => {
       ],
     });
 
-    renderScheduledEventEditor("/scheduled-ops/events/event-9/edit");
+    renderScheduledEventEditor("/scheduled-ops/events/event-9/questions");
 
-    expect(await screen.findByDisplayValue(/to klinik juni/i)).toBeInTheDocument();
-    expect(screen.getByDisplayValue(/simulasi event klinik/i)).toBeInTheDocument();
+    
+    
     expect(screen.getByDisplayValue(/apa terapi awal yang paling rasional/i)).toBeInTheDocument();
     expect(screen.getByDisplayValue(/ace inhibitor dipilih sebagai fondasi awal/i)).toBeInTheDocument();
     expect(screen.getByText(/durasi otomatis 1 menit/i)).toBeInTheDocument();
@@ -366,11 +300,9 @@ describe("Scheduled event editor page", () => {
         eventId: "event-9",
         updatedAt: "2026-05-16T13:00:00.000Z",
         formState: {
-          title: "TO Klinik Draft Browser",
-          description: "Draft edit lokal",
+          
           editorialStatus: "draft",
-          accessStartAt: "2026-06-11T09:00",
-          accessEndAt: "2026-06-13T21:00",
+          
           questions: [
             {
               id: "question-1",
@@ -396,11 +328,9 @@ describe("Scheduled event editor page", () => {
     mockGetScheduledEventEditorData.mockResolvedValue({
       event: {
         id: "event-9",
-        title: "TO Klinik Juni",
-        description: "Simulasi event klinik.",
+        
         editorialStatus: "published",
-        accessStartAt: "2026-06-10T08:00",
-        accessEndAt: "2026-06-12T21:00",
+        
         currentCycle: 2,
       },
       questions: [
@@ -429,11 +359,11 @@ describe("Scheduled event editor page", () => {
       ],
     });
 
-    renderScheduledEventEditor("/scheduled-ops/events/event-9/edit");
+    renderScheduledEventEditor("/scheduled-ops/events/event-9/questions");
 
-    expect(await screen.findByDisplayValue(/to klinik draft browser/i)).toBeInTheDocument();
+    
     expect(screen.getByDisplayValue(/soal draft edit lokal/i)).toBeInTheDocument();
-    expect(screen.queryByDisplayValue(/to klinik juni/i)).not.toBeInTheDocument();
+    
   });
 
   test("prefers newer backend event data over a stale matching edit draft", async () => {
@@ -444,11 +374,9 @@ describe("Scheduled event editor page", () => {
         updatedAt: "2026-06-05T07:00:00.000Z",
         lastServerSavedAt: "2026-06-05T07:00:00.000Z",
         formState: {
-          title: "TO Klinik Draft Lama",
-          description: "Draft browser lama",
+          
           editorialStatus: "draft",
-          accessStartAt: "2026-06-11T09:00",
-          accessEndAt: "2026-06-13T21:00",
+          
           questions: [
             {
               id: "question-1",
@@ -491,11 +419,9 @@ describe("Scheduled event editor page", () => {
     mockGetScheduledEventEditorData.mockResolvedValue({
       event: {
         id: "event-9",
-        title: "TO Klinik Backend Baru",
-        description: "Versi server terbaru dengan empat soal.",
+        
         editorialStatus: "published",
-        accessStartAt: "2026-06-10T08:00",
-        accessEndAt: "2026-06-12T21:00",
+        
         currentCycle: 2,
         updatedAt: "2026-06-05T08:30:00.000Z",
       },
@@ -579,11 +505,11 @@ describe("Scheduled event editor page", () => {
       ],
     });
 
-    renderScheduledEventEditor("/scheduled-ops/events/event-9/edit");
+    renderScheduledEventEditor("/scheduled-ops/events/event-9/questions");
 
-    expect(await screen.findByDisplayValue(/to klinik backend baru/i)).toBeInTheDocument();
+    
     expect(screen.getByDisplayValue(/soal backend 4/i)).toBeInTheDocument();
-    expect(screen.queryByDisplayValue(/to klinik draft lama/i)).not.toBeInTheDocument();
+    
     expect(screen.queryByDisplayValue(/soal draft lama 2/i)).not.toBeInTheDocument();
     expect(screen.getByText(/durasi otomatis 4 menit/i)).toBeInTheDocument();
   });
@@ -595,11 +521,9 @@ describe("Scheduled event editor page", () => {
         eventId: "event-9",
         updatedAt: "2024-06-05T07:00:00.000Z",
         formState: {
-          title: "TO Klinik Draft Legacy",
-          description: "Draft browser lama dari skema sebelumnya",
+          
           editorialStatus: "draft",
-          accessStartAt: "2026-06-11T09:00",
-          accessEndAt: "2026-06-13T21:00",
+          
           questions: [
             {
               id: "question-1",
@@ -642,11 +566,9 @@ describe("Scheduled event editor page", () => {
     mockGetScheduledEventEditorData.mockResolvedValue({
       event: {
         id: "event-9",
-        title: "TO Klinik Backend Stabil",
-        description: "Versi server terbaru dengan empat soal.",
+        
         editorialStatus: "published",
-        accessStartAt: "2026-06-10T08:00",
-        accessEndAt: "2026-06-12T21:00",
+        
         currentCycle: 2,
         updatedAt: "2025-06-05T08:30:00.000Z",
       },
@@ -730,11 +652,11 @@ describe("Scheduled event editor page", () => {
       ],
     });
 
-    renderScheduledEventEditor("/scheduled-ops/events/event-9/edit");
+    renderScheduledEventEditor("/scheduled-ops/events/event-9/questions");
 
-    expect(await screen.findByDisplayValue(/to klinik backend stabil/i)).toBeInTheDocument();
+    
     expect(screen.getByDisplayValue(/soal backend 4/i)).toBeInTheDocument();
-    expect(screen.queryByDisplayValue(/to klinik draft legacy/i)).not.toBeInTheDocument();
+    
     expect(screen.queryByDisplayValue(/soal legacy 2/i)).not.toBeInTheDocument();
     expect(screen.getByText(/durasi otomatis 4 menit/i)).toBeInTheDocument();
   });
@@ -746,11 +668,9 @@ describe("Scheduled event editor page", () => {
         eventId: "event-9",
         updatedAt: "2026-05-16T13:00:00.000Z",
         formState: {
-          title: "TO Klinik Draft Offline",
-          description: "Draft edit saat koneksi putus",
+          
           editorialStatus: "draft",
-          accessStartAt: "2026-06-11T09:00",
-          accessEndAt: "2026-06-13T21:00",
+          
           questions: [
             {
               id: "question-1",
@@ -775,9 +695,9 @@ describe("Scheduled event editor page", () => {
     );
     mockGetScheduledEventEditorData.mockRejectedValue(new Error("Backend operasional tidak tersedia."));
 
-    renderScheduledEventEditor("/scheduled-ops/events/event-9/edit");
+    renderScheduledEventEditor("/scheduled-ops/events/event-9/questions");
 
-    expect(await screen.findByDisplayValue(/to klinik draft offline/i)).toBeInTheDocument();
+    
     expect(screen.getByDisplayValue(/soal draft yang harus tetap pulih/i)).toBeInTheDocument();
     expect(
       screen.queryByText(/form event belum tersedia/i),
@@ -787,7 +707,7 @@ describe("Scheduled event editor page", () => {
   test("uploads scheduled question and explanation images through the scheduled helper", async () => {
     renderScheduledEventEditor();
 
-    await screen.findByLabelText(/judul event/i);
+    
     const questionFile = new File(["question"], "question.png", { type: "image/png" });
     const explanationFile = new File(["explanation"], "explanation.png", { type: "image/png" });
 
@@ -923,11 +843,9 @@ describe("Scheduled event editor page", () => {
         eventId: null,
         updatedAt: "2026-05-16T13:00:00.000Z",
         formState: {
-          title: "Draft TO Klinik Juni",
-          description: "Draft lama",
+          
           editorialStatus: "draft",
-          accessStartAt: "2026-06-10T08:00",
-          accessEndAt: "2026-06-12T21:00",
+          
           questions: [
             {
               id: null,
@@ -959,11 +877,9 @@ describe("Scheduled event editor page", () => {
     await waitFor(() => {
       expect(mockCreateScheduledEvent).toHaveBeenCalledWith({
         input: expect.objectContaining({
-          title: "TO Klinik Juni",
-          description: "Simulasi event klinik untuk peserta pro.",
+          
           editorialStatus: "draft",
-          accessStartAt: "2026-06-10T08:00",
-          accessEndAt: "2026-06-12T21:00",
+          
           questions: [
             expect.objectContaining({
               stem: "Apa terapi awal yang paling rasional?",

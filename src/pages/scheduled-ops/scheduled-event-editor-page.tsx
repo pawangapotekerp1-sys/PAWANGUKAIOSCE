@@ -56,11 +56,7 @@ const emptyQuestion = (): EventQuestionFormState => ({
 });
 
 const buildInitialFormState = (): EventFormState => ({
-  title: "",
-  description: "",
   editorialStatus: "draft",
-  accessStartAt: "",
-  accessEndAt: "",
   questions: [emptyQuestion()],
 });
 
@@ -98,20 +94,23 @@ function mapEditorQuestionToFormState(question: ScheduledEventEditorDataViewMode
 
 function mapEditorDataToFormState(editorData: ScheduledEventEditorDataViewModel): EventFormState {
   return {
-    title: editorData.event.title,
-    description: editorData.event.description,
     editorialStatus: editorData.event.editorialStatus,
-    accessStartAt: editorData.event.accessStartAt,
-    accessEndAt: editorData.event.accessEndAt,
     questions: editorData.questions.map((question) => mapEditorQuestionToFormState(question)),
   };
 }
 
-function buildInputFromFormState(formState: EventFormState): ScheduledEventMutationInput | null {
-  const title = formState.title.trim();
-  const description = formState.description.trim();
+function buildInputFromFormState(formState: EventFormState, serverEvent?: ScheduledEventEditorDataViewModel["event"]): ScheduledEventMutationInput | null {
+  if (!serverEvent) return null;
 
-  if (!title || !formState.accessStartAt || !formState.accessEndAt || formState.questions.length === 0) {
+  const title = serverEvent.title;
+  const description = serverEvent.description;
+  const accessStartAt = serverEvent.accessStartAt;
+  const accessEndAt = serverEvent.accessEndAt;
+  const durationMinutes = serverEvent.durationMinutes || 100;
+  const totalQuestions = serverEvent.questionCount || 100;
+  const maxAttempts = serverEvent.maxAttempts || 1;
+
+  if (formState.questions.length === 0) {
     return null;
   }
 
@@ -150,17 +149,17 @@ function buildInputFromFormState(formState: EventFormState): ScheduledEventMutat
     title,
     description,
     editorialStatus: formState.editorialStatus,
-    accessStartAt: formState.accessStartAt,
-    accessEndAt: formState.accessEndAt,
-    totalQuestions: 100,
-    durationMinutes: 100,
-    maxAttempts: 1,
+    accessStartAt,
+    accessEndAt,
+    totalQuestions,
+    durationMinutes,
+    maxAttempts,
     questions: questions as ScheduledEventMutationInput["questions"],
   };
 }
 
-function buildFormStateFingerprint(formState: EventFormState) {
-  const input = buildInputFromFormState(formState);
+function buildFormStateFingerprint(formState: EventFormState, serverEvent?: ScheduledEventEditorDataViewModel["event"]) {
+  const input = buildInputFromFormState(formState, serverEvent);
 
   if (!input) {
     return null;
@@ -195,8 +194,8 @@ function shouldRestoreMatchingEditDraft(
   }
 
   const serverFormState = mapEditorDataToFormState(serverData);
-  const draftFingerprint = buildFormStateFingerprint(draft.formState);
-  const serverFingerprint = buildFormStateFingerprint(serverFormState);
+  const draftFingerprint = buildFormStateFingerprint(draft.formState, serverData.event);
+  const serverFingerprint = buildFormStateFingerprint(serverFormState, serverData.event);
 
   if (draftFingerprint && serverFingerprint && draftFingerprint === serverFingerprint) {
     return false;
@@ -250,12 +249,11 @@ function formatAutosaveTimestamp(value: string | null) {
 function ScheduledEventEditorPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { eventId } = useParams();
+  const { id: eventId } = useParams();
   const [searchParams] = useSearchParams();
   const isEditMode = Boolean(eventId);
-  const shouldStartFreshNewEvent = !isEditMode && searchParams.get("fresh") === "1";
   const [restoredDraft] = useState(() =>
-    shouldStartFreshNewEvent ? null : readScheduledEventDraft(eventId),
+    readScheduledEventDraft(eventId),
   );
   const initialPersistedEventId = restoredDraft?.persistedEventId ?? eventId ?? null;
   const [formState, setFormState] = useState<EventFormState>(() => {
@@ -301,15 +299,6 @@ function ScheduledEventEditorPage() {
   }
 
   useEffect(() => {
-    if (!shouldStartFreshNewEvent) {
-      return;
-    }
-
-    clearScheduledEventDraft();
-    navigate("/scheduled-ops/events/new", { replace: true });
-  }, [navigate, shouldStartFreshNewEvent]);
-
-  useEffect(() => {
     if (!editorQuery.data) {
       return;
     }
@@ -342,8 +331,8 @@ function ScheduledEventEditorPage() {
     );
     setLastAutosaveFingerprint(
       shouldRestoreDraft && draft
-        ? draft.lastServerFingerprint ?? buildFormStateFingerprint(draft.formState)
-        : buildFormStateFingerprint(serverFormState),
+        ? draft.lastServerFingerprint ?? buildFormStateFingerprint(draft.formState, editorQuery.data.event)
+        : buildFormStateFingerprint(serverFormState, editorQuery.data.event),
     );
     setHasHydratedEditForm(true);
   }, [editorQuery.data, eventId]);
@@ -511,7 +500,7 @@ function ScheduledEventEditorPage() {
 
   function handleAddQuestion() {
     setSaveError(null);
-    const input = buildInputFromFormState(formState);
+    const input = buildInputFromFormState(formState, editorQuery.data?.event);
 
     if (!input) {
       setSaveError("Lengkapi identitas event dan semua soal beserta kunci jawaban sebelum menambah soal baru.");
@@ -564,7 +553,7 @@ function ScheduledEventEditorPage() {
       return;
     }
 
-    const input = buildInputFromFormState(formState);
+    const input = buildInputFromFormState(formState, editorQuery.data?.event);
 
     if (!input) {
       return;
@@ -604,7 +593,7 @@ function ScheduledEventEditorPage() {
 
   function handleSave() {
     setSaveError(null);
-    const input = buildInputFromFormState(formState);
+    const input = buildInputFromFormState(formState, editorQuery.data?.event);
 
     if (!input) {
       setSaveError("Lengkapi judul, jadwal akses, dan tiap soal dengan minimal dua opsi serta kunci jawaban.");
@@ -634,9 +623,9 @@ function ScheduledEventEditorPage() {
 
   return (
     <ScheduledOpsShell
-      activeHref="/scheduled-ops/events/new"
-      title="Kelola Event Terjadwal"
-      description="Siapkan detail event dan jadwal akses sebelum menyusun soal."
+      activeHref={`/scheduled-ops/events/${eventId}/questions`}
+      title="Manajemen Soal Event Terjadwal"
+      description="Susun soal dan pembahasan untuk event ini."
     >
       {isLoading ? (
         <div className="flex flex-col items-center justify-center p-8 space-y-4">
@@ -662,18 +651,33 @@ function ScheduledEventEditorPage() {
           ) : null}
 
           <Card className="px-5 py-5" >
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div className="space-y-2">
-                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-foreground">
-                  Atur event
-                </p>
-                <h2 className="text-2xl font-semibold tracking-[-0.03em] text-foreground">
-                  Mulai dari metadata event
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+              <section
+                aria-labelledby="event-status-heading"
+                className="space-y-3 lg:w-1/3"
+              >
+                <h2
+                  className="text-sm font-semibold text-foreground"
+                  id="event-status-heading"
+                >
+                  Status Publikasi
                 </h2>
-                <p className="max-w-2xl text-sm leading-7 text-foreground">
-                  Mulai dari identitas event, lalu tentukan status tayang dan jadwal aksesnya.
-                </p>
-              </div>
+                <select
+                  id="event-status"
+                  className="min-h-11 w-full rounded-[1.15rem] border border-border bg-muted px-4 text-sm text-foreground outline-none transition focus:border-border"
+                  onChange={(event) => {
+                    setFormState((current) => ({
+                      ...current,
+                      editorialStatus: event.target.value as EventFormState["editorialStatus"],
+                    }));
+                  }}
+                  value={formState.editorialStatus}
+                >
+                  <option value="draft">Draft (Disembunyikan)</option>
+                  <option value="published">Tayang (Publik)</option>
+                </select>
+              </section>
+
               <div className="rounded-[1.1rem] border border-border bg-muted px-4 py-3 lg:max-w-sm">
                 <p className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-foreground">
                   Status penyimpanan
@@ -682,151 +686,6 @@ function ScheduledEventEditorPage() {
                   {autosaveLabel}
                 </p>
               </div>
-            </div>
-          </Card>
-
-          <Card className="space-y-6 px-5 py-5" >
-            <section
-              aria-labelledby="event-identity-heading"
-              className="space-y-4 border-b border-border pb-6"
-            >
-              <div className="space-y-1">
-                <h2
-                  className="text-lg font-semibold tracking-[-0.02em] text-foreground"
-                  id="event-identity-heading"
-                >
-                  Identitas event
-                </h2>
-                <p className="text-sm leading-6 text-foreground">
-                  Mulai dari nama event yang mudah dikenali, lalu tambahkan deskripsi singkatnya.
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                <label className="text-sm font-medium text-foreground" htmlFor="event-title">
-                  Judul event
-                  <input
-                    id="event-title"
-                    className="mt-2 min-h-11 w-full rounded-[1.15rem] border border-border bg-muted px-4 text-sm text-foreground outline-none transition focus:border-border"
-                    onChange={(event) => {
-                      setFormState((current) => ({
-                        ...current,
-                        title: event.target.value,
-                      }));
-                    }}
-                    value={formState.title}
-                  />
-                </label>
-
-                <label className="text-sm font-medium text-foreground" htmlFor="event-description">
-                  Deskripsi singkat
-                  <textarea
-                    id="event-description"
-                    className="mt-2 min-h-24 w-full rounded-[1.15rem] border border-border bg-muted px-4 py-3 text-sm text-foreground outline-none transition focus:border-border"
-                    onChange={(event) => {
-                      setFormState((current) => ({
-                        ...current,
-                        description: event.target.value,
-                      }));
-                    }}
-                    value={formState.description}
-                  />
-                </label>
-              </div>
-            </section>
-
-            <div className="grid gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-              <section
-                aria-labelledby="event-status-heading"
-                className="space-y-4 border-b border-border pb-6 xl:border-b-0 xl:border-r xl:pb-0 xl:pr-6"
-              >
-                <div className="space-y-1">
-                  <h2
-                    className="text-lg font-semibold tracking-[-0.02em] text-foreground"
-                    id="event-status-heading"
-                  >
-                    Status tayang
-                  </h2>
-                  <p className="text-sm leading-6 text-foreground">
-                    Pilih apakah event masih disiapkan atau sudah siap ditampilkan.
-                  </p>
-                </div>
-
-                <label className="text-sm font-medium text-foreground" htmlFor="event-status">
-                  Status tayang
-                  <select
-                    id="event-status"
-                    className="mt-2 min-h-11 w-full rounded-[1.15rem] border border-border bg-muted px-4 text-sm text-foreground outline-none transition focus:border-border"
-                    onChange={(event) => {
-                      setFormState((current) => ({
-                        ...current,
-                        editorialStatus: event.target.value as EventFormState["editorialStatus"],
-                      }));
-                    }}
-                    value={formState.editorialStatus}
-                  >
-                    <option value="draft">Draft</option>
-                    <option value="published">Tayang</option>
-                  </select>
-                </label>
-              </section>
-
-              <section aria-labelledby="event-schedule-heading" className="space-y-4">
-                <div className="space-y-1">
-                  <h2
-                    className="text-lg font-semibold tracking-[-0.02em] text-foreground"
-                    id="event-schedule-heading"
-                  >
-                    Jadwal akses
-                  </h2>
-                  <p className="text-sm leading-6 text-foreground">
-                    Tentukan kapan peserta mulai bisa masuk dan kapan akses event ditutup.
-                  </p>
-                </div>
-
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <label className="text-sm font-medium text-foreground" htmlFor="event-access-start">
-                    Akses mulai
-                    <input
-                      id="event-access-start"
-                      className="mt-2 min-h-11 w-full rounded-[1.15rem] border border-border bg-muted px-4 text-sm text-foreground outline-none transition focus:border-border"
-                      onChange={(event) => {
-                        setFormState((current) => ({
-                          ...current,
-                          accessStartAt: event.target.value,
-                        }));
-                      }}
-                      type="datetime-local"
-                      value={formState.accessStartAt}
-                    />
-                  </label>
-
-                  <label className="text-sm font-medium text-foreground" htmlFor="event-access-end">
-                    Akses selesai
-                    <input
-                      id="event-access-end"
-                      className="mt-2 min-h-11 w-full rounded-[1.15rem] border border-border bg-muted px-4 text-sm text-foreground outline-none transition focus:border-border"
-                      onChange={(event) => {
-                        setFormState((current) => ({
-                          ...current,
-                          accessEndAt: event.target.value,
-                        }));
-                      }}
-                      type="datetime-local"
-                      value={formState.accessEndAt}
-                    />
-                  </label>
-                </div>
-
-                <div className="rounded-[1.2rem] border border-border bg-muted px-4 py-4">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <Badge variant="secondary">Durasi otomatis {formState.questions.length} menit</Badge>
-                    <p className="text-sm leading-6 text-foreground">
-                      Durasi akan mengikuti jumlah soal yang aktif di event ini.
-                    </p>
-                  </div>
-                </div>
-              </section>
             </div>
           </Card>
 

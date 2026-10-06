@@ -15,11 +15,7 @@ function createDraftPayload(overrides: Partial<ScheduledEventEditorDraftPayload>
     lastServerSavedAt: null,
     lastServerFingerprint: null,
     formState: {
-      title: "TO Klinik Draft",
-      description: "Draft browser-local",
       editorialStatus: "draft",
-      accessStartAt: "2026-06-10T08:00",
-      accessEndAt: "2026-06-12T21:00",
       questions: [
         {
           id: null,

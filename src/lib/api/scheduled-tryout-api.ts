@@ -1109,7 +1109,7 @@ export async function getScheduledEventEditorData(
 ): Promise<ScheduledEventEditorDataViewModel | null> {
   const { data: eventData, error: eventError } = await client
     .from("scheduled_tryout_events")
-    .select("id, title, description, editorial_status, access_start_at, access_end_at, current_cycle, updated_at")
+    .select("id, title, description, editorial_status, access_start_at, access_end_at, current_cycle, updated_at, duration_minutes, total_questions, max_attempts")
     .eq("id", eventId)
     .maybeSingle();
 
@@ -1172,6 +1172,9 @@ export async function getScheduledEventEditorData(
       accessEndAt: formatScheduledAccessForInput((eventData as ScheduledEventRow).access_end_at),
       currentCycle: (eventData as ScheduledEventRow).current_cycle,
       updatedAt: (eventData as ScheduledEventRow).updated_at ?? null,
+      durationMinutes: (eventData as ScheduledEventRow).duration_minutes,
+      questionCount: (eventData as ScheduledEventRow).total_questions,
+      maxAttempts: (eventData as ScheduledEventRow).max_attempts,
     },
     questions,
   });

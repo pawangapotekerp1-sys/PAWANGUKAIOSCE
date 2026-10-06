@@ -192,6 +192,9 @@ export type ScheduledEventEditorDataViewModel = {
     accessEndAt: string;
     currentCycle: number;
     updatedAt: string | null;
+    durationMinutes: number;
+    questionCount: number;
+    maxAttempts: number;
   };
   questions: ScheduledEventEditorQuestion[];
 };

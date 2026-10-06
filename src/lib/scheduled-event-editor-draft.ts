@@ -13,11 +13,7 @@ export type ScheduledEventEditorDraftQuestion = {
 };
 
 export type ScheduledEventEditorDraftFormState = {
-  title: string;
-  description: string;
   editorialStatus: "draft" | "published";
-  accessStartAt: string;
-  accessEndAt: string;
   questions: ScheduledEventEditorDraftQuestion[];
 };
 
@@ -75,11 +71,7 @@ function isDraftFormState(value: unknown): value is ScheduledEventEditorDraftFor
 
   const formState = value as Record<string, unknown>;
 
-  return typeof formState.title === "string"
-    && typeof formState.description === "string"
-    && (formState.editorialStatus === "draft" || formState.editorialStatus === "published")
-    && typeof formState.accessStartAt === "string"
-    && typeof formState.accessEndAt === "string"
+  return (formState.editorialStatus === "draft" || formState.editorialStatus === "published")
     && Array.isArray(formState.questions)
     && formState.questions.every((question) => isDraftQuestion(question));
 }

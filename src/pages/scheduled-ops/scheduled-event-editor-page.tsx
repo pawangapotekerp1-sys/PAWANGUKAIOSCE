@@ -503,7 +503,7 @@ function ScheduledEventEditorPage() {
     const input = buildInputFromFormState(formState, editorQuery.data?.event);
 
     if (!input) {
-      setSaveError("Lengkapi identitas event dan semua soal beserta kunci jawaban sebelum menambah soal baru.");
+      setSaveError("Lengkapi semua soal dan pastikan ada kunci jawaban sebelum menambah soal baru.");
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
@@ -596,7 +596,7 @@ function ScheduledEventEditorPage() {
     const input = buildInputFromFormState(formState, editorQuery.data?.event);
 
     if (!input) {
-      setSaveError("Lengkapi judul, jadwal akses, dan tiap soal dengan minimal dua opsi serta kunci jawaban.");
+      setSaveError("Lengkapi semua soal dan pastikan tiap soal memiliki minimal dua opsi serta kunci jawaban.");
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
@@ -623,7 +623,7 @@ function ScheduledEventEditorPage() {
 
   return (
     <ScheduledOpsShell
-      activeHref={`/scheduled-ops/events/${eventId}/questions`}
+      activeHref="/scheduled-ops/events"
       title="Manajemen Soal Event Terjadwal"
       description="Susun soal dan pembahasan untuk event ini."
     >
@@ -690,7 +690,12 @@ function ScheduledEventEditorPage() {
           </Card>
 
           <div className="space-y-4">
-            {formState.questions.map((question, questionIndex) => {
+            {formState.questions.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-8 bg-card border rounded-lg text-center space-y-4">
+                <p className="text-muted-foreground">Belum ada soal untuk tryout ini.</p>
+                <Button type="button" onClick={() => handleAddQuestion()}>Tambah Soal Pertama</Button>
+              </div>
+            ) : formState.questions.map((question, questionIndex) => {
               return (
                 <Card key={`${question.id ?? "draft"}-${questionIndex}`} className="space-y-6 px-5 py-5" >
                   <div className="flex flex-wrap items-start justify-between gap-3">

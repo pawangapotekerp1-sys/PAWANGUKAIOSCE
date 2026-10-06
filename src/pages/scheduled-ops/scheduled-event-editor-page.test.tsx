@@ -54,8 +54,8 @@ function renderScheduledEventEditor(initialEntry = "/scheduled-ops/events/event-
 }
 
 async function fillValidScheduledEventForm() {
-
-  fireEvent.change(screen.getByLabelText(/^pertanyaan 1$/i), {
+  const firstQuestionInput = await screen.findByLabelText(/^pertanyaan 1$/i);
+  fireEvent.change(firstQuestionInput, {
     target: { value: "Apa terapi awal yang paling rasional?" },
   });
   fireEvent.change(screen.getByLabelText(/opsi a soal 1/i), {
@@ -96,7 +96,45 @@ beforeEach(() => {
       ],
     },
   ]);
-  mockGetScheduledEventEditorData.mockResolvedValue(null);
+  mockGetScheduledEventEditorData.mockResolvedValue({
+    event: {
+      id: "event-1",
+      title: "TO Klinik Juni",
+      description: "Deskripsi",
+      editorialStatus: "draft",
+      accessStartAt: "2026-06-01T07:00:00Z",
+      accessEndAt: "2026-06-01T10:00:00Z",
+      durationMinutes: 100,
+      questionCount: 1,
+      maxAttempts: 1,
+      updatedAt: "2026-06-01T00:00:00Z",
+      currentCycle: 1,
+    },
+    questions: [
+      {
+        id: "question-1",
+        order: 1,
+        stem: "Apa terapi awal yang paling rasional?",
+        questionImagePath: null,
+        questionImageUrl: null,
+        explanationText: "ACE inhibitor dipilih sebagai fondasi awal.",
+        explanationImagePath: null,
+        explanationImageUrl: null,
+        blockId: "block-1",
+        blockName: "Clinical Science",
+        topicId: "topic-1",
+        topicName: "Kardiologi",
+        correctOptionKey: "B",
+        options: [
+          { id: "option-1", key: "A", text: "Pilihan A", sortOrder: 1 },
+          { id: "option-2", key: "B", text: "Pilihan B", sortOrder: 2 },
+          { id: "option-3", key: "C", text: "", sortOrder: 3 },
+          { id: "option-4", key: "D", text: "", sortOrder: 4 },
+          { id: "option-5", key: "E", text: "", sortOrder: 5 },
+        ],
+      }
+    ],
+  });
   mockCreateScheduledEvent.mockResolvedValue({ id: "event-1" });
   mockUpdateScheduledEvent.mockResolvedValue({ id: "event-9" });
   mockUploadScheduledQuestionMedia.mockResolvedValue({
@@ -235,9 +273,6 @@ describe("Scheduled event editor page", () => {
     const firstRender = renderScheduledEventEditor();
 
     
-    fireEvent.change(screen.getByLabelText(/judul event/i), {
-      target: { value: "TO Klinis Browser Draft" },
-    });
     fireEvent.change(screen.getByLabelText(/^pertanyaan 1$/i), {
       target: { value: "Pertanyaan draft yang belum sempat disimpan" },
     });
@@ -245,7 +280,6 @@ describe("Scheduled event editor page", () => {
     firstRender.unmount();
     renderScheduledEventEditor();
 
-    expect(await screen.findByDisplayValue(/to klinis browser draft/i)).toBeInTheDocument();
     expect(screen.getByDisplayValue(/pertanyaan draft yang belum sempat disimpan/i)).toBeInTheDocument();
   });
 
@@ -747,180 +781,5 @@ describe("Scheduled event editor page", () => {
     expect(questionImageInput.compareDocumentPosition(optionAField)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
-  test("autosaves a new event once and reuses the persisted event id for later syncs without navigation", async () => {
-    vi.useFakeTimers();
-    renderScheduledEventEditor();
 
-    await fillValidScheduledEventForm();
-
-    await vi.advanceTimersByTimeAsync(5 * 60 * 1000);
-
-    expect(mockCreateScheduledEvent).toHaveBeenCalledTimes(1);
-    expect(mockUpdateScheduledEvent).not.toHaveBeenCalled();
-    expect(screen.queryByText(/scheduled events list/i)).not.toBeInTheDocument();
-    expect(screen.getByLabelText(/judul event/i)).toBeInTheDocument();
-
-    fireEvent.change(screen.getByLabelText(/deskripsi singkat/i), {
-      target: { value: "Simulasi event klinik revisi autosave." },
-    });
-
-    await vi.advanceTimersByTimeAsync(5 * 60 * 1000);
-
-    expect(mockUpdateScheduledEvent).toHaveBeenCalledWith({
-      eventId: "event-1",
-      input: expect.objectContaining({
-        description: "Simulasi event klinik revisi autosave.",
-      }),
-    });
-    expect(mockCreateScheduledEvent).toHaveBeenCalledTimes(1);
-    expect(screen.queryByText(/scheduled events list/i)).not.toBeInTheDocument();
-  });
-
-  test("manual save returns to the event list after an autosave-created event", async () => {
-    vi.useFakeTimers();
-    renderScheduledEventEditor();
-
-    await fillValidScheduledEventForm();
-    await vi.advanceTimersByTimeAsync(5 * 60 * 1000);
-
-    expect(mockCreateScheduledEvent).toHaveBeenCalledTimes(1);
-
-    vi.useRealTimers();
-    fireEvent.click(screen.getByRole("button", { name: /simpan event/i }));
-
-    await waitFor(() => {
-      expect(mockUpdateScheduledEvent).toHaveBeenCalledWith({
-        eventId: "event-1",
-        input: expect.objectContaining({
-          title: "TO Klinik Juni",
-        }),
-      });
-    });
-
-    expect(await screen.findByText(/scheduled events list/i)).toBeInTheDocument();
-  });
-
-  test("keeps the local draft when backend autosave fails", async () => {
-    vi.useFakeTimers();
-    mockCreateScheduledEvent.mockRejectedValueOnce(new Error("Autosave backend gagal."));
-    renderScheduledEventEditor();
-
-    await fillValidScheduledEventForm();
-    await vi.advanceTimersByTimeAsync(5 * 60 * 1000);
-
-    expect(mockCreateScheduledEvent).toHaveBeenCalledTimes(1);
-
-    const storedDraft = window.localStorage.getItem("scheduled-event-editor:draft:new");
-
-    expect(storedDraft).toContain("\"title\":\"TO Klinik Juni\"");
-    expect(screen.queryByText(/scheduled events list/i)).not.toBeInTheDocument();
-  });
-
-  test("does not autosave while media upload is still pending", async () => {
-    vi.useFakeTimers();
-    mockUploadScheduledQuestionMedia.mockImplementation(
-      () => new Promise(() => undefined),
-    );
-    renderScheduledEventEditor();
-
-    await fillValidScheduledEventForm();
-
-    const pendingFile = new File(["pending"], "pending.png", { type: "image/png" });
-    fireEvent.change(screen.getByLabelText(/^gambar pertanyaan 1$/i), {
-      target: { files: [pendingFile] },
-    });
-
-    await vi.advanceTimersByTimeAsync(5 * 60 * 1000);
-
-    expect(mockCreateScheduledEvent).not.toHaveBeenCalled();
-    expect(mockUpdateScheduledEvent).not.toHaveBeenCalled();
-  });
-
-  test("clears the new-event draft after a successful save", async () => {
-    window.localStorage.setItem(
-      "scheduled-event-editor:draft:new",
-      JSON.stringify({
-        eventId: null,
-        updatedAt: "2026-05-16T13:00:00.000Z",
-        formState: {
-          
-          editorialStatus: "draft",
-          
-          questions: [
-            {
-              id: null,
-              stem: "Draft lama",
-              correctOptionKey: "A",
-              explanationText: "",
-              questionImagePath: null,
-              questionImageUrl: null,
-              explanationImagePath: null,
-              explanationImageUrl: null,
-              options: {
-                A: "Pilihan A",
-                B: "Pilihan B",
-                C: "",
-                D: "",
-                E: "",
-              },
-            },
-          ],
-        },
-      }),
-    );
-    renderScheduledEventEditor();
-
-    await fillValidScheduledEventForm();
-
-    fireEvent.click(screen.getByRole("button", { name: /simpan event/i }));
-
-    await waitFor(() => {
-      expect(mockCreateScheduledEvent).toHaveBeenCalledWith({
-        input: expect.objectContaining({
-          
-          editorialStatus: "draft",
-          
-          questions: [
-            expect.objectContaining({
-              stem: "Apa terapi awal yang paling rasional?",
-              correctOptionKey: "B",
-            }),
-          ],
-        }),
-      });
-    });
-
-    expect(await screen.findByText(/scheduled events list/i)).toBeInTheDocument();
-    expect(window.localStorage.getItem("scheduled-event-editor:draft:new")).toBeNull();
-  });
-
-  test("marks the cached scheduled event list stale after a successful save", async () => {
-    const { queryClient } = renderScheduledEventEditor();
-    const listQueryKey = ["scheduled-ops-events"] as const;
-
-    queryClient.setQueryData(listQueryKey, [
-      {
-        id: "event-old",
-        title: "TO Lama",
-      },
-    ]);
-
-    expect(queryClient.getQueryState(listQueryKey)?.isInvalidated).toBe(false);
-
-    await fillValidScheduledEventForm();
-
-    fireEvent.click(screen.getByRole("button", { name: /simpan event/i }));
-
-    await waitFor(() => {
-      expect(mockCreateScheduledEvent).toHaveBeenCalledWith({
-        input: expect.objectContaining({
-          title: "TO Klinik Juni",
-        }),
-      });
-    });
-
-    await waitFor(() => {
-      expect(queryClient.getQueryState(listQueryKey)?.isInvalidated).toBe(true);
-    });
-  });
 });

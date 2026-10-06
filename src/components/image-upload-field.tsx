@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useId } from "react";
 import { Upload, X, Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { getSupabaseBrowserClient } from "../lib/supabase/browser-client";
@@ -29,6 +29,8 @@ export function ImageUploadField({
   const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const componentId = useId();
+  const uploadId = `upload-${componentId}`;
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -55,13 +57,14 @@ export function ImageUploadField({
 
       if (error) {
         console.warn("Storage upload notice:", error.message);
+        setErrorMessage(error.message);
+        return;
       }
 
       onChange(storagePath);
     } catch (err: unknown) {
       console.warn("Upload fallback notice:", err);
-      const fallbackPath = folderPath ? `${folderPath}/${file.name}` : file.name;
-      onChange(fallbackPath);
+      setErrorMessage(err instanceof Error ? err.message : "Gagal mengunggah gambar");
     } finally {
       setIsUploading(false);
       if (inputRef.current) {
@@ -84,12 +87,12 @@ export function ImageUploadField({
           type="file"
           accept="image/*"
           className="sr-only"
-          id={`upload-${folderPath.replace(/[^a-zA-Z0-9]/g, "-")}`}
+          id={uploadId}
           onChange={handleFileChange}
           disabled={disabled || isUploading}
         />
         <label
-          htmlFor={`upload-${folderPath.replace(/[^a-zA-Z0-9]/g, "-")}`}
+          htmlFor={uploadId}
           className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-primary/30 bg-primary/10 hover:bg-primary/20 text-xs font-semibold text-primary cursor-pointer transition-all duration-150 active:scale-95 shadow-2xs ${
             disabled || isUploading ? "opacity-50 pointer-events-none" : ""
           }`}

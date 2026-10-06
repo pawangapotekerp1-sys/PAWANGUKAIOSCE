@@ -89,6 +89,7 @@ export function ScheduledQuestionFormModal({ isOpen, onClose, question, onSave, 
                       value={opt.text} 
                       onChange={e => handleOptionChange(opt.key, e.target.value)}
                       placeholder={`Opsi ${opt.key}`}
+                      aria-label={`Teks pilihan ${opt.key}`}
                       className="flex-1"
                     />
                   </div>

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Filter, ArrowRight, ArrowLeft, AlertCircle } from "lucide-react";
+import { ArrowRight, ArrowLeft, AlertCircle } from "lucide-react";
 import { Link, useSearchParams, Navigate } from "react-router";
 import ProductShell from "../../components/layout/product-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
@@ -13,7 +13,7 @@ import { getTopicVisuals } from "../../lib/utils/topic-visuals";
 
 function TryoutTopicSelectionPage() {
   const studentShell = useStudentShell("/app/tryout-selection");
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const activeFilter = searchParams.get("block") || "ALL";
 
   const { data: catalogEntries, isLoading, error } = useQuery({
@@ -30,6 +30,8 @@ function TryoutTopicSelectionPage() {
         .map((t) => [t.blockId, { id: t.blockId!, name: t.blockName! }])
     ).values()
   );
+
+  const activeBlock = uniqueBlocks.find((b) => b.id === activeFilter);
 
   const filteredTopics = activeFilter === "ALL"
     ? topicOptions
@@ -59,30 +61,30 @@ function TryoutTopicSelectionPage() {
           </div>
         ) : (
           <>
-            {/* Filter Tabs */}
+            {/* Navigation & Header */}
             {!isLoading && (
-              <div className="flex flex-wrap items-center gap-2 pb-2">
-                <Button
-                  data-testid="filter-all"
-                  variant={activeFilter === "ALL" ? "primary" : "outline"}
-                  size="sm"
-                  onClick={() => setSearchParams({})}
-                  className="rounded-full px-5 text-xs font-semibold"
-                >
-                  Semua Blok ({topicOptions.length})
-                </Button>
-                {uniqueBlocks.map((block) => (
-                  <Button
-                    key={block.id}
-                    data-testid={`filter-${block.id}`}
-                    variant={activeFilter === block.id ? "primary" : "outline"}
-                    size="sm"
-                    onClick={() => setSearchParams({ block: block.id })}
-                    className="rounded-full px-5 text-xs font-semibold"
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/40">
+                <div className="flex items-center gap-3">
+                  <Link
+                    {...getButtonStyleProps({
+                      variant: "outline",
+                      size: "sm",
+                      className: "rounded-lg text-xs font-semibold gap-2 shadow-xs",
+                    })}
+                    to="/app/tryout/blocks"
+                    data-testid="btn-back-to-blocks"
                   >
-                    {block.name}
-                  </Button>
-                ))}
+                    <ArrowLeft className="h-4 w-4" />
+                    Kembali ke Pilihan Blok
+                  </Link>
+                  <div className="h-4 w-px bg-border hidden sm:block" />
+                  <h1 className="text-lg font-bold tracking-tight text-foreground">
+                    {activeBlock ? activeBlock.name : "Semua Materi"}
+                  </h1>
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Menampilkan {filteredTopics.length} materi
+                </span>
               </div>
             )}
 

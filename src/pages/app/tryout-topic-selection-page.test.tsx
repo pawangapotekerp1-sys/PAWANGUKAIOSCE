@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
+import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -121,55 +121,36 @@ describe("TryoutTopicSelectionPage", () => {
     expect(screen.getAllByTestId("skeleton-card")).toHaveLength(6);
   });
 
-  it("renders page header and all topic cards by default", async () => {
+  it("renders back button to blocks and topic cards by default", async () => {
     vi.mocked(listTryoutCatalogEntries).mockResolvedValue(mockEntries as any);
 
     renderWithProviders(<TryoutTopicSelectionPage />);
 
-    expect(screen.getByText("Try Out Per Materi / Topik")).toBeInTheDocument();
-    
     await waitFor(() => {
       expect(screen.getByText("Farmakoterapi Kardiovaskular & Renologi")).toBeInTheDocument();
       expect(screen.getByText("Teknologi Sediaan Cair & Steril")).toBeInTheDocument();
       expect(screen.getByText("Regulasi & Etika")).toBeInTheDocument();
     });
-    
-    // Dynamic filter tabs
-    expect(screen.getByRole("button", { name: "Clinical Science" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Pharmaceutical Science" })).toBeInTheDocument();
+
+    const backButton = screen.getByTestId("btn-back-to-blocks");
+    expect(backButton).toBeInTheDocument();
+    expect(backButton).toHaveAttribute("href", "/app/tryout/blocks");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Semua Materi");
+    expect(screen.queryByTestId("filter-all")).not.toBeInTheDocument();
   });
 
-  it("filters topics when filter buttons are clicked", async () => {
+  it("displays active block name and filters topics when block param is in URL", async () => {
     vi.mocked(listTryoutCatalogEntries).mockResolvedValue(mockEntries as any);
 
-    renderWithProviders(<TryoutTopicSelectionPage />);
+    renderWithProviders(<TryoutTopicSelectionPage />, ["/?block=b1"]);
 
-    // wait for data to load
     await waitFor(() => {
       expect(screen.getByText("Farmakoterapi Kardiovaskular & Renologi")).toBeInTheDocument();
     });
 
-    const csFilterBtn = screen.getByTestId("filter-b1");
-    fireEvent.click(csFilterBtn);
-
-    await waitFor(() => {
-      expect(screen.queryByText("Teknologi Sediaan Cair & Steril")).not.toBeInTheDocument();
-    });
-    
-    expect(screen.getByText("Farmakoterapi Kardiovaskular & Renologi")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Clinical Science");
+    expect(screen.queryByText("Teknologi Sediaan Cair & Steril")).not.toBeInTheDocument();
     expect(screen.queryByText("Regulasi & Etika")).not.toBeInTheDocument();
-  });
-  
-  it("filters topics initially if block param is in URL", async () => {
-    vi.mocked(listTryoutCatalogEntries).mockResolvedValue(mockEntries as any);
-
-    renderWithProviders(<TryoutTopicSelectionPage />, ["/?block=b2"]);
-
-    await waitFor(() => {
-      expect(screen.getByText("Teknologi Sediaan Cair & Steril")).toBeInTheDocument();
-    });
-    
-    expect(screen.queryByText("Farmakoterapi Kardiovaskular & Renologi")).not.toBeInTheDocument();
   });
 
   it("shows error state when API fails", async () => {

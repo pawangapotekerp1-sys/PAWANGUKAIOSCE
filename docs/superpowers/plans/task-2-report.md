@@ -1,62 +1,33 @@
-# Task 2 Report: Implement Redesigned TryoutResultPage
+# Task 2 Report: Implement Clean Layout in TryoutResultPage
 
-- **Task Status:** Completed
-- **Target File:** `src/pages/app/tryout-result-page.tsx`
-- **Commit:** `35badb4` (`feat(tryout): redesign result page with hero card, 4-metric grid, and block mastery bars`)
+## Executive Summary
+Successfully updated `src/pages/app/tryout-result-page.tsx` to implement the clean, focused layout. Removed the redundant top `SectionHeading` (`Hasil try out` / `Skor akhir, hasil per blok, dan akses pembahasan.`) and the block performance analysis card (`Analisis Performa Per Blok`), while keeping the back navigation link, the hero performance card, the 4-metric grid, and all loading/error/empty states intact.
 
-## Summary of Changes
-1. **Header & Navigation**:
-   - Added a back navigation link with `data-testid="btn-back-to-tryout"` pointing to `/app/tryout-selection` featuring `ArrowLeft` icon and text `Kembali ke Pilihan Try Out`.
-   - Rendered `<SectionHeading title="Hasil try out" description="Skor akhir, hasil per blok, dan akses pembahasan." />`.
+## Changes Made
+1. **Removed Title & Subtitle**:
+   - Removed `<SectionHeading title="Hasil try out" description="Skor akhir, hasil per blok, dan akses pembahasan." />`.
+   - Removed unused import `import SectionHeading from "../../components/ui/section-heading";`.
+   - Kept the back navigation button `<Link data-testid="btn-back-to-tryout" to="/app/tryout-selection" ...>` with `<ArrowLeft className="w-4 h-4 mr-2" /> Kembali ke Pilihan Try Out`.
 
-2. **Hero Performance Card**:
-   - Calculated `isPassed = Math.round(resultData.score) >= 68`.
-   - Added passing status badge:
-     - When `isPassed`: badge with `CheckCircle2` and text `Memenuhi Standar Kelulusan (Target ≥ 68)` in green emerald palette.
-     - When not passed: badge with `AlertCircle` and text `Belum Mencapai Target (Target ≥ 68)` in amber palette.
-   - Displayed final score with `Math.round(resultData.score)`.
-   - Displayed summary copy: `{resultData.correctAnswers} dari {totalQuestions} soal terjawab benar pada sesi ini.`.
-   - Rendered weakest block actionable insight box with `{weakestBlockInsight}`.
-   - Action buttons:
-     - Primary Review CTA: `<Link {...getButtonStyleProps({ variant: "primary", className: "font-semibold shadow-sm" })} to={'/app/review/' + resultData.attemptId}> Review jawaban <ArrowRight className="w-4 h-4 ml-2" /> </Link>`.
-     - Secondary CTA: `<Link {...getButtonStyleProps({ variant: "outline", className: "font-semibold" })} to="/app/tryout-selection"> Coba Try Out Baru </Link>`.
-     - Ensured only one action in the success region has `data-variant="primary"`.
+2. **Removed Block Performance Analysis Card**:
+   - Removed the entire Card block `{/* 3. Block Performance Analysis */}` including the card header (`Analisis Performa Per Blok`), card content, mastery badges, progress bar, and breakdown stats.
+   - Cleaned up unused icon import `Timer` from `lucide-react`.
+   - Cleaned up unused import `cn` from `../../lib/utils`.
 
-3. **4-Metric Grid**:
-   - Implemented responsive 4-card metric grid:
-     1. `Jawaban Benar` with count `{resultData.correctAnswers}` and percentage breakdown.
-     2. `Jawaban Salah` with count `{resultData.wrongAnswers}` and percentage breakdown.
-     3. `Tidak Dijawab` with count `{resultData.unansweredCount}` and percentage breakdown.
-     4. `Waktu Terpakai` with formatted clock `{formatDurationAsClock(resultData.timeUsedSeconds)}` and average duration per question.
+3. **Preserved Intact**:
+   - **Hero Performance Card**: Score display (`score / 100`), passing status badge (target ≥ 68 threshold), session summary copy, dynamic insight box for weakest block, primary CTA `Review jawaban`, and outline CTA `Coba Try Out Baru`.
+   - **4-Metric Grid**: `Jawaban Benar`, `Jawaban Salah`, `Tidak Dijawab`, and `Waktu Terpakai` with clock duration formatting and average time per question.
+   - **Loading, Error, and Empty States**: Preserved with their respective cards and indicators (`Loader2`, `AlertTriangle`, and `Package`).
 
-4. **Block Performance Analysis**:
-   - Card title: `Analisis Performa Per Blok` with `Timer` icon.
-   - For each block in `resultData.blocks`:
-     - Calculated total questions: `totalInBlock = item.correct + item.wrong`.
-     - Calculated accuracy percentage: `accuracy = totalInBlock > 0 ? Math.round((item.correct / totalInBlock) * 100) : 0`.
-     - Added mastery badges:
-       - `accuracy >= 75`: `Kuasai Baik` (emerald badge)
-       - `accuracy >= 50`: `Cukup` (amber badge)
-       - `< 50`: `Perlu Latihan` (rose badge)
-     - Displayed details: `{item.correct} benar, {item.wrong} salah`.
-     - Implemented visual segmented horizontal progress bar with green emerald for correct and rose red for wrong answers.
-     - Displayed `{totalInBlock} soal` badge.
+## Verification
+- **Test Suite**: `npm test -- src/pages/app/tryout-result-page.test.tsx --run`
+  - Result: 10 passed, 0 failed.
+- **TypeScript Typecheck**: `npx tsc --noEmit`
+  - Result: Exited with code 0 (clean).
+- **Production Build**: `npm run build`
+  - Result: Built successfully (`tsc -b && vite build` exited with code 0).
+- **Git Commit**: `49aef1b2bc74ec7c93e0fa9165944d4eaef5dbad`
+  - Message: `feat(tryout): remove header title and block analysis card from result page`
 
-5. **Structural Ordering & Layout**:
-   - Strictly organized DOM order: Hero card (score & primary CTA) -> 4-Metric Grid -> Block Performance Analysis Card.
-   - Verified that the review CTA precedes the supporting metric labels and block analysis heading.
-   - Preserved loading, error, and empty result fallback states.
-
-## Verification Results
-- **Vitest Unit & Integration Tests:**
-  - Command: `npm test -- src/pages/app/tryout-result-page.test.tsx --run`
-  - Result: All 11 tests passed cleanly (11/11 passing).
-- **TypeScript Type Check:**
-  - Command: `npx tsc --noEmit`
-  - Result: Passed with exit code 0 and 0 errors.
-- **Production Build:**
-  - Command: `npm run build`
-  - Result: Successfully built the production bundle with Vite & Rolldown in 31.40s.
-
-## Concerns / Notes
-- None. All requirements from `docs/superpowers/plans/task-2-brief.md` and the test specifications are fully met and verified.
+## Concerns / Recommendations
+- None. The component and test suite are completely synchronized and verified against all functional requirements.

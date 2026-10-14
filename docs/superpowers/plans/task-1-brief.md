@@ -1,40 +1,28 @@
-# Task 1 Brief: Update Test Suite for Redesigned Tryout Result Page
+# Task 1 Brief: Update Test Suite for Cleaned Tryout Result Page
 
 ## Files
 - Modify: `src/pages/app/tryout-result-page.test.tsx`
 
 ## Requirements
-Update `src/pages/app/tryout-result-page.test.tsx` to reflect the comprehensive dashboard redesign of the tryout result page:
+Update `src/pages/app/tryout-result-page.test.tsx` to align with the removal of the top SectionHeading (title & subtitle) and the removal of the block performance analysis card:
 
-1. **Header & Navigation Assertions**:
-   - Verify `<SectionHeading title="Hasil try out" description="Skor akhir, hasil per blok, dan akses pembahasan." />` is present.
-   - Verify back button `data-testid="btn-back-to-tryout"` is present and has `href="/app/tryout-selection"`.
-2. **Review Action & Score Assertions**:
-   - Verify score `78` is rendered.
-   - Verify review CTA has `data-variant="primary"` and `href="/app/review/attempt-1"` with text matching `Review jawaban`.
-   - Verify hero region contains the review CTA before supporting detail sections.
-3. **4-Metric Grid Assertions**:
-   - Verify `Jawaban Benar` (count `31`) is present.
-   - Verify `Jawaban Salah` is present.
-   - Verify `Tidak Dijawab` is present.
-   - Verify `Waktu Terpakai` (formatted clock `00:35:00`) is present.
-4. **Block Performance Analysis Assertions**:
-   - Verify block labels: `Clinical Science` and `Pharmaceutical Science`.
-   - Verify block breakdown details: `17 benar, 5 salah` and `14 benar, 4 salah`.
-   - Verify evaluation badges / accuracy are rendered (e.g., `Kuasai Baik`, `Cukup`, or accuracy percentages).
-5. **Preserve Edge Case Tests**:
-   - Keep the insight tests intact:
-     - `renders short actionable insight copy for the weakest block`
-     - `falls back to a generic review prompt when the highest wrong count is tied`
-     - `renders celebration insight when all answers are correct`
-     - `renders loading state initially`
-     - `renders error state when result query fails`
-     - `renders empty state when no attempt is available`
-6. **Type Check**:
+1. **Remove Assertions for**:
+   - `Hasil try out` title
+   - `Skor akhir, hasil per blok, dan akses pembahasan.` description
+   - `Analisis Performa Per Blok` heading, block labels (`Clinical Science`, `Pharmaceutical Science`), details (`17 benar, 5 salah`), and mastery evaluation tiers.
+   - The dedicated test `"renders block performance analysis with mastery evaluation tiers"`.
+2. **Preserve Assertions for**:
+   - Back button `data-testid="btn-back-to-tryout"` pointing to `/app/tryout-selection` with text `Kembali ke Pilihan Try Out`.
+   - Score `78`, passing threshold status badge (`Memenuhi Standar Kelulusan (Target ≥ 68)` vs `Belum Mencapai Target (Target ≥ 68)`), summary copy, and insight copy.
+   - Review CTA with `data-variant="primary"` pointing to `/app/review/attempt-1` with label `Review jawaban`.
+   - 4-metric grid: `Jawaban Benar` (count `31`), `Jawaban Salah` (count `9`), `Tidak Dijawab` (count `0`), and `Waktu Terpakai` (clock `00:35:00`).
+   - Order assertion: Hero region contains the review CTA and precedes the 4-metric grid (`supportingLabel`).
+   - Edge case tests: weakest block insight, tied wrong count fallback, empty block fallback, all-correct celebration, latest attempt fallback, loading state, error state, empty state.
+3. **Type Check**:
    - Run `npx tsc --noEmit` and ensure it exits with code 0.
-7. **Commit**:
+4. **Commit**:
    `git add src/pages/app/tryout-result-page.test.tsx`
-   `git commit -m "test(tryout): update result page tests for comprehensive dashboard redesign"`
+   `git commit -m "test(tryout): update result page tests for clean layout without header and block analysis"`
 
 ## Report Contract
 Write your full report to: `docs/superpowers/plans/task-1-report.md`.

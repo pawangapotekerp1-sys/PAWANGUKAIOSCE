@@ -1,23 +1,55 @@
-### Task 2: API & Types Update
+# Task 2 Brief: Implement Back Button & Block Header in TryoutTopicSelectionPage
 
-**Files:**
-- Modify: `src/lib/api/tryout-api.ts`
+## Files
+- Modify: `src/pages/app/tryout-topic-selection-page.tsx`
 
-**Interfaces:**
-- Consumes: The new `icon_name` and `color_theme` columns from DB.
-- Produces: `TryoutTemplate`, `TryoutCatalogEntry`, and related types include `iconName?: string | null` and `colorTheme?: string | null`.
+## Requirements
+Implement the back navigation and active block header in `src/pages/app/tryout-topic-selection-page.tsx`, removing the obsolete block filter pill buttons.
 
-- [ ] **Step 1: Update Types**
-In `src/lib/api/tryout-api.ts`, add `icon_name?: string | null` and `color_theme?: string | null` to `ExamTemplateRow` and `TaxonomyBlockRow`.
-Add `iconName: string | null;` and `colorTheme: string | null;` to the `TryoutTemplate` and `TryoutCatalogEntry` types.
+Specifically:
+1. Derive `activeBlock`:
+   ```tsx
+   const activeBlock = uniqueBlocks.find((b) => b.id === activeFilter);
+   ```
+2. Replace `{/* Filter Tabs */}` block with `{/* Navigation & Header */}`:
+   ```tsx
+   {/* Navigation & Header */}
+   {!isLoading && (
+     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/40">
+       <div className="flex items-center gap-3">
+         <Link
+           {...getButtonStyleProps({
+             variant: "outline",
+             size: "sm",
+             className: "rounded-lg text-xs font-semibold gap-2 shadow-xs",
+           })}
+           to="/app/tryout/blocks"
+           data-testid="btn-back-to-blocks"
+         >
+           <ArrowLeft className="h-4 w-4" />
+           Kembali ke Pilihan Blok
+         </Link>
+         <div className="h-4 w-px bg-border hidden sm:block" />
+         <h1 className="text-lg font-bold tracking-tight text-foreground">
+           {activeBlock ? activeBlock.name : "Semua Materi"}
+         </h1>
+       </div>
+       <span className="text-xs font-medium text-muted-foreground">
+         Menampilkan {filteredTopics.length} materi
+       </span>
+     </div>
+   )}
+   ```
+3. Update `useSearchParams`:
+   Change `const [searchParams, setSearchParams] = useSearchParams();` to:
+   `const [searchParams] = useSearchParams();`
+4. Clean up unused imports (such as `Filter` if it is no longer referenced). Keep existing comments and docstrings intact.
+5. Verify build and type check:
+   - Run `npx tsc --noEmit` -> Must exit with code 0.
+   - Run `npm run build` -> Must succeed.
+6. Commit:
+   `git add src/pages/app/tryout-topic-selection-page.tsx`
+   `git commit -m "feat(tryout): replace block filter pills with back button and active block header"`
 
-- [ ] **Step 2: Update Mappers**
-Update the mapping functions (`mapTemplate`, `mapCatalogEntry`) to map the new fields (e.g. `iconName: row.icon_name ?? null`, `colorTheme: row.color_theme ?? null`).
-Update `listTryoutCatalogEntriesFallback` function: ensure the database query selects the new columns for `blocks` (update the `select` string from `"id, name, slug, sort_order, topics:topics(id, name, slug, sort_order, is_active)"` to include `icon_name` and `color_theme`, and also map them correctly when building the `fallbackEntries` array for blocks).
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add src/lib/api/tryout-api.ts
-git commit -m "feat: update tryout api types and mappers for block visuals"
-```
+## Report Contract
+Write your full report to: `docs/superpowers/plans/task-2-report.md`.

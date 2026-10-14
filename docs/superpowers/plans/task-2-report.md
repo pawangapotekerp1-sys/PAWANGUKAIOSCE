@@ -1,26 +1,35 @@
-# Task 2 Report: API & Types Update
+# Task 2 Report: Implement Back Button & Block Header in TryoutTopicSelectionPage
 
-## Executive Summary
-Task 2 updated the frontend API client types and mapping logic in `src/lib/api/tryout-api.ts` to surface the newly added `icon_name` and `color_theme` block database columns.
+## Status
+Completed Successfully
 
-## What Was Implemented
-1. **TypeScript Row & Entity Type Updates**:
-   - Added `icon_name?: string | null` and `color_theme?: string | null` to `ExamTemplateRow`, `TryoutCatalogEntryRow`, and `TaxonomyBlockRow`.
-   - Added `iconName?: string | null` and `colorTheme?: string | null` to `TryoutTemplate` (which `TryoutCatalogEntry` inherits).
+## Commit Summary
+- **Commit**: `8718c38`
+- **Message**: `feat(tryout): replace block filter pills with back button and active block header`
+- **Files Modified**: `src/pages/app/tryout-topic-selection-page.tsx`
 
-2. **Data Mappers & Queries**:
-   - Updated `mapTemplate` to map `iconName` and `colorTheme` from `relatedBlock` or `ExamTemplateRow`.
-   - Updated `mapCatalogEntry` to map `iconName` and `colorTheme` from `TryoutCatalogEntryRow`.
-   - Updated `listPublishedExamTemplates` query selection string to request `icon_name` and `color_theme` from `block:blocks`.
-   - Updated `listTryoutCatalogEntriesFallback` query selection string and fallback mapping logic for `full`, `block`, and `topic` catalog fallback entries.
+## Changes Implemented
+1. **Unused Imports & State Cleanup**:
+   - Removed unused `Filter` icon import from `lucide-react`.
+   - Changed `const [searchParams, setSearchParams] = useSearchParams();` to `const [searchParams] = useSearchParams();` to eliminate the unused `setSearchParams`.
+2. **Active Block Derivation**:
+   - Added `const activeBlock = uniqueBlocks.find((b) => b.id === activeFilter);` to lookup the current block object based on the `?block=<id>` query parameter.
+3. **Navigation & Header Replacement**:
+   - Removed the obsolete filter pills (`filter-all` and `filter-${block.id}`).
+   - Added back navigation button (`data-testid="btn-back-to-blocks"`) pointing to `/app/tryout/blocks` with the text "Kembali ke Pilihan Blok".
+   - Added dynamic heading `h1` displaying the active block name or "Semua Materi" if none or ALL is selected.
+   - Preserved display of topic count ("Menampilkan X materi").
 
-## Files Changed
-- `src/lib/api/tryout-api.ts`
+## Verification
+1. **Unit Tests**:
+   - `npm test -- src/pages/app/tryout-topic-selection-page.test.tsx --run`
+   - Result: 6 / 6 tests passed in 2.64s.
+2. **TypeScript Typecheck**:
+   - `npx tsc --noEmit`
+   - Result: Exited with code 0 (zero errors).
+3. **Production Build**:
+   - `npm run build` (`tsc -b && vite build`)
+   - Result: Built successfully in 48.27s with exit code 0.
 
-## Self-Review Findings & Verification
-- Ran TypeScript compilation (`npx tsc --noEmit`) — Passed with 0 errors.
-- Verified `git diff` to confirm exact compliance with `task-2-brief.md`.
-- Staged and committed changes with commit SHA `2fc89ef`.
-
-## Issues / Concerns
-- None. All type definitions and data mappers match database schema and downstream requirements.
+## Concerns / Notes
+- None. All requirements from `task-2-brief.md` have been fulfilled and verified.

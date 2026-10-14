@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
-  Timer,
   Loader2,
   AlertTriangle,
   Package,
@@ -15,7 +14,6 @@ import {
 import { Link, useSearchParams } from "react-router";
 import ProductShell from "../../components/layout/product-shell";
 import { getButtonStyleProps } from "../../components/ui/button";
-import SectionHeading from "../../components/ui/section-heading";
 import {
   Card,
   CardContent,
@@ -32,7 +30,6 @@ import {
 import { formatDurationAsClock } from "../../lib/mappers/tryout-mappers";
 import { productShellMeta } from "../../mocks/student-dashboard";
 import { useStudentShell } from "./use-student-shell";
-import { cn } from "../../lib/utils";
 
 function TryoutResultPage() {
   const [searchParams] = useSearchParams();
@@ -94,7 +91,7 @@ function TryoutResultPage() {
       navItems={studentShell.navItems}
     >
       <section id="tryout" className="space-y-8">
-        <div className="flex flex-col gap-4">
+        <div>
           <Link
             data-testid="btn-back-to-tryout"
             to="/app/tryout-selection"
@@ -106,10 +103,6 @@ function TryoutResultPage() {
           >
             <ArrowLeft className="w-4 h-4 mr-2" /> Kembali ke Pilihan Try Out
           </Link>
-          <SectionHeading
-            title="Hasil try out"
-            description="Skor akhir, hasil per blok, dan akses pembahasan."
-          />
         </div>
 
         {latestAttemptQuery.isLoading || resultQuery.isLoading ? (
@@ -295,116 +288,6 @@ function TryoutResultPage() {
                 </CardContent>
               </Card>
             </div>
-
-            {/* 3. Block Performance Analysis */}
-            <Card className="border border-border/80 shadow-sm">
-              <CardHeader className="pb-4">
-                <div className="flex items-center gap-2">
-                  <Timer className="w-5 h-5 text-primary" />
-                  <CardTitle className="text-lg font-bold text-foreground">
-                    Analisis Performa Per Blok
-                  </CardTitle>
-                </div>
-                <CardDescription>
-                  Tingkat penguasaan materi dan akurasi jawaban per bidang keilmuan.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {resultData.blocks.length > 0 ? (
-                  <div className="space-y-4">
-                    {resultData.blocks.map((item) => {
-                      const totalInBlock = item.correct + item.wrong;
-                      const accuracy =
-                        totalInBlock > 0
-                          ? Math.round((item.correct / totalInBlock) * 100)
-                          : 0;
-                      const correctWidth =
-                        totalInBlock > 0
-                          ? (item.correct / totalInBlock) * 100
-                          : 0;
-                      const wrongWidth =
-                        totalInBlock > 0
-                          ? (item.wrong / totalInBlock) * 100
-                          : 0;
-
-                      let masteryLabel = "Perlu Latihan";
-                      let masteryBadgeClass =
-                        "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800";
-                      if (accuracy >= 75) {
-                        masteryLabel = "Kuasai Baik";
-                        masteryBadgeClass =
-                          "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800";
-                      } else if (accuracy >= 50) {
-                        masteryLabel = "Cukup";
-                        masteryBadgeClass =
-                          "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800";
-                      }
-
-                      return (
-                        <div
-                          key={item.blockLabel}
-                          className="rounded-xl border border-border/70 bg-muted/20 p-4 transition-all duration-200 hover:bg-muted/40"
-                        >
-                          <div className="flex flex-col gap-3">
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <div className="flex items-center gap-2">
-                                <p className="font-semibold text-foreground text-sm sm:text-base">
-                                  {item.blockLabel}
-                                </p>
-                                <Badge
-                                  variant="outline"
-                                  className={cn("text-xs font-medium", masteryBadgeClass)}
-                                >
-                                  {masteryLabel}
-                                </Badge>
-                              </div>
-                              <Badge
-                                variant="outline"
-                                className="text-xs text-muted-foreground font-medium"
-                              >
-                                {totalInBlock} soal
-                              </Badge>
-                            </div>
-
-                            {/* Progress bar */}
-                            <div
-                              className="h-2 w-full overflow-hidden rounded-full bg-muted flex"
-                              role="progressbar"
-                              aria-label={`Akurasi materi ${item.blockLabel}`}
-                              aria-valuenow={accuracy}
-                              aria-valuemin={0}
-                              aria-valuemax={100}
-                            >
-                              <div
-                                className="bg-emerald-500 transition-all duration-300"
-                                style={{ width: `${correctWidth}%` }}
-                              />
-                              <div
-                                className="bg-rose-500 transition-all duration-300"
-                                style={{ width: `${wrongWidth}%` }}
-                              />
-                            </div>
-
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                              <span>
-                                {item.correct} benar, {item.wrong} salah
-                              </span>
-                              <span className="font-semibold text-foreground">
-                                {accuracy}% akurasi
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Distribusi hasil belum tersedia.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
           </div>
         )}
       </section>

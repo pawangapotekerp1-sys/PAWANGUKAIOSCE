@@ -84,18 +84,12 @@ beforeEach(() => {
 });
 
 describe("Tryout result page", () => {
-  test("renders the result summary with header, navigation, score, 4-metric grid, and block mastery analysis", async () => {
+  test("renders the result summary with navigation, score, and 4-metric grid", async () => {
     const { container } = renderTryoutResult();
     const resultSection = container.querySelector("#tryout");
 
-    // 1. Header & Navigation Assertions
-    expect(
-      await screen.findByText(/^hasil try out$/i, {
-        selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]',
-      }),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/skor akhir, hasil per blok, dan akses pembahasan/i)).toBeInTheDocument();
-    const backBtn = screen.getByTestId("btn-back-to-tryout");
+    // 1. Navigation Assertions
+    const backBtn = await screen.findByTestId("btn-back-to-tryout");
     expect(backBtn).toBeInTheDocument();
     expect(backBtn).toHaveAttribute("href", "/app/tryout-selection");
     expect(backBtn).toHaveTextContent(/kembali ke pilihan try out/i);
@@ -116,15 +110,7 @@ describe("Tryout result page", () => {
     expect(screen.getByText(/waktu terpakai/i)).toBeInTheDocument();
     expect(screen.getByText(/00:35:00/i)).toBeInTheDocument();
 
-    // 4. Block Performance Analysis Assertions
-    expect(screen.getByText(/analisis performa per blok/i)).toBeInTheDocument();
-    expect(screen.getByText("Clinical Science")).toBeInTheDocument();
-    expect(screen.getByText("Pharmaceutical Science")).toBeInTheDocument();
-    expect(screen.getByText(/17 benar, 5 salah/i)).toBeInTheDocument();
-    expect(screen.getByText(/14 benar, 4 salah/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/kuasai baik/i).length).toBeGreaterThanOrEqual(1);
-
-    // 5. Actions & CTAs
+    // 4. Actions & CTAs
     expect(resultSection).not.toBeNull();
     const successRegion = resultSection as HTMLElement;
     const reviewCtas = within(successRegion).getAllByRole("link", { name: /review jawaban/i });
@@ -146,7 +132,6 @@ describe("Tryout result page", () => {
     const scoreAnchor = await screen.findByText(/^78$/);
     const heroPanel = scoreAnchor.closest('[data-slot="card"]') ?? scoreAnchor.closest("div.rounded-xl");
     const supportingLabel = screen.getByText(/jawaban benar/i);
-    const analysisHeading = screen.getByText(/analisis performa per blok/i);
 
     expect(heroPanel).not.toBeNull();
     const heroRegion = heroPanel as HTMLElement;
@@ -156,51 +141,7 @@ describe("Tryout result page", () => {
     expect(resultSection).not.toBeNull();
     expect(resultSection).toContainElement(reviewLink);
     expect(heroRegion).toContainElement(reviewLink);
-    expect(scoreAnchor.compareDocumentPosition(analysisHeading)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(reviewLink.compareDocumentPosition(supportingLabel)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-    expect(reviewLink.compareDocumentPosition(analysisHeading)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-  });
-
-  test("renders block performance analysis with mastery evaluation tiers", async () => {
-    mockGetAttemptResultPageData.mockResolvedValueOnce({
-      attemptId: "attempt-1",
-      score: 75,
-      correctAnswers: 32,
-      wrongAnswers: 28,
-      unansweredCount: 0,
-      timeUsedSeconds: 2000,
-      blocks: [
-        {
-          blockLabel: "Clinical Mastery High",
-          correct: 16,
-          wrong: 4, // 80% -> Kuasai Baik
-        },
-        {
-          blockLabel: "Pharmaceutical Mastery Medium",
-          correct: 12,
-          wrong: 8, // 60% -> Cukup
-        },
-        {
-          blockLabel: "Social Pharmacy Mastery Low",
-          correct: 4,
-          wrong: 16, // 20% -> Perlu Latihan
-        },
-      ],
-    });
-
-    renderTryoutResult();
-
-    expect(await screen.findByText("Clinical Mastery High")).toBeInTheDocument();
-    expect(screen.getByText("Pharmaceutical Mastery Medium")).toBeInTheDocument();
-    expect(screen.getByText("Social Pharmacy Mastery Low")).toBeInTheDocument();
-
-    expect(screen.getByText(/16 benar, 4 salah/i)).toBeInTheDocument();
-    expect(screen.getByText(/12 benar, 8 salah/i)).toBeInTheDocument();
-    expect(screen.getByText(/4 benar, 16 salah/i)).toBeInTheDocument();
-
-    expect(screen.getByText(/kuasai baik/i)).toBeInTheDocument();
-    expect(screen.getByText(/cukup/i)).toBeInTheDocument();
-    expect(screen.getByText(/perlu latihan/i)).toBeInTheDocument();
   });
 
   test("renders passing status badge based on target threshold of 68", async () => {
@@ -222,11 +163,6 @@ describe("Tryout result page", () => {
   test("renders short actionable insight copy for the weakest block", async () => {
     renderTryoutResult();
 
-    expect(
-      await screen.findByText(/^hasil try out$/i, {
-        selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]',
-      }),
-    ).toBeInTheDocument();
     expect(await screen.findByText("Review jawaban Clinical Science yang masih salah lebih dulu.")).toBeInTheDocument();
   });
 

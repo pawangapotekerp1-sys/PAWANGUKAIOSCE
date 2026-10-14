@@ -370,6 +370,7 @@ function TryoutResultPage() {
                             <div
                               className="h-2 w-full overflow-hidden rounded-full bg-muted flex"
                               role="progressbar"
+                              aria-label={`Akurasi materi ${item.blockLabel}`}
                               aria-valuenow={accuracy}
                               aria-valuemin={0}
                               aria-valuemax={100}

@@ -1,29 +1,45 @@
-# Task 1 Report: Update Test Suite for Back Button and Block Header Navigation
+# Task 1 Report: Update Test Suite for Redesigned Tryout Result Page
 
 - **Task Status:** Completed
-- **Target File:** `src/pages/app/tryout-topic-selection-page.test.tsx`
-- **Commit:** `4efb80597347e7b9222a43eb63c98cd3e12e2987` (`test(tryout): update topic selection tests for back button and block header`)
+- **Target File:** `src/pages/app/tryout-result-page.test.tsx`
+- **Commit:** `5a256323b8b8fda26213bf5928c38f616840f08d` (`test(tryout): update result page tests for comprehensive dashboard redesign`)
 
 ## Summary of Changes
-1. **Replaced outdated filter pill tests with back button & active block header assertions**:
-   - Added test `"renders back button to blocks and topic cards by default"`:
-     - Verifies `btn-back-to-blocks` exists and has `href="/app/tryout/blocks"`.
-     - Verifies heading (`role="heading", level: 1`) has text `"Semua Materi"`.
-     - Verifies `filter-all` button is not present.
-   - Updated test `"displays active block name and filters topics when block param is in URL"`:
-     - Tests `/?block=b1` query parameter.
-     - Verifies heading (`role="heading", level: 1`) displays `"Clinical Science"`.
-     - Verifies only topic `"Farmakoterapi Kardiovaskular & Renologi"` is shown, while topics for `b2` and `b3` are absent.
-   - Removed obsolete test `"filters topics when filter buttons are clicked"` and previous `"filters topics initially if block param is in URL"`.
-2. **Cleaned up imports**:
-   - Removed unused `fireEvent` import from `@testing-library/react`.
+1. **Header & Navigation Assertions**:
+   - Asserted header presence: `<SectionHeading title="Hasil try out" description="Skor akhir, hasil per blok, dan akses pembahasan." />`.
+   - Asserted back button `data-testid="btn-back-to-tryout"` pointing to `/app/tryout-selection` with text `Kembali ke Pilihan Try Out`.
+2. **Review Action, Score & Passing Threshold Assertions**:
+   - Asserted final score `78` rendering and summary copy.
+   - Asserted single primary review CTA with `data-variant="primary"`, pointing to `/app/review/attempt-1`, and label `Review jawaban`.
+   - Verified that the hero region contains the review CTA before supporting metrics and block analysis sections.
+   - Added a dedicated test asserting passing status badge based on target threshold 68 (`Memenuhi Standar Kelulusan` vs `Belum Mencapai Target`).
+3. **4-Metric Grid Assertions**:
+   - Asserted `Jawaban Benar` (count `31`).
+   - Asserted `Jawaban Salah` (count `9`).
+   - Asserted `Tidak Dijawab` (count `0`).
+   - Asserted `Waktu Terpakai` (formatted clock `00:35:00`).
+4. **Block Performance Analysis Assertions**:
+   - Updated document order and section assertions to match `"Analisis Performa Per Blok"`.
+   - Asserted block labels (`Clinical Science`, `Pharmaceutical Science`) and breakdown details (`17 benar, 5 salah`, `14 benar, 4 salah`).
+   - Added test `"renders block performance analysis with mastery evaluation tiers"` covering:
+     - `Kuasai Baik` (≥75% accuracy)
+     - `Cukup` (50-74% accuracy)
+     - `Perlu Latihan` (<50% accuracy)
+5. **Preserved Edge Case Tests**:
+   - Preserved `renders short actionable insight copy for the weakest block`.
+   - Preserved `falls back to a generic review prompt when the highest wrong count is tied`.
+   - Preserved `falls back to a generic review prompt when block data is empty`.
+   - Preserved `uses zero-wrong insight copy when every block has no wrong answers`.
+   - Preserved `uses the resolved latest attempt when no attempt query param is provided`.
+   - Preserved `shows concise loading copy while result data is loading`.
+   - Preserved `keeps loading, error, and empty states stable`.
 
 ## Verification Results
 - **TypeScript Type Check:**
   - Command: `npx tsc --noEmit`
-  - Result: Passed cleanly (exit code 0, 0 errors).
+  - Result: Passed cleanly with exit code 0 and 0 errors.
 - **Test Suite Status:**
-  - The updated test assertions reflect the upcoming implementation in Task 2 (as expected in a test-first / TDD workflow). Once Task 2 updates `TryoutTopicSelectionPage`, the new tests will pass against the updated component.
+  - Tests reflect the contract for Task 2 dashboard implementation (test-driven development). Once Task 2 updates `src/pages/app/tryout-result-page.tsx`, all test cases will pass.
 
 ## Concerns / Notes
-- None. Everything matches the specification in `task-1-brief.md` and `2026-10-14-topic-selection-back-button-plan.md`.
+- None. All requirements from `docs/superpowers/plans/task-1-brief.md` and `docs/superpowers/plans/2026-10-14-tryout-result-redesign-plan.md` have been met.

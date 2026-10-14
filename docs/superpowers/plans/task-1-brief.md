@@ -1,23 +1,40 @@
-# Task 1 Brief: Update Test Suite for Back Button and Block Header Navigation
+# Task 1 Brief: Update Test Suite for Redesigned Tryout Result Page
 
 ## Files
-- Modify: `src/pages/app/tryout-topic-selection-page.test.tsx`
+- Modify: `src/pages/app/tryout-result-page.test.tsx`
 
 ## Requirements
-Update `src/pages/app/tryout-topic-selection-page.test.tsx` to align with the removal of block filter buttons and the addition of the "Kembali ke Pilihan Blok" button and active block header.
+Update `src/pages/app/tryout-result-page.test.tsx` to reflect the comprehensive dashboard redesign of the tryout result page:
 
-Specifically:
-1. Replace filter button assertions with tests for the back button and block heading:
-   - Verify `data-testid="btn-back-to-blocks"` is rendered and has `href="/app/tryout/blocks"`.
-   - Verify heading (`role="heading", level 1`) displays "Semua Materi" when no block param is passed.
-   - Verify `screen.queryByTestId("filter-all")` does not exist in the document.
-2. In the URL filtering test:
-   - When URL contains `?block=b1`, verify heading displays "Clinical Science" and only topics belonging to block `b1` are rendered ("Farmakoterapi Kardiovaskular & Renologi"), while topics belonging to other blocks (`b2`, `b3`) are not in document.
-3. Remove outdated assertions that check for `Try Out Per Materi / Topik` or `Clinical Science` pill buttons.
-4. Run `npx tsc --noEmit` to verify type checking passes cleanly.
-5. Commit your changes:
-   `git add src/pages/app/tryout-topic-selection-page.test.tsx`
-   `git commit -m "test(tryout): update topic selection tests for back button and block header"`
+1. **Header & Navigation Assertions**:
+   - Verify `<SectionHeading title="Hasil try out" description="Skor akhir, hasil per blok, dan akses pembahasan." />` is present.
+   - Verify back button `data-testid="btn-back-to-tryout"` is present and has `href="/app/tryout-selection"`.
+2. **Review Action & Score Assertions**:
+   - Verify score `78` is rendered.
+   - Verify review CTA has `data-variant="primary"` and `href="/app/review/attempt-1"` with text matching `Review jawaban`.
+   - Verify hero region contains the review CTA before supporting detail sections.
+3. **4-Metric Grid Assertions**:
+   - Verify `Jawaban Benar` (count `31`) is present.
+   - Verify `Jawaban Salah` is present.
+   - Verify `Tidak Dijawab` is present.
+   - Verify `Waktu Terpakai` (formatted clock `00:35:00`) is present.
+4. **Block Performance Analysis Assertions**:
+   - Verify block labels: `Clinical Science` and `Pharmaceutical Science`.
+   - Verify block breakdown details: `17 benar, 5 salah` and `14 benar, 4 salah`.
+   - Verify evaluation badges / accuracy are rendered (e.g., `Kuasai Baik`, `Cukup`, or accuracy percentages).
+5. **Preserve Edge Case Tests**:
+   - Keep the insight tests intact:
+     - `renders short actionable insight copy for the weakest block`
+     - `falls back to a generic review prompt when the highest wrong count is tied`
+     - `renders celebration insight when all answers are correct`
+     - `renders loading state initially`
+     - `renders error state when result query fails`
+     - `renders empty state when no attempt is available`
+6. **Type Check**:
+   - Run `npx tsc --noEmit` and ensure it exits with code 0.
+7. **Commit**:
+   `git add src/pages/app/tryout-result-page.test.tsx`
+   `git commit -m "test(tryout): update result page tests for comprehensive dashboard redesign"`
 
 ## Report Contract
 Write your full report to: `docs/superpowers/plans/task-1-report.md`.

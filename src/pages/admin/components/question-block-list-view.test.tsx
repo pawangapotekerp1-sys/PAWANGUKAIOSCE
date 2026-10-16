@@ -92,7 +92,7 @@ describe("QuestionBlockListView", () => {
     fireEvent.click(backButton);
     expect(handleBack).toHaveBeenCalledTimes(1);
 
-    const heading = screen.getByRole("heading", { level: 2, name: /clinical science/i });
+    const heading = screen.getByRole("heading", { level: 1, name: /clinical science/i });
     expect(heading).toBeInTheDocument();
 
     expect(screen.getByText("3 Soal")).toBeInTheDocument();

@@ -143,8 +143,11 @@ function QuestionsPage() {
           deleteError={deleteError}
           isDeleting={isDeleting}
           onBack={() => {
-            searchParams.delete("block");
-            setSearchParams(searchParams);
+            setSearchParams((prev) => {
+              const next = new URLSearchParams(prev);
+              next.delete("block");
+              return next;
+            });
           }}
           onBulkDelete={(questionIds) => {
             setPendingDelete({ kind: "bulk", questionIds });

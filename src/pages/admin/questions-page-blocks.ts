@@ -65,6 +65,7 @@ export function isQuestionInBlock(
 
   const normalized = question.blockName.trim().toLowerCase();
   return (
+    block.id.toLowerCase() === normalized ||
     block.name.toLowerCase() === normalized ||
     block.matchNames.some((m) => m.toLowerCase() === normalized)
   );

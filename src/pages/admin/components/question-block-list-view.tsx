@@ -110,9 +110,9 @@ export default function QuestionBlockListView({
       <div className="flex flex-col gap-4 rounded-2xl border border-border/80 bg-card p-6 shadow-xs lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-3xl space-y-1.5">
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-extrabold tracking-tight text-foreground">
+            <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
               {activeBlock.name}
-            </h2>
+            </h1>
             <Badge variant="secondary" className="font-semibold">
               {filteredQuestions.length} Soal
             </Badge>

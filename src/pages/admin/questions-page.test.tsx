@@ -184,7 +184,7 @@ describe("QuestionsPage - Block selection and list integration", () => {
 
     // Verify block questions view displays
     expect(
-      await screen.findByRole("heading", { name: "Clinical Science", level: 2 }),
+      await screen.findByRole("heading", { name: "Clinical Science", level: 1 }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /kembali ke pilihan blok/i }),
@@ -216,7 +216,7 @@ describe("QuestionsPage - Block selection and list integration", () => {
     renderQuestionsPage("/admin/questions?block=clinical-science");
 
     expect(
-      await screen.findByRole("heading", { name: "Clinical Science", level: 2 }),
+      await screen.findByRole("heading", { name: "Clinical Science", level: 1 }),
     ).toBeInTheDocument();
     expect(screen.getByText(/apa target tekanan darah pada ckd/i)).toBeInTheDocument();
 

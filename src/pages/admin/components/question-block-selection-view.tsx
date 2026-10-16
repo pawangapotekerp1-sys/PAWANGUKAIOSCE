@@ -48,6 +48,9 @@ export default function QuestionBlockSelectionView({
   onSelectBlock,
 }: QuestionBlockSelectionViewProps) {
   const handleCardKeyDown = (event: KeyboardEvent<HTMLDivElement>, blockId: string) => {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       onSelectBlock(blockId);

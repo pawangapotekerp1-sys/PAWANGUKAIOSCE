@@ -40,11 +40,14 @@ describe("STANDARD_BLOCKS", () => {
         "Manajemen farmasi, regulasi & perundang-undangan farmasi, farmakoekonomi, etika, dan komunikasi profesi.",
       colorTheme: "amber",
       matchNames: [
+        "social behavioral administration of pharmacy",
         "social behavioural administration of pharmacy",
         "social, behavioral & administrative pharmacy",
         "social behavioural administrative pharmacy",
         "social behavioral administrative pharmacy",
         "social, behavioral and administrative pharmacy",
+        "sba",
+        "05871128-0ffa-4919-9483-6f0086e1c262",
       ],
     });
   });
@@ -105,6 +108,24 @@ describe("isQuestionInBlock", () => {
     expect(
       isQuestionInBlock(
         { blockName: "Social Behavioral Administrative Pharmacy" },
+        sbaBlock
+      )
+    ).toBe(true);
+    expect(
+      isQuestionInBlock(
+        { blockName: "Social Behavioral Administration of Pharmacy" },
+        sbaBlock
+      )
+    ).toBe(true);
+    expect(
+      isQuestionInBlock(
+        { blockName: "sba" },
+        sbaBlock
+      )
+    ).toBe(true);
+    expect(
+      isQuestionInBlock(
+        { blockName: null, blockId: "05871128-0ffa-4919-9483-6f0086e1c262" },
         sbaBlock
       )
     ).toBe(true);

@@ -30,11 +30,14 @@ export const STANDARD_BLOCKS: BlockDefinition[] = [
       "Manajemen farmasi, regulasi & perundang-undangan farmasi, farmakoekonomi, etika, dan komunikasi profesi.",
     colorTheme: "amber",
     matchNames: [
+      "social behavioral administration of pharmacy",
       "social behavioural administration of pharmacy",
       "social, behavioral & administrative pharmacy",
       "social behavioural administrative pharmacy",
       "social behavioral administrative pharmacy",
       "social, behavioral and administrative pharmacy",
+      "sba",
+      "05871128-0ffa-4919-9483-6f0086e1c262",
     ],
   },
 ];
@@ -56,9 +59,13 @@ export function findBlockDefinition(blockParam?: string | null): BlockDefinition
 }
 
 export function isQuestionInBlock(
-  question: { blockName: string | null },
+  question: { blockName: string | null; blockId?: string | null },
   block: BlockDefinition
 ): boolean {
+  if (question.blockId && block.matchNames.some((m) => m.toLowerCase() === question.blockId?.toLowerCase())) {
+    return true;
+  }
+
   if (!question.blockName || !question.blockName.trim()) {
     return false;
   }

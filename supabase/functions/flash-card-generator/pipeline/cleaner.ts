@@ -235,7 +235,7 @@ export async function cleanTranscript(
     };
   }
 
-  const chunkSize = options.chunkSize ?? 18;
+  const chunkSize = options.chunkSize ?? 50;
   const chunkOverlap = options.chunkOverlap ?? 2;
   const model = options.model ?? "gemini-3.8-flash";
   const apiKey = options.apiKey ?? "";

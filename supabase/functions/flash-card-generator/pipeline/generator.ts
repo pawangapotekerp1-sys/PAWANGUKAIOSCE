@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import {
   generateGeminiStructuredDataWithUsage,
   type GeminiRequest,
@@ -74,23 +75,7 @@ export function encodeBase64(bytes: Uint8Array): string {
     return "";
   }
 
-  // Fast native path when Buffer is available (Node.js and modern Deno)
-  if (typeof Buffer !== "undefined") {
-    return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("base64");
-  }
-
-  // High-performance chunked conversion (32KB chunks) for web standards without global Buffer
-  const chunks: string[] = [];
-  const chunkSize = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    chunks.push(
-      String.fromCharCode.apply(
-        null,
-        bytes.subarray(i, i + chunkSize) as unknown as number[],
-      ),
-    );
-  }
-  return btoa(chunks.join(""));
+  return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("base64");
 }
 
 function buildPrompt(options: GenerationOptions): string {
@@ -170,7 +155,10 @@ export async function generateCandidateCards(
 
   const requestParts: GeminiRequest["parts"] = [];
 
-  if (options.pdfBytes && options.pdfBytes.byteLength > 0) {
+  // Safety cap: Gemini REST generateContent inlineData has a 20MB total HTTP body limit.
+  // Capping raw inline PDF at 10MB protects Edge Function memory and avoids 413 Payload Too Large.
+  const MAX_INLINE_PDF_BYTES = 10 * 1024 * 1024;
+  if (options.pdfBytes && options.pdfBytes.byteLength > 0 && options.pdfBytes.byteLength <= MAX_INLINE_PDF_BYTES) {
     requestParts.push({
       inlineData: {
         mimeType: "application/pdf",

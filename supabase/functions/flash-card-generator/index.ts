@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { Buffer } from "node:buffer";
 import {
   HttpError,
   createServiceClient,
@@ -107,21 +108,7 @@ function encodeBase64(bytes: Uint8Array): string {
     return "";
   }
 
-  if (typeof Buffer !== "undefined") {
-    return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("base64");
-  }
-
-  const chunks: string[] = [];
-  const chunkSize = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    chunks.push(
-      String.fromCharCode.apply(
-        null,
-        bytes.subarray(i, i + chunkSize) as unknown as number[],
-      ),
-    );
-  }
-  return btoa(chunks.join(""));
+  return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("base64");
 }
 
 function mapFlashCardGeneratorStatus(credential: UserAiCredentialRow | null) {

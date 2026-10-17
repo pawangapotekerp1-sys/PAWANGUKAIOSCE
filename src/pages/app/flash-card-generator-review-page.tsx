@@ -51,7 +51,7 @@ function FlashCardGeneratorReviewPage() {
     enabled: materialId.length > 0,
     queryFn: () => getFlashCardMaterialDetail({ materialId }),
     refetchInterval: (query) => {
-      if (typeof process !== "undefined" && process.env?.NODE_ENV === "test") {
+      if (import.meta.env.MODE === "test") {
         return false;
       }
       const status = query.state.data?.material.status;

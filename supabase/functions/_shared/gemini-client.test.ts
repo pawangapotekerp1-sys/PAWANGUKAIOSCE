@@ -445,4 +445,150 @@ describe("gemini-client", () => {
     ).rejects.toThrow(/api key not valid/i);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  test("extracts thoughtsTokenCount and usage metadata from Gemini response", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        candidates: [{ content: { parts: [{ text: "{\"result\":\"ok\"}" }] } }],
+        usageMetadata: {
+          promptTokenCount: 150,
+          candidatesTokenCount: 50,
+          totalTokenCount: 200,
+          candidatesTokensDetails: [{ modality: "TEXT", tokenCount: 30 }, { modality: "THINKING", tokenCount: 20 }],
+          thoughtsTokenCount: 20,
+        },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { generateGeminiTextWithUsage } = await import("./gemini-client.ts");
+    const result = await generateGeminiTextWithUsage({
+      apiKey: "test-key",
+      model: "gemini-3.8-flash",
+      prompt: "Hello",
+      thinkingLevel: "low",
+    });
+
+    expect(result.text).toBe("{\"result\":\"ok\"}");
+    expect(result.usage).toEqual({
+      isAvailable: true,
+      promptTokenCount: 150,
+      candidatesTokenCount: 50,
+      totalTokenCount: 200,
+      thoughtsTokenCount: 20,
+    });
+    expect(result.latencyMs).toBeGreaterThanOrEqual(0);
+
+    const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(String(requestInit.body));
+    expect(body.generationConfig.thinkingConfig).toEqual({ thinkingLevel: "low" });
+  });
+
+  test("extracts thoughtsTokenCount from candidatesTokensDetails fallback when thoughtsTokenCount not at root", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        candidates: [{ content: { parts: [{ text: "response text" }] } }],
+        usageMetadata: {
+          promptTokenCount: 100,
+          candidatesTokenCount: 40,
+          totalTokenCount: 140,
+          candidatesTokensDetails: [{ modality: "TEXT", tokenCount: 25 }, { modality: "THINKING", tokenCount: 15 }],
+        },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { generateGeminiTextWithUsage } = await import("./gemini-client.ts");
+    const result = await generateGeminiTextWithUsage({
+      apiKey: "test-key",
+      model: "gemini-3.8-flash",
+      prompt: "Hello",
+    });
+
+    expect(result.text).toBe("response text");
+    expect(result.usage).toEqual({
+      isAvailable: true,
+      promptTokenCount: 100,
+      candidatesTokenCount: 40,
+      totalTokenCount: 140,
+      thoughtsTokenCount: 15,
+    });
+  });
+
+  test("handles absent usageMetadata gracefully", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        candidates: [{ content: { parts: [{ text: "response text" }] } }],
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { generateGeminiTextWithUsage } = await import("./gemini-client.ts");
+    const result = await generateGeminiTextWithUsage({
+      apiKey: "test-key",
+      model: "gemini-3.8-flash",
+      prompt: "Hello",
+    });
+
+    expect(result.text).toBe("response text");
+    expect(result.usage).toEqual({
+      isAvailable: false,
+      statusText: "NOT_RETURNED_BY_PROVIDER",
+      promptTokenCount: null,
+      candidatesTokenCount: null,
+      totalTokenCount: null,
+      thoughtsTokenCount: null,
+    });
+  });
+
+  test("normalizes deprecated model IDs gracefully to gemini-3.8-flash", async () => {
+    const { normalizeAiModel, DEFAULT_AI_MODEL } = await import("./gemini-client.ts");
+    expect(DEFAULT_AI_MODEL).toBe("gemini-3.8-flash");
+    expect(normalizeAiModel("gemini-3.7-flash")).toBe("gemini-3.8-flash");
+    expect(normalizeAiModel("gemini-2.5-flash")).toBe("gemini-3.8-flash");
+    expect(normalizeAiModel("gemini-2.5-pro")).toBe("gemini-3.8-flash");
+    expect(normalizeAiModel("gemini-3.8-flash")).toBe("gemini-3.8-flash");
+    expect(normalizeAiModel(null)).toBe("gemini-3.8-flash");
+    expect(normalizeAiModel(undefined)).toBe("gemini-3.8-flash");
+    expect(normalizeAiModel("")).toBe("gemini-3.8-flash");
+    expect(normalizeAiModel("  gemini-3.7-flash  ")).toBe("gemini-3.8-flash");
+  });
+
+  test("generateGeminiStructuredDataWithUsage returns parsed data, usage, and latency", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        candidates: [{ content: { parts: [{ text: "{\"items\":[1,2,3]}" }] } }],
+        usageMetadata: {
+          promptTokenCount: 50,
+          candidatesTokenCount: 20,
+          totalTokenCount: 70,
+          thoughtsTokenCount: 5,
+        },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { generateGeminiStructuredDataWithUsage } = await import("./gemini-client.ts");
+    const result = await generateGeminiStructuredDataWithUsage<{ items: number[] }>({
+      apiKey: "test-key",
+      model: "gemini-3.8-flash",
+      prompt: "Return items JSON",
+      responseMimeType: "application/json",
+      responseSchema: { type: "object" },
+    });
+
+    expect(result.data).toEqual({ items: [1, 2, 3] });
+    expect(result.usage).toEqual({
+      isAvailable: true,
+      promptTokenCount: 50,
+      candidatesTokenCount: 20,
+      totalTokenCount: 70,
+      thoughtsTokenCount: 5,
+    });
+    expect(result.latencyMs).toBeGreaterThanOrEqual(0);
+  });
 });

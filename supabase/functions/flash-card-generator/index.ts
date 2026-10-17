@@ -5,10 +5,30 @@ import {
   requireQuestionBankManager,
 } from "../_shared/auth.ts";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
-import { collectFlashCardSourcePathsForCleanup } from "../_shared/flash-card.ts";
-import { generateGeminiText, isGeminiCredentialError, testGeminiConnection } from "../_shared/gemini-client.ts";
+import {
+  collectFlashCardSourcePathsForCleanup,
+  type CardMetadata,
+  type MaterialMetadata,
+  type SourceConflictRecord,
+  validateMaterialMetadata,
+} from "../_shared/flash-card.ts";
+import {
+  generateGeminiText,
+  isGeminiCredentialError,
+  normalizeAiModel,
+  testGeminiConnection,
+} from "../_shared/gemini-client.ts";
+import {
+  runFlashCardPipeline,
+  resumePipelineFromCheckpoint,
+  type PipelineCheckpoint,
+} from "./pipeline/orchestrator.ts";
+import { type CandidateCard } from "./pipeline/generator.ts";
+import { reviewCandidateCards } from "./pipeline/reviewer.ts";
+import { repairDefectiveCards } from "./pipeline/repairer.ts";
 import {
   assertFlashCardMaterialEditable,
+  assertFlashCardMaterialPublishable,
   assertFlashCardMaterialRetryable,
   buildFlashCardCredentialWritePayload,
   buildFlashCardFailureUpdate,
@@ -20,6 +40,9 @@ import {
   createFlashCardResponseSchema,
   ensureFlashCardManagerAccess,
   FlashCardManagerAccessError,
+  handlePublishMaterial,
+  handleResolveConflict,
+  handleUpdateMaterialProtectedMetadata,
   validateGeneratedFlashCardOutput,
   validateFlashCardMaterialDraftInput,
   validateFlashCardReviewUpdate,
@@ -46,6 +69,7 @@ type MaterialRow = {
   published_at: string | null;
   created_at: string;
   updated_at: string;
+  metadata?: MaterialMetadata | Record<string, unknown> | null;
 };
 
 type SourceFileRow = {
@@ -75,6 +99,7 @@ type CardRow = {
   front_text: string;
   back_text: string;
   sort_order: number;
+  metadata?: CardMetadata | Record<string, unknown> | null;
 };
 
 function encodeBase64(bytes: Uint8Array) {
@@ -203,7 +228,7 @@ async function upsertUserCredential(
 async function loadOwnedMaterial(service: ServiceClient, materialId: string, userId: string) {
   const { data, error } = await service
     .from("flashcard_materials")
-    .select("id, title, academic_group, status, global_summary, processing_error, created_by, published_at, created_at, updated_at")
+    .select("id, title, academic_group, status, global_summary, processing_error, created_by, published_at, created_at, updated_at, metadata")
     .eq("id", materialId)
     .eq("created_by", userId)
     .maybeSingle();
@@ -241,7 +266,7 @@ async function loadMaterialChildren(service: ServiceClient, materialId: string) 
   const { data: cards, error: cardsError } = subtopicIds.length > 0
     ? await service
       .from("flashcard_cards")
-      .select("id, subtopic_id, front_text, back_text, sort_order")
+      .select("id, subtopic_id, front_text, back_text, sort_order, metadata")
       .in("subtopic_id", subtopicIds)
       .order("sort_order", { ascending: true })
     : { data: [], error: null };
@@ -296,8 +321,11 @@ async function replaceMaterialContent(
       title: string;
       summary: string;
       cards: Array<{
-        frontText: string;
-        backText: string;
+        frontText?: string;
+        backText?: string;
+        front_text?: string;
+        back_text?: string;
+        metadata?: CardMetadata | Record<string, unknown> | null;
       }>;
     }>;
   },
@@ -309,12 +337,13 @@ async function replaceMaterialContent(
   const { error } = await service.rpc("replace_flashcard_material_content", {
     target_material_id: materialId,
     target_owner_id: ownerId,
-    target_subtopics: validatedOutput.subtopics.map((subtopic) => ({
+    target_subtopics: validatedOutput.subtopics.map((subtopic, sIdx) => ({
       title: subtopic.title,
       summary: subtopic.summary,
-      cards: subtopic.cards.map((card) => ({
+      cards: subtopic.cards.map((card, cIdx) => ({
         front_text: card.front_text,
         back_text: card.back_text,
+        metadata: (card as any).metadata ?? (subtopics[sIdx]?.cards?.[cIdx] as any)?.metadata ?? {},
       })),
     })),
   });
@@ -330,6 +359,7 @@ async function processMaterialGeneration(
   service: ServiceClient,
   material: MaterialRow,
   credential: UserAiCredentialRow,
+  options: { isRetry?: boolean } = {},
 ) {
   const { sourceFiles } = await loadMaterialChildren(service, material.id);
   const transcriptSource = sourceFiles.find((sourceFile) => sourceFile.file_kind === "transcript");
@@ -347,58 +377,78 @@ async function processMaterialGeneration(
     })
     .eq("id", material.id);
 
+  const initialCheckpoint = options.isRetry
+    ? (((material.metadata as any)?.pipelineCheckpoint ?? (material.metadata as any)?.pipeline_checkpoint) as PipelineCheckpoint | undefined)
+    : undefined;
+  let latestCheckpoint: PipelineCheckpoint | undefined = initialCheckpoint;
+
   try {
     const [transcriptText, pdfBytes, apiKey] = await Promise.all([
       downloadTextFromStorage(service, transcriptSource),
       downloadBytesFromStorage(service, slidePdfSource),
       readVaultSecret(service, credential.secret_id!),
     ]);
-    const responseText = await generateGeminiText({
+    const model = normalizeAiModel(credential.model);
+    const existingCheckpoint = options.isRetry
+      ? (((material.metadata as any)?.pipelineCheckpoint ?? (material.metadata as any)?.pipeline_checkpoint) as PipelineCheckpoint | undefined)
+      : undefined;
+    latestCheckpoint = existingCheckpoint;
+
+    const onStageComplete = async (_stage: any, checkpoint: PipelineCheckpoint) => {
+      latestCheckpoint = checkpoint;
+      const currentMeta = (material.metadata ?? {}) as Record<string, unknown>;
+      const updatedMeta = {
+        ...currentMeta,
+        pipelineCheckpoint: checkpoint,
+      };
+      material.metadata = updatedMeta;
+      await service
+        .from("flashcard_materials")
+        .update({
+          metadata: updatedMeta,
+        })
+        .eq("id", material.id);
+    };
+
+    const pipelineOptions = {
+      title: material.title,
+      academicGroup: material.academic_group,
+      transcriptText,
+      pdfBytes,
       apiKey,
-      model: credential.model,
-      prompt: buildFlashCardGenerationPrompt({
-        title: material.title,
-        academicGroup: material.academic_group as MaterialRow["academic_group"],
-        transcriptText,
-      }),
-      parts: [
-        {
-          text: buildFlashCardGenerationPrompt({
-            title: material.title,
-            academicGroup: material.academic_group as MaterialRow["academic_group"],
-            transcriptText,
-          }),
-        },
-        {
-          inlineData: {
-            mimeType: slidePdfSource.mime_type,
-            data: encodeBase64(pdfBytes),
-          },
-        },
-      ],
-      maxOutputTokens: 4096,
-      responseMimeType: "application/json",
-      responseSchema: createFlashCardResponseSchema(),
-    });
-    const aiOutput = validateGeneratedFlashCardOutput(JSON.parse(responseText));
+      model,
+      onStageComplete,
+    };
+
+    let pipelineResult;
+    if (existingCheckpoint && typeof existingCheckpoint === "object") {
+      pipelineResult = await resumePipelineFromCheckpoint(existingCheckpoint as any, pipelineOptions);
+    } else {
+      pipelineResult = await runFlashCardPipeline(pipelineOptions);
+    }
+    latestCheckpoint = pipelineResult.checkpoint ?? latestCheckpoint;
 
     await replaceMaterialContent(service, {
       ownerId: material.created_by,
       materialId: material.id,
-      globalSummary: aiOutput.global_summary,
-      subtopics: aiOutput.subtopics.map((subtopic) => ({
+      globalSummary: pipelineResult.globalSummary,
+      subtopics: pipelineResult.subtopics.map((subtopic) => ({
         title: subtopic.title,
         summary: subtopic.summary,
         cards: subtopic.cards.map((card) => ({
-          frontText: card.front_text,
-          backText: card.back_text,
+          frontText: card.frontText,
+          backText: card.backText,
+          metadata: card.metadata,
         })),
       })),
     });
 
     const { error: materialUpdateError } = await service
       .from("flashcard_materials")
-      .update(buildFlashCardReadyForReviewUpdate(aiOutput.global_summary))
+      .update({
+        ...buildFlashCardReadyForReviewUpdate(pipelineResult.globalSummary),
+        metadata: pipelineResult.metadata,
+      })
       .eq("id", material.id);
 
     if (materialUpdateError) {
@@ -418,9 +468,20 @@ async function processMaterialGeneration(
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Flash card processing failed.";
+    const currentMeta = (material.metadata ?? {}) as Record<string, unknown>;
+    const checkpointToPreserve = (error as any)?.checkpoint ?? latestCheckpoint;
+
+    const failureUpdate: Record<string, unknown> = buildFlashCardFailureUpdate(message);
+    if (checkpointToPreserve) {
+      failureUpdate.metadata = {
+        ...currentMeta,
+        pipelineCheckpoint: checkpointToPreserve,
+      };
+    }
+
     await service
       .from("flashcard_materials")
-      .update(buildFlashCardFailureUpdate(message))
+      .update(failureUpdate)
       .eq("id", material.id);
     throw error;
   }
@@ -448,6 +509,7 @@ function mapMaterialDetail({
       publishedAt: material.published_at,
       createdAt: material.created_at,
       updatedAt: material.updated_at,
+      metadata: material.metadata ?? {},
     },
     sourceFiles: sourceFiles.map((sourceFile) => ({
       id: sourceFile.id,
@@ -472,6 +534,7 @@ function mapMaterialDetail({
           frontText: card.front_text,
           backText: card.back_text,
           sortOrder: card.sort_order,
+          metadata: card.metadata ?? {},
         })),
     })),
   };
@@ -697,6 +760,7 @@ Deno.serve(async (req) => {
         globalSummary: typeof payload.globalSummary === "string" ? payload.globalSummary : "",
         subtopics: Array.isArray(payload.subtopics) ? payload.subtopics : [],
       });
+      const mergedMetadata = handleUpdateMaterialProtectedMetadata(material.metadata, payload);
       const { error: materialError } = await service
         .from("flashcard_materials")
         .update({
@@ -704,6 +768,7 @@ Deno.serve(async (req) => {
           status: "ready_for_review",
           global_summary: validatedOutput.global_summary,
           processing_error: null,
+          metadata: mergedMetadata,
         })
         .eq("id", materialId);
 
@@ -714,6 +779,7 @@ Deno.serve(async (req) => {
       return jsonResponse({
         materialId,
         status: "ready_for_review",
+        metadata: mergedMetadata,
       });
     }
 
@@ -725,22 +791,20 @@ Deno.serve(async (req) => {
       const materialId = typeof payload.materialId === "string" ? payload.materialId : "";
       const material = await loadOwnedMaterial(service, materialId, user.id);
       assertFlashCardMaterialRetryable(material.status);
-      return await processMaterialGeneration(service, material, credential);
+      return await processMaterialGeneration(service, material, credential, { isRetry: true });
     }
 
     if (payload.action === "publish-material") {
       const materialId = typeof payload.materialId === "string" ? payload.materialId : "";
       const material = await loadOwnedMaterial(service, materialId, user.id);
 
-      if (material.status !== "ready_for_review") {
-        throw new HttpError(400, "FLASHCARD_NOT_READY", "Materi flash card belum siap dipublikasikan.");
-      }
+      assertFlashCardMaterialPublishable(material);
 
       const children = await loadMaterialChildren(service, material.id);
       await deletePublishedSourceFiles(service, children.sourceFiles);
       const { error } = await service
         .from("flashcard_materials")
-        .update(buildFlashCardPublishUpdate(new Date().toISOString()))
+        .update(handlePublishMaterial(material))
         .eq("id", material.id);
 
       if (error) {
@@ -750,6 +814,143 @@ Deno.serve(async (req) => {
       return jsonResponse({
         materialId: material.id,
         status: "published",
+      });
+    }
+
+    if (payload.action === "resolve-conflict") {
+      const materialId = typeof payload.materialId === "string" ? payload.materialId : "";
+      const material = await loadOwnedMaterial(service, materialId, user.id);
+      assertFlashCardMaterialEditable(material.status);
+
+      const conflictId = typeof payload.conflictId === "string" ? payload.conflictId.trim() : "";
+      if (!conflictId) {
+        throw new HttpError(400, "CONFLICT_ID_REQUIRED", "conflictId wajib diisi.");
+      }
+
+      const updatedMetadata = handleResolveConflict(material, {
+        conflictId,
+        resolutionStatus: typeof payload.resolutionStatus === "string" ? payload.resolutionStatus : undefined,
+        clinicalClarificationNotes: typeof payload.clinicalClarificationNotes === "string" ? payload.clinicalClarificationNotes : undefined,
+        resolvedBy: user.id,
+      });
+
+      const { error: updateError } = await service
+        .from("flashcard_materials")
+        .update({
+          metadata: updatedMetadata,
+        })
+        .eq("id", material.id);
+
+      if (updateError) {
+        throw new HttpError(500, "FLASHCARD_CONFLICT_RESOLVE_FAILED", updateError.message);
+      }
+
+      return jsonResponse({
+        materialId: material.id,
+        metadata: updatedMetadata,
+      });
+    }
+
+    if (payload.action === "audit-repair-material") {
+      if (!credential?.secret_id) {
+        throw new HttpError(400, "BYOK_MISSING", "Belum ada BYOK tersimpan untuk flash card.");
+      }
+
+      const materialId = typeof payload.materialId === "string" ? payload.materialId : "";
+      const material = await loadOwnedMaterial(service, materialId, user.id);
+      assertFlashCardMaterialEditable(material.status);
+
+      const [children, apiKey] = await Promise.all([
+        loadMaterialChildren(service, material.id),
+        readVaultSecret(service, credential.secret_id),
+      ]);
+
+      const candidateCards: CandidateCard[] = children.cards.map((c) => ({
+        id: c.id,
+        front_text: c.front_text,
+        back_text: c.back_text,
+        qualityStatus: ((c.metadata as any)?.qualityStatus ?? "ACCEPTED") as any,
+        sources: (c.metadata as any)?.sources ?? [],
+        metadata: (c.metadata as any) ?? { sources: [] },
+      }));
+
+      const model = normalizeAiModel(credential.model);
+      const conflicts = ((material.metadata as any)?.sourceConflicts ?? []) as SourceConflictRecord[];
+
+      const reviewResult = await reviewCandidateCards({
+        cards: candidateCards,
+        conflicts,
+        apiKey,
+        model,
+      });
+
+      const defectiveCards = reviewResult.reviewedCards.filter(
+        (c) => c.qualityStatus === "REPAIRABLE_DEFECT",
+      );
+
+      let finalCards = reviewResult.reviewedCards;
+      let repairResult: any = { repairedCount: 0, droppedCount: 0 };
+      if (defectiveCards.length > 0) {
+        repairResult = await repairDefectiveCards({
+          defectiveCards,
+          cards: [...reviewResult.reviewedCards],
+          apiKey,
+          model,
+        });
+        finalCards = repairResult.allCards ?? reviewResult.reviewedCards;
+      }
+
+      const cardLookup = new Map(finalCards.map((c) => [c.id, c]));
+      const subtopicsPayload = children.subtopics.map((subtopic) => ({
+        title: subtopic.title,
+        summary: subtopic.summary,
+        cards: children.cards
+          .filter((c) => c.subtopic_id === subtopic.id)
+          .map((c) => {
+            const updated = cardLookup.get(c.id);
+            return {
+              front_text: updated?.front_text ?? c.front_text,
+              back_text: updated?.back_text ?? c.back_text,
+              metadata: updated?.metadata ?? c.metadata ?? {},
+            };
+          }),
+      }));
+
+      await replaceMaterialContent(service, {
+        ownerId: user.id,
+        materialId: material.id,
+        globalSummary: material.global_summary ?? "Ringkasan Materi",
+        subtopics: subtopicsPayload,
+      });
+
+      const existingMeta = (material.metadata ?? {}) as any;
+      const checkpoint = existingMeta.pipelineCheckpoint ?? existingMeta.pipeline_checkpoint;
+      const updatedMeta = validateMaterialMetadata({
+        ...existingMeta,
+        ...(checkpoint ? { pipelineCheckpoint: checkpoint } : {}),
+        rejectedAuditTrail: reviewResult.rejectedAuditTrail.slice(0, 10),
+        qualityReport: {
+          ...(existingMeta.qualityReport ?? {}),
+          acceptedCount: finalCards.filter((c) => c.qualityStatus === "ACCEPTED").length,
+          repairedCount: (existingMeta.qualityReport?.repairedCount ?? 0) + repairResult.repairedCount,
+        },
+      });
+
+      const { error: materialError } = await service
+        .from("flashcard_materials")
+        .update({
+          metadata: updatedMeta,
+        })
+        .eq("id", material.id);
+
+      if (materialError) {
+        throw new HttpError(500, "FLASHCARD_AUDIT_REPAIR_FAILED", materialError.message);
+      }
+
+      return jsonResponse({
+        materialId: material.id,
+        status: material.status,
+        metadata: updatedMeta,
       });
     }
 

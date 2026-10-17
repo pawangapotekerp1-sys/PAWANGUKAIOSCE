@@ -12,6 +12,100 @@ export type FlashCardMaterialStatus =
   | "published"
   | "failed";
 
+export type CardSourceReference = {
+  sourceId: string;
+  sourceType: "slide_pdf" | "transcript";
+  provenanceStatus: "verified_exact" | "semantic_match" | "unanchored";
+  location: {
+    pdfPageIndex: number | null;
+    printedSlideNumber?: number | null;
+    segmentId?: string | null;
+    textQuote: string;
+  };
+  alignmentConfidence: "high" | "medium" | "low";
+  confidenceReason: string;
+};
+
+export type CardClinicalVerification = {
+  status:
+    | "not_assessed"
+    | "source_supported_only"
+    | "externally_verified"
+    | "clinical_review_required";
+  notes?: string | null;
+};
+
+export type CardMetadata = {
+  sources: CardSourceReference[];
+  clinicalVerification: CardClinicalVerification;
+  qualityStatus:
+    | "ACCEPTED"
+    | "REPAIRABLE_DEFECT"
+    | "SUBSTANTIVE_CONFLICT"
+    | "UNSUPPORTED_CLAIM";
+  conflictRefId?: string | null;
+  cardType?: string;
+  mentorCustomNotes?: string;
+};
+
+export type SourceConflictRecord = {
+  conflictId: string;
+  conceptId: string;
+  category:
+    | "dosage_discrepancy"
+    | "contraindication_mismatch"
+    | "drug_identity"
+    | "formula_conflict"
+    | "clinical_guideline";
+  severity: "critical" | "high" | "moderate";
+  slideEvidence: {
+    pdfPageIndex: number | null;
+    printedSlideNumber?: number | null;
+    exactQuote: string;
+  };
+  transcriptEvidence: {
+    segmentId: string;
+    exactQuote: string;
+  };
+  distinctionType: "substantive_contradiction";
+  resolutionStatus: "unresolved" | "mentor_clarified" | "externally_verified";
+  clinicalClarificationNotes?: string | null;
+  resolvedAt?: string | null;
+  resolvedBy?: string | null;
+};
+
+export type StageTokenMetrics = {
+  isAvailable: boolean;
+  promptTokenCount?: number | null;
+  candidatesTokenCount?: number | null;
+  totalTokenCount?: number | null;
+  thoughtsTokenCount?: number | null;
+  statusText?: string;
+};
+
+export type MaterialMetadata = {
+  pipelineVersion?: string;
+  modelUsed?: string;
+  executionDurationMs?: number;
+  pipelineCheckpoint?: Record<string, unknown>;
+  tokenUsage?: Record<string, StageTokenMetrics>;
+  qualityReport?: {
+    totalCardsGenerated?: number;
+    acceptedCount?: number;
+    repairedCount?: number;
+    droppedCount?: number;
+    conflictsCount?: number;
+    unresolvedCriticalOrHighConflicts?: number;
+  };
+  sourceConflicts?: SourceConflictRecord[];
+  rejectedAuditTrail?: Array<{
+    draftFront: string;
+    rejectionReason: string;
+    triggerSourceId?: string;
+  }>;
+  mentorCustomNotes?: string;
+};
+
 type PublishedLibraryRow = {
   id: string;
   title: string;
@@ -55,7 +149,7 @@ type StudentProgressRow = {
   last_reviewed_at: string;
 };
 
-type MentorMaterialDetail = {
+export type MentorMaterialDetail = {
   material: {
     id: string;
     title: string;
@@ -66,6 +160,7 @@ type MentorMaterialDetail = {
     publishedAt: string | null;
     createdAt: string;
     updatedAt: string;
+    metadata?: MaterialMetadata | null;
   };
   sourceFiles: Array<{
     id: string;
@@ -88,6 +183,8 @@ type MentorMaterialDetail = {
       frontText: string;
       backText: string;
       sortOrder: number;
+      metadata?: CardMetadata | null;
+      sources?: CardSourceReference[];
     }>;
   }>;
 };
@@ -205,6 +302,7 @@ export function mapFlashCardMaterialDetail(detail: MentorMaterialDetail) {
   return {
     material: {
       ...detail.material,
+      metadata: detail.material.metadata ?? null,
       academicGroupLabel: mapFlashCardAcademicGroupLabel(detail.material.academicGroup),
       statusLabel: mapFlashCardMaterialStatusLabel(detail.material.status),
     },
@@ -213,7 +311,13 @@ export function mapFlashCardMaterialDetail(detail: MentorMaterialDetail) {
       .sort((left, right) => left.sortOrder - right.sortOrder)
       .map((subtopic) => ({
         ...subtopic,
-        cards: [...subtopic.cards].sort((left, right) => left.sortOrder - right.sortOrder),
+        cards: [...subtopic.cards]
+          .sort((left, right) => left.sortOrder - right.sortOrder)
+          .map((card) => ({
+            ...card,
+            metadata: card.metadata ?? null,
+            sources: card.metadata?.sources ?? card.sources ?? [],
+          })),
       })),
   };
 }

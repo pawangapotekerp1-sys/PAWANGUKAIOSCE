@@ -2,8 +2,12 @@ import {
   assertFlashCardOutputQuality,
   normalizeFlashCardAcademicGroup,
   validateFlashCardOutput,
+  validateMaterialMetadata,
+  type CardMetadata,
   type FlashCardAcademicGroup,
   type FlashCardOutput,
+  type MaterialMetadata,
+  type SourceConflictRecord,
 } from "../_shared/flash-card.ts";
 
 export class FlashCardManagerAccessError extends Error {}
@@ -290,9 +294,129 @@ export function validateFlashCardReviewUpdate(input: {
       title: subtopic.title,
       summary: subtopic.summary,
       cards: subtopic.cards.map((card) => ({
-        front_text: card.frontText,
-        back_text: card.backText,
+        front_text: card.frontText ?? (card as any).front_text ?? "",
+        back_text: card.backText ?? (card as any).back_text ?? "",
+        metadata: (card as any).metadata,
+
       })),
     })),
   });
+}
+
+
+export function assertFlashCardMaterialPublishable(material: {
+  id: string;
+  status: string;
+  metadata?: any;
+}) {
+  if (material.status !== "ready_for_review") {
+    throw new Error("Materi flash card belum siap dipublikasikan.");
+  }
+
+  const conflicts = Array.isArray(material.metadata?.sourceConflicts)
+    ? material.metadata.sourceConflicts
+    : [];
+
+  const hasUnresolvedCriticalOrHigh = conflicts.some(
+    (c: any) =>
+      (c.severity === "critical" || c.severity === "high") &&
+      c.resolutionStatus === "unresolved",
+  );
+
+  if (hasUnresolvedCriticalOrHigh) {
+    throw new Error(
+      "Materi memiliki konflik sumber berderajat critical/high yang belum diselesaikan.",
+    );
+  }
+
+  return true;
+}
+
+export function handlePublishMaterial(material: any) {
+  assertFlashCardMaterialPublishable(material);
+  return buildFlashCardPublishUpdate(new Date().toISOString());
+}
+
+export function handleResolveConflict(
+  material: any,
+  payload: {
+    conflictId: string;
+    resolutionStatus?: string;
+    clinicalClarificationNotes?: string;
+    resolvedBy?: string;
+  },
+) {
+  const metadata = (material.metadata ?? {}) as Record<string, any>;
+  const conflicts = Array.isArray(metadata.sourceConflicts)
+    ? [...metadata.sourceConflicts]
+    : [];
+
+  const conflictIndex = conflicts.findIndex(
+    (c: any) => c.conflictId === payload.conflictId,
+  );
+
+  if (conflictIndex === -1) {
+    throw new Error(`Konflik sumber dengan id "${payload.conflictId}" tidak ditemukan.`);
+  }
+
+  const existingConflict = conflicts[conflictIndex];
+  const updatedConflict = {
+    ...existingConflict,
+    resolutionStatus: payload.resolutionStatus ?? "mentor_clarified",
+    clinicalClarificationNotes:
+      payload.clinicalClarificationNotes !== undefined
+        ? payload.clinicalClarificationNotes
+        : existingConflict.clinicalClarificationNotes,
+    resolvedAt: new Date().toISOString(),
+    resolvedBy: payload.resolvedBy ?? null,
+  };
+
+  conflicts[conflictIndex] = updatedConflict;
+
+  const unresolvedCriticalOrHigh = conflicts.filter(
+    (c: any) =>
+      (c.severity === "critical" || c.severity === "high") &&
+      c.resolutionStatus === "unresolved",
+  ).length;
+
+  const qualityReport = metadata.qualityReport
+    ? {
+        ...metadata.qualityReport,
+        unresolvedCriticalOrHighConflicts: unresolvedCriticalOrHigh,
+      }
+    : undefined;
+
+  return {
+    ...metadata,
+    sourceConflicts: conflicts,
+    qualityReport,
+  };
+}
+
+export function handleUpdateMaterialProtectedMetadata(
+  existingMetadata: any,
+  incomingPayload: any,
+) {
+  const existing = existingMetadata ?? {};
+  const incoming = incomingPayload ?? {};
+
+  const mentorCustomNotes =
+    typeof incoming.mentorCustomNotes === "string"
+      ? incoming.mentorCustomNotes
+      : typeof incoming.metadata?.mentorCustomNotes === "string"
+      ? incoming.metadata.mentorCustomNotes
+      : existing.mentorCustomNotes;
+
+  return {
+    ...existing,
+    pipelineVersion: existing.pipelineVersion ?? "gemini-3.8-source-aware-v1",
+    modelUsed: existing.modelUsed ?? "gemini-3.8-flash",
+    sourceConflicts: existing.sourceConflicts ?? [],
+    tokenUsage: existing.tokenUsage ?? {},
+    rejectedAuditTrail: existing.rejectedAuditTrail ?? [],
+    qualityReport: existing.qualityReport ?? {},
+    pipelineCheckpoint: existing.pipelineCheckpoint ?? existing.pipeline_checkpoint,
+    executionDurationMs: existing.executionDurationMs,
+    mentorCustomNotes,
+  };
 }

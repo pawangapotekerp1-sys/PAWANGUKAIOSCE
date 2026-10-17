@@ -7,10 +7,62 @@ import {
 } from "../_shared/auth.ts";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
 import {
-  generateGeminiText,
+  DEFAULT_AI_MODEL,
+  generateGeminiTextWithUsage,
   isGeminiCredentialError,
+  normalizeAiModel,
   testGeminiConnection,
 } from "../_shared/gemini-client.ts";
+
+export function resolveModelToUse(model: string | null | undefined): string {
+  return normalizeAiModel(model);
+}
+
+export function buildInsightLogPayload(params: {
+  userId: string;
+  credentialId: string | null;
+  model?: string;
+  requestKind?: "student_test" | "student_insight";
+  status?: "success" | "error";
+  errorMessage?: string | null;
+  usage?: {
+    isAvailable?: boolean;
+    promptTokenCount?: number | null;
+    candidatesTokenCount?: number | null;
+    totalTokenCount?: number | null;
+    thoughtsTokenCount?: number | null;
+    statusText?: string;
+  };
+  latencyMs?: number;
+  metadata?: Record<string, unknown>;
+}): {
+  user_id: string;
+  credential_id: string | null;
+  model: string;
+  request_kind: "student_test" | "student_insight";
+  status: "success" | "error";
+  error_message: string | null;
+  metadata: Record<string, unknown>;
+} {
+  const metadata: Record<string, unknown> = {
+    ...(params.metadata ?? {}),
+    promptTokenCount: params.usage?.promptTokenCount ?? null,
+    candidatesTokenCount: params.usage?.candidatesTokenCount ?? null,
+    totalTokenCount: params.usage?.totalTokenCount ?? null,
+    thoughtsTokenCount: params.usage?.thoughtsTokenCount ?? null,
+    latencyMs: params.latencyMs ?? (typeof params.metadata?.latencyMs === "number" ? params.metadata.latencyMs : null),
+  };
+
+  return {
+    user_id: params.userId,
+    credential_id: params.credentialId,
+    model: resolveModelToUse(params.model),
+    request_kind: params.requestKind ?? "student_insight",
+    status: params.status ?? "success",
+    error_message: params.errorMessage ?? null,
+    metadata,
+  };
+}
 
 type UserAiCredentialRow = {
   id: string;
@@ -97,33 +149,9 @@ async function readVaultSecret(service: ReturnType<typeof createServiceClient>, 
 
 async function writeUsageLog(
   service: ReturnType<typeof createServiceClient>,
-  {
-    userId,
-    credentialId,
-    model,
-    requestKind,
-    status,
-    errorMessage,
-    metadata,
-  }: {
-    userId: string;
-    credentialId: string | null;
-    model: string;
-    requestKind: "student_test" | "student_insight";
-    status: "success" | "error";
-    errorMessage?: string | null;
-    metadata?: Record<string, unknown>;
-  },
+  params: Parameters<typeof buildInsightLogPayload>[0],
 ) {
-  await service.from("ai_usage_logs").insert({
-    user_id: userId,
-    credential_id: credentialId,
-    request_kind: requestKind,
-    model,
-    status,
-    error_message: errorMessage ?? null,
-    metadata: metadata ?? {},
-  });
+  await service.from("ai_usage_logs").insert(buildInsightLogPayload(params));
 }
 
 async function fetchAnalyticsContext(service: ReturnType<typeof createServiceClient>, userId: string) {
@@ -215,7 +243,7 @@ Deno.serve(async (req) => {
       const writePayload = {
         user_id: user.id,
         provider: "gemini",
-        model: typeof payload.model === "string" && payload.model ? payload.model : "gemini-3.7-flash",
+        model: resolveModelToUse(typeof payload.model === "string" ? payload.model : undefined),
         secret_id: nextSecretId,
         secret_hint: `••••${payload.apiKey.trim().slice(-4)}`,
         last_error: null,
@@ -268,9 +296,10 @@ Deno.serve(async (req) => {
       }
 
       const apiKey = await readVaultSecret(service, credential.secret_id);
+      const modelToUse = resolveModelToUse(credential.model);
 
       try {
-        const testResult = await testGeminiConnection(apiKey, credential.model);
+        const testResult = await testGeminiConnection(apiKey, modelToUse);
         await service
           .from("user_ai_credentials")
           .update({
@@ -281,12 +310,10 @@ Deno.serve(async (req) => {
         await writeUsageLog(service, {
           userId: user.id,
           credentialId: credential.id,
-          model: credential.model,
+          model: modelToUse,
           requestKind: "student_test",
           status: "success",
-          metadata: {
-            latencyMs: testResult.latencyMs ?? null,
-          },
+          latencyMs: testResult.latencyMs ?? undefined,
         });
 
         return jsonResponse({
@@ -304,7 +331,7 @@ Deno.serve(async (req) => {
         await writeUsageLog(service, {
           userId: user.id,
           credentialId: credential.id,
-          model: credential.model,
+          model: modelToUse,
           requestKind: "student_test",
           status: "error",
           errorMessage: message,
@@ -326,11 +353,12 @@ Deno.serve(async (req) => {
       const apiKey = await readVaultSecret(service, credential.secret_id);
       const analyticsContext = await fetchAnalyticsContext(service, user.id);
       const rulesFallback = buildRulesFallback(analyticsContext.blocks, analyticsContext.topics);
+      const modelToUse = resolveModelToUse(credential.model);
 
       try {
-        const summary = await generateGeminiText({
+        const result = await generateGeminiTextWithUsage({
           apiKey,
-          model: credential.model,
+          model: modelToUse,
           prompt: [
             "Kamu adalah asisten belajar singkat untuk mahasiswa farmasi.",
             "Tulis ringkasan 3-4 kalimat dalam Bahasa Indonesia yang langsung ke area lemah, tanpa mengulang data mentah terlalu banyak.",
@@ -351,16 +379,18 @@ Deno.serve(async (req) => {
         await writeUsageLog(service, {
           userId: user.id,
           credentialId: credential.id,
-          model: credential.model,
+          model: modelToUse,
           requestKind: "student_insight",
           status: "success",
+          usage: result.usage,
+          latencyMs: result.latencyMs,
         });
 
         return jsonResponse({
           insight: {
             source: "ai",
             generatedAt: new Date().toISOString(),
-            summary,
+            summary: result.text,
             strengths: rulesFallback.strengths,
             focusAreas: rulesFallback.focusAreas,
             nextActions: rulesFallback.nextActions,
@@ -377,7 +407,7 @@ Deno.serve(async (req) => {
         await writeUsageLog(service, {
           userId: user.id,
           credentialId: credential.id,
-          model: credential.model,
+          model: modelToUse,
           requestKind: "student_insight",
           status: "error",
           errorMessage: message,
@@ -401,6 +431,7 @@ Deno.serve(async (req) => {
       }
       
       const apiKey = await readVaultSecret(service, credential.secret_id);
+      const modelToUse = resolveModelToUse(credential.model);
 
       try {
         const { data: diagnosis, error: diagnosisError } = await userClient.rpc("get_personal_weakness_diagnosis", {
@@ -434,9 +465,9 @@ Deno.serve(async (req) => {
         const patternText = patterns.map((p: any) => p.label).join(", ");
         const failedQuestionsText = (failedQuestions || []).map((q: any) => `- [${q.topic_name}] ${q.question_stem}`).join("\n");
         
-        const summary = await generateGeminiText({
+        const result = await generateGeminiTextWithUsage({
           apiKey,
-          model: credential.model,
+          model: modelToUse,
           prompt: [
             "Kamu adalah mentor ahli klinis untuk mahasiswa profesi apoteker.",
             "Tuliskan laporan analisis mendalam mengenai evaluasi objektif kelemahan mereka.",
@@ -469,9 +500,11 @@ Deno.serve(async (req) => {
         await writeUsageLog(service, {
           userId: user.id,
           credentialId: credential.id,
-          model: credential.model,
+          model: modelToUse,
           requestKind: "student_insight",
           status: "success",
+          usage: result.usage,
+          latencyMs: result.latencyMs,
           metadata: {
             dateFrom: payload.dateFrom,
             dateTo: payload.dateTo,
@@ -482,7 +515,7 @@ Deno.serve(async (req) => {
           insight: {
             source: "ai",
             generatedAt: new Date().toISOString(),
-            summary,
+            summary: result.text,
           },
         });
       } catch (error) {
@@ -497,7 +530,7 @@ Deno.serve(async (req) => {
         await writeUsageLog(service, {
           userId: user.id,
           credentialId: credential.id,
-          model: credential.model,
+          model: modelToUse,
           requestKind: "student_insight",
           status: "error",
           errorMessage: message,

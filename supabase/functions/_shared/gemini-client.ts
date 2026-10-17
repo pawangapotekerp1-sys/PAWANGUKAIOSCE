@@ -1,6 +1,38 @@
 import { readEdgeEnv } from "./env.ts";
 
-type GeminiRequest = {
+export const SUPPORTED_AI_MODELS = ["gemini-3.8-flash"] as const;
+export type SupportedAiModel = (typeof SUPPORTED_AI_MODELS)[number];
+export const DEFAULT_AI_MODEL: SupportedAiModel = "gemini-3.8-flash";
+
+const DEPRECATED_AI_MODELS = new Set([
+  "gemini-3.7-flash",
+  "gemini-2.5-flash",
+  "gemini-2.5-pro",
+]);
+
+export function normalizeAiModel(model: string | null | undefined): string {
+  if (typeof model !== "string") {
+    return DEFAULT_AI_MODEL;
+  }
+
+  const trimmed = model.trim();
+  if (!trimmed || DEPRECATED_AI_MODELS.has(trimmed.toLowerCase())) {
+    return DEFAULT_AI_MODEL;
+  }
+
+  return trimmed;
+}
+
+export type GeminiUsageMetadata = {
+  isAvailable: boolean;
+  promptTokenCount: number | null;
+  candidatesTokenCount: number | null;
+  totalTokenCount: number | null;
+  thoughtsTokenCount: number | null;
+  statusText?: string;
+};
+
+export type GeminiRequest = {
   apiKey: string;
   model: string;
   prompt: string;
@@ -18,6 +50,7 @@ type GeminiRequest = {
   temperature?: number;
   maxOutputTokens?: number;
   thinkingBudget?: number;
+  thinkingLevel?: "low" | "medium" | "high";
   responseMimeType?: string;
   responseSchema?: Record<string, unknown>;
 };
@@ -203,6 +236,47 @@ function buildStructuredRetryRequest(request: GeminiRequest, error: GeminiReques
   };
 }
 
+function extractGeminiUsage(payload: Record<string, unknown>): GeminiUsageMetadata {
+  const usage = payload?.usageMetadata;
+  if (!usage || typeof usage !== "object") {
+    return {
+      isAvailable: false,
+      statusText: "NOT_RETURNED_BY_PROVIDER",
+      promptTokenCount: null,
+      candidatesTokenCount: null,
+      totalTokenCount: null,
+      thoughtsTokenCount: null,
+    };
+  }
+
+  const usageRecord = usage as Record<string, unknown>;
+  let thoughtsTokenCount: number | null = typeof usageRecord.thoughtsTokenCount === "number"
+    ? usageRecord.thoughtsTokenCount
+    : null;
+
+  if (thoughtsTokenCount === null && Array.isArray(usageRecord.candidatesTokensDetails)) {
+    const thinkingDetail = (usageRecord.candidatesTokensDetails as Array<Record<string, unknown>>).find(
+      (detail) => String(detail.modality ?? "").toUpperCase() === "THINKING",
+    );
+    if (typeof thinkingDetail?.tokenCount === "number") {
+      thoughtsTokenCount = thinkingDetail.tokenCount;
+    }
+  }
+
+  return {
+    isAvailable: true,
+    promptTokenCount: typeof usageRecord.promptTokenCount === "number" ? usageRecord.promptTokenCount : null,
+    candidatesTokenCount: typeof usageRecord.candidatesTokenCount === "number" ? usageRecord.candidatesTokenCount : null,
+    totalTokenCount: typeof usageRecord.totalTokenCount === "number" ? usageRecord.totalTokenCount : null,
+    thoughtsTokenCount,
+  };
+}
+
+type GeminiOnceResult = {
+  text: string;
+  usage: GeminiUsageMetadata;
+};
+
 async function generateGeminiTextOnce({
   apiKey,
   model,
@@ -211,16 +285,22 @@ async function generateGeminiTextOnce({
   temperature = 0.2,
   maxOutputTokens = 512,
   thinkingBudget,
+  thinkingLevel,
   responseMimeType,
   responseSchema,
-}: GeminiRequest) {
+}: GeminiRequest): Promise<GeminiOnceResult> {
   const env = readEdgeEnv();
+  const resolvedModel = normalizeAiModel(model);
   const generationConfig: Record<string, unknown> = {
     temperature,
     maxOutputTokens,
   };
 
-  if (typeof thinkingBudget === "number") {
+  if (thinkingLevel) {
+    generationConfig.thinkingConfig = {
+      thinkingLevel,
+    };
+  } else if (typeof thinkingBudget === "number") {
     generationConfig.thinkingConfig = {
       thinkingBudget,
     };
@@ -240,7 +320,7 @@ async function generateGeminiTextOnce({
     ];
 
   const response = await fetch(
-    `${env.geminiBaseUrl}/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+    `${env.geminiBaseUrl}/models/${encodeURIComponent(resolvedModel)}:generateContent?key=${encodeURIComponent(apiKey)}`,
     {
       method: "POST",
       headers: {
@@ -281,15 +361,27 @@ async function generateGeminiTextOnce({
     throw new GeminiRequestError(502, "Gemini tidak mengembalikan teks yang bisa dipakai.");
   }
 
-  return text;
+  const usage = extractGeminiUsage(payload as Record<string, unknown>);
+
+  return { text, usage };
 }
 
-export async function generateGeminiText(request: GeminiRequest) {
+export async function generateGeminiTextWithUsage(request: GeminiRequest): Promise<{
+  text: string;
+  usage: GeminiUsageMetadata;
+  latencyMs: number;
+}> {
+  const startedAt = Date.now();
   let lastError: unknown = null;
 
   for (let attempt = 1; attempt <= GEMINI_TEXT_MAX_ATTEMPTS; attempt += 1) {
     try {
-      return await generateGeminiTextOnce(request);
+      const result = await generateGeminiTextOnce(request);
+      return {
+        text: result.text,
+        usage: result.usage,
+        latencyMs: Date.now() - startedAt,
+      };
     } catch (error) {
       lastError = error;
 
@@ -316,15 +408,28 @@ export async function generateGeminiText(request: GeminiRequest) {
   throw lastError instanceof Error ? lastError : new Error("Gemini request failed.");
 }
 
-export async function generateGeminiStructuredData<TValue>(request: GeminiRequest): Promise<TValue> {
+export async function generateGeminiText(request: GeminiRequest): Promise<string> {
+  const result = await generateGeminiTextWithUsage(request);
+  return result.text;
+}
+
+export async function generateGeminiStructuredDataWithUsage<TValue>(
+  request: GeminiRequest,
+): Promise<{ data: TValue; usage: GeminiUsageMetadata; latencyMs: number }> {
+  const startedAt = Date.now();
   let nextRequest = request;
   let lastError: unknown = null;
 
   for (let attempt = 1; attempt <= GEMINI_STRUCTURED_MAX_ATTEMPTS; attempt += 1) {
     try {
-      const responseText = await generateGeminiText(nextRequest);
+      const textResult = await generateGeminiTextWithUsage(nextRequest);
+      const data = parseGeminiStructuredJsonText<TValue>(textResult.text);
 
-      return parseGeminiStructuredJsonText<TValue>(responseText);
+      return {
+        data,
+        usage: textResult.usage,
+        latencyMs: Date.now() - startedAt,
+      };
     } catch (error) {
       lastError = error;
 
@@ -344,6 +449,11 @@ export async function generateGeminiStructuredData<TValue>(request: GeminiReques
   throw lastError instanceof Error ? lastError : new Error("Gemini structured generation failed.");
 }
 
+export async function generateGeminiStructuredData<TValue>(request: GeminiRequest): Promise<TValue> {
+  const result = await generateGeminiStructuredDataWithUsage<TValue>(request);
+  return result.data;
+}
+
 export async function testGeminiConnection(apiKey: string, model: string) {
   const startedAt = Date.now();
   await generateGeminiText({
@@ -351,6 +461,7 @@ export async function testGeminiConnection(apiKey: string, model: string) {
     model,
     prompt: "Balas dengan kata OK saja.",
     maxOutputTokens: 8192,
+    thinkingBudget: 0,
   });
 
   return {

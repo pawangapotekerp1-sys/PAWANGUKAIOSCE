@@ -184,6 +184,7 @@ export async function repairDefectiveCards(
     apiKey: options.apiKey ?? "internal",
     model: options.model ?? "gemini-3.8-flash",
     prompt,
+    maxOutputTokens: 8192,
     thinkingLevel: "low", // Targeted repair uses low thinkingLevel
     responseMimeType: "application/json",
     responseSchema: getRepairResponseSchema(),

@@ -359,5 +359,48 @@ describe("Transcript Cleaner - Pipeline & Clinical Entity Shield Guardrail", () 
     expect(result.retainedSegments).toHaveLength(1);
     expect(result.retainedSegments[0].classification).toBe("relevant");
   });
+
+  it("passes maxOutputTokens: 8192 and adaptively subdivides large slices when encountering errors", async () => {
+    // Generate 20 segments
+    const lines = Array.from({ length: 20 }, (_, i) => `Segmen materi perkuliahan farmakologi ${i + 1}`).join("\n");
+    let callCount = 0;
+
+    const mockGemini = vi.fn().mockImplementation((req) => {
+      callCount += 1;
+      expect(req.maxOutputTokens).toBe(8192);
+
+      // First call with all 20 segments throws GeminiRequestError
+      if (callCount === 1) {
+        throw new Error("Output Gemini terpotong karena batas token.");
+      }
+
+      // Subdivided calls succeed
+      return Promise.resolve({
+        text: JSON.stringify({
+          classifications: [
+            { segmentId: "seg-001", classification: "relevant", reason: "Materi inti" },
+          ],
+        }),
+        usage: {
+          isAvailable: true,
+          promptTokenCount: 20,
+          candidatesTokenCount: 10,
+          totalTokenCount: 30,
+          thoughtsTokenCount: 0,
+        },
+      });
+    });
+
+    const result = await cleanTranscript(lines, {
+      apiKey: "test",
+      chunkSize: 50,
+      geminiClient: mockGemini as any,
+    });
+
+    // Should have subdivided because 20 > 15
+    expect(callCount).toBeGreaterThan(1);
+    expect(result.segments.length).toBe(20);
+  });
 });
+
 

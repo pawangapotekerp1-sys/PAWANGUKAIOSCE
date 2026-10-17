@@ -283,7 +283,7 @@ async function generateGeminiTextOnce({
   prompt,
   parts,
   temperature = 0.2,
-  maxOutputTokens = 512,
+  maxOutputTokens,
   thinkingBudget,
   thinkingLevel,
   responseMimeType,
@@ -291,9 +291,14 @@ async function generateGeminiTextOnce({
 }: GeminiRequest): Promise<GeminiOnceResult> {
   const env = readEdgeEnv();
   const resolvedModel = normalizeAiModel(model);
+  const effectiveMaxOutputTokens = typeof maxOutputTokens === "number"
+    ? maxOutputTokens
+    : (thinkingLevel || typeof thinkingBudget === "number" || responseMimeType === "application/json")
+      ? 8192
+      : 512;
   const generationConfig: Record<string, unknown> = {
     temperature,
-    maxOutputTokens,
+    maxOutputTokens: effectiveMaxOutputTokens,
   };
 
   if (thinkingLevel) {
@@ -372,11 +377,12 @@ export async function generateGeminiTextWithUsage(request: GeminiRequest): Promi
   latencyMs: number;
 }> {
   const startedAt = Date.now();
+  let nextRequest = request;
   let lastError: unknown = null;
 
   for (let attempt = 1; attempt <= GEMINI_TEXT_MAX_ATTEMPTS; attempt += 1) {
     try {
-      const result = await generateGeminiTextOnce(request);
+      const result = await generateGeminiTextOnce(nextRequest);
       return {
         text: result.text,
         usage: result.usage,
@@ -385,11 +391,14 @@ export async function generateGeminiTextWithUsage(request: GeminiRequest): Promi
     } catch (error) {
       lastError = error;
 
-      if (
-        !(error instanceof GeminiRequestError)
-        || error.code
-        || !isGeminiTransientError(error.status, error.message)
-      ) {
+      if (!(error instanceof GeminiRequestError)) {
+        throw error;
+      }
+
+      const isMaxTokens = error.code === "GEMINI_MAX_TOKENS";
+      const isTransient = !error.code && isGeminiTransientError(error.status, error.message);
+
+      if (!isMaxTokens && !isTransient) {
         throw error;
       }
 
@@ -399,6 +408,14 @@ export async function generateGeminiTextWithUsage(request: GeminiRequest): Promi
         }
 
         throw error;
+      }
+
+      if (isMaxTokens) {
+        const currentTokens = nextRequest.maxOutputTokens ?? 4096;
+        nextRequest = {
+          ...nextRequest,
+          maxOutputTokens: Math.min(16384, Math.max(8192, currentTokens * 2)),
+        };
       }
 
       await wait(GEMINI_TRANSIENT_RETRY_DELAY_MS * attempt);

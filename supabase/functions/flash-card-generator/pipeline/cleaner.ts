@@ -259,7 +259,19 @@ export async function cleanTranscript(
     const contextBefore =
       i > 0 ? segments.slice(Math.max(0, i - chunkOverlap), i) : [];
 
-    const prompt = `You are an expert clinical pharmacist and AI medical educator analyzing educational lecture transcripts.
+    type ClassificationItem = {
+      segmentId?: string;
+      classification?: "relevant" | "noise" | "uncertain";
+      reason?: string;
+      suspectedTranscriptionError?: boolean;
+      suspected_transcription_error?: boolean;
+    };
+
+    const classifySlice = async (
+      slice: TranscriptSegment[],
+      context: TranscriptSegment[],
+    ): Promise<ClassificationItem[]> => {
+      const prompt = `You are an expert clinical pharmacist and AI medical educator analyzing educational lecture transcripts.
 Your task is to classify transcript segments for pharmacy flashcard generation into:
 - "relevant": core pharmacological facts, clinical concepts, dosages, indications, contraindications, mechanisms, patient counseling.
 - "noise": audio checks, conversational banter, greetings, administrative remarks, jokes with no educational value.
@@ -270,14 +282,14 @@ Any segment with clinical entities (dosages, drug names, medical terms) MUST NOT
 If transcription is garbled or cut-off mid-clinical statement, classify as "uncertain" and set suspectedTranscriptionError: true.
 
 ${
-      contextBefore.length > 0
-        ? `PREVIOUS CONTEXT (DO NOT CLASSIFY, FOR CONTEXT ONLY):
-${contextBefore.map((s) => `[${s.segmentId}] ${s.normalizedText}`).join("\n")}
+        context.length > 0
+          ? `PREVIOUS CONTEXT (DO NOT CLASSIFY, FOR CONTEXT ONLY):
+${context.map((s) => `[${s.segmentId}] ${s.normalizedText}`).join("\n")}
 `
-        : ""
-    }
+          : ""
+      }
 SEGMENTS TO CLASSIFY:
-${targetSlice.map((s) => `[${s.segmentId}] ${s.normalizedText}`).join("\n")}
+${slice.map((s) => `[${s.segmentId}] ${s.normalizedText}`).join("\n")}
 
 Respond ONLY with valid JSON in this exact structure:
 {
@@ -291,49 +303,65 @@ Respond ONLY with valid JSON in this exact structure:
   ]
 }`;
 
-    const response = await geminiCaller({
-      apiKey,
-      model,
-      prompt,
-      thinkingLevel: "low",
-      responseMimeType: "application/json",
-    });
+      try {
+        const response = await geminiCaller({
+          apiKey,
+          model,
+          prompt,
+          maxOutputTokens: 8192,
+          thinkingLevel: "low",
+          responseMimeType: "application/json",
+        });
 
-    if (response.usage && response.usage.isAvailable) {
-      aggregatedMetrics.isAvailable = true;
-      aggregatedMetrics.promptTokenCount =
-        (aggregatedMetrics.promptTokenCount ?? 0) +
-        (response.usage.promptTokenCount ?? 0);
-      aggregatedMetrics.candidatesTokenCount =
-        (aggregatedMetrics.candidatesTokenCount ?? 0) +
-        (response.usage.candidatesTokenCount ?? 0);
-      aggregatedMetrics.totalTokenCount =
-        (aggregatedMetrics.totalTokenCount ?? 0) +
-        (response.usage.totalTokenCount ?? 0);
-      aggregatedMetrics.thoughtsTokenCount =
-        (aggregatedMetrics.thoughtsTokenCount ?? 0) +
-        (response.usage.thoughtsTokenCount ?? 0);
-    }
+        if (response.usage && response.usage.isAvailable) {
+          aggregatedMetrics.isAvailable = true;
+          aggregatedMetrics.promptTokenCount =
+            (aggregatedMetrics.promptTokenCount ?? 0) +
+            (response.usage.promptTokenCount ?? 0);
+          aggregatedMetrics.candidatesTokenCount =
+            (aggregatedMetrics.candidatesTokenCount ?? 0) +
+            (response.usage.candidatesTokenCount ?? 0);
+          aggregatedMetrics.totalTokenCount =
+            (aggregatedMetrics.totalTokenCount ?? 0) +
+            (response.usage.totalTokenCount ?? 0);
+          aggregatedMetrics.thoughtsTokenCount =
+            (aggregatedMetrics.thoughtsTokenCount ?? 0) +
+            (response.usage.thoughtsTokenCount ?? 0);
+        }
 
-    type ClassificationItem = {
-      segmentId?: string;
-      classification?: "relevant" | "noise" | "uncertain";
-      reason?: string;
-      suspectedTranscriptionError?: boolean;
-      suspected_transcription_error?: boolean;
+        try {
+          const parsed = JSON.parse(cleanJsonText(response.text));
+          if (Array.isArray(parsed?.classifications)) {
+            return parsed.classifications;
+          } else if (Array.isArray(parsed)) {
+            return parsed;
+          }
+        } catch {
+          // In case of JSON parse failure, fallback
+        }
+        return [];
+      } catch (err: any) {
+        const isMaxTokens =
+          err?.code === "GEMINI_MAX_TOKENS" ||
+          (typeof err?.message === "string" &&
+            (err.message.includes("batas token") ||
+              err.message.includes("MAX_TOKENS") ||
+              err.message.includes("token limit")));
+
+        // If batch is large (> 15) and hits MAX_TOKENS, adaptively subdivide into smaller halves
+        if (isMaxTokens && slice.length > 15) {
+          const mid = Math.floor(slice.length / 2);
+          const firstHalf = slice.slice(0, mid);
+          const secondHalf = slice.slice(mid);
+          const firstResults = await classifySlice(firstHalf, context);
+          const secondResults = await classifySlice(secondHalf, [...context, ...firstHalf]);
+          return [...firstResults, ...secondResults];
+        }
+        throw err;
+      }
     };
 
-    let classifications: ClassificationItem[] = [];
-    try {
-      const parsed = JSON.parse(cleanJsonText(response.text));
-      if (Array.isArray(parsed?.classifications)) {
-        classifications = parsed.classifications;
-      } else if (Array.isArray(parsed)) {
-        classifications = parsed;
-      }
-    } catch {
-      // In case of JSON parse failure, fallback
-    }
+    const classifications: ClassificationItem[] = await classifySlice(targetSlice, contextBefore);
 
     const classificationMap = new Map<string, ClassificationItem>();
     for (const item of classifications) {

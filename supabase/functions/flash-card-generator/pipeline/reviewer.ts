@@ -196,6 +196,7 @@ export async function reviewCandidateCards(
       apiKey: options.apiKey ?? "internal",
       model: options.model ?? "gemini-3.8-flash",
       prompt,
+      maxOutputTokens: 8192,
       thinkingLevel: "medium", // Adversarial audit pass uses medium thinkingLevel
       responseMimeType: "application/json",
       responseSchema: getReviewResponseSchema(),

@@ -591,4 +591,86 @@ describe("gemini-client", () => {
     });
     expect(result.latencyMs).toBeGreaterThanOrEqual(0);
   });
+
+  test("retries truncated text output in generateGeminiTextWithUsage with larger maxOutputTokens", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          candidates: [
+            {
+              finishReason: "MAX_TOKENS",
+              content: {
+                parts: [{ text: "Teks terpotong..." }],
+              },
+            },
+          ],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          candidates: [
+            {
+              finishReason: "STOP",
+              content: {
+                parts: [{ text: "Teks lengkap setelah retry." }],
+              },
+            },
+          ],
+          usageMetadata: {
+            promptTokenCount: 100,
+            candidatesTokenCount: 50,
+            totalTokenCount: 150,
+          },
+        }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { generateGeminiTextWithUsage } = await import("./gemini-client.ts");
+    const result = await generateGeminiTextWithUsage({
+      apiKey: "api-key",
+      model: "gemini-3.8-flash",
+      prompt: "Klasifikasikan segmen transkrip ini.",
+      maxOutputTokens: 2048,
+    });
+
+    expect(result.text).toBe("Teks lengkap setelah retry.");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    const [, retryInit] = fetchMock.mock.calls[1] as [string, RequestInit];
+    const retryBody = JSON.parse(String(retryInit.body));
+    expect(retryBody.generationConfig.maxOutputTokens).toBeGreaterThanOrEqual(4096);
+  });
+
+  test("uses generous default maxOutputTokens (8192) when thinkingLevel is specified", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        candidates: [
+          {
+            content: {
+              parts: [{ text: "Hasil dengan reasoning." }],
+            },
+          },
+        ],
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { generateGeminiTextWithUsage } = await import("./gemini-client.ts");
+    await generateGeminiTextWithUsage({
+      apiKey: "api-key",
+      model: "gemini-3.8-flash",
+      prompt: "Analisis klinis dengan thinking.",
+      thinkingLevel: "low",
+    });
+
+    const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(String(requestInit.body));
+
+    expect(body.generationConfig.maxOutputTokens).toBeGreaterThanOrEqual(8192);
+  });
 });
+

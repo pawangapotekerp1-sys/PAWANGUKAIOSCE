@@ -886,6 +886,7 @@ Format JSON keluaran:
         apiKey: input.apiKey ?? "internal",
         model: input.model ?? "gemini-3.8-flash",
         prompt,
+        maxOutputTokens: 8192,
         responseMimeType: "application/json",
         responseSchema: schema,
         thinkingLevel: "low",

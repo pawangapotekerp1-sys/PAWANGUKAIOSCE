@@ -175,6 +175,7 @@ export async function generateCandidateCards(
     model,
     prompt,
     parts: requestParts,
+    maxOutputTokens: 8192,
     thinkingLevel: "low",
     responseMimeType: "application/json",
     responseSchema,

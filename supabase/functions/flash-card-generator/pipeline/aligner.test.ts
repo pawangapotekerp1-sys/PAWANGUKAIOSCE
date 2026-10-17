@@ -431,6 +431,48 @@ describe("LLM-based Semantic Alignment (with mock geminiClient)", () => {
     expect(result.tokenUsage?.isAvailable).toBe(true);
     expect(result.tokenUsage?.thoughtsTokenCount).toBe(15);
   });
+
+  it("aligns as compatible elaboration when LLM returns compatible_elaboration", async () => {
+    const mockGeminiClient = vi.fn().mockResolvedValue({
+      data: {
+        evaluations: [
+          {
+            conceptId: "cpt-llm-2",
+            distinctionType: "compatible_elaboration",
+            reason: "Dosen memperjelas mekanisme kerja ACE inhibitor tanpa kontradiksi.",
+          },
+        ],
+      },
+      usage: {
+        isAvailable: true,
+        promptTokenCount: 120,
+        candidatesTokenCount: 45,
+        totalTokenCount: 165,
+        thoughtsTokenCount: 10,
+      },
+      latencyMs: 95,
+    });
+
+    const result = await alignSourcesAndDetectConflicts({
+      geminiClient: mockGeminiClient,
+      candidateComparisons: [
+        {
+          conceptId: "cpt-llm-2",
+          conceptName: "Captopril MOA",
+          slideClaim: "Captopril menghambat ACE",
+          slidePageIndex: 4,
+          printedSlideNumber: 3,
+          transcriptClaim: "Captopril bekerja dengan memblokir konversi angiotensin I ke II",
+          segmentId: "seg-305",
+        },
+      ],
+    });
+
+    expect(mockGeminiClient).toHaveBeenCalledOnce();
+    expect(result.conflicts).toHaveLength(0);
+    expect(result.alignedSources).toHaveLength(1);
+    expect(result.alignedSources[0].alignmentType).toBe("compatible_elaboration");
+  });
 });
 
 describe("Heuristic Helper Functions", () => {

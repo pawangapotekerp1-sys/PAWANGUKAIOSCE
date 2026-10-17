@@ -245,11 +245,6 @@ export function buildSourceReferences(
         : isExact
         ? `Kutipan harfiah transkrip segmen ${segmentId}`
         : `Kesesuaian semantik audio kuliah segmen ${segmentId}`);
-      (isExact
-        ? `Kutipan harfiah transkrip segmen ${segmentId ?? "tidak terjangkar"}`
-        : segmentId !== null
-        ? `Kesesuaian semantik audio kuliah segmen ${segmentId}`
-        : "Penjelasan audio kuliah tanpa jangkar segmen");
 
     const transcriptRef: CardSourceReference = {
       sourceId,
@@ -998,6 +993,7 @@ Format JSON keluaran:
           };
 
           conflicts.push(validateSourceConflictRecord(conflict));
+        } else {
           const isSlideAnchored =
             validPageIndex !== null && Boolean(c.slideClaim?.trim());
           const isTranscriptAnchored =

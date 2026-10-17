@@ -9,6 +9,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "npm:zod": "zod",
+      "npm:@supabase/supabase-js@2": "@supabase/supabase-js",
+      "jsr:@supabase/functions-js/edge-runtime.d.ts": path.resolve(__dirname, "./src/test/empty-shim.ts"),
       "@": path.resolve(__dirname, "./src"),
     },
   },

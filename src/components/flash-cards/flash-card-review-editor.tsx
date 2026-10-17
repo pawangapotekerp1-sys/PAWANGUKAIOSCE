@@ -472,12 +472,12 @@ function FlashCardReviewEditor({
                         {sources.map((source, sourceIdx) => {
                           const slideNumber = source.location?.printedSlideNumber ?? source.location?.pdfPageIndex ?? "";
                           const segmentId = source.location?.segmentId ?? "";
-                          const badgeLabel =
-                            source.sourceType === "slide_pdf"
-                              ? `Slide ${slideNumber}`
-                              : source.sourceType === "transcript"
-                                ? `Segmen ${segmentId}`
-                                : source.sourceType;
+                          const isSlide = source.sourceType === "slide_pdf";
+                          const badgeLabel = isSlide
+                            ? (slideNumber !== "" ? `Slide ${slideNumber}` : "Slide (Tanpa Halaman)")
+                            : source.sourceType === "transcript"
+                              ? (segmentId ? `Segmen ${segmentId}` : "Segmen Transkrip")
+                              : source.sourceType;
 
                           return (
                             <div key={sourceIdx} className="flex flex-wrap items-center gap-1.5">
@@ -508,14 +508,32 @@ function FlashCardReviewEditor({
                           );
                         })}
 
-                        {qualityStatus === "SUBSTANTIVE_CONFLICT" ? (
-                          <Badge
-                            variant="destructive"
-                            className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30 font-bold"
-                          >
-                            Konflik Substantif
-                          </Badge>
-                        ) : null}
+                        {(() => {
+                          const isConflictResolved = card.metadata?.conflictRefId
+                            ? sourceConflicts.some(
+                                (c) => c.conflictId === card.metadata?.conflictRefId && c.resolutionStatus !== "unresolved"
+                              )
+                            : false;
+
+                          if (qualityStatus === "SUBSTANTIVE_CONFLICT") {
+                            return isConflictResolved ? (
+                              <Badge
+                                variant="outline"
+                                className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 font-bold"
+                              >
+                                Konflik Terklarifikasi
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="destructive"
+                                className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30 font-bold"
+                              >
+                                Konflik Substantif
+                              </Badge>
+                            );
+                          }
+                          return null;
+                        })()}
 
                         {qualityStatus === "REPAIRABLE_DEFECT" ? (
                           <Badge

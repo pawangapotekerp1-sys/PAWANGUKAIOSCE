@@ -40,6 +40,31 @@ export function assertFlashCardMaterialEditable(status: string) {
   }
 }
 
+export const STALE_PROCESSING_TIMEOUT_MS = 90_000;
+
+export function isProcessingJobStale(params: {
+  status: string;
+  metadata?: Record<string, unknown> | null;
+  updatedAt?: string | null;
+  now?: number;
+  timeoutMs?: number;
+}): boolean {
+  if (params.status !== "processing") {
+    return false;
+  }
+  const timeoutMs = params.timeoutMs ?? STALE_PROCESSING_TIMEOUT_MS;
+  const now = params.now ?? Date.now();
+  const processingJob = params.metadata?.processingJob as { heartbeatAt?: string; startedAt?: string } | undefined;
+  const lastActiveTime = processingJob?.heartbeatAt
+    ? new Date(processingJob.heartbeatAt).getTime()
+    : (params.updatedAt ? new Date(params.updatedAt).getTime() : 0);
+
+  if (!lastActiveTime) {
+    return false;
+  }
+  return (now - lastActiveTime) > timeoutMs;
+}
+
 export function assertFlashCardMaterialRetryable(status: string) {
   if (status === "published") {
     throw new Error("Materi flash card yang sudah dipublikasikan tidak bisa diproses ulang.");

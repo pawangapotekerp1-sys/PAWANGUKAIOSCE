@@ -209,7 +209,8 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
     const artifact = checkpoint.stageArtifacts["ingestion"] as Record<string, unknown> | undefined;
     if (artifact) {
       if (typeof artifact.transcriptText === "string") transcriptText = artifact.transcriptText;
-      if (artifact.pdfBytes instanceof Uint8Array || artifact.pdfBytes === null) pdfBytes = artifact.pdfBytes;
+      // pdfBytes is kept from options.pdfBytes (already loaded from storage) to avoid duplicating binary in DB jsonb
+      if (options.pdfBytes instanceof Uint8Array || options.pdfBytes === null) pdfBytes = options.pdfBytes;
       if (Array.isArray(artifact.slides)) slides = artifact.slides as SlideInput[];
       if (Array.isArray(artifact.candidateComparisons)) candidateComparisons = artifact.candidateComparisons as CandidateComparison[];
       if (Array.isArray(artifact.concepts)) concepts = artifact.concepts as ConceptNode[];
@@ -221,7 +222,8 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
       "ingestion",
       {
         transcriptText,
-        pdfBytes,
+        hasPdf: Boolean(pdfBytes && pdfBytes.byteLength > 0),
+        pdfByteLength: pdfBytes ? pdfBytes.byteLength : 0,
         slides,
         candidateComparisons,
         concepts,

@@ -155,9 +155,10 @@ export async function generateCandidateCards(
 
   const requestParts: GeminiRequest["parts"] = [];
 
-  // Safety cap: Gemini REST generateContent inlineData has a 20MB total HTTP body limit.
-  // Capping raw inline PDF at 10MB protects Edge Function memory and avoids 413 Payload Too Large.
-  const MAX_INLINE_PDF_BYTES = 10 * 1024 * 1024;
+  // Safety cap: Edge Functions have a 150MB isolate memory ceiling.
+  // A 4MB PDF becomes ~5.3MB Base64, fitting comfortably within memory limits without risking Memory Limit Exceeded.
+  // Larger PDFs rely on the comprehensive transcriptText and alignedSources already present in the prompt.
+  const MAX_INLINE_PDF_BYTES = 4 * 1024 * 1024;
   if (options.pdfBytes && options.pdfBytes.byteLength > 0 && options.pdfBytes.byteLength <= MAX_INLINE_PDF_BYTES) {
     requestParts.push({
       inlineData: {

@@ -1,5 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 import {
+  auditRepairFlashCardMaterial,
   createFlashCardMaterialDraft,
   deleteFlashCardGeneratorCredential,
   getFlashCardGeneratorStatus,
@@ -7,10 +8,15 @@ import {
   getFlashCardMaterialDetail,
   listPublishedFlashCardSubtopics,
   publishFlashCardMaterial,
+  resolveFlashCardConflict,
   retryFlashCardMaterialProcessing,
   saveFlashCardGeneratorCredential,
+  saveFlashCardMaterialReview,
   saveStudentFlashCardDifficulty,
   testFlashCardGeneratorCredential,
+  type CardMetadata,
+  type CardSourceReference,
+  type MaterialMetadata,
 } from "./flash-card-api";
 
 describe("flash-card-api", () => {
@@ -521,6 +527,281 @@ describe("flash-card-api", () => {
       body: {
         action: "retry-processing",
         materialId: "material-1",
+      },
+    });
+  });
+
+  test("invokes resolveFlashCardConflict with action resolve-conflict and correct payload", async () => {
+    const mockMetadata: MaterialMetadata = {
+      pipelineVersion: "gemini-3.8-source-aware-v1",
+      modelUsed: "gemini-3.8-flash",
+      sourceConflicts: [
+        {
+          conflictId: "conflict-1",
+          conceptId: "captopril-dosage",
+          category: "dosage_discrepancy",
+          severity: "critical",
+          slideEvidence: {
+            pdfPageIndex: 12,
+            printedSlideNumber: 12,
+            exactQuote: "Dosis kaptopril 25 mg bid",
+          },
+          transcriptEvidence: {
+            segmentId: "seg-5",
+            exactQuote: "Dosis kaptopril 12.5 mg tid",
+          },
+          distinctionType: "substantive_contradiction",
+          resolutionStatus: "mentor_clarified",
+          clinicalClarificationNotes: "Gunakan panduan slide 25 mg bid.",
+          resolvedAt: "2026-10-17T12:00:00.000Z",
+          resolvedBy: "mentor-1",
+        },
+      ],
+    };
+
+    const invoke = vi.fn().mockResolvedValue({
+      data: {
+        materialId: "material-1",
+        status: "ready_for_review",
+        metadata: mockMetadata,
+      },
+      error: null,
+    });
+    const client = {
+      functions: {
+        invoke,
+      },
+    };
+
+    const result = await resolveFlashCardConflict(
+      {
+        materialId: "material-1",
+        conflictId: "conflict-1",
+        resolutionStatus: "mentor_clarified",
+        clinicalClarificationNotes: "Gunakan panduan slide 25 mg bid.",
+        resolvedBy: "mentor-1",
+      },
+      client as never,
+    );
+
+    expect(invoke).toHaveBeenCalledWith("flash-card-generator", {
+      body: {
+        action: "resolve-conflict",
+        materialId: "material-1",
+        conflictId: "conflict-1",
+        resolutionStatus: "mentor_clarified",
+        clinicalClarificationNotes: "Gunakan panduan slide 25 mg bid.",
+        resolvedBy: "mentor-1",
+      },
+    });
+    expect(result).toEqual({
+      materialId: "material-1",
+      status: "ready_for_review",
+      metadata: mockMetadata,
+    });
+  });
+
+  test("invokes auditRepairFlashCardMaterial with action audit-repair-material and correct payload", async () => {
+    const mockMetadata: MaterialMetadata = {
+      pipelineVersion: "gemini-3.8-source-aware-v1",
+      qualityReport: {
+        totalCardsGenerated: 10,
+        acceptedCount: 9,
+        repairedCount: 1,
+        droppedCount: 0,
+      },
+    };
+
+    const invoke = vi.fn().mockResolvedValue({
+      data: {
+        materialId: "material-1",
+        status: "ready_for_review",
+        metadata: mockMetadata,
+      },
+      error: null,
+    });
+    const client = {
+      functions: {
+        invoke,
+      },
+    };
+
+    const result = await auditRepairFlashCardMaterial(
+      {
+        materialId: "material-1",
+      },
+      client as never,
+    );
+
+    expect(invoke).toHaveBeenCalledWith("flash-card-generator", {
+      body: {
+        action: "audit-repair-material",
+        materialId: "material-1",
+      },
+    });
+    expect(result).toEqual({
+      materialId: "material-1",
+      status: "ready_for_review",
+      metadata: mockMetadata,
+    });
+  });
+
+  test("maps material metadata and card sources in getFlashCardMaterialDetail", async () => {
+    const mockCardSource: CardSourceReference = {
+      sourceId: "src-1",
+      sourceType: "slide_pdf",
+      provenanceStatus: "verified_exact",
+      location: {
+        pdfPageIndex: 4,
+        printedSlideNumber: 4,
+        segmentId: null,
+        textQuote: "ACE inhibitor adalah lini pertama nefropati diabetik.",
+      },
+      alignmentConfidence: "high",
+      confidenceReason: "Kutipan verbatim cocok dengan materi kuliah.",
+    };
+
+    const mockMaterialMeta: MaterialMetadata = {
+      pipelineVersion: "gemini-3.8-source-aware-v1",
+      modelUsed: "gemini-3.8-flash",
+      tokenUsage: {
+        generateCards: {
+          isAvailable: true,
+          promptTokenCount: 1200,
+          candidatesTokenCount: 350,
+          totalTokenCount: 1550,
+        },
+      },
+      qualityReport: {
+        totalCardsGenerated: 1,
+        acceptedCount: 1,
+      },
+    };
+
+    const mockCardMeta: CardMetadata = {
+      sources: [mockCardSource],
+      clinicalVerification: {
+        status: "source_supported_only",
+        notes: null,
+      },
+      qualityStatus: "ACCEPTED",
+    };
+
+    const invoke = vi.fn().mockResolvedValue({
+      data: {
+        detail: {
+          material: {
+            id: "material-1",
+            title: "Nefropati Diabetik",
+            academicGroup: "clinical_science",
+            status: "ready_for_review",
+            globalSummary: "Ringkasan nefropati diabetik.",
+            processingError: null,
+            publishedAt: null,
+            createdAt: "2026-06-06T10:00:00.000Z",
+            updatedAt: "2026-06-06T10:05:00.000Z",
+            metadata: mockMaterialMeta,
+          },
+          sourceFiles: [],
+          subtopics: [
+            {
+              id: "subtopic-1",
+              title: "Terapi Renoprotektif",
+              summary: "Ringkasan terapi renoprotektif.",
+              sortOrder: 1,
+              cards: [
+                {
+                  id: "card-1",
+                  frontText: "Lini pertama nefropati diabetik?",
+                  backText: "ACE inhibitor atau ARB.",
+                  sortOrder: 1,
+                  metadata: mockCardMeta,
+                },
+              ],
+            },
+          ],
+        },
+      },
+      error: null,
+    });
+    const client = {
+      functions: {
+        invoke,
+      },
+    };
+
+    const detail = await getFlashCardMaterialDetail(
+      { materialId: "material-1" },
+      client as never,
+    );
+
+    expect(detail.material.metadata).toEqual(mockMaterialMeta);
+    expect(detail.subtopics[0].cards[0].sources).toEqual([mockCardSource]);
+    expect(detail.subtopics[0].cards[0].metadata).toEqual(mockCardMeta);
+  });
+
+  test("allows saveFlashCardMaterialReview to include card metadata", async () => {
+    const invoke = vi.fn().mockResolvedValue({
+      data: {
+        materialId: "material-1",
+        status: "ready_for_review",
+      },
+      error: null,
+    });
+    const client = {
+      functions: {
+        invoke,
+      },
+    };
+
+    const cardMeta: CardMetadata = {
+      sources: [],
+      clinicalVerification: { status: "not_assessed" },
+      qualityStatus: "ACCEPTED",
+      mentorCustomNotes: "Catatan klinis dari mentor.",
+    };
+
+    await saveFlashCardMaterialReview(
+      {
+        materialId: "material-1",
+        title: "Farmakoterapi Hipertensi",
+        globalSummary: "Ringkasan diperbarui.",
+        subtopics: [
+          {
+            title: "Subtopik 1",
+            summary: "Ringkasan 1",
+            cards: [
+              {
+                frontText: "Pertanyaan",
+                backText: "Jawaban",
+                metadata: cardMeta,
+              },
+            ],
+          },
+        ],
+      },
+      client as never,
+    );
+
+    expect(invoke).toHaveBeenCalledWith("flash-card-generator", {
+      body: {
+        action: "update-material",
+        materialId: "material-1",
+        title: "Farmakoterapi Hipertensi",
+        globalSummary: "Ringkasan diperbarui.",
+        subtopics: [
+          {
+            title: "Subtopik 1",
+            summary: "Ringkasan 1",
+            cards: [
+              {
+                frontText: "Pertanyaan",
+                backText: "Jawaban",
+                metadata: cardMeta,
+              },
+            ],
+          },
+        ],
       },
     });
   });

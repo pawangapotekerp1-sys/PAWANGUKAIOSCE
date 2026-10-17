@@ -4,12 +4,27 @@ import {
   mapMentorFlashCardMaterialRows,
   mapPublishedFlashCardDeck,
   mapPublishedFlashCardLibraryRows,
+  type CardClinicalVerification,
+  type CardMetadata,
+  type CardSourceReference,
   type FlashCardAcademicGroup,
   type FlashCardDifficulty,
+  type MaterialMetadata,
+  type SourceConflictRecord,
+  type StageTokenMetrics,
 } from "../mappers/flash-card-mappers";
 import { getSupabaseBrowserClient } from "../supabase/browser-client";
 
-type FlashCardApiClient = Pick<
+export type {
+  CardClinicalVerification,
+  CardMetadata,
+  CardSourceReference,
+  MaterialMetadata,
+  SourceConflictRecord,
+  StageTokenMetrics,
+};
+
+export type FlashCardApiClient = Pick<
   ReturnType<typeof getSupabaseBrowserClient>,
   "from" | "functions" | "storage"
 >;
@@ -331,6 +346,7 @@ export async function saveFlashCardMaterialReview(
       cards: Array<{
         frontText: string;
         backText: string;
+        metadata?: CardMetadata;
       }>;
     }>;
   },
@@ -342,6 +358,52 @@ export async function saveFlashCardMaterialReview(
   }>({
     action: "update-material",
     ...input,
+  }, client);
+}
+
+export async function resolveFlashCardConflict(
+  input: {
+    materialId: string;
+    conflictId: string;
+    resolutionStatus?: "mentor_clarified" | "externally_verified";
+    clinicalClarificationNotes?: string;
+    resolvedBy?: string;
+  },
+  client: FlashCardApiClient = getSupabaseBrowserClient(),
+): Promise<{ materialId: string; status: string; metadata: MaterialMetadata }> {
+  const data = await invokeFlashCardGenerator<{
+    materialId: string;
+    status?: string;
+    metadata: MaterialMetadata;
+  }>({
+    action: "resolve-conflict",
+    materialId: input.materialId,
+    conflictId: input.conflictId,
+    resolutionStatus: input.resolutionStatus,
+    clinicalClarificationNotes: input.clinicalClarificationNotes,
+    resolvedBy: input.resolvedBy,
+  }, client);
+
+  return {
+    materialId: data.materialId,
+    status: data.status ?? "ready_for_review",
+    metadata: data.metadata,
+  };
+}
+
+export async function auditRepairFlashCardMaterial(
+  input: {
+    materialId: string;
+  },
+  client: FlashCardApiClient = getSupabaseBrowserClient(),
+): Promise<{ materialId: string; status: string; metadata: MaterialMetadata }> {
+  return invokeFlashCardGenerator<{
+    materialId: string;
+    status: string;
+    metadata: MaterialMetadata;
+  }>({
+    action: "audit-repair-material",
+    materialId: input.materialId,
   }, client);
 }
 

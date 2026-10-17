@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, test } from "vitest";
 import {
   assertFlashCardMaterialEditable,
+  assertFlashCardMaterialPublishable,
   assertFlashCardMaterialRetryable,
   buildFlashCardCredentialWritePayload,
   buildFlashCardFailureUpdate,
@@ -11,6 +12,9 @@ import {
   buildFlashCardSourceFileRows,
   ensureFlashCardManagerAccess,
   FlashCardManagerAccessError,
+  handlePublishMaterial,
+  handleResolveConflict,
+  handleUpdateMaterialProtectedMetadata,
   validateGeneratedFlashCardOutput,
   validateFlashCardMaterialDraftInput,
 } from "./handler";
@@ -34,6 +38,9 @@ describe("flash-card generator manager access", () => {
     expect(indexSource).toContain('payload.action === "test-credential"');
     expect(indexSource).toContain('payload.action === "delete-credential"');
     expect(indexSource).toContain("collectFlashCardSourcePathsForCleanup");
+    expect(indexSource).toContain('payload.action === "resolve-conflict"');
+    expect(indexSource).toContain('payload.action === "audit-repair-material"');
+    expect(indexSource).toContain("assertFlashCardMaterialPublishable");
     expect(indexSource).toMatch(/payload\.action === "retry-processing"[\s\S]+processMaterialGeneration\(/);
     expect(indexSource).toContain('Belum ada BYOK tersimpan untuk flash card.');
   });
@@ -219,5 +226,204 @@ describe("flash-card persistence payloads", () => {
         ],
       }),
     ).toThrow(/hasil ai belum cukup rapi untuk direview/i);
+  });
+});
+
+
+describe("flash-card publication gating and authoritative conflict checks", () => {
+  test("blocks publication if material status is not ready_for_review", () => {
+    expect(() =>
+      assertFlashCardMaterialPublishable({
+        id: "mat-1",
+        status: "processing",
+        metadata: { sourceConflicts: [] },
+      }),
+    ).toThrow(/belum siap dipublikasikan/i);
+  });
+
+  test("blocks publication if material has unresolved critical or high conflict", () => {
+    const materialWithCritical = {
+      id: "mat-2",
+      status: "ready_for_review",
+      metadata: {
+        sourceConflicts: [
+          {
+            conflictId: "cnf-1",
+            conceptId: "cpt-1",
+            category: "dosage_discrepancy",
+            severity: "critical",
+            resolutionStatus: "unresolved",
+          },
+        ],
+      },
+    };
+
+    expect(() => assertFlashCardMaterialPublishable(materialWithCritical as any)).toThrow(
+      "Materi memiliki konflik sumber berderajat critical/high yang belum diselesaikan.",
+    );
+
+    const materialWithHigh = {
+      id: "mat-3",
+      status: "ready_for_review",
+      metadata: {
+        sourceConflicts: [
+          {
+            conflictId: "cnf-2",
+            conceptId: "cpt-2",
+            category: "clinical_guideline",
+            severity: "high",
+            resolutionStatus: "unresolved",
+          },
+        ],
+      },
+    };
+
+    expect(() => assertFlashCardMaterialPublishable(materialWithHigh as any)).toThrow(
+      "Materi memiliki konflik sumber berderajat critical/high yang belum diselesaikan.",
+    );
+  });
+
+  test("allows publication if conflict has moderate severity or has been resolved", () => {
+    const materialModerate = {
+      id: "mat-4",
+      status: "ready_for_review",
+      metadata: {
+        sourceConflicts: [
+          {
+            conflictId: "cnf-3",
+            conceptId: "cpt-3",
+            category: "drug_identity",
+            severity: "moderate",
+            resolutionStatus: "unresolved",
+          },
+        ],
+      },
+    };
+
+    expect(() => assertFlashCardMaterialPublishable(materialModerate as any)).not.toThrow();
+
+    const materialResolved = {
+      id: "mat-5",
+      status: "ready_for_review",
+      metadata: {
+        sourceConflicts: [
+          {
+            conflictId: "cnf-4",
+            conceptId: "cpt-4",
+            category: "dosage_discrepancy",
+            severity: "critical",
+            resolutionStatus: "mentor_clarified",
+          },
+        ],
+      },
+    };
+
+    expect(() => assertFlashCardMaterialPublishable(materialResolved as any)).not.toThrow();
+  });
+});
+
+describe("handleResolveConflict", () => {
+  test("updates conflict resolution status, notes, resolvedAt, and resolvedBy", () => {
+    const material = {
+      id: "mat-1",
+      metadata: {
+        pipelineVersion: "gemini-3.8-source-aware-v1",
+        modelUsed: "gemini-3.8-flash",
+        sourceConflicts: [
+          {
+            conflictId: "cnf-1",
+            conceptId: "cpt-1",
+            category: "dosage_discrepancy",
+            severity: "critical",
+            slideEvidence: { pdfPageIndex: 1, exactQuote: "Dosis 50 mg" },
+            transcriptEvidence: { segmentId: "seg-1", exactQuote: "Dosis 25 mg" },
+            distinctionType: "substantive_contradiction",
+            resolutionStatus: "unresolved",
+          },
+        ],
+      },
+    };
+
+    const updated = handleResolveConflict(material, {
+      conflictId: "cnf-1",
+      resolutionStatus: "mentor_clarified",
+      clinicalClarificationNotes: "Dosis 25 mg adalah dosis awal untuk lansia.",
+      resolvedBy: "mentor-123",
+    });
+
+    const resolved = updated.sourceConflicts.find((c: any) => c.conflictId === "cnf-1");
+    expect(resolved?.resolutionStatus).toBe("mentor_clarified");
+    expect(resolved?.clinicalClarificationNotes).toBe("Dosis 25 mg adalah dosis awal untuk lansia.");
+    expect(resolved?.resolvedBy).toBe("mentor-123");
+    expect(resolved?.resolvedAt).toBeDefined();
+  });
+
+  test("throws error if conflictId is not found", () => {
+    const material = {
+      id: "mat-1",
+      metadata: { sourceConflicts: [] },
+    };
+
+    expect(() =>
+      handleResolveConflict(material, {
+        conflictId: "cnf-nonexistent",
+      }),
+    ).toThrow(/tidak ditemukan/i);
+  });
+});
+
+describe("handleUpdateMaterialProtectedMetadata", () => {
+  test("preserves system-owned fields and permits mentorCustomNotes", () => {
+    const existingMetadata = {
+      pipelineVersion: "gemini-3.8-source-aware-v1",
+      modelUsed: "gemini-3.8-flash",
+      sourceConflicts: [
+        {
+          conflictId: "cnf-1",
+          conceptId: "cpt-1",
+          category: "dosage_discrepancy",
+          severity: "critical",
+          slideEvidence: { pdfPageIndex: 1, exactQuote: "Dosis 50 mg" },
+          transcriptEvidence: { segmentId: "seg-1", exactQuote: "Dosis 25 mg" },
+          distinctionType: "substantive_contradiction",
+          resolutionStatus: "unresolved",
+        },
+      ],
+      tokenUsage: {
+        total: {
+          isAvailable: true,
+          promptTokenCount: 100,
+          candidatesTokenCount: 50,
+          totalTokenCount: 150,
+          thoughtsTokenCount: 10,
+        },
+      },
+      rejectedAuditTrail: [
+        { draftFront: "Soal jelek", rejectionReason: "Ambigu" },
+      ],
+      qualityReport: {
+        totalCardsGenerated: 10,
+        acceptedCount: 9,
+      },
+      mentorCustomNotes: "Catatan lama",
+    };
+
+    const incomingPayload = {
+      pipelineVersion: "malicious-version",
+      sourceConflicts: [],
+      tokenUsage: {},
+      rejectedAuditTrail: [],
+      qualityReport: { totalCardsGenerated: 0 },
+      mentorCustomNotes: "Catatan baru dari mentor yang diperbarui.",
+    };
+
+    const merged = handleUpdateMaterialProtectedMetadata(existingMetadata, incomingPayload);
+
+    expect(merged.pipelineVersion).toBe("gemini-3.8-source-aware-v1");
+    expect(merged.sourceConflicts).toHaveLength(1);
+    expect(merged.tokenUsage?.total?.totalTokenCount).toBe(150);
+    expect(merged.rejectedAuditTrail).toHaveLength(1);
+    expect(merged.qualityReport?.totalCardsGenerated).toBe(10);
+    expect(merged.mentorCustomNotes).toBe("Catatan baru dari mentor yang diperbarui.");
   });
 });

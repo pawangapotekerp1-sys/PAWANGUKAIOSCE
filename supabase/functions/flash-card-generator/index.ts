@@ -21,6 +21,7 @@ import {
 import {
   runFlashCardPipeline,
   resumePipelineFromCheckpoint,
+  type PipelineCheckpoint,
 } from "./pipeline/orchestrator.ts";
 import { type CandidateCard } from "./pipeline/generator.ts";
 import { reviewCandidateCards } from "./pipeline/reviewer.ts";
@@ -376,6 +377,11 @@ async function processMaterialGeneration(
     })
     .eq("id", material.id);
 
+  const initialCheckpoint = options.isRetry
+    ? (((material.metadata as any)?.pipelineCheckpoint ?? (material.metadata as any)?.pipeline_checkpoint) as PipelineCheckpoint | undefined)
+    : undefined;
+  let latestCheckpoint: PipelineCheckpoint | undefined = initialCheckpoint;
+
   try {
     const [transcriptText, pdfBytes, apiKey] = await Promise.all([
       downloadTextFromStorage(service, transcriptSource),
@@ -383,28 +389,44 @@ async function processMaterialGeneration(
       readVaultSecret(service, credential.secret_id!),
     ]);
     const model = normalizeAiModel(credential.model);
-    const existingCheckpoint = options.isRetry ? material.metadata?.pipeline_checkpoint : undefined;
+    const existingCheckpoint = options.isRetry
+      ? (((material.metadata as any)?.pipelineCheckpoint ?? (material.metadata as any)?.pipeline_checkpoint) as PipelineCheckpoint | undefined)
+      : undefined;
+    latestCheckpoint = existingCheckpoint;
+
+    const onStageComplete = async (_stage: any, checkpoint: PipelineCheckpoint) => {
+      latestCheckpoint = checkpoint;
+      const currentMeta = (material.metadata ?? {}) as Record<string, unknown>;
+      const updatedMeta = {
+        ...currentMeta,
+        pipelineCheckpoint: checkpoint,
+      };
+      material.metadata = updatedMeta;
+      await service
+        .from("flashcard_materials")
+        .update({
+          metadata: updatedMeta,
+        })
+        .eq("id", material.id);
+    };
+
+    const pipelineOptions = {
+      title: material.title,
+      academicGroup: material.academic_group,
+      transcriptText,
+      pdfBytes,
+      apiKey,
+      model,
+      onStageComplete,
+    };
 
     let pipelineResult;
     if (existingCheckpoint && typeof existingCheckpoint === "object") {
-      pipelineResult = await resumePipelineFromCheckpoint(existingCheckpoint as any, {
-        title: material.title,
-        academicGroup: material.academic_group,
-        transcriptText,
-        pdfBytes,
-        apiKey,
-        model,
-      });
+      pipelineResult = await resumePipelineFromCheckpoint(existingCheckpoint as any, pipelineOptions);
     } else {
-      pipelineResult = await runFlashCardPipeline({
-        title: material.title,
-        academicGroup: material.academic_group,
-        transcriptText,
-        pdfBytes,
-        apiKey,
-        model,
-      });
+      pipelineResult = await runFlashCardPipeline(pipelineOptions);
     }
+    latestCheckpoint = pipelineResult.checkpoint ?? latestCheckpoint;
 
     await replaceMaterialContent(service, {
       ownerId: material.created_by,
@@ -446,9 +468,20 @@ async function processMaterialGeneration(
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Flash card processing failed.";
+    const currentMeta = (material.metadata ?? {}) as Record<string, unknown>;
+    const checkpointToPreserve = (error as any)?.checkpoint ?? latestCheckpoint;
+
+    const failureUpdate: Record<string, unknown> = buildFlashCardFailureUpdate(message);
+    if (checkpointToPreserve) {
+      failureUpdate.metadata = {
+        ...currentMeta,
+        pipelineCheckpoint: checkpointToPreserve,
+      };
+    }
+
     await service
       .from("flashcard_materials")
-      .update(buildFlashCardFailureUpdate(message))
+      .update(failureUpdate)
       .eq("id", material.id);
     throw error;
   }
@@ -891,15 +924,17 @@ Deno.serve(async (req) => {
       });
 
       const existingMeta = (material.metadata ?? {}) as any;
-      const updatedMeta = {
+      const checkpoint = existingMeta.pipelineCheckpoint ?? existingMeta.pipeline_checkpoint;
+      const updatedMeta = validateMaterialMetadata({
         ...existingMeta,
+        ...(checkpoint ? { pipelineCheckpoint: checkpoint } : {}),
         rejectedAuditTrail: reviewResult.rejectedAuditTrail.slice(0, 10),
         qualityReport: {
           ...(existingMeta.qualityReport ?? {}),
           acceptedCount: finalCards.filter((c) => c.qualityStatus === "ACCEPTED").length,
           repairedCount: (existingMeta.qualityReport?.repairedCount ?? 0) + repairResult.repairedCount,
         },
-      };
+      });
 
       const { error: materialError } = await service
         .from("flashcard_materials")

@@ -115,6 +115,7 @@ export const MaterialMetadataSchema = z.object({
     )
     .max(10)
     .default([]),
+  mentorCustomNotes: z.string().trim().optional(),
 });
 export const materialMetadataSchema = MaterialMetadataSchema;
 

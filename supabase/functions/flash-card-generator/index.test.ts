@@ -18,6 +18,7 @@ import {
   validateGeneratedFlashCardOutput,
   validateFlashCardMaterialDraftInput,
 } from "./handler";
+import { validateMaterialMetadata } from "../_shared/flash-card.ts";
 
 describe("flash-card generator manager access", () => {
   test("uses explicit local .ts imports for runtime files", () => {
@@ -43,6 +44,10 @@ describe("flash-card generator manager access", () => {
     expect(indexSource).toContain("assertFlashCardMaterialPublishable");
     expect(indexSource).toMatch(/payload\.action === "retry-processing"[\s\S]+processMaterialGeneration\(/);
     expect(indexSource).toContain('Belum ada BYOK tersimpan untuk flash card.');
+    expect(indexSource).toContain("(material.metadata as any)?.pipelineCheckpoint ?? (material.metadata as any)?.pipeline_checkpoint");
+    expect(indexSource).toContain("onStageComplete");
+    expect(indexSource).toMatch(/catch\s*\(error\)[\s\S]+pipelineCheckpoint/);
+    expect(indexSource).toMatch(/action === "audit-repair-material"[\s\S]+validateMaterialMetadata\(/);
   });
 
   test("rejects users who are not admin or mentor", () => {
@@ -425,5 +430,94 @@ describe("handleUpdateMaterialProtectedMetadata", () => {
     expect(merged.rejectedAuditTrail).toHaveLength(1);
     expect(merged.qualityReport?.totalCardsGenerated).toBe(10);
     expect(merged.mentorCustomNotes).toBe("Catatan baru dari mentor yang diperbarui.");
+  });
+});
+
+describe("checkpoint recovery and audit-repair metadata schema validity", () => {
+  test("supports pipelineCheckpoint and pipeline_checkpoint normalization for checkpoint recovery", () => {
+    const cpData = {
+      currentStage: "candidate_generation",
+      completedStages: ["ingestion", "transcript_cleaning", "concept_mapping", "alignment_and_conflict_detection"],
+      stageArtifacts: { ingestion: { ok: true } },
+    };
+
+    // Resolves camelCase pipelineCheckpoint
+    const metaCamel = { metadata: { pipelineCheckpoint: cpData } };
+    const resolvedCamel = ((metaCamel.metadata as any)?.pipelineCheckpoint ?? (metaCamel.metadata as any)?.pipeline_checkpoint);
+    expect(resolvedCamel).toEqual(cpData);
+    expect(resolvedCamel?.currentStage).toBe("candidate_generation");
+
+    // Resolves snake_case pipeline_checkpoint
+    const metaSnake = { metadata: { pipeline_checkpoint: cpData } };
+    const resolvedSnake = ((metaSnake.metadata as any)?.pipelineCheckpoint ?? (metaSnake.metadata as any)?.pipeline_checkpoint);
+    expect(resolvedSnake).toEqual(cpData);
+    expect(resolvedSnake?.completedStages).toContain("alignment_and_conflict_detection");
+
+    // Prioritizes camelCase if both present
+    const cpOverridden = { currentStage: "adversarial_review", completedStages: [], stageArtifacts: {} };
+    const metaBoth = { metadata: { pipelineCheckpoint: cpOverridden, pipeline_checkpoint: cpData } };
+    const resolvedBoth = ((metaBoth.metadata as any)?.pipelineCheckpoint ?? (metaBoth.metadata as any)?.pipeline_checkpoint);
+    expect(resolvedBoth).toEqual(cpOverridden);
+  });
+
+  test("audit-repair-material maintains schema validity when updating metadata", () => {
+    const existingMeta = {
+      pipelineVersion: "gemini-3.8-source-aware-v1",
+      modelUsed: "gemini-3.8-flash",
+      pipelineCheckpoint: {
+        currentStage: "validation_and_storage",
+        completedStages: ["ingestion", "targeted_repair"],
+        stageArtifacts: { targeted_repair: { repairedCount: 2 } },
+      },
+      qualityReport: {
+        totalCardsGenerated: 12,
+        acceptedCount: 8,
+        repairedCount: 2,
+      },
+      sourceConflicts: [],
+    };
+
+    const reviewAuditTrail = [
+      {
+        draftFront: "Apa kontraindikasi obat X?",
+        rejectionReason: "Dosis ambigu",
+        triggerSourceId: "src-1",
+      },
+    ];
+
+    const repairedCardsCount = 2;
+    const finalCardsAcceptedCount = 10;
+
+    const checkpoint = (existingMeta as any).pipelineCheckpoint ?? (existingMeta as any).pipeline_checkpoint;
+    const updatedMeta = validateMaterialMetadata({
+      ...existingMeta,
+      ...(checkpoint ? { pipelineCheckpoint: checkpoint } : {}),
+      rejectedAuditTrail: reviewAuditTrail.slice(0, 10),
+      qualityReport: {
+        ...(existingMeta.qualityReport ?? {}),
+        acceptedCount: finalCardsAcceptedCount,
+        repairedCount: (existingMeta.qualityReport?.repairedCount ?? 0) + repairedCardsCount,
+      },
+    });
+
+    expect(updatedMeta.pipelineVersion).toBe("gemini-3.8-source-aware-v1");
+    expect(updatedMeta.modelUsed).toBe("gemini-3.8-flash");
+    expect(updatedMeta.pipelineCheckpoint).toBeDefined();
+    expect((updatedMeta.pipelineCheckpoint as any).currentStage).toBe("validation_and_storage");
+    expect(updatedMeta.qualityReport?.acceptedCount).toBe(10);
+    expect(updatedMeta.qualityReport?.repairedCount).toBe(4);
+    expect(updatedMeta.rejectedAuditTrail).toHaveLength(1);
+    expect(updatedMeta.rejectedAuditTrail[0].draftFront).toBe("Apa kontraindikasi obat X?");
+
+    // Verify minimal/legacy metadata correctly gains schema defaults without throwing
+    const minimalValidated = validateMaterialMetadata({
+      rejectedAuditTrail: [],
+      qualityReport: { acceptedCount: 5, repairedCount: 1 },
+    });
+    expect(minimalValidated.pipelineVersion).toBe("gemini-3.8-source-aware-v1");
+    expect(minimalValidated.modelUsed).toBe("gemini-3.8-flash");
+    expect(minimalValidated.sourceConflicts).toEqual([]);
+    expect(minimalValidated.rejectedAuditTrail).toEqual([]);
+    expect(minimalValidated.qualityReport?.acceptedCount).toBe(5);
   });
 });

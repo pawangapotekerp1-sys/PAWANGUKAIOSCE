@@ -415,7 +415,7 @@ export function handleUpdateMaterialProtectedMetadata(
     tokenUsage: existing.tokenUsage ?? {},
     rejectedAuditTrail: existing.rejectedAuditTrail ?? [],
     qualityReport: existing.qualityReport ?? {},
-    pipelineCheckpoint: existing.pipelineCheckpoint,
+    pipelineCheckpoint: existing.pipelineCheckpoint ?? existing.pipeline_checkpoint,
     executionDurationMs: existing.executionDurationMs,
     mentorCustomNotes,
   };

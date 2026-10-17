@@ -15,7 +15,7 @@ export default defineConfig({
     },
   },
   test: {
-    pool: "forks",
+    pool: "threads",
     isolate: false,
     fileParallelism: false,
     maxWorkers: 1,

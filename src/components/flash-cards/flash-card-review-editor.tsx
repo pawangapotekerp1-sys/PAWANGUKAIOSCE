@@ -137,6 +137,9 @@ function FlashCardReviewEditor({
   }
 
   async function handleSave() {
+    if (subtopics.length === 0) {
+      return;
+    }
     await onSave({
       title,
       globalSummary,
@@ -633,7 +636,7 @@ function FlashCardReviewEditor({
       </div>
 
       <div className="flex flex-wrap gap-3">
-        {!isPublished ? (
+        {!isPublished && detail.material.status === "ready_for_review" ? (
           <Button
             loading={isSaving}
             loadingLabel="Menyimpan..."

@@ -79,10 +79,8 @@ export function normalizeDeterministicTranscript(rawText: string): string {
   // 6. Safe stutter deduplication on common conjunctions/particles (case-insensitive, preserving first token)
   // NEVER deduplicate clinical negations ("tidak", "bukan", "jangan") or dosages
   const stutterRegex =
-    /\b(dan|yang|atau|di|ke|ini|itu|pada|dari|untuk|jadi)\s+\1\b/i;
-  while (stutterRegex.test(text)) {
-    text = text.replace(stutterRegex, (_m, p1) => p1);
-  }
+    /\b(dan|yang|atau|di|ke|ini|itu|pada|dari|untuk|jadi)(?:\s+\1\b)+/gi;
+  text = text.replace(stutterRegex, "$1");
 
   // 7. Normalize whitespace per line
   const lines = text

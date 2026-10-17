@@ -69,13 +69,28 @@ export function stripCitationTags(text: string): string {
     .trim();
 }
 
-function encodeBase64(bytes: Uint8Array): string {
-  let binary = "";
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
+export function encodeBase64(bytes: Uint8Array): string {
+  if (!bytes || bytes.length === 0) {
+    return "";
   }
-  return btoa(binary);
+
+  // Fast native path when Buffer is available (Node.js and modern Deno)
+  if (typeof Buffer !== "undefined") {
+    return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("base64");
+  }
+
+  // High-performance chunked conversion (32KB chunks) for web standards without global Buffer
+  const chunks: string[] = [];
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    chunks.push(
+      String.fromCharCode.apply(
+        null,
+        bytes.subarray(i, i + chunkSize) as unknown as number[],
+      ),
+    );
+  }
+  return btoa(chunks.join(""));
 }
 
 function buildPrompt(options: GenerationOptions): string {

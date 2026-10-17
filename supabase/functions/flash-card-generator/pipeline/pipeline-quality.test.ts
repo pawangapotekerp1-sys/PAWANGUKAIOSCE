@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { generateCandidateCards } from "./generator.ts";
+import { generateCandidateCards, encodeBase64 } from "./generator.ts";
 import { reviewCandidateCards } from "./reviewer.ts";
 import { repairDefectiveCards } from "./repairer.ts";
 import type { AlignedSourceRecord } from "./aligner.ts";
@@ -167,6 +167,22 @@ describe("Generation, Reviewer, and Repair Pipeline", () => {
           ]),
         }),
       );
+    });
+
+    it("encodes multi-megabyte byte arrays to base64 in under 100ms without CPU timeout", () => {
+      // 2MB test payload
+      const largePayload = new Uint8Array(2 * 1024 * 1024);
+      for (let i = 0; i < largePayload.length; i += 1024) {
+        largePayload[i] = i % 256;
+      }
+
+      const start = performance.now();
+      const base64 = encodeBase64(largePayload);
+      const durationMs = performance.now() - start;
+
+      expect(base64).toBeDefined();
+      expect(base64.length).toBeGreaterThan(0);
+      expect(durationMs).toBeLessThan(150);
     });
   });
 

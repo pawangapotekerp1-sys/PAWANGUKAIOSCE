@@ -8,11 +8,17 @@ import FlashCardGeneratorReviewPage from "./flash-card-generator-review-page";
 const mockGetFlashCardMaterialDetail = vi.fn();
 const mockSaveFlashCardMaterialReview = vi.fn();
 const mockPublishFlashCardMaterial = vi.fn();
+const mockRetryFlashCardMaterialProcessing = vi.fn();
+const mockAuditRepairFlashCardMaterial = vi.fn();
+const mockResolveFlashCardConflict = vi.fn();
 
 vi.mock("../../lib/api/flash-card-api", () => ({
   getFlashCardMaterialDetail: (...args: unknown[]) => mockGetFlashCardMaterialDetail(...args),
   saveFlashCardMaterialReview: (...args: unknown[]) => mockSaveFlashCardMaterialReview(...args),
   publishFlashCardMaterial: (...args: unknown[]) => mockPublishFlashCardMaterial(...args),
+  retryFlashCardMaterialProcessing: (...args: unknown[]) => mockRetryFlashCardMaterialProcessing(...args),
+  auditRepairFlashCardMaterial: (...args: unknown[]) => mockAuditRepairFlashCardMaterial(...args),
+  resolveFlashCardConflict: (...args: unknown[]) => mockResolveFlashCardConflict(...args),
 }));
 
 afterEach(() => {
@@ -145,5 +151,37 @@ describe("FlashCardGeneratorReviewPage", () => {
     expect(await screen.findByText(/materi yang sudah diterbitkan tidak bisa diubah agar kartu yang dipakai siswa tetap konsisten/i)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /simpan perubahan/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /terbitkan untuk siswa/i })).not.toBeInTheDocument();
+  });
+
+  test("shows dedicated processing view and hides review editor when material is processing", async () => {
+    mockGetFlashCardMaterialDetail.mockResolvedValueOnce({
+      ...createDetail("ready_for_review"),
+      material: {
+        ...createDetail("ready_for_review").material,
+        status: "processing",
+        statusLabel: "Sedang diproses",
+      },
+      subtopics: [],
+    });
+
+    renderPage();
+
+    expect(await screen.findByText(/ai sedang menyusun flash card/i)).toBeInTheDocument();
+    expect(screen.getByText(/pembersihan transkrip/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /segarkan status sekarang/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /simpan perubahan/i })).not.toBeInTheDocument();
+  });
+
+  test("formats raw Zod too_small error into friendly Indonesian message", async () => {
+    mockGetFlashCardMaterialDetail.mockResolvedValueOnce(createDetail("ready_for_review"));
+    mockSaveFlashCardMaterialReview.mockRejectedValueOnce(
+      new Error('[{"origin":"array","code":"too_small","minimum":1,"inclusive":true,"path":["subtopics"],"message":"At least one subtopic is required."}]')
+    );
+
+    renderPage();
+
+    fireEvent.click(await screen.findByRole("button", { name: /simpan perubahan/i }));
+
+    expect(await screen.findByText(/materi harus memiliki minimal 1 submateri dan kartu sebelum disimpan/i)).toBeInTheDocument();
   });
 });

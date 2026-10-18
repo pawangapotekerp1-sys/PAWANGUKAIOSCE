@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import {
   assertFlashCardMaterialRetryable,
+  buildStageCheckpointMetadataUpdate,
   canRetryFlashCardMaterial,
   extractStaleRecoveryDiagnostics,
   isProcessingJobStale,
@@ -1046,5 +1047,54 @@ describe("Flash Card Generator Resource Limits & Stale Job Regression Suite", ()
       lastStage: null,
       lastHeartbeatAt: null,
     });
+  });
+
+  // Scenario 29: buildStageCheckpointMetadataUpdate builds metadata with defined timestamp and avoids ReferenceError
+  test("Scenario 29: buildStageCheckpointMetadataUpdate constructs valid checkpoint metadata with defined timestamp and preserved job state", () => {
+    const checkpoint: PipelineCheckpoint = {
+      currentStage: "transcript_cleaning",
+      completedStages: ["ingestion"],
+      stageArtifacts: { ingestion: { wordCount: 1500 } },
+    };
+    const fixedTimestamp = "2026-10-18T12:30:00.000Z";
+
+    // 1. With explicit timestamp: sets heartbeatAt precisely to the provided timestamp
+    const updatedMeta = buildStageCheckpointMetadataUpdate({
+      currentMetadata: {
+        existingField: "keep_me",
+        processingJob: {
+          jobId: "job-123",
+          startedAt: "2026-10-18T12:00:00.000Z",
+          heartbeatAt: "2026-10-18T12:15:00.000Z",
+          stage: "ingestion",
+        },
+      },
+      checkpoint,
+      jobId: "job-123",
+      jobStartTime: "2026-10-18T12:00:00.000Z",
+      stage: "transcript_cleaning",
+      timestamp: fixedTimestamp,
+    });
+
+    expect(updatedMeta.existingField).toBe("keep_me");
+    expect(updatedMeta.pipelineCheckpoint).toEqual(checkpoint);
+    expect((updatedMeta.processingJob as any)?.jobId).toBe("job-123");
+    expect((updatedMeta.processingJob as any)?.startedAt).toBe("2026-10-18T12:00:00.000Z");
+    expect((updatedMeta.processingJob as any)?.heartbeatAt).toBe(fixedTimestamp);
+    expect((updatedMeta.processingJob as any)?.stage).toBe("transcript_cleaning");
+
+    // 2. With omitted timestamp: automatically assigns valid ISO timestamp without throwing ReferenceError
+    const autoTimeMeta = buildStageCheckpointMetadataUpdate({
+      currentMetadata: {},
+      checkpoint,
+      jobId: "job-456",
+      jobStartTime: "2026-10-18T12:00:00.000Z",
+      stage: "concept_mapping",
+    });
+    expect((autoTimeMeta.processingJob as any)?.jobId).toBe("job-456");
+    expect((autoTimeMeta.processingJob as any)?.startedAt).toBe("2026-10-18T12:00:00.000Z");
+    expect(typeof (autoTimeMeta.processingJob as any)?.heartbeatAt).toBe("string");
+    expect(new Date((autoTimeMeta.processingJob as any)?.heartbeatAt as string).getTime()).not.toBeNaN();
+    expect((autoTimeMeta.processingJob as any)?.stage).toBe("concept_mapping");
   });
 });

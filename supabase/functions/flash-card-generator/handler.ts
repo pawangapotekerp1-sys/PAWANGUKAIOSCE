@@ -122,6 +122,30 @@ export function extractStaleRecoveryDiagnostics(params: {
   };
 }
 
+export function buildStageCheckpointMetadataUpdate(params: {
+  currentMetadata?: Record<string, unknown> | null;
+  checkpoint: unknown;
+  jobId: string;
+  jobStartTime: string;
+  stage: string;
+  timestamp?: string;
+}): Record<string, unknown> {
+  const stageNow = params.timestamp ?? new Date().toISOString();
+  const liveMeta = (params.currentMetadata ?? {}) as Record<string, unknown>;
+  const currentJob = (liveMeta.processingJob ?? {}) as Record<string, unknown>;
+
+  return {
+    ...liveMeta,
+    pipelineCheckpoint: params.checkpoint,
+    processingJob: {
+      jobId: params.jobId,
+      startedAt: typeof currentJob.startedAt === "string" ? currentJob.startedAt : params.jobStartTime,
+      heartbeatAt: stageNow,
+      stage: params.stage,
+    },
+  };
+}
+
 export function validateFlashCardMaterialDraftInput(input: {
   title: string;
   academicGroup: string;

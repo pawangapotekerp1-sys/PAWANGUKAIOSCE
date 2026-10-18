@@ -40,6 +40,7 @@ import {
   buildFlashCardPublishUpdate,
   buildFlashCardReadyForReviewUpdate,
   buildFlashCardSourceFileRows,
+  buildStageCheckpointMetadataUpdate,
   canRetryFlashCardMaterial,
   createFlashCardResponseSchema,
   ensureFlashCardManagerAccess,
@@ -577,17 +578,14 @@ async function processMaterialGeneration(
         completedStages: checkpoint.completedStages,
       });
 
-      const liveMeta = (material.metadata ?? {}) as Record<string, unknown>;
-      const updatedMeta = {
-        ...liveMeta,
-        pipelineCheckpoint: checkpoint,
-        processingJob: {
-          jobId,
-          startedAt: (liveMeta.processingJob as any)?.startedAt ?? jobStartTime,
-          heartbeatAt: stageNow,
-          stage: checkpoint.currentStage,
-        },
-      };
+      const updatedMeta = buildStageCheckpointMetadataUpdate({
+        currentMetadata: material.metadata,
+        checkpoint,
+        jobId,
+        jobStartTime,
+        stage: checkpoint.currentStage,
+        timestamp: stageNow,
+      });
       material.metadata = updatedMeta;
       await service
         .from("flashcard_materials")
@@ -602,6 +600,7 @@ async function processMaterialGeneration(
     const onStageComplete = async (stage: any, checkpoint: PipelineCheckpoint) => {
       if (isJobTerminated) return;
       latestCheckpoint = checkpoint;
+      const stageNow = new Date().toISOString();
       const partialSegments = (checkpoint.stageArtifacts["transcript_cleaning_partial"] as any)?.completedSegments;
       if (stage === "transcript_cleaning" && Array.isArray(partialSegments) && !checkpoint.completedStages.includes("transcript_cleaning")) {
         logSafeTelemetry("cleaning_chunk_completed", {
@@ -613,17 +612,14 @@ async function processMaterialGeneration(
         logSafeTelemetry("stage_completed", { materialId: material.id, jobId, stage: String(stage) });
       }
 
-      const liveMeta = (material.metadata ?? {}) as Record<string, unknown>;
-      const updatedMeta = {
-        ...liveMeta,
-        pipelineCheckpoint: checkpoint,
-        processingJob: {
-          jobId,
-          startedAt: (liveMeta.processingJob as any)?.startedAt ?? jobStartTime,
-          heartbeatAt: stageNow,
-          stage: String(stage),
-        },
-      };
+      const updatedMeta = buildStageCheckpointMetadataUpdate({
+        currentMetadata: material.metadata,
+        checkpoint,
+        jobId,
+        jobStartTime,
+        stage: String(stage),
+        timestamp: stageNow,
+      });
       material.metadata = updatedMeta;
       await service
         .from("flashcard_materials")

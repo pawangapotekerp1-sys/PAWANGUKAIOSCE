@@ -10,6 +10,7 @@ import {
   buildFlashCardMaterialInsert,
   buildFlashCardPublishUpdate,
   buildFlashCardSourceFileRows,
+  buildStageCheckpointMetadataUpdate,
   ensureFlashCardManagerAccess,
   FlashCardManagerAccessError,
   handlePublishMaterial,
@@ -519,5 +520,40 @@ describe("checkpoint recovery and audit-repair metadata schema validity", () => 
     expect(minimalValidated.sourceConflicts).toEqual([]);
     expect(minimalValidated.rejectedAuditTrail).toEqual([]);
     expect(minimalValidated.qualityReport?.acceptedCount).toBe(5);
+  });
+
+  test("onStageComplete and onResumeCheckpoint in index.ts declare stageNow in scope and use buildStageCheckpointMetadataUpdate", () => {
+    const indexSource = readFileSync(resolve(import.meta.dirname, "./index.ts"), "utf8");
+
+    // Verify onStageComplete declares stageNow and calls buildStageCheckpointMetadataUpdate
+    const onStageCompleteMatch = indexSource.match(/const onStageComplete\s*=\s*async\s*\([\s\S]*?\n\s*};/);
+    expect(onStageCompleteMatch).toBeTruthy();
+    const onStageCompleteBody = onStageCompleteMatch![0];
+    expect(onStageCompleteBody).toMatch(/const stageNow\s*=\s*new Date\(\)\.toISOString\(\);/);
+    expect(onStageCompleteBody).toContain("buildStageCheckpointMetadataUpdate");
+    expect(onStageCompleteBody).not.toMatch(/heartbeatAt:\s*stageNow/); // Should be delegated cleanly to buildStageCheckpointMetadataUpdate
+
+    // Verify onResumeCheckpoint declares stageNow and calls buildStageCheckpointMetadataUpdate
+    const onResumeMatch = indexSource.match(/const onResumeCheckpoint\s*=\s*async\s*\([\s\S]*?\n\s*};/);
+    expect(onResumeMatch).toBeTruthy();
+    const onResumeBody = onResumeMatch![0];
+    expect(onResumeBody).toMatch(/const stageNow\s*=\s*new Date\(\)\.toISOString\(\);/);
+    expect(onResumeBody).toContain("buildStageCheckpointMetadataUpdate");
+
+    // Functional verification: invoking buildStageCheckpointMetadataUpdate does not throw ReferenceError
+    const testCheckpoint = {
+      currentStage: "transcript_cleaning",
+      completedStages: ["ingestion"],
+      stageArtifacts: {},
+    };
+    const result = buildStageCheckpointMetadataUpdate({
+      currentMetadata: {},
+      checkpoint: testCheckpoint,
+      jobId: "job-test",
+      jobStartTime: "2026-10-18T10:00:00Z",
+      stage: "transcript_cleaning",
+    });
+    expect((result.processingJob as any)?.jobId).toBe("job-test");
+    expect(typeof (result.processingJob as any)?.heartbeatAt).toBe("string");
   });
 });

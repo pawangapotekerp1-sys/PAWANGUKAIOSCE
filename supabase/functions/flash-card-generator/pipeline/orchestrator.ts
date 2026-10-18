@@ -89,6 +89,8 @@ export interface PipelineOptions {
   academicGroup?: FlashCardAcademicGroup | string;
   transcriptText: string;
   pdfBytes?: Uint8Array | null;
+  hasPdfSource?: boolean;
+  pdfByteLength?: number;
   slides?: SlideInput[];
   candidateComparisons?: CandidateComparison[];
   concepts?: ConceptNode[];
@@ -103,6 +105,7 @@ export interface PipelineOptions {
   }>;
   checkpoint?: PipelineCheckpoint;
   onStageComplete?: (stage: PipelineStageName, checkpoint: PipelineCheckpoint) => Promise<void> | void;
+  onResumeCheckpoint?: (checkpoint: PipelineCheckpoint) => Promise<void> | void;
 }
 
 export interface PipelineResult {
@@ -197,6 +200,11 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
     }
   };
 
+  // If resuming from checkpoint with previously completed stages, emit resume callback
+  if (options.onResumeCheckpoint && checkpoint.completedStages.length > 0) {
+    await options.onResumeCheckpoint(checkpoint);
+  }
+
   // Stage 1: Ingestion
   let transcriptText = options.transcriptText ?? "";
   let pdfBytes = options.pdfBytes ?? null;
@@ -222,8 +230,9 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
       "ingestion",
       {
         transcriptText,
-        hasPdf: Boolean(pdfBytes && pdfBytes.byteLength > 0),
-        pdfByteLength: pdfBytes ? pdfBytes.byteLength : 0,
+        hasPdf: options.hasPdfSource ?? Boolean(pdfBytes && pdfBytes.byteLength > 0),
+        pdfByteLength: options.pdfByteLength ?? (pdfBytes ? pdfBytes.byteLength : 0),
+        isPdfBytesInMemory: Boolean(pdfBytes && pdfBytes.byteLength > 0),
         slides,
         candidateComparisons,
         concepts,
@@ -396,6 +405,12 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
       },
       "adversarial_review",
     );
+  }
+
+  // Free large PDF buffer from memory before starting adversarial review & repair
+  pdfBytes = null;
+  if ("pdfBytes" in options) {
+    (options as any).pdfBytes = null;
   }
 
   // Stage 6: Adversarial Review

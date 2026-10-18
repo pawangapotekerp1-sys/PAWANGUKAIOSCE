@@ -40,6 +40,7 @@ import {
   buildFlashCardPublishUpdate,
   buildFlashCardReadyForReviewUpdate,
   buildFlashCardSourceFileRows,
+  canRetryFlashCardMaterial,
   createFlashCardResponseSchema,
   ensureFlashCardManagerAccess,
   FlashCardManagerAccessError,
@@ -47,6 +48,7 @@ import {
   handleResolveConflict,
   handleUpdateMaterialProtectedMetadata,
   isProcessingJobStale,
+  shouldApplyStaleRecovery,
   STALE_PROCESSING_TIMEOUT_MS,
   validateGeneratedFlashCardOutput,
   validateFlashCardMaterialDraftInput,
@@ -298,6 +300,16 @@ async function downloadTextFromStorage(service: ServiceClient, sourceFile: Sourc
 }
 
 async function downloadBytesFromStorage(service: ServiceClient, sourceFile: SourceFileRow) {
+  const MAX_INLINE_PDF_BYTES = 4 * 1024 * 1024;
+  if (typeof sourceFile.size_bytes === "number" && sourceFile.size_bytes > MAX_INLINE_PDF_BYTES) {
+    logSafeTelemetry("pdf_download_skipped_large_file", {
+      sourceFileId: sourceFile.id,
+      sizeBytes: sourceFile.size_bytes,
+      maxInlineBytes: MAX_INLINE_PDF_BYTES,
+    });
+    return null;
+  }
+
   const { data, error } = await service.storage
     .from(sourceFile.storage_bucket)
     .download(sourceFile.storage_path);
@@ -406,6 +418,11 @@ async function processMaterialGeneration(
     throw new HttpError(400, "FLASHCARD_SOURCE_INCOMPLETE", "Materi flash card wajib memiliki satu transcript dan satu slide PDF.");
   }
 
+  const initialCheckpoint = options.isRetry
+    ? (((material.metadata as any)?.pipelineCheckpoint ?? (material.metadata as any)?.pipeline_checkpoint) as PipelineCheckpoint | undefined)
+    : undefined;
+  let latestCheckpoint: PipelineCheckpoint | undefined = initialCheckpoint;
+
   const jobId = crypto.randomUUID();
   const jobStartTime = new Date().toISOString();
   logSafeTelemetry("job_started", { materialId: material.id, jobId, isRetry: Boolean(options.isRetry) });
@@ -415,10 +432,10 @@ async function processMaterialGeneration(
     jobId,
     startedAt: jobStartTime,
     heartbeatAt: jobStartTime,
-    stage: "ingestion",
+    stage: initialCheckpoint?.currentStage ?? "ingestion",
   };
 
-  await service
+  let claimQuery = service
     .from("flashcard_materials")
     .update({
       status: "processing",
@@ -430,29 +447,159 @@ async function processMaterialGeneration(
     })
     .eq("id", material.id);
 
+  if (options.isRetry) {
+    if (material.status === "processing") {
+      const oldJobId = (material.metadata as any)?.processingJob?.jobId;
+      if (oldJobId) {
+        claimQuery = claimQuery.eq("status", "processing").eq("metadata->processingJob->>jobId", oldJobId);
+      } else {
+        claimQuery = claimQuery.eq("status", "processing");
+      }
+    } else {
+      claimQuery = claimQuery.eq("status", material.status);
+    }
+  } else {
+    claimQuery = claimQuery.in("status", ["draft", "failed"]);
+  }
+
+  const { data: claimData, error: claimError } = await claimQuery.select("id, status, metadata");
+
+  if (claimError || !claimData || claimData.length === 0) {
+    logSafeTelemetry("job_claim_race_lost", { materialId: material.id, jobId });
+    const freshMaterial = await loadOwnedMaterial(service, material.id, material.created_by);
+    if (freshMaterial.status === "processing") {
+      return jsonResponse({
+        materialId: material.id,
+        status: "processing",
+        message: "Materi sedang diproses di latar belakang.",
+      });
+    }
+    return jsonResponse({
+      materialId: freshMaterial.id,
+      status: freshMaterial.status,
+    });
+  }
+
   material.metadata = {
     ...currentMeta,
     processingJob: initialProcessingJob,
   };
 
-  const initialCheckpoint = options.isRetry
-    ? (((material.metadata as any)?.pipelineCheckpoint ?? (material.metadata as any)?.pipeline_checkpoint) as PipelineCheckpoint | undefined)
-    : undefined;
-  let latestCheckpoint: PipelineCheckpoint | undefined = initialCheckpoint;
+  let isJobTerminated = false;
+  let heartbeatTimer: any = null;
+  let isHeartbeatInFlight = false;
+
+  const stopHeartbeat = () => {
+    isJobTerminated = true;
+    if (heartbeatTimer) {
+      clearInterval(heartbeatTimer);
+      heartbeatTimer = null;
+    }
+  };
+
+  const sendHeartbeat = async () => {
+    if (isJobTerminated || isHeartbeatInFlight) return;
+    isHeartbeatInFlight = true;
+    try {
+      if (isJobTerminated) return;
+      const liveMeta = (material.metadata ?? {}) as Record<string, unknown>;
+      const currentJob = (liveMeta.processingJob ?? {}) as Record<string, unknown>;
+      if (currentJob.jobId && currentJob.jobId !== jobId) {
+        stopHeartbeat();
+        return;
+      }
+
+      const stageNow = new Date().toISOString();
+
+      // 1. Primary: Use atomic RPC that updates ONLY metadata->processingJob->heartbeatAt via jsonb_set
+      // This completely prevents overwriting checkpoints or stages written concurrently by onStageComplete.
+      const { data: rpcData, error: rpcError } = await service.rpc("update_flashcard_material_heartbeat", {
+        target_material_id: material.id,
+        target_job_id: jobId,
+        target_heartbeat_at: stageNow,
+      });
+
+      if (rpcError) {
+        console.warn("Heartbeat update failed via RPC:", rpcError);
+        return;
+      }
+
+      if (!rpcData) {
+        // 0 rows matched (status changed or job superseded)
+        stopHeartbeat();
+        return;
+      }
+
+      material.metadata = rpcData as Record<string, unknown>;
+    } catch (err) {
+      console.warn("Heartbeat update failed:", err);
+    } finally {
+      isHeartbeatInFlight = false;
+    }
+  };
 
   try {
+    heartbeatTimer = setInterval(sendHeartbeat, 15_000);
+    if (typeof heartbeatTimer?.unref === "function") {
+      heartbeatTimer.unref();
+    }
+
+    const needsPdfBytes = !initialCheckpoint?.completedStages?.includes("candidate_generation");
     const [transcriptText, pdfBytes, apiKey] = await Promise.all([
       downloadTextFromStorage(service, transcriptSource),
-      downloadBytesFromStorage(service, slidePdfSource),
+      needsPdfBytes ? downloadBytesFromStorage(service, slidePdfSource) : Promise.resolve(null),
       readVaultSecret(service, credential.secret_id!),
     ]);
     const model = normalizeAiModel(credential.model);
-    const existingCheckpoint = options.isRetry
-      ? (((material.metadata as any)?.pipelineCheckpoint ?? (material.metadata as any)?.pipeline_checkpoint) as PipelineCheckpoint | undefined)
-      : undefined;
-    latestCheckpoint = existingCheckpoint;
+
+    // Concurrency protection: Verify current jobId is still authoritative before starting expensive Gemini pipeline
+    const prePipelineMaterial = await loadOwnedMaterial(service, material.id, material.created_by);
+    const preActiveJobId = (prePipelineMaterial.metadata as any)?.processingJob?.jobId;
+    if (preActiveJobId && preActiveJobId !== jobId) {
+      stopHeartbeat();
+      logSafeTelemetry("job_superseded_pre_pipeline", { materialId: material.id, jobId, activeJobId: preActiveJobId });
+      return jsonResponse({
+        materialId: material.id,
+        status: prePipelineMaterial.status,
+        message: "Job ini telah digantikan oleh sesi proses ulang yang lebih baru.",
+      });
+    }
+
+    const onResumeCheckpoint = async (checkpoint: PipelineCheckpoint) => {
+      if (isJobTerminated) return;
+      latestCheckpoint = checkpoint;
+      const stageNow = new Date().toISOString();
+      logSafeTelemetry("checkpoint_resumed", {
+        materialId: material.id,
+        jobId,
+        resumedStage: checkpoint.currentStage,
+        completedStages: checkpoint.completedStages,
+      });
+
+      const liveMeta = (material.metadata ?? {}) as Record<string, unknown>;
+      const updatedMeta = {
+        ...liveMeta,
+        pipelineCheckpoint: checkpoint,
+        processingJob: {
+          jobId,
+          startedAt: (liveMeta.processingJob as any)?.startedAt ?? jobStartTime,
+          heartbeatAt: stageNow,
+          stage: checkpoint.currentStage,
+        },
+      };
+      material.metadata = updatedMeta;
+      await service
+        .from("flashcard_materials")
+        .update({
+          metadata: updatedMeta,
+        })
+        .eq("id", material.id)
+        .eq("status", "processing")
+        .eq("metadata->processingJob->>jobId", jobId);
+    };
 
     const onStageComplete = async (stage: any, checkpoint: PipelineCheckpoint) => {
+      if (isJobTerminated) return;
       latestCheckpoint = checkpoint;
       const stageNow = new Date().toISOString();
       logSafeTelemetry("stage_completed", { materialId: material.id, jobId, stage: String(stage) });
@@ -474,7 +621,9 @@ async function processMaterialGeneration(
         .update({
           metadata: updatedMeta,
         })
-        .eq("id", material.id);
+        .eq("id", material.id)
+        .eq("status", "processing")
+        .eq("metadata->processingJob->>jobId", jobId);
     };
 
     const pipelineOptions = {
@@ -482,14 +631,17 @@ async function processMaterialGeneration(
       academicGroup: material.academic_group,
       transcriptText,
       pdfBytes,
+      hasPdfSource: Boolean(slidePdfSource),
+      pdfByteLength: typeof slidePdfSource.size_bytes === "number" ? slidePdfSource.size_bytes : 0,
       apiKey,
       model,
       onStageComplete,
+      onResumeCheckpoint,
     };
 
     let pipelineResult;
-    if (existingCheckpoint && typeof existingCheckpoint === "object") {
-      pipelineResult = await resumePipelineFromCheckpoint(existingCheckpoint as any, pipelineOptions);
+    if (initialCheckpoint && typeof initialCheckpoint === "object") {
+      pipelineResult = await resumePipelineFromCheckpoint(initialCheckpoint as any, pipelineOptions);
     } else {
       pipelineResult = await runFlashCardPipeline(pipelineOptions);
     }
@@ -499,6 +651,7 @@ async function processMaterialGeneration(
     const latestMaterialRow = await loadOwnedMaterial(service, material.id, material.created_by);
     const activeJobId = (latestMaterialRow.metadata as any)?.processingJob?.jobId;
     if (activeJobId && activeJobId !== jobId) {
+      stopHeartbeat();
       logSafeTelemetry("job_superseded", { materialId: material.id, jobId, activeJobId });
       return jsonResponse({
         materialId: material.id,
@@ -506,6 +659,9 @@ async function processMaterialGeneration(
         message: "Job ini telah digantikan oleh sesi proses ulang yang lebih baru.",
       });
     }
+
+    // Stop heartbeat immediately before writing final completion status
+    stopHeartbeat();
 
     await replaceMaterialContent(service, {
       ownerId: material.created_by,
@@ -553,6 +709,7 @@ async function processMaterialGeneration(
       status: "ready_for_review",
     });
   } catch (error) {
+    stopHeartbeat();
     const rawMessage = error instanceof Error ? error.message : "Flash card processing failed.";
     const message = sanitizeText(rawMessage);
     const errorDiagnostics = error instanceof GeminiRequestError ? error.diagnostics : undefined;
@@ -581,8 +738,12 @@ async function processMaterialGeneration(
     await service
       .from("flashcard_materials")
       .update(failureUpdate)
-      .eq("id", material.id);
+      .eq("id", material.id)
+      .eq("status", "processing")
+      .eq("metadata->processingJob->>jobId", jobId);
     throw error;
+  } finally {
+    stopHeartbeat();
   }
 }
 
@@ -870,18 +1031,24 @@ Deno.serve(async (req) => {
             processingJob: undefined,
           },
         };
-        await service
+        const { data: updateData, error: updateError } = await service
           .from("flashcard_materials")
           .update(failureUpdate)
-          .eq("id", material.id);
+          .eq("id", material.id)
+          .eq("status", "processing")
+          .select("id, status");
 
-        material = {
-          ...material,
-          status: "failed",
-          processing_error: timeoutMessage,
-          metadata: failureUpdate.metadata as any,
-        };
-        logSafeTelemetry("stale_job_recovered", { materialId });
+        if (!updateError && updateData && updateData.length > 0) {
+          material = {
+            ...material,
+            status: "failed",
+            processing_error: timeoutMessage,
+            metadata: failureUpdate.metadata as any,
+          };
+          logSafeTelemetry("stale_job_recovered", { materialId });
+        } else {
+          material = await loadOwnedMaterial(service, materialId, user.id);
+        }
       }
 
       const children = await loadMaterialChildren(service, material.id);
@@ -944,6 +1111,24 @@ Deno.serve(async (req) => {
       const materialId = typeof payload.materialId === "string" ? payload.materialId : "";
       const material = await loadOwnedMaterial(service, materialId, user.id);
       assertFlashCardMaterialRetryable(material.status);
+
+      // Idempotency: If material is already processing and still actively working, do not start a duplicate worker
+      if (
+        material.status === "processing" &&
+        !isProcessingJobStale({
+          status: material.status,
+          metadata: material.metadata as any,
+          updatedAt: material.updated_at,
+        })
+      ) {
+        logSafeTelemetry("retry_duplicate_ignored", { materialId });
+        return jsonResponse({
+          materialId: material.id,
+          status: "processing",
+          message: "Materi sedang diproses di latar belakang.",
+        });
+      }
+
       return await processMaterialGeneration(service, material, credential, { isRetry: true });
     }
 

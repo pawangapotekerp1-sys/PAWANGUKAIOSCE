@@ -40,7 +40,7 @@ export function assertFlashCardMaterialEditable(status: string) {
   }
 }
 
-export const STALE_PROCESSING_TIMEOUT_MS = 90_000;
+export const STALE_PROCESSING_TIMEOUT_MS = 180_000;
 
 export function isProcessingJobStale(params: {
   status: string;
@@ -69,6 +69,32 @@ export function assertFlashCardMaterialRetryable(status: string) {
   if (status === "published") {
     throw new Error("Materi flash card yang sudah dipublikasikan tidak bisa diproses ulang.");
   }
+}
+
+export function canRetryFlashCardMaterial(params: {
+  status: string;
+  metadata?: Record<string, unknown> | null;
+  updatedAt?: string | null;
+  now?: number;
+  timeoutMs?: number;
+}): boolean {
+  if (params.status === "published") {
+    return false;
+  }
+  if (params.status === "processing") {
+    return isProcessingJobStale(params);
+  }
+  return true;
+}
+
+export function shouldApplyStaleRecovery(params: {
+  status: string;
+  metadata?: Record<string, unknown> | null;
+  updatedAt?: string | null;
+  now?: number;
+  timeoutMs?: number;
+}): boolean {
+  return isProcessingJobStale(params);
 }
 
 export function validateFlashCardMaterialDraftInput(input: {

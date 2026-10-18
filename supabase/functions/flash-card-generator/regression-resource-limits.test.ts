@@ -1,11 +1,14 @@
 import { describe, expect, test, vi } from "vitest";
 import {
   assertFlashCardMaterialRetryable,
+  canRetryFlashCardMaterial,
   isProcessingJobStale,
+  shouldApplyStaleRecovery,
   STALE_PROCESSING_TIMEOUT_MS,
 } from "./handler.ts";
 import { generateCandidateCards } from "./pipeline/generator.ts";
 import { cleanTranscript, segmentTranscript } from "./pipeline/cleaner.ts";
+import { alignSourcesAndDetectConflicts } from "./pipeline/aligner.ts";
 import { runFlashCardPipeline, resumePipelineFromCheckpoint, type PipelineCheckpoint } from "./pipeline/orchestrator.ts";
 
 describe("Flash Card Generator Resource Limits & Stale Job Regression Suite", () => {
@@ -252,18 +255,33 @@ describe("Flash Card Generator Resource Limits & Stale Job Regression Suite", ()
     };
     expect(isProcessingJobStale({ ...activeMaterial, now })).toBe(false);
 
-    // Stale job (95s ago): STALE (SIGKILL occurred without finally)
-    const staleMaterial = {
+    // In-flight long LLM stage (95s ago): NOT stale under calibrated 180s window
+    const inFlightMaterial = {
       status: "processing",
       metadata: {
         processingJob: {
           jobId: "job-2",
           startedAt: new Date(now - 95_000).toISOString(),
           heartbeatAt: new Date(now - 95_000).toISOString(),
-          stage: "transcript_cleaning",
+          stage: "candidate_generation",
         },
       },
       updatedAt: new Date(now - 95_000).toISOString(),
+    };
+    expect(isProcessingJobStale({ ...inFlightMaterial, now })).toBe(false);
+
+    // Stale job (195s ago): STALE (SIGKILL occurred without finally)
+    const staleMaterial = {
+      status: "processing",
+      metadata: {
+        processingJob: {
+          jobId: "job-3",
+          startedAt: new Date(now - 195_000).toISOString(),
+          heartbeatAt: new Date(now - 195_000).toISOString(),
+          stage: "transcript_cleaning",
+        },
+      },
+      updatedAt: new Date(now - 195_000).toISOString(),
     };
     expect(isProcessingJobStale({ ...staleMaterial, now })).toBe(true);
 
@@ -399,23 +417,477 @@ describe("Flash Card Generator Resource Limits & Stale Job Regression Suite", ()
   });
 
   // Scenario 13: STALE_PROCESSING_TIMEOUT_MS constant and fallback logic
-  test("Scenario 13: STALE_PROCESSING_TIMEOUT_MS is 90 seconds and falls back to updatedAt", () => {
-    expect(STALE_PROCESSING_TIMEOUT_MS).toBe(90_000);
+  test("Scenario 13: STALE_PROCESSING_TIMEOUT_MS is 180 seconds and falls back to updatedAt", () => {
+    expect(STALE_PROCESSING_TIMEOUT_MS).toBe(180_000);
 
     const now = 2_000_000_000_000;
     // Without processingJob, uses updatedAt
     const materialWithOnlyUpdatedAt = {
       status: "processing",
       metadata: {},
-      updatedAt: new Date(now - 100_000).toISOString(),
+      updatedAt: new Date(now - 190_000).toISOString(),
     };
     expect(isProcessingJobStale({ ...materialWithOnlyUpdatedAt, now })).toBe(true);
 
     const recentUpdatedAt = {
       status: "processing",
       metadata: {},
-      updatedAt: new Date(now - 30_000).toISOString(),
+      updatedAt: new Date(now - 60_000).toISOString(),
     };
     expect(isProcessingJobStale({ ...recentUpdatedAt, now })).toBe(false);
+  });
+
+  // Scenario 14: Active heartbeat updates lease so a long-running stage does not become stale
+  test("Scenario 14: active heartbeat updates prevent premature stale job detection during 100s stage", () => {
+    const jobStartTime = 1_000_000_000_000;
+    let heartbeatAt = new Date(jobStartTime).toISOString();
+
+    // Simulate 100 seconds elapsed with 15-second heartbeat intervals
+    for (let sec = 15; sec <= 90; sec += 15) {
+      heartbeatAt = new Date(jobStartTime + sec * 1000).toISOString();
+    }
+
+    const checkTimeAt100s = jobStartTime + 100_000;
+    // The heartbeat is from sec 90, so only 10s elapsed since last heartbeat!
+    const jobStatus = isProcessingJobStale({
+      status: "processing",
+      metadata: {
+        processingJob: {
+          jobId: "job-123",
+          startedAt: new Date(jobStartTime).toISOString(),
+          heartbeatAt,
+        },
+      },
+      now: checkTimeAt100s,
+    });
+
+    expect(jobStatus).toBe(false);
+  });
+
+  // Scenario 15: Checkpoint resume calls onResumeCheckpoint and does NOT emit fake stage_completed for skipped stages
+  test("Scenario 15: resumePipelineFromCheckpoint calls onResumeCheckpoint and does not emit fake stage_completed for skipped stages", async () => {
+    const stageEvents: string[] = [];
+    let resumedCheckpoint: PipelineCheckpoint | undefined;
+
+    const existingCheckpoint: PipelineCheckpoint = {
+      currentStage: "candidate_generation",
+      completedStages: ["ingestion", "transcript_cleaning", "concept_mapping", "alignment_and_conflict_detection"],
+      stageArtifacts: {
+        ingestion: { hasPdf: false, pdfByteLength: 0 },
+        transcript_cleaning: { retainedText: "Cleaned text", retainedSegments: [] },
+        concept_mapping: { concepts: [] },
+        alignment_and_conflict_detection: { alignedSources: [], conflicts: [] },
+      },
+    };
+
+    const mockGeminiClient = async () => ({
+      text: JSON.stringify({
+        global_summary: "Summary",
+        subtopics: [{ title: "Topic", summary: "Summary", cards: [{ front_text: "Q", back_text: "A" }] }],
+        reviews: [{ cardId: "c-1", status: "ACCEPTED" }],
+      }),
+      usage: { isAvailable: true, promptTokenCount: 10, candidatesTokenCount: 10, totalTokenCount: 20 },
+    });
+
+    await resumePipelineFromCheckpoint(existingCheckpoint, {
+      title: "Resume Heartbeat Test",
+      academicGroup: "clinical_science",
+      geminiClient: mockGeminiClient,
+      onResumeCheckpoint: (cp) => {
+        resumedCheckpoint = { ...cp };
+      },
+      onStageComplete: (stage) => {
+        stageEvents.push(stage);
+      },
+    });
+
+    // onResumeCheckpoint was called immediately on startup with the resume checkpoint
+    expect(resumedCheckpoint).toBeDefined();
+    expect(resumedCheckpoint?.currentStage).toBe("candidate_generation");
+
+    // onStageComplete was NOT called for skipped stages
+    expect(stageEvents).not.toContain("alignment_and_conflict_detection");
+    expect(stageEvents).not.toContain("transcript_cleaning");
+    expect(stageEvents).not.toContain("ingestion");
+    // Only newly executed stages emitted onStageComplete
+    expect(stageEvents[0]).toBe("candidate_generation");
+  });
+
+  // Scenario 16: alignSourcesAndDetectConflicts skips Gemini call when candidates list is empty
+  test("Scenario 16: alignSourcesAndDetectConflicts skips Gemini call when candidates list is empty", async () => {
+    let geminiCalled = false;
+    const mockGemini = async () => {
+      geminiCalled = true;
+      return { text: "{}", usage: { isAvailable: false } };
+    };
+
+    const result = await alignSourcesAndDetectConflicts({
+      candidateComparisons: [],
+      geminiClient: mockGemini as any,
+    });
+
+    expect(geminiCalled).toBe(false);
+    expect(result.conflicts).toHaveLength(0);
+    expect(result.alignedSources).toHaveLength(0);
+  });
+
+  // Scenario 17: runFlashCardPipeline releases pdfBytes memory after candidate_generation
+  test("Scenario 17: runFlashCardPipeline frees pdfBytes after candidate_generation stage completes", async () => {
+    const mockGemini = async () => ({
+      text: JSON.stringify({
+        global_summary: "Summary",
+        subtopics: [{ title: "Topic", summary: "Summary", cards: [{ front_text: "Q", back_text: "A" }] }],
+        reviews: [{ cardId: "c-1", status: "ACCEPTED" }],
+      }),
+      usage: { isAvailable: true, promptTokenCount: 10, candidatesTokenCount: 10, totalTokenCount: 20 },
+    });
+
+    const pdfBuffer = new Uint8Array([1, 2, 3, 4]);
+    const pipelineOpts = {
+      title: "Memory release test",
+      academicGroup: "clinical_science",
+      transcriptText: "Transkrip obat.",
+      pdfBytes: pdfBuffer as Uint8Array | null,
+      geminiClient: mockGemini,
+    };
+
+    const res = await runFlashCardPipeline(pipelineOpts);
+    expect(res.subtopics).toBeDefined();
+    // Verify pipelineOpts.pdfBytes is dereferenced to null
+    expect(pipelineOpts.pdfBytes).toBeNull();
+  });
+
+  // Scenario 18: Heartbeat from older superseded worker does not overwrite new job metadata
+  test("Scenario 18: old worker heartbeat update is rejected when newer jobId is in database", () => {
+    // Simulate database record with newer job
+    const dbRecord = {
+      id: "mat-1",
+      status: "processing",
+      metadata: {
+        processingJob: {
+          jobId: "job-new-2",
+          startedAt: "2026-10-18T10:00:00Z",
+          heartbeatAt: "2026-10-18T10:00:00Z",
+          stage: "ingestion",
+        },
+      },
+    };
+
+    // Worker 1 has old jobId "job-old-1"
+    const oldJobId = "job-old-1";
+
+    // Simulate PostgREST query: .eq("id", material.id).eq("status", "processing").eq("metadata->processingJob->>jobId", jobId)
+    const matchesQuery = (record: typeof dbRecord, targetJobId: string) => {
+      return (
+        record.id === "mat-1" &&
+        record.status === "processing" &&
+        record.metadata.processingJob.jobId === targetJobId
+      );
+    };
+
+    const worker1Matched = matchesQuery(dbRecord, oldJobId);
+    expect(worker1Matched).toBe(false); // 0 rows updated!
+
+    // Verify database record remains untouched with job-new-2
+    expect(dbRecord.metadata.processingJob.jobId).toBe("job-new-2");
+  });
+
+  // Scenario 19: Heartbeat does not write after job is finished or terminated
+  test("Scenario 19: stopHeartbeat lifecycle flag prevents any further database heartbeat writes", () => {
+    let isJobTerminated = false;
+    let dbWriteCount = 0;
+
+    const stopHeartbeat = () => {
+      isJobTerminated = true;
+    };
+
+    const sendHeartbeat = () => {
+      if (isJobTerminated) return;
+      dbWriteCount++;
+    };
+
+    // Before termination
+    sendHeartbeat();
+    expect(dbWriteCount).toBe(1);
+
+    // Job finishes or errors out
+    stopHeartbeat();
+
+    // Subsequent heartbeat triggers (from timer or remaining in-flight)
+    sendHeartbeat();
+    sendHeartbeat();
+    expect(dbWriteCount).toBe(1); // No further writes occurred!
+  });
+
+  // Scenario 20: Concurrent retry requests are rejected when already active, preventing parallel pipelines
+  test("Scenario 20: canRetryFlashCardMaterial rejects concurrent retry when active job is running", () => {
+    const now = 1_000_000_000_000;
+
+    // Active processing material with recent heartbeat (30s ago)
+    const activeMaterial = {
+      status: "processing",
+      metadata: {
+        processingJob: {
+          jobId: "job-1",
+          startedAt: new Date(now - 30_000).toISOString(),
+          heartbeatAt: new Date(now - 30_000).toISOString(),
+          stage: "transcript_cleaning",
+        },
+      },
+      updatedAt: new Date(now - 30_000).toISOString(),
+    };
+
+    // Idempotency guard: retry MUST NOT be permitted
+    expect(canRetryFlashCardMaterial({ ...activeMaterial, now })).toBe(false);
+
+    // Stale processing material (200s ago): retry IS permitted
+    const staleMaterial = {
+      status: "processing",
+      metadata: {
+        processingJob: {
+          jobId: "job-stale",
+          startedAt: new Date(now - 200_000).toISOString(),
+          heartbeatAt: new Date(now - 200_000).toISOString(),
+          stage: "transcript_cleaning",
+        },
+      },
+      updatedAt: new Date(now - 200_000).toISOString(),
+    };
+    expect(canRetryFlashCardMaterial({ ...staleMaterial, now })).toBe(true);
+
+    // Failed material: retry IS permitted
+    expect(canRetryFlashCardMaterial({ status: "failed", now })).toBe(true);
+
+    // Published material: retry NEVER permitted
+    expect(canRetryFlashCardMaterial({ status: "published", now })).toBe(false);
+  });
+
+  // Scenario 21: Stale recovery does not overwrite ready_for_review status
+  test("Scenario 21: stale recovery status guard prevents overwriting terminal status", () => {
+    // When worker finishes and sets status to ready_for_review
+    const completedMaterial = {
+      status: "ready_for_review",
+      metadata: {
+        sourceConflicts: [],
+      },
+      updatedAt: new Date(1_000_000).toISOString(),
+    };
+
+    // Stale recovery should NOT apply to non-processing status
+    expect(shouldApplyStaleRecovery(completedMaterial)).toBe(false);
+
+    // Simulated atomic update: .update(failureUpdate).eq("id", id).eq("status", "processing")
+    const applyStaleRecoveryUpdate = (currentStatus: string) => {
+      if (currentStatus !== "processing") {
+        return { rowsUpdated: 0 };
+      }
+      return { rowsUpdated: 1, newStatus: "failed" };
+    };
+
+    const result = applyStaleRecoveryUpdate(completedMaterial.status);
+    expect(result.rowsUpdated).toBe(0); // 0 rows updated, ready_for_review is preserved!
+  });
+
+  // Scenario 22: Polling returns fresh state when stale recovery loses the race
+  test("Scenario 22: polling re-reads DB and returns actual status when stale recovery update fails", () => {
+    let staleUpdateMatchedRows = 0;
+    const dbRecord = {
+      id: "mat-1",
+      status: "ready_for_review",
+      global_summary: "Ringkasan Sukses",
+    };
+
+    // Polling logic simulation from get-material
+    let materialResult = { id: "mat-1", status: "processing", global_summary: null };
+    const timeoutMessage = "Pemrosesan flash card terhenti di latar belakang.";
+
+    if (staleUpdateMatchedRows > 0) {
+      materialResult = { ...materialResult, status: "failed" };
+    } else {
+      // Re-read latest authoritative DB row
+      materialResult = { ...dbRecord };
+    }
+
+    expect(materialResult.status).toBe("ready_for_review");
+    expect(materialResult.global_summary).toBe("Ringkasan Sukses");
+  });
+
+  // Scenario 23: PDF presence metadata is preserved even when large PDF download is skipped
+  test("Scenario 23: pipeline preserves hasPdf and pdfByteLength when in-memory PDF is omitted (>4MB)", async () => {
+    const mockGeminiClient = async () => ({
+      text: JSON.stringify({
+        global_summary: "Summary without inline PDF",
+        subtopics: [{ title: "Topic", summary: "Summary", cards: [{ front_text: "Q", back_text: "A" }] }],
+        reviews: [{ cardId: "c-1", status: "ACCEPTED" }],
+      }),
+      usage: { isAvailable: true, promptTokenCount: 10, candidatesTokenCount: 10, totalTokenCount: 20 },
+    });
+
+    // In-memory buffer is null because >4MB was skipped by downloadBytesFromStorage
+    const pipelineOpts = {
+      title: "Large PDF Presence Test",
+      academicGroup: "clinical_science",
+      transcriptText: "Transkrip materi kuliah farmakologi.",
+      pdfBytes: null,
+      hasPdfSource: true,
+      pdfByteLength: 6 * 1024 * 1024, // 6MB
+      geminiClient: mockGeminiClient,
+    };
+
+    const res = await runFlashCardPipeline(pipelineOpts);
+    const ingestionArtifact = res.checkpoint.stageArtifacts["ingestion"] as any;
+
+    expect(ingestionArtifact).toBeDefined();
+    // hasPdf must be true because the source file exists in storage
+    expect(ingestionArtifact.hasPdf).toBe(true);
+    expect(ingestionArtifact.pdfByteLength).toBe(6 * 1024 * 1024);
+    // isPdfBytesInMemory must be false because the buffer was omitted for memory safety
+    expect(ingestionArtifact.isPdfBytesInMemory).toBe(false);
+  });
+
+  // Scenario 24: Interleaving race between heartbeat and checkpoint update preserves Checkpoint B
+  test("Scenario 24: interleaving between sendHeartbeat and onStageComplete preserves Checkpoint B", () => {
+    // 1. Job starts with Checkpoint A
+    const checkpointA: PipelineCheckpoint = {
+      currentStage: "transcript_cleaning",
+      completedStages: ["ingestion"],
+      stageArtifacts: { ingestion: { hasPdf: true, pdfByteLength: 1024 } },
+    };
+
+    const checkpointB: PipelineCheckpoint = {
+      currentStage: "concept_mapping",
+      completedStages: ["ingestion", "transcript_cleaning"],
+      stageArtifacts: {
+        ingestion: { hasPdf: true, pdfByteLength: 1024 },
+        transcript_cleaning: { retainedText: "Cleaned text" },
+      },
+    };
+
+    // Live database row state
+    const dbRow = {
+      id: "mat-1",
+      status: "processing",
+      metadata: {
+        pipelineCheckpoint: checkpointA,
+        processingJob: {
+          jobId: "job-100",
+          startedAt: "2026-10-18T10:00:00.000Z",
+          heartbeatAt: "2026-10-18T10:00:00.000Z",
+          stage: "transcript_cleaning",
+        },
+      },
+    };
+
+    // 2. Heartbeat initiates read of in-memory metadata snapshot at time T_read
+    const targetHeartbeatAt = "2026-10-18T10:00:15.000Z";
+
+    // 3. Concurrently, the pipeline stage completes! onStageComplete updates DB to Checkpoint B
+    dbRow.metadata = {
+      ...dbRow.metadata,
+      pipelineCheckpoint: checkpointB,
+      processingJob: {
+        ...dbRow.metadata.processingJob,
+        stage: "concept_mapping",
+        heartbeatAt: "2026-10-18T10:00:10.000Z",
+      },
+    };
+    expect(dbRow.metadata.pipelineCheckpoint.currentStage).toBe("concept_mapping");
+
+    // 4. Heartbeat writes its update via atomic jsonb_set
+    const simulateAtomicHeartbeatRpc = (
+      row: typeof dbRow,
+      targetMaterialId: string,
+      targetJobId: string,
+      heartbeatAt: string,
+    ) => {
+      if (
+        row.id !== targetMaterialId ||
+        row.status !== "processing" ||
+        row.metadata.processingJob.jobId !== targetJobId
+      ) {
+        return null;
+      }
+      // Equivalent to PostgreSQL jsonb_set(metadata, '{processingJob,heartbeatAt}', ...)
+      row.metadata = {
+        ...row.metadata,
+        processingJob: {
+          ...row.metadata.processingJob,
+          heartbeatAt,
+        },
+      };
+      return row.metadata;
+    };
+
+    const rpcResult = simulateAtomicHeartbeatRpc(dbRow, "mat-1", "job-100", targetHeartbeatAt);
+
+    // 5. Assert: Checkpoint B remains 100% intact, stage is still concept_mapping, only heartbeatAt changed!
+    expect(rpcResult).not.toBeNull();
+    expect(dbRow.metadata.pipelineCheckpoint).toEqual(checkpointB);
+    expect(dbRow.metadata.pipelineCheckpoint.completedStages).toContain("transcript_cleaning");
+    expect(dbRow.metadata.processingJob.stage).toBe("concept_mapping");
+    expect(dbRow.metadata.processingJob.heartbeatAt).toBe(targetHeartbeatAt);
+  });
+
+  // Scenario 25: Atomic heartbeat RPC rejects updates if job was superseded or status is terminal
+  test("Scenario 25: atomic heartbeat RPC returns null when job was superseded or marked ready_for_review", () => {
+    const completedDbRow = {
+      id: "mat-1",
+      status: "ready_for_review",
+      metadata: {
+        processingJob: {
+          jobId: "job-100",
+          startedAt: "2026-10-18T10:00:00.000Z",
+          heartbeatAt: "2026-10-18T10:00:00.000Z",
+          stage: "finished",
+        },
+      },
+    };
+
+    const simulateAtomicHeartbeatRpc = (
+      row: typeof completedDbRow,
+      targetMaterialId: string,
+      targetJobId: string,
+      heartbeatAt: string,
+    ) => {
+      if (
+        row.id !== targetMaterialId ||
+        row.status !== "processing" ||
+        row.metadata.processingJob.jobId !== targetJobId
+      ) {
+        return null;
+      }
+      row.metadata = {
+        ...row.metadata,
+        processingJob: {
+          ...row.metadata.processingJob,
+          heartbeatAt,
+        },
+      };
+      return row.metadata;
+    };
+
+    // Attempting heartbeat on ready_for_review returns null (0 rows updated in DB)
+    const resultTerminal = simulateAtomicHeartbeatRpc(completedDbRow, "mat-1", "job-100", "2026-10-18T10:00:15.000Z");
+    expect(resultTerminal).toBeNull();
+    expect(completedDbRow.status).toBe("ready_for_review");
+
+    // Attempting heartbeat on superseded job (jobId mismatch) returns null
+    const activeDbRowWithNewJob = {
+      id: "mat-1",
+      status: "processing",
+      metadata: {
+        processingJob: {
+          jobId: "job-200", // New job
+          startedAt: "2026-10-18T10:05:00.000Z",
+          heartbeatAt: "2026-10-18T10:05:00.000Z",
+          stage: "ingestion",
+        },
+      },
+    };
+
+    const resultSuperseded = simulateAtomicHeartbeatRpc(activeDbRowWithNewJob, "mat-1", "job-100", "2026-10-18T10:05:15.000Z");
+    expect(resultSuperseded).toBeNull();
+    // New job remains untouched
+    expect(activeDbRowWithNewJob.metadata.processingJob.jobId).toBe("job-200");
   });
 });

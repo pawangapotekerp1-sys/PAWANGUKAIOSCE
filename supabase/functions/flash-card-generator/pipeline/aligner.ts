@@ -825,6 +825,10 @@ export function alignSourcesAndDetectConflicts(
       const startedAt = Date.now();
       const candidates = input.candidateComparisons ?? [];
 
+      if (candidates.length === 0) {
+        return evaluateDeterministically(input);
+      }
+
       const prompt = `Evaluasi perbandingan klaim materi slide kuliah vs penjelasan transkrip audio berikut.
 Bedakan apakah perbedaan merupakan:
 1. "compatible_elaboration": transkrip menjelaskan mekanisme kerja (MOA) atau memberikan contoh kasus rumah sakit / studi kasus praktis yang selaras dengan slide tanpa bertentangan dosis / kontraindikasi.

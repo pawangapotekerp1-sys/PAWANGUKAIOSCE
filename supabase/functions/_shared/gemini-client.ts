@@ -62,21 +62,47 @@ const GEMINI_CAPACITY_MESSAGE_PATTERNS = [
   "try again later",
 ];
 const GEMINI_TRANSIENT_RETRY_DELAY_MS = 200;
-const GEMINI_TEXT_MAX_ATTEMPTS = 2;
+const GEMINI_TEXT_MAX_ATTEMPTS = 3;
 const GEMINI_STRUCTURED_MAX_ATTEMPTS = 2;
 const GEMINI_STRUCTURED_RETRY_TOKEN_MULTIPLIER = 2;
 const GEMINI_STRUCTURED_RETRY_MIN_TOKENS = 8192;
 
-type GeminiRequestErrorCode = "GEMINI_MAX_TOKENS" | "GEMINI_INVALID_JSON";
+export type GeminiErrorCategory =
+  | "GEMINI_RATE_LIMITED"
+  | "GEMINI_QUOTA_EXHAUSTED"
+  | "GEMINI_TOKEN_LIMITED"
+  | "GEMINI_MODEL_UNAVAILABLE"
+  | "GEMINI_PROVIDER_UNAVAILABLE"
+  | "GEMINI_REQUEST_INVALID"
+  | "GEMINI_AUTHENTICATION_FAILED"
+  | "GEMINI_MAX_TOKENS"
+  | "GEMINI_INVALID_JSON";
+
+export type GeminiRequestErrorCode = GeminiErrorCategory | string;
+
+export type GeminiErrorDiagnostics = {
+  category?: GeminiErrorCategory;
+  isRetryable?: boolean;
+  retryAfterSeconds?: number | null;
+  rawStatus?: number;
+  originalMessage?: string;
+};
 
 export class GeminiRequestError extends Error {
   status: number;
   code: GeminiRequestErrorCode | null;
+  diagnostics?: GeminiErrorDiagnostics;
 
-  constructor(status: number, message: string, code: GeminiRequestErrorCode | null = null) {
+  constructor(
+    status: number,
+    message: string,
+    code: GeminiRequestErrorCode | null = null,
+    diagnostics?: GeminiErrorDiagnostics,
+  ) {
     super(message);
     this.status = status;
     this.code = code;
+    this.diagnostics = diagnostics;
   }
 }
 
@@ -143,7 +169,7 @@ export function parseGeminiStructuredJsonText<TValue>(value: string): TValue {
     } catch {
       throw new GeminiRequestError(
         502,
-        "Gemini mengembalikan format JSON yang belum valid. Coba generate ulang atau kurangi jumlah soal per batch.",
+        "Gemini mengembalikan format JSON yang belum valid. Coba generate ulang dalam beberapa saat.",
         "GEMINI_INVALID_JSON",
       );
     }
@@ -152,6 +178,241 @@ export function parseGeminiStructuredJsonText<TValue>(value: string): TValue {
 
 function wait(milliseconds: number) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+export function extractRetryAfterSeconds(
+  headers?: Headers | Record<string, string> | null,
+  payload?: any,
+): number | null {
+  if (headers) {
+    let headerVal: string | null = null;
+    if (typeof (headers as Headers).get === "function") {
+      headerVal = (headers as Headers).get("retry-after") ?? (headers as Headers).get("Retry-After");
+    } else if (typeof headers === "object") {
+      const record = headers as Record<string, string>;
+      headerVal = record["retry-after"] ?? record["Retry-After"] ?? null;
+    }
+    if (headerVal) {
+      const parsedNum = parseFloat(headerVal);
+      if (!Number.isNaN(parsedNum) && parsedNum > 0) {
+        return Math.round(parsedNum);
+      }
+      const parsedDate = new Date(headerVal).getTime();
+      if (!Number.isNaN(parsedDate)) {
+        const diffSec = Math.round((parsedDate - Date.now()) / 1000);
+        return diffSec > 0 ? diffSec : null;
+      }
+    }
+  }
+
+  if (payload && typeof payload === "object") {
+    const details = Array.isArray(payload?.error?.details) ? payload.error.details : [];
+    for (const item of details) {
+      if (item && typeof item === "object") {
+        const typeStr = String(item["@type"] ?? "");
+        if (typeStr.includes("RetryInfo") && typeof item.retryDelay === "string") {
+          const match = item.retryDelay.match(/([0-9.]+)\s*s?/i);
+          if (match) {
+            const sec = parseFloat(match[1]);
+            if (!Number.isNaN(sec) && sec > 0) {
+              return Math.round(sec);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+export function sanitizeText(value: string): string {
+  if (!value || typeof value !== "string") {
+    return "";
+  }
+  return value
+    .replace(/AIza[0-9A-Za-z-_]{15,}/gi, "[REDACTED_API_KEY]")
+    .replace(/(?:key|token|bearer)=?[^\s&"']+/gi, "[REDACTED]");
+}
+
+export type GeminiErrorClassification = {
+  category: GeminiErrorCategory;
+  isRetryable: boolean;
+  userMessage: string;
+  retryAfterSeconds?: number | null;
+  rawStatus?: number;
+  errorCode?: string | number | null;
+};
+
+export function classifyGeminiErrorResponse(params: {
+  status: number;
+  payload?: any;
+  headers?: Headers | Record<string, string>;
+}): GeminiErrorClassification {
+  const { status, payload, headers } = params;
+  const rawMessage = typeof payload?.error?.message === "string" ? payload.error.message : "";
+  const normalizedMessage = rawMessage.toLowerCase();
+  const rawStatus = typeof payload?.error?.status === "string" ? payload.error.status : "";
+  const normalizedStatus = rawStatus.toLowerCase();
+  const details = Array.isArray(payload?.error?.details) ? payload.error.details : [];
+
+  let quotaLimit = "";
+  let reason = "";
+
+  for (const detail of details) {
+    if (detail && typeof detail === "object") {
+      if (typeof detail.reason === "string") {
+        reason = detail.reason;
+      }
+      if (detail.metadata && typeof detail.metadata.quota_limit === "string") {
+        quotaLimit = detail.metadata.quota_limit;
+      }
+    }
+  }
+
+  const retryAfterSeconds = extractRetryAfterSeconds(headers, payload);
+
+  // 1. Check Authentication / Credential errors first (HTTP 400 with API key invalid, 401, 403)
+  const isAuthError =
+    status === 401 ||
+    status === 403 ||
+    reason === "API_KEY_INVALID" ||
+    normalizedMessage.includes("api key") ||
+    normalizedMessage.includes("api_key") ||
+    normalizedMessage.includes("credential") ||
+    normalizedMessage.includes("permission_denied") ||
+    normalizedStatus === "permission_denied";
+
+  if (isAuthError && (status === 400 || status === 401 || status === 403)) {
+    return {
+      category: "GEMINI_AUTHENTICATION_FAILED",
+      isRetryable: false,
+      userMessage: "API key Gemini tidak valid (API key not valid) atau tidak memiliki akses. Periksa konfigurasi API key Anda di Google AI Studio.",
+      retryAfterSeconds: null,
+      rawStatus: status,
+      errorCode: payload?.error?.code ?? status,
+    };
+  }
+
+  // 2. Check Daily Quota / Billing / RPD exhausted (HTTP 429)
+  const isDailyQuota =
+    quotaLimit.toLowerCase().includes("perday") ||
+    normalizedMessage.includes("daily limit") ||
+    normalizedMessage.includes("daily quota") ||
+    normalizedMessage.includes("perday") ||
+    normalizedMessage.includes("requests per day") ||
+    normalizedMessage.includes("tokens per day") ||
+    normalizedMessage.includes("free tier daily");
+
+  if (status === 429 && isDailyQuota) {
+    return {
+      category: "GEMINI_QUOTA_EXHAUSTED",
+      isRetryable: false,
+      userMessage: "Batas kuota harian Gemini (Daily Quota) terlampaui. Kuota gratis harian Anda telah habis atau project Google AI Studio mencapai limit harian. Silakan ganti API key atau coba besok.",
+      retryAfterSeconds,
+      rawStatus: status,
+      errorCode: payload?.error?.code ?? status,
+    };
+  }
+
+  // 3. Check Token Limit (TPM)
+  const isTokenLimit =
+    quotaLimit.toLowerCase().includes("tokensperminute") ||
+    normalizedMessage.includes("tokens per minute") ||
+    normalizedMessage.includes("token limit") ||
+    normalizedMessage.includes("tpm");
+
+  if (status === 429 && isTokenLimit) {
+    return {
+      category: "GEMINI_TOKEN_LIMITED",
+      isRetryable: true,
+      userMessage: "Permintaan ke Gemini sedang penuh sementara (Batas token per menit/TPM terlampaui). Coba generate ulang dalam beberapa saat.",
+      retryAfterSeconds,
+      rawStatus: status,
+      errorCode: payload?.error?.code ?? status,
+    };
+  }
+
+  // 4. Check Rate Limit (RPM / Requests Per Minute)
+  const isRateLimit =
+    status === 429 ||
+    reason === "RATE_LIMIT_EXCEEDED" ||
+    normalizedMessage.includes("rate limit") ||
+    normalizedMessage.includes("resource_exhausted") ||
+    normalizedStatus === "resource_exhausted";
+
+  if (isRateLimit) {
+    return {
+      category: "GEMINI_RATE_LIMITED",
+      isRetryable: true,
+      userMessage: "Permintaan ke Gemini sedang penuh sementara (Batas RPM terlampaui). Coba generate ulang dalam beberapa saat.",
+      retryAfterSeconds,
+      rawStatus: status,
+      errorCode: payload?.error?.code ?? status,
+    };
+  }
+
+  // 5. Check Service / Provider Unavailable or Model Overload (503, 502, 504, or unavailable)
+  const isOverloadOrUnavailable =
+    status === 503 ||
+    status === 502 ||
+    status === 504 ||
+    normalizedStatus === "unavailable" ||
+    normalizedMessage.includes("overloaded") ||
+    normalizedMessage.includes("try again later");
+
+  if (isOverloadOrUnavailable) {
+    const rawDetail = sanitizeText(rawMessage);
+    const detailSuffix = rawDetail ? ` (${rawDetail})` : "";
+    return {
+      category: "GEMINI_PROVIDER_UNAVAILABLE",
+      isRetryable: true,
+      userMessage: `Layanan Gemini mengalami gangguan sementara dari sisi Google${detailSuffix}. Sistem akan mencoba kembali dalam beberapa saat.`,
+      retryAfterSeconds,
+      rawStatus: status,
+      errorCode: payload?.error?.code ?? status,
+    };
+  }
+
+  // 6. Generic Invalid Request (400)
+  if (status === 400) {
+    return {
+      category: "GEMINI_REQUEST_INVALID",
+      isRetryable: false,
+      userMessage: "Permintaan ke Gemini tidak valid. Periksa parameter permintaan.",
+      retryAfterSeconds: null,
+      rawStatus: status,
+      errorCode: payload?.error?.code ?? status,
+    };
+  }
+
+  // 7. Fallback
+  return {
+    category: "GEMINI_PROVIDER_UNAVAILABLE",
+    isRetryable: status >= 500,
+    userMessage: sanitizeText(rawMessage) || "Terjadi kesalahan saat berkomunikasi dengan Gemini.",
+    retryAfterSeconds,
+    rawStatus: status,
+    errorCode: payload?.error?.code ?? status,
+  };
+}
+
+function calculateBackoffDelay(attempt: number, retryAfterSeconds?: number | null): number {
+  const isTestEnv = (typeof process !== "undefined" && (process.env?.VITEST || process.env?.NODE_ENV === "test")) ||
+    (typeof Deno !== "undefined" && (Deno.env.get("VITEST") === "true" || Deno.env.get("NODE_ENV") === "test"));
+
+  if (typeof retryAfterSeconds === "number" && retryAfterSeconds > 0) {
+    if (isTestEnv) return 20;
+    return Math.min(30000, retryAfterSeconds * 1000);
+  }
+
+  if (isTestEnv) {
+    return 20 * attempt;
+  }
+
+  const baseDelay = 1000 * Math.pow(2, attempt - 1);
+  const jitter = Math.floor(Math.random() * 500);
+  return baseDelay + jitter;
 }
 
 function isGeminiTransientError(status: number, message: string) {
@@ -175,7 +436,7 @@ function isGeminiCapacityError(status: number, message: string) {
 }
 
 function toGeminiTransientUserMessage() {
-  return "Permintaan ke Gemini sedang penuh sementara. Coba generate ulang dalam beberapa saat atau kurangi jumlah soal per batch.";
+  return "Permintaan ke Gemini sedang penuh sementara (Batas RPM terlampaui). Coba generate ulang dalam beberapa saat.";
 }
 
 function shouldRetryStructuredResponseError(error: GeminiRequestError) {
@@ -342,13 +603,26 @@ async function generateGeminiTextOnce({
       }),
     },
   );
-  const payload = await response.json();
+  const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const message = typeof payload?.error?.message === "string"
-      ? payload.error.message
-      : "Gemini request failed.";
-    throw new GeminiRequestError(response.status, message);
+    const classification = classifyGeminiErrorResponse({
+      status: response.status,
+      payload,
+      headers: response.headers,
+    });
+    throw new GeminiRequestError(
+      response.status,
+      classification.userMessage,
+      classification.category,
+      {
+        category: classification.category,
+        isRetryable: classification.isRetryable,
+        retryAfterSeconds: classification.retryAfterSeconds,
+        rawStatus: response.status,
+        originalMessage: sanitizeText(typeof payload?.error?.message === "string" ? payload.error.message : ""),
+      },
+    );
   }
 
   const firstCandidate = Array.isArray((payload as Record<string, unknown>).candidates)
@@ -396,15 +670,32 @@ export async function generateGeminiTextWithUsage(request: GeminiRequest): Promi
       }
 
       const isMaxTokens = error.code === "GEMINI_MAX_TOKENS";
-      const isTransient = !error.code && isGeminiTransientError(error.status, error.message);
+      const isRetryableError = error.diagnostics?.isRetryable === true;
+      const isLegacyTransient = !error.code && isGeminiTransientError(error.status, error.message);
 
-      if (!isMaxTokens && !isTransient) {
+      if (!isMaxTokens && !isRetryableError && !isLegacyTransient) {
         throw error;
       }
 
-      if (attempt >= GEMINI_TEXT_MAX_ATTEMPTS) {
+      const isRateLimit =
+        error.code === "GEMINI_RATE_LIMITED" ||
+        error.code === "GEMINI_TOKEN_LIMITED" ||
+        error.diagnostics?.category === "GEMINI_RATE_LIMITED" ||
+        error.diagnostics?.category === "GEMINI_TOKEN_LIMITED";
+      const hasSpecificRateLimitReason =
+        Boolean(error.diagnostics?.retryAfterSeconds) ||
+        Boolean(error.diagnostics?.originalMessage?.toLowerCase().includes("rate limit")) ||
+        Boolean(error.diagnostics?.originalMessage?.includes("RATE_LIMIT_EXCEEDED"));
+      const maxAttempts = (isRateLimit && hasSpecificRateLimitReason) ? 3 : 2;
+
+      if (attempt >= maxAttempts) {
         if (isGeminiCapacityError(error.status, error.message)) {
-          throw new GeminiRequestError(error.status, toGeminiTransientUserMessage());
+          throw new GeminiRequestError(
+            error.status,
+            error.message || toGeminiTransientUserMessage(),
+            error.code,
+            error.diagnostics,
+          );
         }
 
         throw error;
@@ -416,9 +707,11 @@ export async function generateGeminiTextWithUsage(request: GeminiRequest): Promi
           ...nextRequest,
           maxOutputTokens: Math.min(16384, Math.max(8192, currentTokens * 2)),
         };
+        await wait(GEMINI_TRANSIENT_RETRY_DELAY_MS * attempt);
+      } else {
+        const delayMs = calculateBackoffDelay(attempt, error.diagnostics?.retryAfterSeconds);
+        await wait(delayMs);
       }
-
-      await wait(GEMINI_TRANSIENT_RETRY_DELAY_MS * attempt);
     }
   }
 

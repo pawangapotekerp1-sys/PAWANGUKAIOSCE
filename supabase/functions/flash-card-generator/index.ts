@@ -14,9 +14,11 @@ import {
   validateMaterialMetadata,
 } from "../_shared/flash-card.ts";
 import {
+  GeminiRequestError,
   generateGeminiText,
   isGeminiCredentialError,
   normalizeAiModel,
+  sanitizeText,
   testGeminiConnection,
 } from "../_shared/gemini-client.ts";
 import {
@@ -371,12 +373,21 @@ function logSafeTelemetry(event: string, data: Record<string, unknown> = {}) {
     return undefined;
   })();
 
+  const sanitizedData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(data)) {
+    if (typeof v === "string") {
+      sanitizedData[k] = sanitizeText(v);
+    } else {
+      sanitizedData[k] = v;
+    }
+  }
+
   const payload: Record<string, unknown> = {
     telemetry: "flashcard_pipeline",
     event,
     timestamp: new Date().toISOString(),
     ...(heapUsedMb !== undefined ? { heapUsedMb } : {}),
-    ...data,
+    ...sanitizedData,
   };
   console.log(JSON.stringify(payload));
 }
@@ -542,8 +553,21 @@ async function processMaterialGeneration(
       status: "ready_for_review",
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Flash card processing failed.";
-    logSafeTelemetry("job_failed", { materialId: material.id, jobId, error: message });
+    const rawMessage = error instanceof Error ? error.message : "Flash card processing failed.";
+    const message = sanitizeText(rawMessage);
+    const errorDiagnostics = error instanceof GeminiRequestError ? error.diagnostics : undefined;
+    const errorCode = error instanceof GeminiRequestError ? error.code : undefined;
+    const errorStatus = error instanceof GeminiRequestError ? error.status : undefined;
+
+    logSafeTelemetry("job_failed", {
+      materialId: material.id,
+      jobId,
+      error: message,
+      errorCategory: errorDiagnostics?.category ?? errorCode,
+      errorStatus,
+      isRetryable: errorDiagnostics?.isRetryable,
+      retryAfterSeconds: errorDiagnostics?.retryAfterSeconds,
+    });
     const currentMeta = (material.metadata ?? {}) as Record<string, unknown>;
     const checkpointToPreserve = (error as any)?.checkpoint ?? latestCheckpoint;
 

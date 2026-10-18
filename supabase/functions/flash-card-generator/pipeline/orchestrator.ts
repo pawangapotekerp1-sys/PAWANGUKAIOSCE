@@ -256,9 +256,22 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
     cleanerTokenUsage = normalizeStageTokenMetrics(artifact?.tokenUsage ?? cleanedResult.tokenUsage);
   } else {
     checkpoint.currentStage = "transcript_cleaning";
+    const partialCleaning = checkpoint.stageArtifacts["transcript_cleaning_partial"] as {
+      completedSegments?: TranscriptSegment[];
+    } | undefined;
+
     cleanedResult = await cleanTranscript(transcriptText, {
       apiKey,
       model,
+      cachedSegments: partialCleaning?.completedSegments,
+      onChunkComplete: async (completedSegments) => {
+        checkpoint.stageArtifacts["transcript_cleaning_partial"] = {
+          completedSegments,
+        };
+        if (options.onStageComplete) {
+          await options.onStageComplete("transcript_cleaning", checkpoint);
+        }
+      },
       geminiClient: options.geminiClient as any,
     });
     cleanerTokenUsage = normalizeStageTokenMetrics(cleanedResult.tokenUsage);

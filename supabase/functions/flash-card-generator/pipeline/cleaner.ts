@@ -25,6 +25,8 @@ export type CleanerOptions = {
   }>;
   chunkSize?: number;
   chunkOverlap?: number;
+  cachedSegments?: TranscriptSegment[];
+  onChunkComplete?: (completedSegments: TranscriptSegment[]) => Promise<void> | void;
 };
 
 export type CleanedTranscriptResult = {
@@ -254,8 +256,35 @@ export async function cleanTranscript(
     thoughtsTokenCount: 0,
   };
 
+  if (Array.isArray(options.cachedSegments) && options.cachedSegments.length > 0) {
+    const cachedMap = new Map<string, TranscriptSegment>();
+    for (const cached of options.cachedSegments) {
+      if (cached?.segmentId) {
+        cachedMap.set(cached.segmentId, cached);
+      }
+    }
+
+    for (const seg of segments) {
+      const cached = cachedMap.get(seg.segmentId);
+      if (cached && cached.classification) {
+        seg.classification = cached.classification;
+        seg.reason = cached.reason;
+        seg.suspectedTranscriptionError = cached.suspectedTranscriptionError;
+      }
+    }
+  }
+
   for (let i = 0; i < segments.length; i += chunkSize) {
     const targetSlice = segments.slice(i, i + chunkSize);
+    const allCached = targetSlice.every((s) => s.classification !== undefined);
+
+    if (allCached) {
+      if (options.onChunkComplete) {
+        await options.onChunkComplete(segments.slice(0, i + chunkSize));
+      }
+      continue;
+    }
+
     const contextBefore =
       i > 0 ? segments.slice(Math.max(0, i - chunkOverlap), i) : [];
 
@@ -406,6 +435,18 @@ Respond ONLY with valid JSON in this exact structure:
 
       seg.classification = classification;
       seg.reason = reason;
+    }
+
+    if (options.onChunkComplete) {
+      await options.onChunkComplete(segments.slice(0, i + chunkSize));
+    }
+
+    if (i + chunkSize < segments.length) {
+      const isTestEnv = (typeof process !== "undefined" && (process.env?.VITEST || process.env?.NODE_ENV === "test")) ||
+        (typeof Deno !== "undefined" && (Deno.env.get("VITEST") === "true" || Deno.env.get("NODE_ENV") === "test"));
+      if (!isTestEnv) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+      }
     }
   }
 

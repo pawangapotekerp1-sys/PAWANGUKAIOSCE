@@ -43,6 +43,7 @@ import {
   canRetryFlashCardMaterial,
   createFlashCardResponseSchema,
   ensureFlashCardManagerAccess,
+  extractStaleRecoveryDiagnostics,
   FlashCardManagerAccessError,
   handlePublishMaterial,
   handleResolveConflict,
@@ -601,8 +602,16 @@ async function processMaterialGeneration(
     const onStageComplete = async (stage: any, checkpoint: PipelineCheckpoint) => {
       if (isJobTerminated) return;
       latestCheckpoint = checkpoint;
-      const stageNow = new Date().toISOString();
-      logSafeTelemetry("stage_completed", { materialId: material.id, jobId, stage: String(stage) });
+      const partialSegments = (checkpoint.stageArtifacts["transcript_cleaning_partial"] as any)?.completedSegments;
+      if (stage === "transcript_cleaning" && Array.isArray(partialSegments) && !checkpoint.completedStages.includes("transcript_cleaning")) {
+        logSafeTelemetry("cleaning_chunk_completed", {
+          materialId: material.id,
+          jobId,
+          completedSegmentsCount: partialSegments.length,
+        });
+      } else {
+        logSafeTelemetry("stage_completed", { materialId: material.id, jobId, stage: String(stage) });
+      }
 
       const liveMeta = (material.metadata ?? {}) as Record<string, unknown>;
       const updatedMeta = {
@@ -1023,6 +1032,10 @@ Deno.serve(async (req) => {
         const timeoutMessage =
           "Pemrosesan flash card terhenti di latar belakang karena batas waktu atau resource runtime terlampaui. Silakan gunakan tombol 'Coba Proses Ulang'.";
         const meta = (material.metadata ?? {}) as Record<string, unknown>;
+        const diagnosticPayload = extractStaleRecoveryDiagnostics({
+          materialId,
+          metadata: material.metadata as any,
+        });
         const failureUpdate = {
           status: "failed",
           processing_error: timeoutMessage,
@@ -1045,7 +1058,7 @@ Deno.serve(async (req) => {
             processing_error: timeoutMessage,
             metadata: failureUpdate.metadata as any,
           };
-          logSafeTelemetry("stale_job_recovered", { materialId });
+          logSafeTelemetry("stale_job_recovered", diagnosticPayload);
         } else {
           material = await loadOwnedMaterial(service, materialId, user.id);
         }

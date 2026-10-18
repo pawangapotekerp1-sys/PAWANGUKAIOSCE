@@ -2,6 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import {
   assertFlashCardMaterialRetryable,
   canRetryFlashCardMaterial,
+  extractStaleRecoveryDiagnostics,
   isProcessingJobStale,
   shouldApplyStaleRecovery,
   STALE_PROCESSING_TIMEOUT_MS,
@@ -889,5 +890,161 @@ describe("Flash Card Generator Resource Limits & Stale Job Regression Suite", ()
     expect(resultSuperseded).toBeNull();
     // New job remains untouched
     expect(activeDbRowWithNewJob.metadata.processingJob.jobId).toBe("job-200");
+  });
+
+  // Scenario 26: Multi-chunk transcript cleaning emits partial progress incrementally
+  test("Scenario 26: multi-chunk transcript cleaning incrementally emits partial progress", async () => {
+    const transcript = [
+      "Kalimat pertama materi farmakokinetik.",
+      "Kalimat kedua absorpsi obat.",
+      "Kalimat ketiga distribusi ke jaringan.",
+      "Kalimat keempat metabolisme di hepar.",
+      "Kalimat kelima ekskresi melalui ginjal.",
+      "Kalimat keenam klirens total obat.",
+    ].join("\n");
+
+    const chunkProgress: number[] = [];
+    const mockGeminiClient = vi.fn().mockImplementation((req: any) => {
+      // Return classification without verbose reasons
+      const match = req.prompt.match(/\[(seg-\d+)\]/g) || [];
+      const classifications = match.map((tag: string) => ({
+        segmentId: tag.replace(/[\[\]]/g, ""),
+        classification: "relevant",
+        suspectedTranscriptionError: false,
+      }));
+      return Promise.resolve({
+        text: JSON.stringify({ classifications }),
+        usage: { isAvailable: true, promptTokenCount: 50, candidatesTokenCount: 20, totalTokenCount: 70 },
+      });
+    });
+
+    const result = await cleanTranscript(transcript, {
+      apiKey: "test",
+      chunkSize: 2,
+      chunkOverlap: 0,
+      geminiClient: mockGeminiClient as any,
+      onChunkComplete: (completedSegments) => {
+        chunkProgress.push(completedSegments.length);
+      },
+    });
+
+    // 6 segments / chunkSize 2 = 3 chunks
+    expect(mockGeminiClient).toHaveBeenCalledTimes(3);
+    expect(chunkProgress).toEqual([2, 4, 6]);
+    expect(result.segments).toHaveLength(6);
+    expect(result.retainedSegments).toHaveLength(6);
+  });
+
+  // Scenario 27: Interrupted transcript cleaning resume skips cached chunks completely
+  test("Scenario 27: interrupted transcript cleaning resume skips cached chunks and does not re-invoke Gemini", async () => {
+    const transcript = [
+      "Kalimat pertama materi farmakokinetik.",
+      "Kalimat kedua absorpsi obat.",
+      "Kalimat ketiga distribusi ke jaringan.",
+      "Kalimat keempat metabolisme di hepar.",
+      "Kalimat kelima ekskresi melalui ginjal.",
+      "Kalimat keenam klirens total obat.",
+    ].join("\n");
+
+    // Pre-cached segments from chunks 1 and 2 (segments 1 to 4)
+    const cachedSegments = [
+      { segmentId: "seg-001", rawText: "Kalimat pertama", normalizedText: "Kalimat pertama", lineOffset: 1, hasClinicalEntities: false, matchedEntities: [], classification: "relevant" as const },
+      { segmentId: "seg-002", rawText: "Kalimat kedua", normalizedText: "Kalimat kedua", lineOffset: 2, hasClinicalEntities: false, matchedEntities: [], classification: "relevant" as const },
+      { segmentId: "seg-003", rawText: "Kalimat ketiga", normalizedText: "Kalimat ketiga", lineOffset: 3, hasClinicalEntities: false, matchedEntities: [], classification: "relevant" as const },
+      { segmentId: "seg-004", rawText: "Kalimat keempat", normalizedText: "Kalimat keempat", lineOffset: 4, hasClinicalEntities: false, matchedEntities: [], classification: "relevant" as const },
+    ];
+
+    const newlyEmittedProgress: number[] = [];
+    const mockGeminiClient = vi.fn().mockImplementation((req: any) => {
+      // Should ONLY be called for chunk 3 (seg-005 and seg-006)
+      return Promise.resolve({
+        text: JSON.stringify({
+          classifications: [
+            { segmentId: "seg-005", classification: "relevant", suspectedTranscriptionError: false },
+            { segmentId: "seg-006", classification: "relevant", suspectedTranscriptionError: false },
+          ],
+        }),
+        usage: { isAvailable: true, promptTokenCount: 50, candidatesTokenCount: 20, totalTokenCount: 70 },
+      });
+    });
+
+    const result = await cleanTranscript(transcript, {
+      apiKey: "test",
+      chunkSize: 2,
+      chunkOverlap: 0,
+      cachedSegments,
+      geminiClient: mockGeminiClient as any,
+      onChunkComplete: (completedSegments) => {
+        newlyEmittedProgress.push(completedSegments.length);
+      },
+    });
+
+    // CRITICAL: Gemini called ONLY once for the remaining un-cached chunk (chunk 3)!
+    expect(mockGeminiClient).toHaveBeenCalledTimes(1);
+    // Cached chunks 1 & 2 were skipped and did not re-trigger redundant progress emissions
+    expect(newlyEmittedProgress).toEqual([6]);
+    expect(result.segments).toHaveLength(6);
+    expect(result.retainedSegments).toHaveLength(6);
+  });
+
+  // Scenario 28: Stale job recovery safely captures job diagnostics using extractStaleRecoveryDiagnostics
+  test("Scenario 28: stale job recovery captures last stage and heartbeat without leaking data via extractStaleRecoveryDiagnostics", () => {
+    const staleMaterial = {
+      id: "mat-abc",
+      status: "processing",
+      updated_at: "2026-10-18T10:00:00.000Z",
+      metadata: {
+        processingJob: {
+          jobId: "job-xyz",
+          startedAt: "2026-10-18T10:00:00.000Z",
+          heartbeatAt: "2026-10-18T10:01:00.000Z",
+          stage: "transcript_cleaning",
+        },
+        apiKey: "SUPER_SECRET_KEY_NEVER_LEAK",
+        documentContent: "CONFIDENTIAL_PATIENT_MEDICAL_HISTORY",
+      },
+    };
+
+    const isStale = isProcessingJobStale({
+      status: staleMaterial.status,
+      metadata: staleMaterial.metadata,
+      now: new Date("2026-10-18T10:05:00.000Z").getTime(),
+      timeoutMs: STALE_PROCESSING_TIMEOUT_MS,
+    });
+
+    expect(isStale).toBe(true);
+
+    // Call the actual production helper function used by index.ts
+    const diagnosticPayload = extractStaleRecoveryDiagnostics({
+      materialId: staleMaterial.id,
+      metadata: staleMaterial.metadata,
+    });
+
+    // 1. Verifies exact expected diagnostic fields
+    expect(diagnosticPayload).toEqual({
+      materialId: "mat-abc",
+      jobId: "job-xyz",
+      lastStage: "transcript_cleaning",
+      lastHeartbeatAt: "2026-10-18T10:01:00.000Z",
+    });
+
+    // 2. Verifies strictly NO leak of API key, document content, or arbitrary metadata
+    expect((diagnosticPayload as any).apiKey).toBeUndefined();
+    expect((diagnosticPayload as any).documentContent).toBeUndefined();
+    const serialized = JSON.stringify(diagnosticPayload);
+    expect(serialized).not.toContain("SUPER_SECRET_KEY_NEVER_LEAK");
+    expect(serialized).not.toContain("CONFIDENTIAL_PATIENT_MEDICAL_HISTORY");
+
+    // 3. Verifies safe fallback when metadata or processingJob is missing/empty
+    const emptyDiagnostics = extractStaleRecoveryDiagnostics({
+      materialId: "mat-empty",
+      metadata: {},
+    });
+    expect(emptyDiagnostics).toEqual({
+      materialId: "mat-empty",
+      jobId: null,
+      lastStage: null,
+      lastHeartbeatAt: null,
+    });
   });
 });

@@ -97,6 +97,31 @@ export function shouldApplyStaleRecovery(params: {
   return isProcessingJobStale(params);
 }
 
+export type StaleRecoveryDiagnostics = {
+  materialId: string;
+  jobId: string | null;
+  lastStage: string | null;
+  lastHeartbeatAt: string | null;
+};
+
+export function extractStaleRecoveryDiagnostics(params: {
+  materialId: string;
+  metadata?: Record<string, unknown> | null;
+}): StaleRecoveryDiagnostics {
+  const processingJob = params.metadata?.processingJob as {
+    jobId?: string | null;
+    stage?: string | null;
+    heartbeatAt?: string | null;
+  } | undefined;
+
+  return {
+    materialId: params.materialId,
+    jobId: typeof processingJob?.jobId === "string" ? processingJob.jobId : null,
+    lastStage: typeof processingJob?.stage === "string" ? processingJob.stage : null,
+    lastHeartbeatAt: typeof processingJob?.heartbeatAt === "string" ? processingJob.heartbeatAt : null,
+  };
+}
+
 export function validateFlashCardMaterialDraftInput(input: {
   title: string;
   academicGroup: string;

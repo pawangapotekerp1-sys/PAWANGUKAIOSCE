@@ -279,9 +279,6 @@ export async function cleanTranscript(
     const allCached = targetSlice.every((s) => s.classification !== undefined);
 
     if (allCached) {
-      if (options.onChunkComplete) {
-        await options.onChunkComplete(segments.slice(0, i + chunkSize));
-      }
       continue;
     }
 
@@ -326,7 +323,6 @@ Respond ONLY with valid JSON in this exact structure:
     {
       "segmentId": "string",
       "classification": "relevant" | "noise" | "uncertain",
-      "reason": "short explanation",
       "suspectedTranscriptionError": boolean
     }
   ]
@@ -408,6 +404,10 @@ Respond ONLY with valid JSON in this exact structure:
         classItem?.reason ??
         (seg.hasClinicalEntities
           ? "Clinical entity detected"
+          : classification === "noise"
+          ? "Conversational noise"
+          : classification === "uncertain"
+          ? "Ambiguous or fragmented transcript"
           : "Default relevant");
 
       const isSuspectedError = Boolean(

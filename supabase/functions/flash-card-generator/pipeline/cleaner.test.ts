@@ -401,6 +401,53 @@ describe("Transcript Cleaner - Pipeline & Clinical Entity Shield Guardrail", () 
     expect(callCount).toBeGreaterThan(1);
     expect(result.segments.length).toBe(20);
   });
+
+  it("preserves classifications and assigns fallback reasons when Gemini response omits the reason field", async () => {
+    const rawText = [
+      "Halo cek suara satu dua tiga.",
+      "Dosis captopril adalah 12.5 mg dua kali sehari.",
+      "Penjelasan mekanisme kerja obat pada reseptor...",
+    ].join("\n");
+
+    const mockGemini = vi.fn().mockResolvedValue({
+      text: JSON.stringify({
+        classifications: [
+          { segmentId: "seg-001", classification: "noise", suspectedTranscriptionError: false },
+          { segmentId: "seg-002", classification: "relevant", suspectedTranscriptionError: false },
+          { segmentId: "seg-003", classification: "uncertain", suspectedTranscriptionError: true },
+        ],
+      }),
+      usage: {
+        isAvailable: true,
+        promptTokenCount: 50,
+        candidatesTokenCount: 20,
+        totalTokenCount: 70,
+        thoughtsTokenCount: 0,
+      },
+    });
+
+    const result = await cleanTranscript(rawText, {
+      apiKey: "test",
+      geminiClient: mockGemini as any,
+    });
+
+    expect(result.segments).toHaveLength(3);
+
+    // Segment 1: noise -> has fallback reason "Conversational noise", classification untouched
+    const seg1 = result.segments.find((s) => s.segmentId === "seg-001")!;
+    expect(seg1.classification).toBe("noise");
+    expect(seg1.reason).toBe("Conversational noise");
+
+    // Segment 2: relevant with clinical entities -> fallback reason indicates clinical entity, classification untouched
+    const seg2 = result.segments.find((s) => s.segmentId === "seg-002")!;
+    expect(seg2.classification).toBe("relevant");
+    expect(seg2.reason).toBe("Clinical entity detected");
+
+    // Segment 3: uncertain -> fallback reason indicates ambiguous/fragmented transcript, classification untouched
+    const seg3 = result.segments.find((s) => s.segmentId === "seg-003")!;
+    expect(seg3.classification).toBe("uncertain");
+    expect(seg3.reason).toBe("Ambiguous or fragmented transcript");
+  });
 });
 
 

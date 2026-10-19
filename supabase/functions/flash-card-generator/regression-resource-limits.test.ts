@@ -1097,4 +1097,127 @@ describe("Flash Card Generator Resource Limits & Stale Job Regression Suite", ()
     expect(new Date((autoTimeMeta.processingJob as any)?.heartbeatAt as string).getTime()).not.toBeNaN();
     expect((autoTimeMeta.processingJob as any)?.stage).toBe("concept_mapping");
   });
+
+  // Scenario 30: Large transcript cleaning uses substantially fewer requests via sparse output and chunk size 150
+  test("Scenario 30: large transcript cleaning uses substantially fewer requests (2 calls for 300 segments) with sparse output and active Clinical Entity Shield", async () => {
+    // Generate 300 lines of transcript with one clinical segment and some conversational noise
+    const lines = Array.from({ length: 300 }, (_, i) => {
+      if (i === 1) return "Halo cek mikrofon satu dua tiga."; // noise
+      if (i === 20) return "Captopril 12.5 mg dua kali sehari untuk pasien hipertensi."; // clinical entity
+      if (i === 260) return "Jangan lupa absensi di portal."; // noise in chunk 2 (segments 251-300)
+      return `Kalimat perkuliahan farmakoterapi nomor ${i + 1}.`;
+    });
+    const rawTranscript = lines.join("\n");
+
+    let callCount = 0;
+    const mockGeminiClient = vi.fn().mockImplementation((req: any) => {
+      callCount += 1;
+      if (callCount === 1) {
+        // Chunk 1 (seg-001 to seg-250): model returns sparse noise for seg-002 and mistakenly tries to noise seg-021 (which has clinical entity)
+        return Promise.resolve({
+          text: JSON.stringify({
+            noiseSegmentIds: ["seg-002", "seg-021"],
+            uncertainSegments: [],
+          }),
+          usage: { isAvailable: true, promptTokenCount: 200, candidatesTokenCount: 25, totalTokenCount: 225 },
+        });
+      } else {
+        // Chunk 2 (seg-251 to seg-300): model returns sparse noise for seg-261
+        return Promise.resolve({
+          text: JSON.stringify({
+            noiseSegmentIds: ["seg-261"],
+            uncertainSegments: [],
+          }),
+          usage: { isAvailable: true, promptTokenCount: 200, candidatesTokenCount: 20, totalTokenCount: 220 },
+        });
+      }
+    });
+
+    const result = await cleanTranscript(rawTranscript, {
+      apiKey: "test",
+      geminiClient: mockGeminiClient as any,
+    });
+
+    // 1. Request reduction: Exactly 2 calls for 300 segments (instead of 6 or 20 calls)
+    expect(callCount).toBe(2);
+    expect(result.segments).toHaveLength(300);
+
+    // 2. Shield: seg-021 with clinical entity was protected and converted to uncertain
+    const seg21 = result.segments.find((s) => s.segmentId === "seg-021")!;
+    expect(seg21.classification).toBe("uncertain");
+    expect(seg21.reason).toBe("Protected by Clinical Entity Shield");
+
+    // 3. Noise segments: seg-002 and seg-261 correctly classified as noise
+    const seg2 = result.segments.find((s) => s.segmentId === "seg-002")!;
+    expect(seg2.classification).toBe("noise");
+    const seg261 = result.segments.find((s) => s.segmentId === "seg-261")!;
+    expect(seg261.classification).toBe("noise");
+
+    // 4. Unlisted segments: correctly defaulted to relevant without requiring verbose tokens
+    const seg1 = result.segments.find((s) => s.segmentId === "seg-001")!;
+    expect(seg1.classification).toBe("relevant");
+    expect(result.droppedNoiseCount).toBe(2);
+    expect(result.retainedSegments).toHaveLength(298);
+  });
+
+  // Scenario 31: Pipeline halts cleanly without fast retries on 429 and preserves checkpoint state
+  test("Scenario 31: cleaner halts cleanly on 429 rate limit without fast retries and preserves cached segments for resume", async () => {
+    let callCount = 0;
+    const mockGeminiClient = vi.fn().mockImplementation(() => {
+      callCount += 1;
+      const error: any = new Error("Rate limit exceeded (15 RPM).");
+      error.status = 429;
+      error.code = "GEMINI_RATE_LIMITED";
+      error.diagnostics = {
+        category: "GEMINI_RATE_LIMITED",
+        isRetryable: true,
+      };
+      return Promise.reject(error);
+    });
+
+    await expect(() =>
+      cleanTranscript("Baris 1 kuliah farmakoterapi.\nBaris 2 materi obat.", {
+        apiKey: "test",
+        chunkSize: 150,
+        geminiClient: mockGeminiClient as any,
+      }),
+    ).rejects.toThrow(/Rate limit exceeded/i);
+
+    // Fails fast: cleaner does not initiate nested retries
+    expect(callCount).toBe(1);
+
+    // When resuming with cached segments from previous run, completed chunk is skipped
+    const cachedSegments = [
+      {
+        segmentId: "seg-001",
+        rawText: "Baris 1 kuliah farmakoterapi.",
+        normalizedText: "Baris 1 kuliah farmakoterapi.",
+        lineOffset: 1,
+        hasClinicalEntities: false,
+        classification: "relevant" as const,
+        reason: "Cached segment",
+      },
+    ];
+
+    const resumeGeminiClient = vi.fn().mockResolvedValue({
+      text: JSON.stringify({
+        noiseSegmentIds: [],
+        uncertainSegments: [],
+      }),
+      usage: { isAvailable: true, totalTokenCount: 50 },
+    });
+
+    const resumedResult = await cleanTranscript("Baris 1 kuliah farmakoterapi.\nBaris 2 materi obat.", {
+      apiKey: "test",
+      chunkSize: 1, // 1 per chunk
+      cachedSegments,
+      geminiClient: resumeGeminiClient as any,
+    });
+
+    // Chunk 1 was skipped from cache; only chunk 2 (seg-002) called Gemini
+    expect(resumeGeminiClient).toHaveBeenCalledTimes(1);
+    expect(resumedResult.retainedSegments).toHaveLength(2);
+    expect(resumedResult.retainedSegments[0].segmentId).toBe("seg-001");
+    expect(resumedResult.retainedSegments[1].segmentId).toBe("seg-002");
+  });
 });

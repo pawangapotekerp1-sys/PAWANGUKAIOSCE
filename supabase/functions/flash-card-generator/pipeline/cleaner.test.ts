@@ -448,6 +448,259 @@ describe("Transcript Cleaner - Pipeline & Clinical Entity Shield Guardrail", () 
     expect(seg3.classification).toBe("uncertain");
     expect(seg3.reason).toBe("Ambiguous or fragmented transcript");
   });
+
+  it("substantially reduces Gemini requests for a 300-segment lecture using default chunkSize 250 (making only 2 calls)", async () => {
+    // Generate 300 lines of lecture transcript
+    const lines = Array.from({ length: 300 }, (_, i) => `Kalimat kuliah farmasi ke-${i + 1} tentang terapi obat.`);
+    const rawTranscript = lines.join("\n");
+
+    let callCount = 0;
+    const mockGemini = vi.fn().mockImplementation(() => {
+      callCount += 1;
+      return Promise.resolve({
+        text: JSON.stringify({
+          noiseSegmentIds: [],
+          uncertainSegments: [],
+        }),
+        usage: {
+          isAvailable: true,
+          promptTokenCount: 150,
+          candidatesTokenCount: 20,
+          totalTokenCount: 170,
+        },
+      });
+    });
+
+    const result = await cleanTranscript(rawTranscript, {
+      apiKey: "test",
+      geminiClient: mockGemini as any,
+    });
+
+    // 300 segments divided into chunks of 250 -> exactly 2 Gemini calls
+    expect(callCount).toBe(2);
+    expect(result.segments).toHaveLength(300);
+    // All segments defaulted to relevant
+    expect(result.retainedSegments).toHaveLength(300);
+    expect(result.droppedNoiseCount).toBe(0);
+  });
+
+  it("processes a 500-segment transcript in exactly 2 Gemini calls with default chunkSize 250", async () => {
+    // Generate 500 lines of lecture transcript
+    const lines = Array.from({ length: 500 }, (_, i) => `Kalimat kuliah farmasi ke-${i + 1} tentang terapi obat.`);
+    const rawTranscript = lines.join("\n");
+
+    let callCount = 0;
+    const mockGemini = vi.fn().mockImplementation(() => {
+      callCount += 1;
+      return Promise.resolve({
+        text: JSON.stringify({
+          noiseSegmentIds: [],
+          uncertainSegments: [],
+        }),
+        usage: {
+          isAvailable: true,
+          promptTokenCount: 220,
+          candidatesTokenCount: 20,
+          totalTokenCount: 240,
+        },
+      });
+    });
+
+    const result = await cleanTranscript(rawTranscript, {
+      apiKey: "test",
+      geminiClient: mockGemini as any,
+    });
+
+    // 500 segments divided into chunks of 250 -> exactly 2 Gemini calls
+    expect(callCount).toBe(2);
+    expect(result.segments).toHaveLength(500);
+    expect(result.retainedSegments).toHaveLength(500);
+    expect(result.droppedNoiseCount).toBe(0);
+  });
+
+  it("accurately parses sparse output: identifies noise IDs, uncertain objects, and defaults unlisted to relevant", async () => {
+    const rawTranscript = [
+      "Selamat pagi rekan-rekan apoteker semua.", // seg-001 -> unlisted relevant (or conversational if model lists it)
+      "Halo cek satu dua mikrofon sudah terdengar ya.", // seg-002 -> noise
+      "Pengobatan lini pertama gagal jantung sistolik adalah ACE inhibitor.", // seg-003 -> unlisted relevant
+      "Jika pasien mengalami batuk kering persisten akibat ACEi...", // seg-004 -> uncertain (corrupted phrase)
+      "Jangan lupa absen pada tautan berikut.", // seg-005 -> noise
+    ].join("\n");
+
+    const mockGemini = vi.fn().mockResolvedValue({
+      text: JSON.stringify({
+        noiseSegmentIds: ["seg-002", "seg-005"],
+        uncertainSegments: [
+          {
+            segmentId: "seg-004",
+            reason: "Pernyataan klinis terpotong mid-sentence",
+            suspectedTranscriptionError: true,
+          },
+        ],
+      }),
+      usage: {
+        isAvailable: true,
+        promptTokenCount: 100,
+        candidatesTokenCount: 30,
+        totalTokenCount: 130,
+      },
+    });
+
+    const result = await cleanTranscript(rawTranscript, {
+      apiKey: "test",
+      geminiClient: mockGemini as any,
+    });
+
+    expect(result.segments).toHaveLength(5);
+
+    // seg-001 and seg-003: unlisted -> default relevant
+    const seg1 = result.segments.find((s) => s.segmentId === "seg-001")!;
+    expect(seg1.classification).toBe("relevant");
+    const seg3 = result.segments.find((s) => s.segmentId === "seg-003")!;
+    expect(seg3.classification).toBe("relevant");
+
+    // seg-002 and seg-005: in noiseSegmentIds -> noise
+    const seg2 = result.segments.find((s) => s.segmentId === "seg-002")!;
+    expect(seg2.classification).toBe("noise");
+    const seg5 = result.segments.find((s) => s.segmentId === "seg-005")!;
+    expect(seg5.classification).toBe("noise");
+
+    // seg-004: in uncertainSegments -> uncertain with reason and error flag
+    const seg4 = result.segments.find((s) => s.segmentId === "seg-004")!;
+    expect(seg4.classification).toBe("uncertain");
+    expect(seg4.reason).toBe("Pernyataan klinis terpotong mid-sentence");
+    expect(seg4.suspectedTranscriptionError).toBe(true);
+
+    // Retained segments = relevant + uncertain = 3
+    expect(result.retainedSegments).toHaveLength(3);
+    expect(result.droppedNoiseCount).toBe(2);
+  });
+
+  it("strictly enforces Clinical Entity Shield when a clinical entity segment is listed in noiseSegmentIds", async () => {
+    const rawTranscript = [
+      "Selamat pagi semua peserta kuliah.",
+      "Berikan captopril 12.5 mg dua kali sehari untuk dosis awal hipertensi.", // has clinical entities
+    ].join("\n");
+
+    // Model erroneously classifies seg-002 as noise
+    const mockGemini = vi.fn().mockResolvedValue({
+      text: JSON.stringify({
+        noiseSegmentIds: ["seg-001", "seg-002"],
+        uncertainSegments: [],
+      }),
+      usage: {
+        isAvailable: true,
+        promptTokenCount: 50,
+        candidatesTokenCount: 15,
+        totalTokenCount: 65,
+      },
+    });
+
+    const result = await cleanTranscript(rawTranscript, {
+      apiKey: "test",
+      geminiClient: mockGemini as any,
+    });
+
+    // seg-001 has no clinical entity -> noise
+    const seg1 = result.segments.find((s) => s.segmentId === "seg-001")!;
+    expect(seg1.classification).toBe("noise");
+
+    // seg-002 has clinical entity (captopril 12.5 mg) -> shielded to uncertain!
+    const seg2 = result.segments.find((s) => s.segmentId === "seg-002")!;
+    expect(seg2.classification).toBe("uncertain");
+    expect(seg2.reason).toBe("Protected by Clinical Entity Shield");
+  });
+
+  it("stops adaptive subdivision at bounded depth (depth 2) when MAX_TOKENS error persists", async () => {
+    const lines = Array.from({ length: 40 }, (_, i) => `Kalimat ke-${i + 1}`).join("\n");
+
+    let callCount = 0;
+    const mockGemini = vi.fn().mockImplementation(() => {
+      callCount += 1;
+      const err: any = new Error("Output truncated: MAX_TOKENS exceeded");
+      err.code = "GEMINI_MAX_TOKENS";
+      return Promise.reject(err);
+    });
+
+    await expect(() =>
+      cleanTranscript(lines, {
+        apiKey: "test",
+        chunkSize: 40,
+        geminiClient: mockGemini as any,
+      }),
+    ).rejects.toThrow(/MAX_TOKENS/i);
+
+    // Subdivides:
+    // depth 0: 1 call (40 items) -> fails
+    // depth 1: first half (20 items) -> fails
+    // depth 2: first quarter (10 items) -> not subdivided because 10 <= 15, throws
+    // Total calls is small and bounded, definitively terminating without call stack exhaustion
+    expect(callCount).toBeLessThanOrEqual(5);
+  });
+
+  it("caps total subdivision calls across the entire material to avoid quota explosion", async () => {
+    // 3 chunks of 40 segments each = 120 lines
+    const lines = Array.from({ length: 120 }, (_, i) => `Kalimat kuliah nomor ${i + 1}`).join("\n");
+
+    let callCount = 0;
+    const mockGemini = vi.fn().mockImplementation(() => {
+      callCount += 1;
+      const err: any = new Error("Output truncated: MAX_TOKENS exceeded");
+      err.code = "GEMINI_MAX_TOKENS";
+      return Promise.reject(err);
+    });
+
+    await expect(() =>
+      cleanTranscript(lines, {
+        apiKey: "test",
+        chunkSize: 40,
+        geminiClient: mockGemini as any,
+      }),
+    ).rejects.toThrow(/MAX_TOKENS/i);
+
+    // Global subdivision cap (max 4 subdivision calls) ensures total calls across material stays small (<= 5)
+    // Chunk 1 makes depth 0 (1 call) + depth 1 (2 calls) + depth 2 (2 calls) = 5 calls, exhausts budget, then throws
+    expect(callCount).toBeLessThanOrEqual(5);
+  });
+
+  it("preserves partial chunk progress when a subsequent chunk exhausts subdivision budget", async () => {
+    // 2 chunks: Chunk 1 succeeds, Chunk 2 fails with MAX_TOKENS and exhausts subdivision
+    const lines = Array.from({ length: 80 }, (_, i) => `Kalimat materi ${i + 1}`).join("\n");
+    let completedChunksCount = 0;
+    let savedCompletedSegments: any[] = [];
+
+    let callIndex = 0;
+    const mockGemini = vi.fn().mockImplementation(() => {
+      callIndex += 1;
+      if (callIndex === 1) {
+        // Chunk 1 succeeds
+        return Promise.resolve({
+          text: JSON.stringify({ noiseSegmentIds: [], uncertainSegments: [] }),
+          usage: { isAvailable: false },
+        });
+      }
+      // Subsequent calls fail with MAX_TOKENS
+      const err: any = new Error("Output truncated: MAX_TOKENS exceeded");
+      err.code = "GEMINI_MAX_TOKENS";
+      return Promise.reject(err);
+    });
+
+    await expect(() =>
+      cleanTranscript(lines, {
+        apiKey: "test",
+        chunkSize: 40,
+        geminiClient: mockGemini as any,
+        onChunkComplete: async (completedSegments) => {
+          completedChunksCount += 1;
+          savedCompletedSegments = completedSegments;
+        },
+      }),
+    ).rejects.toThrow(/MAX_TOKENS/i);
+
+    // Chunk 1 was saved via onChunkComplete
+    expect(completedChunksCount).toBe(1);
+    expect(savedCompletedSegments.length).toBeGreaterThanOrEqual(40);
+  });
 });
 
 

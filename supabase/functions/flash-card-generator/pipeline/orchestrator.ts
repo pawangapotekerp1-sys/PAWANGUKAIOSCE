@@ -84,6 +84,8 @@ export interface PipelineSubtopicOutput {
   cards: PipelineCardOutput[];
 }
 
+export type PipelineStepGroup = "cleaning" | "generation" | "review" | "all";
+
 export interface PipelineOptions {
   title: string;
   academicGroup?: FlashCardAcademicGroup | string;
@@ -104,6 +106,7 @@ export interface PipelineOptions {
     latencyMs?: number;
   }>;
   checkpoint?: PipelineCheckpoint;
+  stepGroup?: PipelineStepGroup;
   onStageComplete?: (stage: PipelineStageName, checkpoint: PipelineCheckpoint) => Promise<void> | void;
   onResumeCheckpoint?: (checkpoint: PipelineCheckpoint) => Promise<void> | void;
 }
@@ -113,6 +116,8 @@ export interface PipelineResult {
   subtopics: PipelineSubtopicOutput[];
   metadata: MaterialMetadata;
   checkpoint: PipelineCheckpoint;
+  isSuspended?: boolean;
+  nextStepGroup?: PipelineStepGroup | "finished";
 }
 
 function emptyTokenMetrics(): StageTokenMetrics {
@@ -175,11 +180,12 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
   const model = normalizeAiModel(options.model);
   const apiKey = options.apiKey ?? "";
 
-  const checkpoint: PipelineCheckpoint = options.checkpoint
+  const rawCheckpoint = options.checkpoint as any;
+  const checkpoint: PipelineCheckpoint = rawCheckpoint
     ? {
-        currentStage: options.checkpoint.currentStage,
-        completedStages: [...options.checkpoint.completedStages],
-        stageArtifacts: { ...options.checkpoint.stageArtifacts },
+        currentStage: typeof rawCheckpoint.currentStage === "string" ? rawCheckpoint.currentStage : "ingestion",
+        completedStages: Array.isArray(rawCheckpoint.completedStages) ? [...rawCheckpoint.completedStages] : [],
+        stageArtifacts: rawCheckpoint.stageArtifacts && typeof rawCheckpoint.stageArtifacts === "object" ? { ...rawCheckpoint.stageArtifacts } : {},
       }
     : {
         currentStage: "ingestion",
@@ -294,6 +300,38 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
       },
       "concept_mapping",
     );
+  }
+
+  if (options.stepGroup === "cleaning") {
+    const rawMetadata: MaterialMetadata = {
+      pipelineVersion: "gemini-3.8-source-aware-v1",
+      modelUsed: model,
+      executionDurationMs: Date.now() - startTime,
+      pipelineCheckpoint: checkpoint as any,
+      tokenUsage: {
+        transcript_cleaning: cleanerTokenUsage,
+        total: cleanerTokenUsage,
+      },
+      qualityReport: {
+        totalCardsGenerated: 0,
+        acceptedCount: 0,
+        repairedCount: 0,
+        droppedCount: 0,
+        conflictsCount: 0,
+        unresolvedCriticalOrHighConflicts: 0,
+      },
+      sourceConflicts: [],
+      rejectedAuditTrail: [],
+    };
+
+    return {
+      globalSummary: "",
+      subtopics: [],
+      metadata: validateMaterialMetadata(rawMetadata),
+      checkpoint,
+      isSuspended: true,
+      nextStepGroup: "generation",
+    };
   }
 
   // Stage 3: Concept Mapping
@@ -411,6 +449,63 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
   pdfBytes = null;
   if ("pdfBytes" in options) {
     (options as any).pdfBytes = null;
+  }
+
+  if (options.stepGroup === "generation") {
+    const candidateSubtopics: PipelineSubtopicOutput[] = generationResult.subtopics.map((subtopic, sIdx) => ({
+      title: subtopic.title || `Subtopik ${sIdx + 1}`,
+      summary: subtopic.summary,
+      cards: subtopic.cards.map((card) => ({
+        frontText: card.front_text,
+        backText: card.back_text,
+        front_text: card.front_text,
+        back_text: card.back_text,
+        metadata: card.metadata,
+      })),
+    }));
+
+    const stageTokensRecord: Record<string, StageTokenMetrics> = {
+      transcript_cleaning: cleanerTokenUsage,
+      alignment: alignmentTokenUsage,
+      generation: generationTokenUsage,
+    };
+    const totalUsage = aggregateStageTokenMetrics([
+      cleanerTokenUsage,
+      alignmentTokenUsage,
+      generationTokenUsage,
+    ]);
+    stageTokensRecord.total = totalUsage;
+
+    const rawMetadata: MaterialMetadata = {
+      pipelineVersion: "gemini-3.8-source-aware-v1",
+      modelUsed: model,
+      executionDurationMs: Date.now() - startTime,
+      pipelineCheckpoint: checkpoint as any,
+      tokenUsage: stageTokensRecord,
+      qualityReport: {
+        totalCardsGenerated: generationResult.cards.length,
+        acceptedCount: 0,
+        repairedCount: 0,
+        droppedCount: 0,
+        conflictsCount: alignmentResult.conflicts.length,
+        unresolvedCriticalOrHighConflicts: alignmentResult.conflicts.filter(
+          (c) =>
+            (c.severity === "critical" || c.severity === "high") &&
+            c.resolutionStatus === "unresolved",
+        ).length,
+      },
+      sourceConflicts: alignmentResult.conflicts,
+      rejectedAuditTrail: [],
+    };
+
+    return {
+      globalSummary: generationResult.global_summary,
+      subtopics: candidateSubtopics,
+      metadata: validateMaterialMetadata(rawMetadata),
+      checkpoint,
+      isSuspended: true,
+      nextStepGroup: "review",
+    };
   }
 
   // Stage 6: Adversarial Review
@@ -632,6 +727,8 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
     subtopics: finalSubtopics,
     metadata: validatedMetadata,
     checkpoint,
+    isSuspended: false,
+    nextStepGroup: "finished",
   };
 }
 

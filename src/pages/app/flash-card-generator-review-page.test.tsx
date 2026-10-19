@@ -9,6 +9,7 @@ const mockGetFlashCardMaterialDetail = vi.fn();
 const mockSaveFlashCardMaterialReview = vi.fn();
 const mockPublishFlashCardMaterial = vi.fn();
 const mockRetryFlashCardMaterialProcessing = vi.fn();
+const mockContinueFlashCardMaterialProcessing = vi.fn();
 const mockAuditRepairFlashCardMaterial = vi.fn();
 const mockResolveFlashCardConflict = vi.fn();
 
@@ -17,6 +18,7 @@ vi.mock("../../lib/api/flash-card-api", () => ({
   saveFlashCardMaterialReview: (...args: unknown[]) => mockSaveFlashCardMaterialReview(...args),
   publishFlashCardMaterial: (...args: unknown[]) => mockPublishFlashCardMaterial(...args),
   retryFlashCardMaterialProcessing: (...args: unknown[]) => mockRetryFlashCardMaterialProcessing(...args),
+  continueFlashCardMaterialProcessing: (...args: unknown[]) => mockContinueFlashCardMaterialProcessing(...args),
   auditRepairFlashCardMaterial: (...args: unknown[]) => mockAuditRepairFlashCardMaterial(...args),
   resolveFlashCardConflict: (...args: unknown[]) => mockResolveFlashCardConflict(...args),
 }));
@@ -183,5 +185,156 @@ describe("FlashCardGeneratorReviewPage", () => {
     fireEvent.click(await screen.findByRole("button", { name: /simpan perubahan/i }));
 
     expect(await screen.findByText(/materi harus memiliki minimal 1 submateri dan kartu sebelum disimpan/i)).toBeInTheDocument();
+  });
+
+  test("triggers continueFlashCardMaterialProcessing with stepGroup generation when cleaning is completed", async () => {
+    mockContinueFlashCardMaterialProcessing.mockResolvedValueOnce({
+      materialId: "material-1",
+      status: "processing",
+      isSuspended: true,
+      nextStepGroup: "review",
+    });
+
+    mockGetFlashCardMaterialDetail.mockResolvedValueOnce({
+      ...createDetail("ready_for_review"),
+      material: {
+        ...createDetail("ready_for_review").material,
+        status: "processing",
+        statusLabel: "Sedang diproses",
+        metadata: {
+          pipelineCheckpoint: {
+            currentStage: "concept_mapping",
+            completedStages: ["ingestion", "transcript_cleaning"],
+            stageArtifacts: {},
+          },
+        },
+      },
+      subtopics: [],
+    });
+
+    renderPage();
+
+    expect(await screen.findByText(/ai sedang menyusun flash card/i)).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(mockContinueFlashCardMaterialProcessing).toHaveBeenCalledWith({
+        materialId: "material-1",
+        stepGroup: "generation",
+      });
+    });
+  });
+
+  test("displays 5 RPM rate limit countdown banner when rate limit info is present", async () => {
+    mockGetFlashCardMaterialDetail.mockResolvedValueOnce({
+      ...createDetail("ready_for_review"),
+      material: {
+        ...createDetail("ready_for_review").material,
+        status: "processing",
+        statusLabel: "Sedang diproses",
+        metadata: {
+          pipelineCheckpoint: {
+            currentStage: "concept_mapping",
+            completedStages: ["ingestion", "transcript_cleaning"],
+            stageArtifacts: {},
+          },
+          rateLimitInfo: {
+            rateLimitedAt: new Date().toISOString(),
+            retryAfterSeconds: 45,
+            message: "Rate limit reached",
+          },
+        },
+      },
+      subtopics: [],
+    });
+
+    renderPage();
+
+    expect(await screen.findByText(/batas kuota gemini \(5 rpm\) tercapai/i)).toBeInTheDocument();
+  });
+
+  test("stops auto-retry and displays manual continuation button when circuit breaker is tripped (3 consecutive failures)", async () => {
+    mockContinueFlashCardMaterialProcessing.mockResolvedValueOnce({
+      materialId: "material-1",
+      status: "processing",
+      isSuspended: true,
+      nextStepGroup: "review",
+    });
+
+    mockGetFlashCardMaterialDetail.mockResolvedValue({
+      ...createDetail("ready_for_review"),
+      material: {
+        ...createDetail("ready_for_review").material,
+        status: "processing",
+        statusLabel: "Sedang diproses",
+        metadata: {
+          pipelineCheckpoint: {
+            currentStage: "concept_mapping",
+            completedStages: ["ingestion", "transcript_cleaning"],
+            stageArtifacts: {},
+          },
+          rateLimitInfo: {
+            rateLimitedAt: new Date().toISOString(),
+            retryAfterSeconds: 60,
+            consecutiveCount: 3,
+            isCircuitBroken: true,
+            message: "Rate limit reached 3 times",
+          },
+        },
+      },
+      subtopics: [],
+    });
+
+    renderPage();
+
+    // Must show circuit breaker message
+    expect(await screen.findByText(/batas percobaan ulang otomatis tercapai/i)).toBeInTheDocument();
+
+    // Auto-continue MUST NOT be called!
+    expect(mockContinueFlashCardMaterialProcessing).not.toHaveBeenCalled();
+
+    // Manual button is rendered and clickable
+    const manualBtn = screen.getByRole("button", { name: /lanjutkan pemrosesan manual/i });
+    expect(manualBtn).toBeInTheDocument();
+
+    fireEvent.click(manualBtn);
+
+    await waitFor(() => {
+      expect(mockContinueFlashCardMaterialProcessing).toHaveBeenCalledWith({
+        materialId: "material-1",
+        stepGroup: "generation",
+      });
+    });
+  });
+
+  test("persists circuit breaker state across refresh so auto retry does not resume unexpectedly", async () => {
+    // Simulates opening a new tab or page refresh with tripped circuit breaker in DB
+    mockGetFlashCardMaterialDetail.mockResolvedValue({
+      ...createDetail("ready_for_review"),
+      material: {
+        ...createDetail("ready_for_review").material,
+        status: "processing",
+        statusLabel: "Sedang diproses",
+        metadata: {
+          pipelineCheckpoint: {
+            completedStages: ["ingestion", "transcript_cleaning"],
+            stageArtifacts: {},
+          },
+          rateLimitInfo: {
+            rateLimitedAt: new Date().toISOString(),
+            retryAfterSeconds: 60,
+            consecutiveCount: 3,
+            isCircuitBroken: true,
+          },
+        },
+      },
+      subtopics: [],
+    });
+
+    renderPage();
+
+    expect(await screen.findByText(/batas percobaan ulang otomatis tercapai/i)).toBeInTheDocument();
+    // Auto countdown is NOT running
+    expect(screen.queryByText(/melanjutkan otomatis dalam/i)).not.toBeInTheDocument();
+    expect(mockContinueFlashCardMaterialProcessing).not.toHaveBeenCalled();
   });
 });

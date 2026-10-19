@@ -237,7 +237,7 @@ export async function cleanTranscript(
     };
   }
 
-  const chunkSize = options.chunkSize ?? 50;
+  const chunkSize = options.chunkSize ?? 250;
   const chunkOverlap = options.chunkOverlap ?? 2;
   const model = options.model ?? "gemini-3.8-flash";
   const apiKey = options.apiKey ?? "";
@@ -274,6 +274,10 @@ export async function cleanTranscript(
     }
   }
 
+  const MAX_SUBDIVISION_DEPTH = 2;
+  const MAX_MATERIAL_SUBDIVISION_CALLS = 4;
+  let subdivisionCallsRemaining = MAX_MATERIAL_SUBDIVISION_CALLS;
+
   for (let i = 0; i < segments.length; i += chunkSize) {
     const targetSlice = segments.slice(i, i + chunkSize);
     const allCached = targetSlice.every((s) => s.classification !== undefined);
@@ -285,27 +289,82 @@ export async function cleanTranscript(
     const contextBefore =
       i > 0 ? segments.slice(Math.max(0, i - chunkOverlap), i) : [];
 
-    type ClassificationItem = {
-      segmentId?: string;
-      classification?: "relevant" | "noise" | "uncertain";
-      reason?: string;
-      suspectedTranscriptionError?: boolean;
-      suspected_transcription_error?: boolean;
+    type ParsedSliceResult = {
+      noiseIds: Set<string>;
+      uncertainMap: Map<string, { reason: string; isSuspectedError: boolean }>;
+      legacyClassifications?: Map<string, { classification: string; reason?: string; isSuspectedError?: boolean }>;
+    };
+
+    const parseResponseText = (responseText: string): ParsedSliceResult => {
+      const noiseIds = new Set<string>();
+      const uncertainMap = new Map<string, { reason: string; isSuspectedError: boolean }>();
+      const legacyClassifications = new Map<string, { classification: string; reason?: string; isSuspectedError?: boolean }>();
+
+      try {
+        const parsed = JSON.parse(cleanJsonText(responseText));
+
+        // 1. Sparse format: noiseSegmentIds
+        if (Array.isArray(parsed?.noiseSegmentIds)) {
+          for (const id of parsed.noiseSegmentIds) {
+            if (typeof id === "string" && id.trim()) {
+              noiseIds.add(id.trim());
+            }
+          }
+        }
+
+        // 2. Sparse format: uncertainSegments
+        if (Array.isArray(parsed?.uncertainSegments)) {
+          for (const u of parsed.uncertainSegments) {
+            if (u && typeof u.segmentId === "string") {
+              uncertainMap.set(u.segmentId.trim(), {
+                reason: typeof u.reason === "string" ? u.reason : "Ambiguous or fragmented transcript",
+                isSuspectedError: Boolean(u.suspectedTranscriptionError ?? u.suspected_transcription_error ?? true),
+              });
+            }
+          }
+        }
+
+        // 3. Legacy verbose format (backward compatibility with existing mocks / responses)
+        const legacyItems = Array.isArray(parsed?.classifications)
+          ? parsed.classifications
+          : Array.isArray(parsed)
+          ? parsed
+          : [];
+
+        for (const item of legacyItems) {
+          if (item && typeof item.segmentId === "string") {
+            const segId = item.segmentId.trim();
+            const classification = typeof item.classification === "string" ? item.classification : "relevant";
+            legacyClassifications.set(segId, {
+              classification,
+              reason: item.reason,
+              isSuspectedError: Boolean(item.suspectedTranscriptionError ?? item.suspected_transcription_error),
+            });
+          }
+        }
+      } catch {
+        // In case of JSON parse failure, fallback
+      }
+
+      return { noiseIds, uncertainMap, legacyClassifications };
     };
 
     const classifySlice = async (
       slice: TranscriptSegment[],
       context: TranscriptSegment[],
-    ): Promise<ClassificationItem[]> => {
+      depth = 0,
+    ): Promise<ParsedSliceResult> => {
       const prompt = `You are an expert clinical pharmacist and AI medical educator analyzing educational lecture transcripts.
-Your task is to classify transcript segments for pharmacy flashcard generation into:
-- "relevant": core pharmacological facts, clinical concepts, dosages, indications, contraindications, mechanisms, patient counseling.
-- "noise": audio checks, conversational banter, greetings, administrative remarks, jokes with no educational value.
-- "uncertain": fragmented clinical statements, cut-off dosage instructions, ambiguous clinical phrasing, or transcription errors.
+Your task is to classify transcript segments for pharmacy flashcard generation.
+
+IMPORTANT STRATEGY:
+Assume transcript segments are "relevant" clinical content by default.
+Identify ONLY:
+1. "noiseSegmentIds": array of segment IDs that are purely conversational noise, greetings, audio tests ("cek suara"), administrative remarks ("link absen"), or jokes with no educational value.
+2. "uncertainSegments": array of objects for segments that contain ambiguous, corrupted, or cut-off clinical statements (suspectedTranscriptionError: true).
 
 CRITICAL GUARDRAIL:
-Any segment with clinical entities (dosages, drug names, medical terms) MUST NOT be classified as "noise".
-If transcription is garbled or cut-off mid-clinical statement, classify as "uncertain" and set suspectedTranscriptionError: true.
+Any segment with clinical entities (dosages, drug names, medical terms) MUST NOT be classified as noise. If uncertain or fragmented, list under uncertainSegments instead.
 
 ${
         context.length > 0
@@ -314,16 +373,17 @@ ${context.map((s) => `[${s.segmentId}] ${s.normalizedText}`).join("\n")}
 `
           : ""
       }
-SEGMENTS TO CLASSIFY:
+SEGMENTS TO EVALUATE:
 ${slice.map((s) => `[${s.segmentId}] ${s.normalizedText}`).join("\n")}
 
 Respond ONLY with valid JSON in this exact structure:
 {
-  "classifications": [
+  "noiseSegmentIds": ["seg-001"],
+  "uncertainSegments": [
     {
-      "segmentId": "string",
-      "classification": "relevant" | "noise" | "uncertain",
-      "suspectedTranscriptionError": boolean
+      "segmentId": "seg-005",
+      "reason": "cut-off dosage instruction",
+      "suspectedTranscriptionError": true
     }
   ]
 }`;
@@ -354,17 +414,7 @@ Respond ONLY with valid JSON in this exact structure:
             (response.usage.thoughtsTokenCount ?? 0);
         }
 
-        try {
-          const parsed = JSON.parse(cleanJsonText(response.text));
-          if (Array.isArray(parsed?.classifications)) {
-            return parsed.classifications;
-          } else if (Array.isArray(parsed)) {
-            return parsed;
-          }
-        } catch {
-          // In case of JSON parse failure, fallback
-        }
-        return [];
+        return parseResponseText(response.text);
       } catch (err: any) {
         const isMaxTokens =
           err?.code === "GEMINI_MAX_TOKENS" ||
@@ -373,57 +423,65 @@ Respond ONLY with valid JSON in this exact structure:
               err.message.includes("MAX_TOKENS") ||
               err.message.includes("token limit")));
 
-        // If batch is large (> 15) and hits MAX_TOKENS, adaptively subdivide into smaller halves
-        if (isMaxTokens && slice.length > 15) {
+        // Bounded adaptive subdivision: if batch is large (> 15), within depth limit, and budget remaining
+        if (
+          isMaxTokens &&
+          slice.length > 15 &&
+          depth < MAX_SUBDIVISION_DEPTH &&
+          subdivisionCallsRemaining >= 2
+        ) {
+          subdivisionCallsRemaining -= 2;
           const mid = Math.floor(slice.length / 2);
           const firstHalf = slice.slice(0, mid);
           const secondHalf = slice.slice(mid);
-          const firstResults = await classifySlice(firstHalf, context);
-          const secondResults = await classifySlice(secondHalf, [...context, ...firstHalf]);
-          return [...firstResults, ...secondResults];
+          const firstResults = await classifySlice(firstHalf, context, depth + 1);
+          const secondResults = await classifySlice(secondHalf, [...context, ...firstHalf], depth + 1);
+
+          const mergedNoise = new Set([...firstResults.noiseIds, ...secondResults.noiseIds]);
+          const mergedUncertain = new Map([...firstResults.uncertainMap, ...secondResults.uncertainMap]);
+          const mergedLegacy = new Map([
+            ...(firstResults.legacyClassifications ?? []),
+            ...(secondResults.legacyClassifications ?? []),
+          ]);
+          return {
+            noiseIds: mergedNoise,
+            uncertainMap: mergedUncertain,
+            legacyClassifications: mergedLegacy,
+          };
         }
         throw err;
       }
     };
 
-    const classifications: ClassificationItem[] = await classifySlice(targetSlice, contextBefore);
-
-    const classificationMap = new Map<string, ClassificationItem>();
-    for (const item of classifications) {
-      if (item?.segmentId) {
-        classificationMap.set(item.segmentId, item);
-      }
-    }
+    const { noiseIds, uncertainMap, legacyClassifications } = await classifySlice(targetSlice, contextBefore, 0);
 
     for (const seg of targetSlice) {
-      const classItem = classificationMap.get(seg.segmentId);
-      let classification =
-        classItem?.classification ??
-        (seg.hasClinicalEntities ? "relevant" : "relevant");
-      let reason =
-        classItem?.reason ??
-        (seg.hasClinicalEntities
-          ? "Clinical entity detected"
-          : classification === "noise"
-          ? "Conversational noise"
-          : classification === "uncertain"
-          ? "Ambiguous or fragmented transcript"
-          : "Default relevant");
+      let classification: "relevant" | "noise" | "uncertain" = "relevant";
+      let reason = seg.hasClinicalEntities ? "Clinical entity detected" : "Default relevant";
+      let isSuspectedError = false;
 
-      const isSuspectedError = Boolean(
-        classItem?.suspectedTranscriptionError ||
-          classItem?.suspected_transcription_error ||
-          reason.toLowerCase().includes("transcription_error") ||
-          reason.toLowerCase().includes("suspected_transcription_error") ||
-          reason.toLowerCase().includes("transcription error") ||
-          reason.toLowerCase().includes("corrupted"),
-      );
-
-      if (isSuspectedError) {
-        seg.suspectedTranscriptionError = true;
-        if (classification !== "relevant") {
-          classification = "uncertain";
-        }
+      // Check legacy format first if returned by mock
+      if (legacyClassifications && legacyClassifications.has(seg.segmentId)) {
+        const classItem = legacyClassifications.get(seg.segmentId)!;
+        classification = (classItem.classification as any) ?? (seg.hasClinicalEntities ? "relevant" : "relevant");
+        reason =
+          classItem.reason ??
+          (seg.hasClinicalEntities
+            ? "Clinical entity detected"
+            : classification === "noise"
+            ? "Conversational noise"
+            : classification === "uncertain"
+            ? "Ambiguous or fragmented transcript"
+            : "Default relevant");
+        isSuspectedError = Boolean(classItem.isSuspectedError);
+      } else if (uncertainMap.has(seg.segmentId)) {
+        const item = uncertainMap.get(seg.segmentId)!;
+        classification = "uncertain";
+        reason = item.reason;
+        isSuspectedError = item.isSuspectedError;
+      } else if (noiseIds.has(seg.segmentId)) {
+        classification = "noise";
+        reason = "Conversational noise";
       }
 
       // CLINICAL ENTITY SHIELD GUARDRAIL:
@@ -431,6 +489,11 @@ Respond ONLY with valid JSON in this exact structure:
       if (seg.hasClinicalEntities && classification === "noise") {
         classification = "uncertain";
         reason = "Protected by Clinical Entity Shield";
+      }
+
+      if (isSuspectedError && classification !== "relevant") {
+        classification = "uncertain";
+        seg.suspectedTranscriptionError = true;
       }
 
       seg.classification = classification;

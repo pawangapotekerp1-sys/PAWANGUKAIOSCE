@@ -185,9 +185,10 @@ describe("Regression 429 Handling - Comprehensive Suite", () => {
     expect(extractRetryAfterSeconds({ "content-type": "application/json" }, {})).toBeNull();
   });
 
-  // Scenario 8: Exponential backoff and maximum attempts cap (3 attempts)
-  it("Scenario 8: respects maximum 3 attempts on retryable rate limits", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
+  // Scenario 8: Fail-fast without retry hint and capped retry with hint
+  it("Scenario 8: fails fast on rate limit without retry hint, and retries once if hint <= 30s is provided", async () => {
+    // Part A: Without retry hint -> fails fast immediately (1 attempt) to prevent quota burn
+    const fetchMockNoHint = vi.fn().mockResolvedValue({
       ok: false,
       status: 429,
       json: async () => ({
@@ -199,7 +200,7 @@ describe("Regression 429 Handling - Comprehensive Suite", () => {
         },
       }),
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", fetchMockNoHint);
 
     await expect(() =>
       generateGeminiTextWithUsage({
@@ -209,8 +210,37 @@ describe("Regression 429 Handling - Comprehensive Suite", () => {
       }),
     ).rejects.toThrow(/RPM terlampaui|Permintaan ke Gemini sedang penuh/i);
 
-    // Must have attempted up to 3 times before giving up
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    // Fails fast on attempt 1 without fast repeated retries
+    expect(fetchMockNoHint).toHaveBeenCalledTimes(1);
+
+    // Part B: With retry hint <= 30s -> retries at most once (2 attempts total)
+    const fetchMockWithHint = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+      json: async () => ({
+        error: {
+          code: 429,
+          status: "RESOURCE_EXHAUSTED",
+          message: "Rate limit exceeded.",
+          details: [
+            { "@type": "type.googleapis.com/google.rpc.ErrorInfo", reason: "RATE_LIMIT_EXCEEDED" },
+            { "@type": "type.googleapis.com/google.rpc.RetryInfo", retryDelay: "0.1s" },
+          ],
+        },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMockWithHint);
+
+    await expect(() =>
+      generateGeminiTextWithUsage({
+        apiKey: "api-key",
+        model: "gemini-3.8-flash",
+        prompt: "Generate flashcard",
+      }),
+    ).rejects.toThrow(/RPM terlampaui|Permintaan ke Gemini sedang penuh/i);
+
+    // Retried once with hint, capped at 2 attempts
+    expect(fetchMockWithHint).toHaveBeenCalledTimes(2);
   });
 
   // Scenario 9: No duplicate nested retries between helper and pipeline

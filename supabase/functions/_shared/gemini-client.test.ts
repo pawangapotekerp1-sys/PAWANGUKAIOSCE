@@ -672,5 +672,103 @@ describe("gemini-client", () => {
 
     expect(body.generationConfig.maxOutputTokens).toBeGreaterThanOrEqual(8192);
   });
-});
 
+  test("fails fast on HTTP 429 rate limit without retry hint (calls fetch exactly 1 time) and throws GEMINI_RATE_LIMITED", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+      json: async () => ({
+        error: {
+          code: 429,
+          status: "RESOURCE_EXHAUSTED",
+          message: "Rate limit exceeded for project. Quota exceeded for 15 RPM.",
+          details: [{ "@type": "type.googleapis.com/google.rpc.ErrorInfo", reason: "RATE_LIMIT_EXCEEDED" }],
+        },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { generateGeminiTextWithUsage } = await import("./gemini-client.ts");
+    await expect(() =>
+      generateGeminiTextWithUsage({
+        apiKey: "api-key",
+        model: "gemini-3.8-flash",
+        prompt: "Generate flashcard",
+      }),
+    ).rejects.toMatchObject({
+      code: "GEMINI_RATE_LIMITED",
+      status: 429,
+    });
+
+    // Fails fast: exactly 1 attempt, preventing repeated futile requests within the 60-second window
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  test("retries at most once when HTTP 429 provides a valid Retry-After hint (<= 30s)", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+      headers: new Headers({ "retry-after": "1" }),
+      json: async () => ({
+        error: {
+          code: 429,
+          status: "RESOURCE_EXHAUSTED",
+          message: "Rate limit exceeded. Please wait 1 second.",
+          details: [{ "@type": "type.googleapis.com/google.rpc.ErrorInfo", reason: "RATE_LIMIT_EXCEEDED" }],
+        },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { generateGeminiTextWithUsage } = await import("./gemini-client.ts");
+    await expect(() =>
+      generateGeminiTextWithUsage({
+        apiKey: "api-key",
+        model: "gemini-3.8-flash",
+        prompt: "Generate flashcard",
+      }),
+    ).rejects.toMatchObject({
+      code: "GEMINI_RATE_LIMITED",
+    });
+
+    // Retries once after waiting, then halts at 2 attempts
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  test("fails fast immediately on HTTP 429 daily quota exhaustion without retrying", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+      json: async () => ({
+        error: {
+          code: 429,
+          status: "RESOURCE_EXHAUSTED",
+          message: "Quota exceeded for quota metric 'Daily Requests' and limit 'Daily Requests'.",
+          details: [
+            {
+              "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+              reason: "QUOTA_EXCEEDED",
+              metadata: { quota_limit: "GenerateContentRequestsPerDayPerProject" },
+            },
+          ],
+        },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { generateGeminiTextWithUsage } = await import("./gemini-client.ts");
+    await expect(() =>
+      generateGeminiTextWithUsage({
+        apiKey: "api-key",
+        model: "gemini-3.8-flash",
+        prompt: "Generate flashcard",
+      }),
+    ).rejects.toMatchObject({
+      code: "GEMINI_QUOTA_EXHAUSTED",
+      status: 429,
+    });
+
+    // Halts immediately: 1 attempt, zero retries for permanent quota exhaustion
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});

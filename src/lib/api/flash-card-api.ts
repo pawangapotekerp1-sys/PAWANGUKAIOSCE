@@ -307,15 +307,40 @@ export async function testFlashCardGeneratorCredential(
 export async function processFlashCardMaterial(
   input: {
     materialId: string;
+    stepGroup?: "cleaning" | "generation" | "review" | "all";
   },
   client: FlashCardApiClient = getSupabaseBrowserClient(),
 ) {
   return invokeFlashCardGenerator<{
     materialId: string;
     status: string;
+    isSuspended?: boolean;
+    nextStepGroup?: string;
+    completedStages?: string[];
   }>({
     action: "process-material",
     materialId: input.materialId,
+    stepGroup: input.stepGroup,
+  }, client);
+}
+
+export async function continueFlashCardMaterialProcessing(
+  input: {
+    materialId: string;
+    stepGroup?: "cleaning" | "generation" | "review" | "all";
+  },
+  client: FlashCardApiClient = getSupabaseBrowserClient(),
+) {
+  return invokeFlashCardGenerator<{
+    materialId: string;
+    status: string;
+    isSuspended?: boolean;
+    nextStepGroup?: string;
+    completedStages?: string[];
+  }>({
+    action: "continue-processing",
+    materialId: input.materialId,
+    stepGroup: input.stepGroup,
   }, client);
 }
 

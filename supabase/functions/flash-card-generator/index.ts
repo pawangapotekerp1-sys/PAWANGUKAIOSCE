@@ -25,6 +25,7 @@ import {
   runFlashCardPipeline,
   resumePipelineFromCheckpoint,
   type PipelineCheckpoint,
+  type PipelineStepGroup,
 } from "./pipeline/orchestrator.ts";
 import { type CandidateCard } from "./pipeline/generator.ts";
 import { reviewCandidateCards } from "./pipeline/reviewer.ts";
@@ -40,9 +41,12 @@ import {
   buildFlashCardPublishUpdate,
   buildFlashCardReadyForReviewUpdate,
   buildFlashCardSourceFileRows,
+  buildRateLimitMetadataUpdate,
   buildStageCheckpointMetadataUpdate,
+  canContinueFlashCardMaterial,
   canRetryFlashCardMaterial,
   createFlashCardResponseSchema,
+  determineMaterialClaimConditions,
   ensureFlashCardManagerAccess,
   extractStaleRecoveryDiagnostics,
   FlashCardManagerAccessError,
@@ -410,7 +414,7 @@ async function processMaterialGeneration(
   service: ServiceClient,
   material: MaterialRow,
   credential: UserAiCredentialRow,
-  options: { isRetry?: boolean } = {},
+  options: { isRetry?: boolean; stepGroup?: PipelineStepGroup } = {},
 ) {
   const { sourceFiles } = await loadMaterialChildren(service, material.id);
   const transcriptSource = sourceFiles.find((sourceFile) => sourceFile.file_kind === "transcript");
@@ -437,6 +441,12 @@ async function processMaterialGeneration(
     stage: initialCheckpoint?.currentStage ?? "ingestion",
   };
 
+  const claimConditions = determineMaterialClaimConditions({
+    isRetry: options.isRetry,
+    status: material.status,
+    metadata: material.metadata,
+  });
+
   let claimQuery = service
     .from("flashcard_materials")
     .update({
@@ -449,24 +459,21 @@ async function processMaterialGeneration(
     })
     .eq("id", material.id);
 
-  if (options.isRetry) {
-    if (material.status === "processing") {
-      const oldJobId = (material.metadata as any)?.processingJob?.jobId;
-      if (oldJobId) {
-        claimQuery = claimQuery.eq("status", "processing").eq("metadata->processingJob->>jobId", oldJobId);
-      } else {
-        claimQuery = claimQuery.eq("status", "processing");
-      }
-    } else {
-      claimQuery = claimQuery.eq("status", material.status);
-    }
+  if (claimConditions.statusFilter.type === "eq") {
+    claimQuery = claimQuery.eq("status", claimConditions.statusFilter.value);
   } else {
-    claimQuery = claimQuery.in("status", ["draft", "failed"]);
+    claimQuery = claimQuery.in("status", claimConditions.statusFilter.value);
+  }
+
+  if (claimConditions.jobIdFilter?.type === "eq") {
+    claimQuery = claimQuery.eq("metadata->processingJob->>jobId", claimConditions.jobIdFilter.value);
+  } else if (claimConditions.jobIdFilter?.type === "is_null") {
+    claimQuery = claimQuery.is("metadata->processingJob->>jobId", null);
   }
 
   const { data: claimData, error: claimError } = await claimQuery.select("id, status, metadata");
 
-  if (claimError || !claimData || claimData.length === 0) {
+  if (claimError || !claimData || claimData.length !== 1) {
     logSafeTelemetry("job_claim_race_lost", { materialId: material.id, jobId });
     const freshMaterial = await loadOwnedMaterial(service, material.id, material.created_by);
     if (freshMaterial.status === "processing") {
@@ -640,6 +647,7 @@ async function processMaterialGeneration(
       pdfByteLength: typeof slidePdfSource.size_bytes === "number" ? slidePdfSource.size_bytes : 0,
       apiKey,
       model,
+      stepGroup: options.stepGroup,
       onStageComplete,
       onResumeCheckpoint,
     };
@@ -651,6 +659,43 @@ async function processMaterialGeneration(
       pipelineResult = await runFlashCardPipeline(pipelineOptions);
     }
     latestCheckpoint = pipelineResult.checkpoint ?? latestCheckpoint;
+
+    if (pipelineResult.isSuspended) {
+      stopHeartbeat();
+      const suspendedMetadata = {
+        ...(pipelineResult.metadata ?? {}),
+        pipelineCheckpoint: latestCheckpoint,
+        processingJob: undefined,
+      };
+
+      const { error: materialUpdateError } = await service
+        .from("flashcard_materials")
+        .update({
+          status: "processing",
+          processing_error: null,
+          metadata: suspendedMetadata,
+        })
+        .eq("id", material.id);
+
+      if (materialUpdateError) {
+        throw new HttpError(500, "FLASHCARD_MATERIAL_UPDATE_FAILED", materialUpdateError.message);
+      }
+
+      logSafeTelemetry("step_suspended", {
+        materialId: material.id,
+        jobId,
+        nextStepGroup: pipelineResult.nextStepGroup,
+        completedStages: latestCheckpoint?.completedStages,
+      });
+
+      return jsonResponse({
+        materialId: material.id,
+        status: "processing",
+        isSuspended: true,
+        nextStepGroup: pipelineResult.nextStepGroup,
+        completedStages: latestCheckpoint?.completedStages,
+      });
+    }
 
     // Concurrency protection: Verify current jobId is still authoritative
     const latestMaterialRow = await loadOwnedMaterial(service, material.id, material.created_by);
@@ -732,6 +777,34 @@ async function processMaterialGeneration(
     });
     const currentMeta = (material.metadata ?? {}) as Record<string, unknown>;
     const checkpointToPreserve = (error as any)?.checkpoint ?? latestCheckpoint;
+
+    const isRateLimited = errorDiagnostics?.category === "GEMINI_RATE_LIMITED" || (errorStatus === 429 && errorDiagnostics?.isRetryable !== false);
+    if (isRateLimited) {
+      const retryAfterSeconds = errorDiagnostics?.retryAfterSeconds ?? 60;
+      const rateLimitMeta = buildRateLimitMetadataUpdate({
+        currentMetadata: currentMeta,
+        checkpointToPreserve,
+        retryAfterSeconds,
+        message,
+      });
+
+      await service
+        .from("flashcard_materials")
+        .update({
+          status: "processing",
+          processing_error: null,
+          metadata: rateLimitMeta,
+        })
+        .eq("id", material.id)
+        .eq("status", "processing")
+        .eq("metadata->processingJob->>jobId", jobId);
+
+      const circuitBrokenNotice = rateLimitMeta.rateLimitInfo.isCircuitBroken
+        ? ` (Batas percobaan ulang otomatis tercapai [${rateLimitMeta.rateLimitInfo.consecutiveCount}x]. Silakan lanjutkan manual).`
+        : "";
+
+      throw new HttpError(429, "GEMINI_RATE_LIMIT", `Batas kuota Gemini (5 RPM) tercapai. Menunggu ${retryAfterSeconds} detik.${circuitBrokenNotice}`);
+    }
 
     const failureUpdate: Record<string, unknown> = buildFlashCardFailureUpdate(message);
     failureUpdate.metadata = {
@@ -998,7 +1071,8 @@ Deno.serve(async (req) => {
           status: material.status,
           metadata: material.metadata as any,
           updatedAt: material.updated_at,
-        })
+        }) &&
+        (material.metadata as any)?.processingJob?.jobId
       ) {
         logSafeTelemetry("process_duplicate_ignored", { materialId });
         return jsonResponse({
@@ -1008,7 +1082,49 @@ Deno.serve(async (req) => {
         });
       }
 
-      return await processMaterialGeneration(service, material, credential);
+      const stepGroup = typeof payload.stepGroup === "string" ? (payload.stepGroup as PipelineStepGroup) : undefined;
+      return await processMaterialGeneration(service, material, credential, { stepGroup });
+    }
+
+    if (payload.action === "continue-processing") {
+      if (!credential?.secret_id) {
+        throw new HttpError(400, "BYOK_MISSING", "Belum ada BYOK tersimpan untuk flash card.");
+      }
+
+      const materialId = typeof payload.materialId === "string" ? payload.materialId : "";
+      const material = await loadOwnedMaterial(service, materialId, user.id);
+
+      if (material.status === "published") {
+        throw new HttpError(400, "FLASHCARD_ALREADY_PUBLISHED", "Materi sudah dipublikasikan.");
+      }
+
+      // Idempotency: If actively working in another worker (has job and not stale), do not start duplicate worker
+      if (!canContinueFlashCardMaterial({
+        status: material.status,
+        metadata: material.metadata as any,
+        updatedAt: material.updated_at,
+      })) {
+        logSafeTelemetry("continue_duplicate_ignored", { materialId });
+        return jsonResponse({
+          materialId: material.id,
+          status: "processing",
+          message: "Materi sedang diproses di latar belakang.",
+        });
+      }
+
+      const cp = (material.metadata as any)?.pipelineCheckpoint ?? (material.metadata as any)?.pipeline_checkpoint;
+      const stepGroup: PipelineStepGroup = typeof payload.stepGroup === "string"
+        ? (payload.stepGroup as PipelineStepGroup)
+        : cp?.completedStages?.includes("candidate_generation")
+          ? "review"
+          : cp?.completedStages?.includes("transcript_cleaning")
+            ? "generation"
+            : "cleaning";
+
+      return await processMaterialGeneration(service, material, credential, {
+        isRetry: true,
+        stepGroup,
+      });
     }
 
     if (payload.action === "get-material") {
@@ -1128,7 +1244,8 @@ Deno.serve(async (req) => {
           status: material.status,
           metadata: material.metadata as any,
           updatedAt: material.updated_at,
-        })
+        }) &&
+        (material.metadata as any)?.processingJob?.jobId
       ) {
         logSafeTelemetry("retry_duplicate_ignored", { materialId });
         return jsonResponse({
@@ -1138,7 +1255,8 @@ Deno.serve(async (req) => {
         });
       }
 
-      return await processMaterialGeneration(service, material, credential, { isRetry: true });
+      const stepGroup = typeof payload.stepGroup === "string" ? (payload.stepGroup as PipelineStepGroup) : undefined;
+      return await processMaterialGeneration(service, material, credential, { isRetry: true, stepGroup });
     }
 
     if (payload.action === "publish-material") {

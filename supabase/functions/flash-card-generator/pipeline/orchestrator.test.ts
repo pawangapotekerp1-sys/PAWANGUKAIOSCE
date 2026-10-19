@@ -390,4 +390,129 @@ describe("FlashCard Pipeline Orchestrator", () => {
     // 25 + 35 + 20 = 80 thoughts tokens
     expect(totalUsage?.thoughtsTokenCount).toBe(80);
   });
+
+  it("supports step-by-step execution across 3 HTTP steps using checkpoints", async () => {
+    const mockGeminiClient = vi.fn().mockImplementation(async (req: GeminiRequest) => {
+      if (req.prompt.includes("classify transcript segments")) {
+        return {
+          text: JSON.stringify({
+            noiseSegmentIds: [],
+            uncertainSegments: [],
+          }),
+          usage: { isAvailable: true, promptTokenCount: 50, candidatesTokenCount: 20, totalTokenCount: 70 },
+        };
+      }
+      if (req.prompt.includes("Susun subtopik komprehensif")) {
+        return {
+          text: JSON.stringify({
+            global_summary: "Ringkasan materi farmakoterapi.",
+            subtopics: [
+              {
+                title: "Antihipertensi",
+                summary: "Golongan obat penurun tekanan darah",
+                cards: [
+                  {
+                    id: "c-1",
+                    front_text: "Apa mekanisme kaptopril?",
+                    back_text: "Menghambat enzim konversi angiotensin.",
+                    conceptId: "c-captopril",
+                  },
+                ],
+              },
+            ],
+          }),
+          usage: { isAvailable: true, promptTokenCount: 100, candidatesTokenCount: 40, totalTokenCount: 140 },
+        };
+      }
+      if (req.prompt.includes("Auditor Medis dan Reviewer Adversarial")) {
+        return {
+          text: JSON.stringify({
+            reviews: [
+              {
+                cardId: "c-1",
+                status: "ACCEPTED",
+              },
+            ],
+          }),
+          usage: { isAvailable: true, promptTokenCount: 80, candidatesTokenCount: 20, totalTokenCount: 100 },
+        };
+      }
+      return { text: "{}", usage: { isAvailable: false } };
+    });
+
+    const baseOptions: PipelineOptions = {
+      title: "Kuliah Hipertensi",
+      transcriptText: "Kaptopril adalah obat antihipertensi golongan ACE inhibitor.",
+      geminiClient: mockGeminiClient,
+      apiKey: "test-key",
+      model: "gemini-3.8-flash",
+    };
+
+    // STEP 1: cleaning
+    const step1Result = await runFlashCardPipeline({
+      ...baseOptions,
+      stepGroup: "cleaning",
+    });
+
+    expect(step1Result.isSuspended).toBe(true);
+    expect(step1Result.nextStepGroup).toBe("generation");
+    expect(step1Result.checkpoint.completedStages).toContain("ingestion");
+    expect(step1Result.checkpoint.completedStages).toContain("transcript_cleaning");
+    expect(step1Result.checkpoint.completedStages).not.toContain("candidate_generation");
+
+    // STEP 2: generation (resuming from step 1 checkpoint)
+    const step2Result = await runFlashCardPipeline({
+      ...baseOptions,
+      checkpoint: step1Result.checkpoint,
+      stepGroup: "generation",
+    });
+
+    expect(step2Result.isSuspended).toBe(true);
+    expect(step2Result.nextStepGroup).toBe("review");
+    expect(step2Result.checkpoint.completedStages).toContain("candidate_generation");
+    expect(step2Result.checkpoint.completedStages).not.toContain("adversarial_review");
+    expect(step2Result.subtopics).toHaveLength(1);
+
+    // STEP 3: review (resuming from step 2 checkpoint)
+    const step3Result = await runFlashCardPipeline({
+      ...baseOptions,
+      checkpoint: step2Result.checkpoint,
+      stepGroup: "review",
+    });
+
+    expect(step3Result.isSuspended).toBe(false);
+    expect(step3Result.nextStepGroup).toBe("finished");
+    expect(step3Result.checkpoint.completedStages).toContain("adversarial_review");
+    expect(step3Result.checkpoint.completedStages).toContain("validation_and_storage");
+    expect(step3Result.subtopics[0].cards).toHaveLength(1);
+    expect(step3Result.metadata.qualityReport?.acceptedCount).toBe(1);
+  });
+
+  it("handles corrupted or partial checkpoint with missing completedStages safely without TypeError", async () => {
+    const mockGeminiClient = vi.fn().mockResolvedValue({
+      text: JSON.stringify({ noiseSegmentIds: [], uncertainSegments: [] }),
+      usage: { isAvailable: false },
+    });
+
+    const malformedCheckpoint = {
+      currentStage: "transcript_cleaning",
+      completedStages: null as any,
+      stageArtifacts: null as any,
+    };
+
+    const options: PipelineOptions = {
+      title: "Uji Checkpoint Rusak",
+      transcriptText: "Teks transkrip farmasi.",
+      checkpoint: malformedCheckpoint as any,
+      geminiClient: mockGeminiClient,
+      apiKey: "test-key",
+      model: "gemini-3.8-flash",
+      stepGroup: "cleaning",
+    };
+
+    const result = await runFlashCardPipeline(options);
+    expect(result).toBeDefined();
+    expect(Array.isArray(result.checkpoint.completedStages)).toBe(true);
+    expect(result.checkpoint.completedStages).toContain("transcript_cleaning");
+  });
 });

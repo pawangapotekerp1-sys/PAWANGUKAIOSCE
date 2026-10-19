@@ -87,6 +87,23 @@ export function canRetryFlashCardMaterial(params: {
   return true;
 }
 
+export function canContinueFlashCardMaterial(params: {
+  status: string;
+  metadata?: Record<string, unknown> | null;
+  updatedAt?: string | null;
+  now?: number;
+  timeoutMs?: number;
+}): boolean {
+  if (params.status === "published") {
+    return false;
+  }
+  const processingJob = params.metadata?.processingJob as { jobId?: string } | undefined;
+  if (params.status === "processing" && processingJob?.jobId && !isProcessingJobStale(params)) {
+    return false;
+  }
+  return true;
+}
+
 export function shouldApplyStaleRecovery(params: {
   status: string;
   metadata?: Record<string, unknown> | null;
@@ -121,6 +138,82 @@ export function extractStaleRecoveryDiagnostics(params: {
     lastHeartbeatAt: typeof processingJob?.heartbeatAt === "string" ? processingJob.heartbeatAt : null,
   };
 }
+
+export interface MaterialClaimConditions {
+  statusFilter: { type: "eq"; value: string } | { type: "in"; value: string[] };
+  jobIdFilter?: { type: "eq"; value: string } | { type: "is_null" };
+}
+
+export function determineMaterialClaimConditions(params: {
+  isRetry?: boolean;
+  status: string;
+  metadata?: Record<string, unknown> | null;
+}): MaterialClaimConditions {
+  if (params.isRetry) {
+    if (params.status === "processing") {
+      const oldJobId = (params.metadata as any)?.processingJob?.jobId;
+      if (typeof oldJobId === "string" && oldJobId.trim()) {
+        return {
+          statusFilter: { type: "eq", value: "processing" },
+          jobIdFilter: { type: "eq", value: oldJobId.trim() },
+        };
+      }
+      return {
+        statusFilter: { type: "eq", value: "processing" },
+        jobIdFilter: { type: "is_null" },
+      };
+    }
+    return {
+      statusFilter: { type: "eq", value: params.status },
+    };
+  }
+  return {
+    statusFilter: { type: "in", value: ["draft", "failed"] },
+  };
+}
+
+export interface RateLimitMetadataUpdateResult {
+  [key: string]: unknown;
+  pipelineCheckpoint?: unknown;
+  processingJob?: undefined;
+  rateLimitInfo: {
+    rateLimitedAt: string;
+    retryAfterSeconds: number;
+    message: string;
+    consecutiveCount: number;
+    isCircuitBroken: boolean;
+  };
+}
+
+export function buildRateLimitMetadataUpdate(params: {
+  currentMetadata?: Record<string, unknown> | null;
+  checkpointToPreserve?: unknown;
+  retryAfterSeconds?: number;
+  message?: string;
+  now?: string;
+}): RateLimitMetadataUpdateResult {
+  const currentMeta = (params.currentMetadata ?? {}) as Record<string, unknown>;
+  const previousRateLimit = currentMeta.rateLimitInfo as { consecutiveCount?: number } | undefined;
+  const previousCount = typeof previousRateLimit?.consecutiveCount === "number" ? previousRateLimit.consecutiveCount : 0;
+  const consecutiveCount = previousCount + 1;
+  const isCircuitBroken = consecutiveCount >= 3;
+  const retryAfterSeconds = params.retryAfterSeconds ?? 60;
+  const message = params.message ?? "Batas kuota Gemini tercapai.";
+
+  return {
+    ...currentMeta,
+    ...(params.checkpointToPreserve ? { pipelineCheckpoint: params.checkpointToPreserve } : {}),
+    processingJob: undefined,
+    rateLimitInfo: {
+      rateLimitedAt: params.now ?? new Date().toISOString(),
+      retryAfterSeconds,
+      message,
+      consecutiveCount,
+      isCircuitBroken,
+    },
+  };
+}
+
 
 export function buildStageCheckpointMetadataUpdate(params: {
   currentMetadata?: Record<string, unknown> | null;

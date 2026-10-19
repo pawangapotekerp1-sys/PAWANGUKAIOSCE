@@ -10,7 +10,10 @@ import {
   buildFlashCardMaterialInsert,
   buildFlashCardPublishUpdate,
   buildFlashCardSourceFileRows,
+  buildRateLimitMetadataUpdate,
   buildStageCheckpointMetadataUpdate,
+  canContinueFlashCardMaterial,
+  determineMaterialClaimConditions,
   ensureFlashCardManagerAccess,
   FlashCardManagerAccessError,
   handlePublishMaterial,
@@ -555,5 +558,188 @@ describe("checkpoint recovery and audit-repair metadata schema validity", () => 
     });
     expect((result.processingJob as any)?.jobId).toBe("job-test");
     expect(typeof (result.processingJob as any)?.heartbeatAt).toBe("string");
+  });
+});
+
+describe("flash-card step-by-step processing and continuation", () => {
+  test("canContinueFlashCardMaterial enforces publish protection, allows suspended jobs, and blocks concurrent active jobs", () => {
+    // 1. Published is never continue-able
+    expect(canContinueFlashCardMaterial({ status: "published" })).toBe(false);
+
+    // 2. Processing with NO active jobId (suspended step ready for continuation)
+    expect(
+      canContinueFlashCardMaterial({
+        status: "processing",
+        metadata: {
+          pipelineCheckpoint: { currentStage: "concept_mapping", completedStages: ["ingestion", "transcript_cleaning"], stageArtifacts: {} },
+        },
+      }),
+    ).toBe(true);
+
+    // 3. Processing with active jobId and fresh heartbeat (actively running)
+    const freshJobTime = new Date().toISOString();
+    expect(
+      canContinueFlashCardMaterial({
+        status: "processing",
+        metadata: {
+          processingJob: {
+            jobId: "active-job-123",
+            heartbeatAt: freshJobTime,
+          },
+        },
+      }),
+    ).toBe(false);
+
+    // 4. Processing with active jobId but stale heartbeat (> 180s)
+    const staleJobTime = new Date(Date.now() - 200_000).toISOString();
+    expect(
+      canContinueFlashCardMaterial({
+        status: "processing",
+        metadata: {
+          processingJob: {
+            jobId: "stale-job-123",
+            heartbeatAt: staleJobTime,
+          },
+        },
+      }),
+    ).toBe(true);
+  });
+
+  test("index.ts wires up continue-processing, handles stepGroup, and suspends cleanly with nextStepGroup", () => {
+    const indexSource = readFileSync(resolve(import.meta.dirname, "./index.ts"), "utf8");
+
+    expect(indexSource).toContain('payload.action === "continue-processing"');
+    expect(indexSource).toContain("stepGroup");
+    expect(indexSource).toContain("pipelineResult.isSuspended");
+    expect(indexSource).toContain("nextStepGroup");
+    expect(indexSource).toContain("GEMINI_RATE_LIMIT");
+  });
+
+  test("determineMaterialClaimConditions enforces is_null filter when resuming suspended processing job without jobId", () => {
+    // Case 1: Fresh creation or initial processing from draft
+    const draftConditions = determineMaterialClaimConditions({
+      isRetry: false,
+      status: "draft",
+    });
+    expect(draftConditions.statusFilter).toEqual({ type: "in", value: ["draft", "failed"] });
+    expect(draftConditions.jobIdFilter).toBeUndefined();
+
+    // Case 2: Resuming suspended job where status is processing and processingJob is null/empty
+    const suspendedConditions = determineMaterialClaimConditions({
+      isRetry: true,
+      status: "processing",
+      metadata: { pipelineCheckpoint: { currentStage: "candidate_generation" } },
+    });
+    expect(suspendedConditions.statusFilter).toEqual({ type: "eq", value: "processing" });
+    expect(suspendedConditions.jobIdFilter).toEqual({ type: "is_null" });
+
+    // Case 3: Retrying with an explicit oldJobId (e.g. stale worker recovery)
+    const staleConditions = determineMaterialClaimConditions({
+      isRetry: true,
+      status: "processing",
+      metadata: { processingJob: { jobId: "old-stale-job-999" } },
+    });
+    expect(staleConditions.statusFilter).toEqual({ type: "eq", value: "processing" });
+    expect(staleConditions.jobIdFilter).toEqual({ type: "eq", value: "old-stale-job-999" });
+  });
+
+  test("simulates concurrent atomic claim where only one worker wins and the second worker is rejected", () => {
+    // In-memory simulation of database row with JSONB metadata
+    let dbRow = {
+      id: "mat-concurrent-1",
+      status: "processing",
+      metadata: {
+        pipelineCheckpoint: { completedStages: ["transcript_cleaning"] },
+        // processingJob is undefined/null (suspended step)
+      } as any,
+    };
+
+    // Helper simulating atomic compare-and-set query execution in PostgreSQL
+    const executeAtomicClaim = (conditions: any, newJobId: string): { updatedCount: number; row: any } => {
+      // Check status condition
+      const statusMatches = conditions.statusFilter.type === "eq"
+        ? dbRow.status === conditions.statusFilter.value
+        : conditions.statusFilter.value.includes(dbRow.status);
+      if (!statusMatches) return { updatedCount: 0, row: null };
+
+      // Check jobId condition (compare-and-set)
+      const currentJobId = dbRow.metadata?.processingJob?.jobId ?? null;
+      if (conditions.jobIdFilter) {
+        if (conditions.jobIdFilter.type === "is_null" && currentJobId !== null) {
+          return { updatedCount: 0, row: null }; // Condition failed: jobId is NOT null!
+        }
+        if (conditions.jobIdFilter.type === "eq" && currentJobId !== conditions.jobIdFilter.value) {
+          return { updatedCount: 0, row: null };
+        }
+      }
+
+      // Claim succeeds atomically:
+      dbRow = {
+        ...dbRow,
+        status: "processing",
+        metadata: {
+          ...dbRow.metadata,
+          processingJob: { jobId: newJobId, startedAt: new Date().toISOString() },
+        },
+      };
+      return { updatedCount: 1, row: dbRow };
+    };
+
+    // Worker 1 and Worker 2 both observe suspended state
+    const conditions = determineMaterialClaimConditions({
+      isRetry: true,
+      status: dbRow.status,
+      metadata: dbRow.metadata,
+    });
+
+    // Worker 1 claims first
+    const result1 = executeAtomicClaim(conditions, "worker-job-alpha");
+    expect(result1.updatedCount).toBe(1);
+    expect(result1.row.metadata.processingJob.jobId).toBe("worker-job-alpha");
+
+    // Worker 2 attempts same claim with same initial conditions
+    const result2 = executeAtomicClaim(conditions, "worker-job-beta");
+    expect(result2.updatedCount).toBe(0); // MUST be 0! Exactly one worker wins!
+    expect(result2.row).toBeNull();
+  });
+
+  test("buildRateLimitMetadataUpdate tracks consecutive 429 failures and trips circuit breaker after 3", () => {
+    // First 429 failure
+    const update1 = buildRateLimitMetadataUpdate({
+      currentMetadata: {},
+      retryAfterSeconds: 60,
+      message: "Batas 5 RPM tercapai",
+    });
+    expect(update1.rateLimitInfo.consecutiveCount).toBe(1);
+    expect(update1.rateLimitInfo.isCircuitBroken).toBe(false);
+
+    // Second consecutive 429 failure
+    const update2 = buildRateLimitMetadataUpdate({
+      currentMetadata: { rateLimitInfo: update1.rateLimitInfo },
+      retryAfterSeconds: 60,
+      message: "Batas 5 RPM tercapai",
+    });
+    expect(update2.rateLimitInfo.consecutiveCount).toBe(2);
+    expect(update2.rateLimitInfo.isCircuitBroken).toBe(false);
+
+    // Third consecutive 429 failure -> Circuit breaker trips!
+    const update3 = buildRateLimitMetadataUpdate({
+      currentMetadata: { rateLimitInfo: update2.rateLimitInfo },
+      retryAfterSeconds: 60,
+      message: "Batas 5 RPM tercapai",
+    });
+    expect(update3.rateLimitInfo.consecutiveCount).toBe(3);
+    expect(update3.rateLimitInfo.isCircuitBroken).toBe(true);
+
+    // Verify it preserves checkpoint and clears processingJob
+    const testCheckpoint = { currentStage: "candidate_generation", completedStages: ["transcript_cleaning"], stageArtifacts: {} };
+    const updateWithCheckpoint = buildRateLimitMetadataUpdate({
+      currentMetadata: { rateLimitInfo: update2.rateLimitInfo },
+      checkpointToPreserve: testCheckpoint,
+      retryAfterSeconds: 60,
+      message: "Batas 5 RPM tercapai",
+    });
+    expect(updateWithCheckpoint.pipelineCheckpoint).toEqual(testCheckpoint);
+    expect(updateWithCheckpoint.processingJob).toBeUndefined();
   });
 });

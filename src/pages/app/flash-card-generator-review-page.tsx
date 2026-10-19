@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import FlashCardReviewEditor from "../../components/flash-cards/flash-card-review-editor";
 import ProductShell from "../../components/layout/product-shell";
@@ -10,6 +10,7 @@ import {
   publishFlashCardMaterial,
   saveFlashCardMaterialReview,
   retryFlashCardMaterialProcessing,
+  continueFlashCardMaterialProcessing,
   auditRepairFlashCardMaterial,
   resolveFlashCardConflict,
 } from "../../lib/api/flash-card-api";
@@ -45,6 +46,9 @@ function FlashCardGeneratorReviewPage() {
   const [isRetrying, setIsRetrying] = useState(false);
   const [isAuditing, setIsAuditing] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [rateLimitCountdown, setRateLimitCountdown] = useState<number | null>(null);
+  const [isManualContinuing, setIsManualContinuing] = useState(false);
+  const isStepExecutingRef = useRef(false);
 
   const detailQuery = useQuery({
     queryKey: ["mentor-flash-card-material", materialId],
@@ -58,6 +62,114 @@ function FlashCardGeneratorReviewPage() {
       return status === "processing" ? 3000 : false;
     },
   });
+
+  useEffect(() => {
+    if (rateLimitCountdown === null || rateLimitCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setRateLimitCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(timer);
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [rateLimitCountdown]);
+
+  // Automatic multi-step pipeline driver (Cleaning -> Generation -> Review)
+  useEffect(() => {
+    if (!materialId || detailQuery.isLoading || !detailQuery.data) return;
+    const material = detailQuery.data.material;
+    if (material.status !== "processing") return;
+
+    const meta = (material.metadata ?? {}) as any;
+    const rateLimitInfo = meta.rateLimitInfo;
+    const isCircuitBroken = Boolean(
+      rateLimitInfo?.isCircuitBroken ||
+      (typeof rateLimitInfo?.consecutiveCount === "number" && rateLimitInfo.consecutiveCount >= 3),
+    );
+
+    // Stop auto-continuation if circuit breaker is tripped
+    if (isCircuitBroken) {
+      return;
+    }
+
+    if (rateLimitInfo?.retryAfterSeconds && rateLimitCountdown === null) {
+      const elapsed = (Date.now() - new Date(rateLimitInfo.rateLimitedAt).getTime()) / 1000;
+      const remaining = Math.max(0, Math.ceil(rateLimitInfo.retryAfterSeconds - elapsed));
+      if (remaining > 0) {
+        setRateLimitCountdown(remaining);
+        return;
+      }
+    }
+
+    if (rateLimitCountdown !== null && rateLimitCountdown > 0) return;
+
+    const activeJobId = meta.processingJob?.jobId;
+    if (activeJobId) {
+      return;
+    }
+
+    if (isStepExecutingRef.current) return;
+
+    const cp = meta.pipelineCheckpoint ?? meta.pipeline_checkpoint;
+    const completedStages: string[] = cp?.completedStages ?? [];
+    let nextStep: "generation" | "review" | null = null;
+
+    if (completedStages.includes("transcript_cleaning") && !completedStages.includes("candidate_generation")) {
+      nextStep = "generation";
+    } else if (completedStages.includes("candidate_generation") && !completedStages.includes("validation_and_storage")) {
+      nextStep = "review";
+    }
+
+    if (!nextStep) return;
+
+    isStepExecutingRef.current = true;
+    continueFlashCardMaterialProcessing({ materialId, stepGroup: nextStep })
+      .then(() => {
+        void detailQuery.refetch();
+      })
+      .catch((err: any) => {
+        const isRateLimit = err?.status === 429 || err?.message?.includes("429") || err?.message?.includes("kuota");
+        if (isRateLimit) {
+          setRateLimitCountdown(60);
+        }
+        void detailQuery.refetch();
+      })
+      .finally(() => {
+        isStepExecutingRef.current = false;
+      });
+  }, [detailQuery.data, materialId, rateLimitCountdown]);
+
+  async function handleManualContinue() {
+    if (!materialId || detailQuery.isLoading || !detailQuery.data) return;
+    setIsManualContinuing(true);
+    setActionError(null);
+
+    const meta = (detailQuery.data.material.metadata ?? {}) as any;
+    const cp = meta.pipelineCheckpoint ?? meta.pipeline_checkpoint;
+    const completedStages: string[] = cp?.completedStages ?? [];
+    let nextStep: "generation" | "review" | null = null;
+
+    if (completedStages.includes("transcript_cleaning") && !completedStages.includes("candidate_generation")) {
+      nextStep = "generation";
+    } else if (completedStages.includes("candidate_generation") && !completedStages.includes("validation_and_storage")) {
+      nextStep = "review";
+    } else if (!completedStages.includes("transcript_cleaning")) {
+      nextStep = "generation"; // Default fallback
+    }
+
+    try {
+      await continueFlashCardMaterialProcessing({ materialId, stepGroup: nextStep ?? undefined });
+      await detailQuery.refetch();
+    } catch (err: any) {
+      setActionError(formatErrorMessage(err, "Gagal melanjutkan pemrosesan."));
+      await detailQuery.refetch();
+    } finally {
+      setIsManualContinuing(false);
+    }
+  }
 
   async function handleSave(input: {
     title: string;
@@ -191,6 +303,60 @@ function FlashCardGeneratorReviewPage() {
               Materi <strong className="text-foreground">"{detailQuery.data.material.title}"</strong> sedang diproses oleh pipeline Gemini 3.8 Flash. Sistem sedang mengekstrak slide presentasi, membersihkan transkrip, menyusun draf kartu, dan melakukan audit klinis.
             </p>
           </div>
+
+          {(() => {
+            const meta = (detailQuery.data.material.metadata ?? {}) as any;
+            const rateLimitInfo = meta.rateLimitInfo;
+            const isCircuitBroken = Boolean(
+              rateLimitInfo?.isCircuitBroken ||
+              (typeof rateLimitInfo?.consecutiveCount === "number" && rateLimitInfo.consecutiveCount >= 3),
+            );
+
+            if (isCircuitBroken) {
+              return (
+                <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-5 text-destructive max-w-lg mx-auto text-left space-y-3">
+                  <div className="flex items-start gap-2.5">
+                    <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold">
+                        Batas percobaan ulang otomatis tercapai
+                      </p>
+                      <p className="text-xs leading-5 opacity-90">
+                        Proses telah terkena batas kuota Gemini 3 kali berturut-turut. Percobaan ulang otomatis dihentikan sementara untuk menjaga akun Google Anda. Tunggu 1–2 menit, lalu klik tombol di bawah untuk melanjutkan secara manual.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-1 flex justify-end">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={handleManualContinue}
+                      disabled={isManualContinuing}
+                      className="cursor-pointer"
+                    >
+                      {isManualContinuing ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
+                      Lanjutkan Pemrosesan Manual
+                    </Button>
+                  </div>
+                </div>
+              );
+            }
+
+            if (rateLimitCountdown !== null && rateLimitCountdown > 0) {
+              return (
+                <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-700 dark:text-amber-400 max-w-lg mx-auto">
+                  <div className="flex items-center justify-center gap-2">
+                    <AlertCircle className="h-5 w-5 shrink-0" />
+                    <p className="text-sm font-medium">
+                      Batas kuota Gemini (5 RPM) tercapai. Menunggu jendela kuota... (Melanjutkan otomatis dalam {rateLimitCountdown} detik)
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+
+            return null;
+          })()}
 
           <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3.5 py-1 text-xs font-medium text-foreground">

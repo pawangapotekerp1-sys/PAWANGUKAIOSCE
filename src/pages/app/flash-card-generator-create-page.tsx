@@ -66,6 +66,7 @@ function FlashCardGeneratorCreatePage() {
     try {
       await processFlashCardMaterial({
         materialId: createdDraft.materialId,
+        stepGroup: "cleaning",
       });
     } catch (error) {
       // Log error but continue to navigation to prevent duplicate drafts

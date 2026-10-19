@@ -215,7 +215,7 @@ export function extractRetryAfterSeconds(
           if (match) {
             const sec = parseFloat(match[1]);
             if (!Number.isNaN(sec) && sec > 0) {
-              return Math.round(sec);
+              return Math.max(1, Math.round(sec));
             }
           }
         }
@@ -682,11 +682,29 @@ export async function generateGeminiTextWithUsage(request: GeminiRequest): Promi
         error.code === "GEMINI_TOKEN_LIMITED" ||
         error.diagnostics?.category === "GEMINI_RATE_LIMITED" ||
         error.diagnostics?.category === "GEMINI_TOKEN_LIMITED";
-      const hasSpecificRateLimitReason =
-        Boolean(error.diagnostics?.retryAfterSeconds) ||
-        Boolean(error.diagnostics?.originalMessage?.toLowerCase().includes("rate limit")) ||
-        Boolean(error.diagnostics?.originalMessage?.includes("RATE_LIMIT_EXCEEDED"));
-      const maxAttempts = (isRateLimit && hasSpecificRateLimitReason) ? 3 : 2;
+
+      const retryAfterSeconds = error.diagnostics?.retryAfterSeconds;
+      const hasReliableRetryHint = typeof retryAfterSeconds === "number" && retryAfterSeconds > 0;
+      const normalizedOriginalMsg = (error.diagnostics?.originalMessage ?? error.message ?? "").toLowerCase();
+      const isServerOverload = normalizedOriginalMsg.includes("overloaded") || normalizedOriginalMsg.includes("try again later");
+
+      // Rate limit retry policy:
+      // 1. If explicit retry hint is provided and within reasonable threshold (<= 30s): retry ONCE after waiting.
+      // 2. If Gemini server capacity overload ("model is overloaded"): retry ONCE after transient backoff.
+      // 3. If rate limited without reliable retry hint: DO NOT perform fast repeated retries inline!
+      //    Halt immediately (maxAttempts = 1) so the error surfaces clearly and the pipeline can be resumed later.
+      let maxAttempts = 2;
+      if (isRateLimit) {
+        if (hasReliableRetryHint && retryAfterSeconds! <= 30) {
+          maxAttempts = 2;
+        } else if (isServerOverload) {
+          maxAttempts = 2;
+        } else {
+          maxAttempts = 1;
+        }
+      } else if (isMaxTokens) {
+        maxAttempts = 2;
+      }
 
       if (attempt >= maxAttempts) {
         if (isGeminiCapacityError(error.status, error.message)) {

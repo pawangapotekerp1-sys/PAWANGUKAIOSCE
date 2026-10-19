@@ -10,7 +10,265 @@ import {
   type FlashCardAcademicGroup,
   type StageTokenMetrics,
 } from "../../_shared/flash-card.ts";
-import type { AlignedSourceRecord } from "./aligner.ts";
+import type { AlignedSourceRecord, ConceptNode } from "./aligner.ts";
+import type { TranscriptSegment } from "./cleaner.ts";
+
+export type CandidateEvidencePackParams = {
+  segments: TranscriptSegment[];
+  concepts?: ConceptNode[];
+  alignedSources?: AlignedSourceRecord[];
+  maxCharacters?: number;
+  maxSegmentsPerConcept?: number;
+};
+
+export type CandidateEvidencePackMetrics = {
+  availableSegmentsCount: number;
+  selectedSegmentsCount: number;
+  skippedSegmentsCount: number;
+  evidencePackChars: number;
+  clinicalSegmentsCount: number;
+};
+
+export type CandidateEvidencePackResult = {
+  evidenceText: string;
+  selectedSegmentIds: string[];
+  metrics: CandidateEvidencePackMetrics;
+};
+
+export const DEFAULT_MAX_EVIDENCE_CHARACTERS = 16_000;
+export const DEFAULT_MAX_SEGMENTS_PER_CONCEPT = 4;
+
+const CRITICAL_CLINICAL_KEYWORDS = [
+  "kontraindikasi",
+  "contraindication",
+  "contraindicated",
+  "efek samping",
+  "adverse",
+  "interaksi",
+  "interaction",
+  "toksisitas",
+  "toxicity",
+  "overdosis",
+  "dosis",
+  "dosage",
+  "regimen",
+  "frekuensi",
+  "lini pertama",
+  "first line",
+  "kehamilan",
+  "wanita hamil",
+  "teratogenik",
+  "gangguan ginjal",
+  "gagal ginjal",
+  "crcl",
+  "gfr",
+  "gangguan hepar",
+  "hati",
+  "peringatan",
+  "perhatian",
+  "monitoring",
+  "waspada",
+  "subkutan",
+  "intravena",
+  "iv",
+  "im",
+  "per oral",
+  "sebelum makan",
+  "sesudah makan",
+];
+
+export function buildCandidateEvidencePack(
+  params: CandidateEvidencePackParams,
+): CandidateEvidencePackResult {
+  const {
+    segments = [],
+    concepts = [],
+    alignedSources = [],
+    maxCharacters = DEFAULT_MAX_EVIDENCE_CHARACTERS,
+    maxSegmentsPerConcept = DEFAULT_MAX_SEGMENTS_PER_CONCEPT,
+  } = params;
+
+  if (!Array.isArray(segments) || segments.length === 0) {
+    return {
+      evidenceText: "",
+      selectedSegmentIds: [],
+      metrics: {
+        availableSegmentsCount: 0,
+        selectedSegmentsCount: 0,
+        skippedSegmentsCount: 0,
+        evidencePackChars: 0,
+        clinicalSegmentsCount: 0,
+      },
+    };
+  }
+
+  // 1. Filter valid non-noise segments and deduplicate
+  const seenTexts = new Set<string>();
+  const candidates: Array<{
+    segment: TranscriptSegment;
+    score: number;
+    matchedConceptIds: string[];
+  }> = [];
+
+  const conceptTerms: Array<{ id: string; name: string }> = [];
+  if (Array.isArray(concepts)) {
+    for (const c of concepts) {
+      if (c?.name && typeof c.name === "string" && c.name.trim().length > 2) {
+        conceptTerms.push({ id: c.id, name: c.name.trim().toLowerCase() });
+      }
+    }
+  }
+  if (Array.isArray(alignedSources)) {
+    for (const a of alignedSources) {
+      if (a?.conceptName && typeof a.conceptName === "string" && a.conceptName.trim().length > 2) {
+        if (!conceptTerms.some((c) => c.name === a.conceptName.trim().toLowerCase())) {
+          conceptTerms.push({ id: a.conceptId, name: a.conceptName.trim().toLowerCase() });
+        }
+      }
+    }
+  }
+
+  for (const seg of segments) {
+    if (!seg || typeof seg.normalizedText !== "string") continue;
+    const trimmed = seg.normalizedText.trim();
+    if (trimmed.length === 0) continue;
+    if (seg.classification === "noise") continue;
+
+    const dedupeKey = trimmed.toLowerCase().replace(/\s+/g, " ");
+    if (seenTexts.has(dedupeKey)) continue;
+    seenTexts.add(dedupeKey);
+
+    // Compute Priority Score
+    let score = 10;
+    const lowerText = trimmed.toLowerCase();
+
+    // Clinical Entity Shield Priority (Tier 1)
+    if (seg.hasClinicalEntities) {
+      score += 100;
+    }
+    if (Array.isArray(seg.matchedEntities)) {
+      score += Math.min(50, seg.matchedEntities.length * 10);
+    }
+
+    // Keyword bonuses
+    for (const kw of CRITICAL_CLINICAL_KEYWORDS) {
+      if (lowerText.includes(kw)) {
+        score += 25;
+      }
+    }
+
+    // Concept matches (Tier 2)
+    const matchedConceptIds: string[] = [];
+    for (const term of conceptTerms) {
+      if (lowerText.includes(term.name)) {
+        matchedConceptIds.push(term.id);
+        score += 40;
+      }
+    }
+
+    // Penalize fragmented/uncertain segments slightly
+    if (seg.suspectedTranscriptionError) {
+      score -= 20;
+    }
+
+    candidates.push({
+      segment: seg,
+      score,
+      matchedConceptIds,
+    });
+  }
+
+  // 2. Representative Selection
+  const selectedMap = new Map<string, TranscriptSegment>();
+  let currentChars = 0;
+
+  const tryAddSegment = (seg: TranscriptSegment): boolean => {
+    if (selectedMap.has(seg.segmentId)) return true;
+    const formatted = `[${seg.segmentId}] ${seg.normalizedText}`;
+    const extraChars = selectedMap.size > 0 ? 2 + formatted.length : formatted.length;
+    if (currentChars + extraChars > maxCharacters) {
+      return false;
+    }
+    selectedMap.set(seg.segmentId, seg);
+    currentChars += extraChars;
+    return true;
+  };
+
+  if (conceptTerms.length > 0) {
+    // Map candidates by concept
+    const conceptBuckets = new Map<string, Array<{ segment: TranscriptSegment; score: number }>>();
+    for (const c of conceptTerms) {
+      conceptBuckets.set(c.id, []);
+    }
+    const unassigned: Array<{ segment: TranscriptSegment; score: number }> = [];
+
+    for (const cand of candidates) {
+      if (cand.matchedConceptIds.length > 0) {
+        for (const cid of cand.matchedConceptIds) {
+          conceptBuckets.get(cid)?.push({ segment: cand.segment, score: cand.score });
+        }
+      } else {
+        unassigned.push({ segment: cand.segment, score: cand.score });
+      }
+    }
+
+    // Sort within each bucket by descending score
+    for (const bucket of conceptBuckets.values()) {
+      bucket.sort((a, b) => b.score - a.score);
+    }
+    unassigned.sort((a, b) => b.score - a.score);
+
+    // Pass 1: Fair representation (up to maxSegmentsPerConcept per concept)
+    for (let round = 0; round < maxSegmentsPerConcept; round++) {
+      for (const bucket of conceptBuckets.values()) {
+        if (round < bucket.length) {
+          const item = bucket[round];
+          tryAddSegment(item.segment);
+        }
+      }
+    }
+
+    // Pass 2: Remaining slots filled by highest score globally
+    const allRemaining = candidates
+      .filter((c) => !selectedMap.has(c.segment.segmentId))
+      .sort((a, b) => b.score - a.score);
+
+    for (const cand of allRemaining) {
+      if (!tryAddSegment(cand.segment)) {
+        break;
+      }
+    }
+  } else {
+    // Fallback: strictly global priority order
+    candidates.sort((a, b) => b.score - a.score);
+    for (const cand of candidates) {
+      if (!tryAddSegment(cand.segment)) {
+        break;
+      }
+    }
+  }
+
+  // 3. Format in chronological order
+  const selectedList = Array.from(selectedMap.values()).sort((a, b) => {
+    return (a.lineOffset ?? 0) - (b.lineOffset ?? 0);
+  });
+
+  const formattedLines = selectedList.map((s) => `[${s.segmentId}] ${s.normalizedText}`);
+  const evidenceText = formattedLines.join("\n\n");
+  const selectedSegmentIds = selectedList.map((s) => s.segmentId);
+
+  return {
+    evidenceText,
+    selectedSegmentIds,
+    metrics: {
+      availableSegmentsCount: segments.length,
+      selectedSegmentsCount: selectedList.length,
+      skippedSegmentsCount: segments.length - selectedList.length,
+      evidencePackChars: evidenceText.length,
+      clinicalSegmentsCount: selectedList.filter((s) => s.hasClinicalEntities).length,
+    },
+  };
+}
 
 export type CandidateCard = {
   id: string;
@@ -36,6 +294,7 @@ export type GenerationOptions = {
   alignedContext?: string;
   alignedSources?: AlignedSourceRecord[];
   transcriptText?: string;
+  evidencePack?: CandidateEvidencePackResult;
   pdfBytes?: Uint8Array | null;
   apiKey?: string;
   model?: string;
@@ -52,6 +311,7 @@ export type GenerationResult = {
   cards: CandidateCard[];
   global_summary: string;
   tokenUsage: StageTokenMetrics;
+  evidencePackMetrics?: CandidateEvidencePackMetrics;
 };
 
 /**
@@ -102,8 +362,13 @@ function buildPrompt(options: GenerationOptions): string {
     parts.push(`Sumber Terpadu (Slide + Transkrip):\n${serializedSources}`);
   }
 
-  if (options.transcriptText) {
-    parts.push(`Transkrip Perkuliahan:\n${options.transcriptText}`);
+  const evidenceContent = options.evidencePack?.evidenceText ?? options.transcriptText;
+  if (evidenceContent) {
+    if (options.evidencePack) {
+      parts.push(`Bukti Transkrip Terpilih (High-Yield Clinical Evidence):\n${evidenceContent}`);
+    } else {
+      parts.push(`Transkrip Perkuliahan:\n${evidenceContent}`);
+    }
   }
 
   parts.push(
@@ -328,5 +593,6 @@ export async function generateCandidateCards(
     cards: allCards,
     global_summary: globalSummary,
     tokenUsage,
+    evidencePackMetrics: options.evidencePack?.metrics,
   };
 }

@@ -28,8 +28,10 @@ import {
   type SourceAlignmentResult,
 } from "./aligner.ts";
 import {
+  buildCandidateEvidencePack,
   generateCandidateCards,
   type CandidateCard,
+  type CandidateEvidencePackResult,
   type GenerationResult,
   type GenerationSubtopic,
 } from "./generator.ts";
@@ -411,21 +413,30 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
       cards?: CandidateCard[];
       global_summary?: string;
       tokenUsage?: StageTokenMetrics;
+      evidencePack?: CandidateEvidencePackResult;
     };
     generationResult = artifact?.generationResult ?? {
       subtopics: artifact?.subtopics ?? [],
       cards: artifact?.cards ?? [],
       global_summary: artifact?.global_summary ?? "",
       tokenUsage: normalizeStageTokenMetrics(artifact?.tokenUsage),
+      evidencePackMetrics: artifact?.evidencePack?.metrics,
     };
     generationTokenUsage = normalizeStageTokenMetrics(artifact?.tokenUsage ?? generationResult.tokenUsage);
   } else {
     checkpoint.currentStage = "candidate_generation";
+    const evidencePack = buildCandidateEvidencePack({
+      segments: cleanedResult.retainedSegments,
+      concepts: knowledgeGraph.getAllNodes(),
+      alignedSources: alignmentResult.alignedSources,
+      maxCharacters: 16_000,
+    });
     generationResult = await generateCandidateCards({
       title: options.title,
       academicGroup: options.academicGroup,
       alignedSources: alignmentResult.alignedSources,
-      transcriptText: cleanedResult.retainedText,
+      transcriptText: evidencePack.evidenceText,
+      evidencePack,
       pdfBytes,
       apiKey,
       model,
@@ -440,6 +451,8 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
         cards: generationResult.cards,
         global_summary: generationResult.global_summary,
         tokenUsage: generationTokenUsage,
+        evidencePack,
+        evidencePackMetrics: evidencePack.metrics,
       },
       "adversarial_review",
     );

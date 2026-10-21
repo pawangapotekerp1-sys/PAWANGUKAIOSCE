@@ -431,4 +431,42 @@ describe("Question editor page", () => {
     expect(backLinks[0]).toHaveAttribute("href", "/app/questions");
     expect(backLinks[1]).toHaveAttribute("data-variant", "outline");
   });
+
+  test("preserves query parameters on the back link and redirection when saving", async () => {
+    mockGetQuestionEditorData.mockResolvedValue({
+      id: "question-9",
+      stem: "Dokumentasi intervensi farmasis paling berguna bila ditautkan dengan apa?",
+      status: "published",
+      statusLabel: "Published",
+      blockId: "block-2",
+      blockName: "Pharmaceutical Science",
+      topicId: "topic-9",
+      topicName: "Sediaan Liquid dan Sediaan steril",
+      questionImagePath: null,
+      questionImageUrl: null,
+      explanationText: null,
+      explanationImagePath: null,
+      explanationImageUrl: null,
+      options: [
+        { id: "option-1", key: "A", text: "Promo produk", isCorrect: false, sortOrder: 1 },
+        { id: "option-2", key: "B", text: "Tujuan klinis", isCorrect: true, sortOrder: 2 },
+      ],
+      correctOptionKey: "B",
+      updatedAt: "2026-05-03T09:15:00.000Z",
+    });
+
+    renderQuestionEditorPage("/admin/questions/question-9/edit?block=pharmaceutical-science&topic=unassigned");
+
+    expect(await screen.findByDisplayValue(/dokumentasi intervensi farmasis/i)).toBeInTheDocument();
+
+    const backLink = screen.getByRole("link", { name: /kembali ke bank soal/i });
+    expect(backLink).toHaveAttribute(
+      "href",
+      "/admin/questions?block=pharmaceutical-science&topic=unassigned"
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /simpan soal/i }));
+
+    expect(await screen.findByText(/admin bank soal/i)).toBeInTheDocument();
+  });
 });

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import {
   ArrowLeft,
   CheckSquare,
@@ -43,7 +43,26 @@ export default function QuestionBlockListView({
   isDeleting = false,
   deleteError,
 }: QuestionBlockListViewProps) {
-  const [topicFilter, setTopicFilter] = useState("all");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchTopic = searchParams.get("topic");
+  const [localTopicFilter, setLocalTopicFilter] = useState("all");
+  const topicFilter = searchTopic ?? localTopicFilter;
+
+  const handleTopicFilterChange = (nextTopic: string) => {
+    setLocalTopicFilter(nextTopic);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (!nextTopic || nextTopic === "all") {
+          next.delete("topic");
+        } else {
+          next.set("topic", nextTopic);
+        }
+        return next;
+      },
+      { replace: true }
+    );
+  };
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
 
   const topicOptions = useMemo(() => {
@@ -127,7 +146,7 @@ export default function QuestionBlockListView({
             size: "sm",
             variant: "primary",
           })}
-          to={`${basePath}/new?block=${activeBlock.id}`}
+          to={`${basePath}/new?${searchParams.toString() || `block=${activeBlock.id}`}`}
         >
           <Plus className="h-4 w-4" />
           Tambah soal
@@ -149,10 +168,10 @@ export default function QuestionBlockListView({
                 aria-label="Materi"
                 className="h-10 rounded-xl border border-border/80 bg-background px-3 text-xs font-semibold text-foreground transition-all focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer min-w-44"
                 value={topicFilter}
-                onChange={(event) => setTopicFilter(event.target.value)}
+                onChange={(event) => handleTopicFilterChange(event.target.value)}
               >
                 <option value="all">Semua materi</option>
-                {hasUnassignedTopic ? (
+                {hasUnassignedTopic || topicFilter === "unassigned" ? (
                   <option value="unassigned">Tanpa materi</option>
                 ) : null}
                 {topicOptions.map((topicName) => (
@@ -260,7 +279,7 @@ export default function QuestionBlockListView({
                           variant: "outline",
                           className: "h-8 text-xs font-semibold px-3",
                         })}
-                        to={`${basePath}/${question.id}/edit`}
+                        to={`${basePath}/${question.id}/edit${searchParams.toString() ? `?${searchParams.toString()}` : ""}`}
                       >
                         <Pencil className="h-3 w-3 mr-1" />
                         Edit soal

@@ -421,4 +421,34 @@ describe("QuestionBlockListView", () => {
 
     expect(screen.getByText("Gagal menghapus soal karena kendala jaringan.")).toBeInTheDocument();
   });
+
+  it("preserves URL query parameters on edit and new question links", () => {
+    render(
+      <MemoryRouter initialEntries={["/admin/questions?block=clinical-science&topic=unassigned"]}>
+        <QuestionBlockListView
+          basePath="/admin/questions"
+          activeBlock={mockActiveBlock}
+          questions={mockQuestions}
+          onBack={vi.fn()}
+          onDeleteQuestion={vi.fn()}
+          onBulkDelete={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    const editLinks = screen.getAllByRole("link", { name: /edit soal/i });
+    expect(editLinks[0]).toHaveAttribute(
+      "href",
+      "/admin/questions/q-cs-3/edit?block=clinical-science&topic=unassigned"
+    );
+
+    const newQuestionLink = screen.getByRole("link", { name: /tambah soal/i });
+    expect(newQuestionLink).toHaveAttribute(
+      "href",
+      "/admin/questions/new?block=clinical-science&topic=unassigned"
+    );
+
+    const materiSelect = screen.getByLabelText("Materi") as HTMLSelectElement;
+    expect(materiSelect.value).toBe("unassigned");
+  });
 });

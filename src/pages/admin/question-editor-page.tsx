@@ -91,7 +91,8 @@ function QuestionEditorPage() {
   const [formState, setFormState] = useState<EditorFormState>(() => buildInitialFormState());
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const backHref = isMentorSurface ? "/app/questions" : "/admin/questions";
+  const basePath = isMentorSurface ? "/app/questions" : "/admin/questions";
+  const backHref = `${basePath}${location.search}`;
 
   const taxonomyQuery = useQuery({
     queryKey: ["question-taxonomy"],
@@ -148,7 +149,18 @@ function QuestionEditorPage() {
       return;
     }
 
-    const firstBlock = taxonomyQuery.data[0];
+    const searchParams = new URLSearchParams(location.search);
+    const blockParam = searchParams.get("block");
+    const queryBlock = blockParam
+      ? (taxonomyQuery.data ?? []).find(
+          (b) =>
+            b.id.toLowerCase() === blockParam.toLowerCase() ||
+            b.slug?.toLowerCase() === blockParam.toLowerCase() ||
+            b.name.toLowerCase() === blockParam.toLowerCase()
+        )
+      : undefined;
+
+    const firstBlock = queryBlock ?? taxonomyQuery.data[0];
     const firstTopicId = firstBlock.topics[0]?.id ?? "";
 
     setFormState((current) => {
@@ -162,7 +174,7 @@ function QuestionEditorPage() {
         topicId: firstTopicId,
       };
     });
-  }, [isEditMode, taxonomyQuery.data]);
+  }, [isEditMode, taxonomyQuery.data, location.search]);
 
   const availableTopics = useMemo(() => {
     const selectedBlock = (taxonomyQuery.data ?? []).find((block) => block.id === formState.blockId);
@@ -640,6 +652,14 @@ function QuestionEditorPage() {
       description="Tulis atau ubah soal di sini."
       navItems={createAdminNavItems("/admin/questions")}
     >
+      <div className="flex flex-col gap-2 pb-4">
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
+          Editor Soal
+        </h1>
+        <p className="text-base text-muted-foreground">
+          Tulis atau ubah soal di sini.
+        </p>
+      </div>
       {shellChildren}
     </AdminShell>
   );

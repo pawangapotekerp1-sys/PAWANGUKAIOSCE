@@ -146,6 +146,7 @@ function QuestionsPage() {
             setSearchParams((prev) => {
               const next = new URLSearchParams(prev);
               next.delete("block");
+              next.delete("topic");
               return next;
             });
           }}

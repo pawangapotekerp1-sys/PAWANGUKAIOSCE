@@ -527,4 +527,27 @@ describe("Scheduled tryout session page", () => {
       attemptId: "scheduled-attempt-1",
     });
   });
+
+  test("renders in read-only mode for mentor role without saving answers on question navigation", async () => {
+    mockUseStudentShell.mockReturnValue({
+      navItems: [],
+      tierLabel: "PRO MENTOR",
+      role: "mentor",
+    });
+
+    renderScheduledSession();
+
+    await screen.findByText(/Mode Mentor \(Read-Only\)/i);
+
+    const nextButton = await screen.findByRole("button", { name: /selanjutnya/i });
+    fireEvent.click(nextButton);
+
+    expect(mockSaveScheduledTryoutAnswer).not.toHaveBeenCalled();
+
+    const optionA = screen.getByRole("button", { name: /Pilihan A/i });
+    expect(optionA).toBeDisabled();
+
+    fireEvent.click(optionA);
+    expect(mockSaveScheduledTryoutAnswer).not.toHaveBeenCalled();
+  });
 });

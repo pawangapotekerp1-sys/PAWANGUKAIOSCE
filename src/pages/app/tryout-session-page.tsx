@@ -36,6 +36,7 @@ function TryoutSessionPage() {
   const queryClient = useQueryClient();
   const { user } = useSession();
   const studentShell = useStudentShell("/app/tryout");
+  const isMentor = studentShell.role === "mentor";
   const [searchParams] = useSearchParams();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isQuestionNavHidden, setIsQuestionNavHidden] = useState(false);
@@ -218,9 +219,9 @@ function TryoutSessionPage() {
   const isLastQuestion = currentIndex === questions.length - 1;
   const isAttemptRunning = sessionAttempt?.status === "in_progress";
   const isAttemptInteractionDisabled =
-    !isAttemptRunning || resumeMutation.isPending || pauseMutation.isPending || submitMutation.isPending;
+    !isAttemptRunning || resumeMutation.isPending || pauseMutation.isPending || submitMutation.isPending || isMentor;
   const isQuestionMutationPending = answerMutation.isPending;
-  const isQuestionNavigationDisabled = isAttemptInteractionDisabled || isQuestionMutationPending;
+  const isQuestionNavigationDisabled = isMentor ? false : (isAttemptInteractionDisabled || isQuestionMutationPending);
 
   currentQuestionRef.current = currentQuestion;
 
@@ -326,7 +327,7 @@ function TryoutSessionPage() {
   }, [sessionAttempt?.id, sessionAttempt?.status]);
 
   useEffect(() => {
-    if (sessionAttempt?.status !== "paused" || !attemptId) {
+    if (sessionAttempt?.status !== "paused" || !attemptId || isMentor) {
       return;
     }
 
@@ -336,10 +337,10 @@ function TryoutSessionPage() {
 
     resumeRequestedAttemptIdRef.current = attemptId;
     resumeMutation.mutate();
-  }, [attemptId, resumeMutation, sessionAttempt?.status]);
+  }, [attemptId, isMentor, resumeMutation, sessionAttempt?.status]);
 
   useEffect(() => {
-    if (sessionAttempt?.status !== "in_progress") {
+    if (sessionAttempt?.status !== "in_progress" || isMentor) {
       return;
     }
 
@@ -361,10 +362,10 @@ function TryoutSessionPage() {
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [sessionAttempt?.id, sessionAttempt?.status, sessionAttempt?.timeRemainingSeconds]);
+  }, [isMentor, sessionAttempt?.id, sessionAttempt?.status, sessionAttempt?.timeRemainingSeconds]);
 
   useEffect(() => {
-    if (sessionAttempt?.status !== "in_progress") {
+    if (sessionAttempt?.status !== "in_progress" || isMentor) {
       return;
     }
 
@@ -378,10 +379,10 @@ function TryoutSessionPage() {
 
     hasTriggeredAutoSubmit.current = true;
     void triggerSubmit();
-  }, [sessionAttempt?.status, submitMutation, timeRemainingSeconds]);
+  }, [isMentor, sessionAttempt?.status, submitMutation, timeRemainingSeconds]);
 
   useEffect(() => {
-    if (sessionAttempt?.status !== "in_progress" || !attemptId) {
+    if (sessionAttempt?.status !== "in_progress" || !attemptId || isMentor) {
       return;
     }
 
@@ -426,11 +427,14 @@ function TryoutSessionPage() {
     };
   }, [attemptId, pauseMutation, sessionAttempt?.status, submitMutation.isPending]);
 
+  const isMentorRef = useRef(isMentor);
+  isMentorRef.current = isMentor;
+
   // Separate effect specifically for pausing on actual component unmount (e.g. client-side routing)
   // This avoids accidental pausing when the main useEffect re-runs due to dependency changes.
   useEffect(() => {
     return () => {
-      if (requestPauseRef.current && !hasStartedSubmit.current && hasTriggeredAutoSubmit.current === false) {
+      if (!isMentorRef.current && requestPauseRef.current && !hasStartedSubmit.current && hasTriggeredAutoSubmit.current === false) {
         void requestPauseRef.current();
       }
     };
@@ -466,7 +470,7 @@ function TryoutSessionPage() {
       return;
     }
 
-    if (isAttemptRunning) {
+    if (isAttemptRunning && !isMentor) {
       void flushCurrentQuestionProgress();
     }
 
@@ -489,7 +493,7 @@ function TryoutSessionPage() {
   }
 
   function selectAnswer(optionKey: string) {
-    if (!isAttemptRunning) {
+    if (!isAttemptRunning || isMentor) {
       return;
     }
 
@@ -497,7 +501,7 @@ function TryoutSessionPage() {
   }
 
   function toggleDoubtful() {
-    if (!isAttemptRunning || !currentQuestion?.selectedOptionKey) {
+    if (!isAttemptRunning || !currentQuestion?.selectedOptionKey || isMentor) {
       return;
     }
 
@@ -526,10 +530,17 @@ function TryoutSessionPage() {
     >
       <section id="tryout" className="w-full px-4 sm:px-6 py-4 md:py-6">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-          <Badge variant={timerTone === "danger" ? "destructive" : "secondary"} className="text-base py-1.5 px-3 flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
+            <Badge variant={timerTone === "danger" ? "destructive" : "secondary"} className="text-base py-1.5 px-3 flex items-center gap-1.5">
             <Timer className="w-5 h-5" />
             {timerLabel}
-          </Badge>
+            </Badge>
+            {isMentor && (
+              <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 font-semibold py-1.5 px-3 text-xs">
+                Mode Mentor (Read-Only)
+              </Badge>
+            )}
+          </div>
           <Button
             aria-pressed={isQuestionNavHidden}
             onClick={() => {
@@ -733,6 +744,14 @@ function TryoutSessionPage() {
                 </Button>
 
                 {isLastQuestion ? (
+                  isMentor ? (
+                    <Link
+                      {...getButtonStyleProps({ variant: "outline" })}
+                      to="/app/tryout"
+                    >
+                      Selesai Pratinjau
+                    </Link>
+                  ) : (
                   <Button
                     disabled={isAttemptInteractionDisabled || isQuestionMutationPending}
                     loading={submitMutation.isPending}
@@ -743,7 +762,7 @@ function TryoutSessionPage() {
                     Kirim hasil
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
-                ) : (
+                )) : (
                   <Button
                     disabled={isQuestionNavigationDisabled}
                     onClick={() => goToQuestion(Math.min(questions.length - 1, currentIndex + 1))}

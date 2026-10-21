@@ -985,5 +985,27 @@ describe("Tryout session page", () => {
       });
     });
   }, 10000);
-});
 
+  test("renders in read-only mode for mentor role without saving answers on question navigation", async () => {
+    mockUseStudentShell.mockReturnValue({
+      navItems: [],
+      tierLabel: "PRO MENTOR",
+      role: "mentor",
+    });
+
+    renderTryoutSession();
+
+    await screen.findByText(/Mode Mentor \(Read-Only\)/i);
+
+    const nextButton = await screen.findByRole("button", { name: /selanjutnya/i });
+    fireEvent.click(nextButton);
+
+    expect(mockSaveAnswer).not.toHaveBeenCalled();
+
+    const optionA = screen.getByRole("button", { name: /Pilihan A/i });
+    expect(optionA).toBeDisabled();
+
+    fireEvent.click(optionA);
+    expect(mockSaveAnswer).not.toHaveBeenCalled();
+  });
+});

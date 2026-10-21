@@ -683,18 +683,34 @@ export async function generateGeminiTextWithUsage(request: GeminiRequest): Promi
         error.diagnostics?.category === "GEMINI_RATE_LIMITED" ||
         error.diagnostics?.category === "GEMINI_TOKEN_LIMITED";
 
+      const isProviderUnavailable =
+        error.code === "GEMINI_PROVIDER_UNAVAILABLE" ||
+        error.diagnostics?.category === "GEMINI_PROVIDER_UNAVAILABLE" ||
+        error.status === 503;
+
       const retryAfterSeconds = error.diagnostics?.retryAfterSeconds;
       const hasReliableRetryHint = typeof retryAfterSeconds === "number" && retryAfterSeconds > 0;
       const normalizedOriginalMsg = (error.diagnostics?.originalMessage ?? error.message ?? "").toLowerCase();
       const isServerOverload = normalizedOriginalMsg.includes("overloaded") || normalizedOriginalMsg.includes("try again later");
 
-      // Rate limit retry policy:
-      // 1. If explicit retry hint is provided and within reasonable threshold (<= 30s): retry ONCE after waiting.
-      // 2. If Gemini server capacity overload ("model is overloaded"): retry ONCE after transient backoff.
-      // 3. If rate limited without reliable retry hint: DO NOT perform fast repeated retries inline!
-      //    Halt immediately (maxAttempts = 1) so the error surfaces clearly and the pipeline can be resumed later.
+      // Retry policy:
+      // 1. If explicit retry hint is provided and within reasonable threshold (<= 30s for rate limit, <= 10s for 503): retry ONCE after waiting.
+      // 2. If Gemini server capacity overload on rate limit (429): retry ONCE after transient backoff.
+      // 3. If HTTP 503 / GEMINI_PROVIDER_UNAVAILABLE with server overload ("model is overloaded", "try again later"):
+      //    Fail fast immediately (maxAttempts = 1) so edge isolate execution time is preserved and
+      //    the backend orchestrator / frontend step driver can perform a realistic cooldown (30-60s).
+      // 4. If generic server failure (503/500/502/504) without overload: retry ONCE for transient network glitches.
+      // 5. If rate limited without reliable retry hint or overload: DO NOT perform fast repeated retries inline! (maxAttempts = 1)
       let maxAttempts = 2;
-      if (isRateLimit) {
+      if (isProviderUnavailable) {
+        if (hasReliableRetryHint && retryAfterSeconds! <= 10) {
+          maxAttempts = 2;
+        } else if (isServerOverload) {
+          maxAttempts = 1;
+        } else {
+          maxAttempts = 2;
+        }
+      } else if (isRateLimit) {
         if (hasReliableRetryHint && retryAfterSeconds! <= 30) {
           maxAttempts = 2;
         } else if (isServerOverload) {

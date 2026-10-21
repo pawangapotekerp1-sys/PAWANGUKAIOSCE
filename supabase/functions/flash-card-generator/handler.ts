@@ -182,6 +182,7 @@ export interface RateLimitMetadataUpdateResult {
     message: string;
     consecutiveCount: number;
     isCircuitBroken: boolean;
+    errorCategory?: string;
   };
 }
 
@@ -191,14 +192,19 @@ export function buildRateLimitMetadataUpdate(params: {
   retryAfterSeconds?: number;
   message?: string;
   now?: string;
+  errorCategory?: string;
 }): RateLimitMetadataUpdateResult {
   const currentMeta = (params.currentMetadata ?? {}) as Record<string, unknown>;
   const previousRateLimit = currentMeta.rateLimitInfo as { consecutiveCount?: number } | undefined;
   const previousCount = typeof previousRateLimit?.consecutiveCount === "number" ? previousRateLimit.consecutiveCount : 0;
   const consecutiveCount = previousCount + 1;
   const isCircuitBroken = consecutiveCount >= 3;
-  const retryAfterSeconds = params.retryAfterSeconds ?? 60;
-  const message = params.message ?? "Batas kuota Gemini tercapai.";
+  const defaultRetry = params.errorCategory === "GEMINI_PROVIDER_UNAVAILABLE" ? 30 : 60;
+  const retryAfterSeconds = params.retryAfterSeconds ?? defaultRetry;
+  const defaultMessage = params.errorCategory === "GEMINI_PROVIDER_UNAVAILABLE"
+    ? "Layanan Gemini sedang mengalami gangguan sementara dari Google (503)."
+    : "Batas kuota Gemini tercapai.";
+  const message = params.message ?? defaultMessage;
 
   return {
     ...currentMeta,
@@ -210,6 +216,7 @@ export function buildRateLimitMetadataUpdate(params: {
       message,
       consecutiveCount,
       isCircuitBroken,
+      ...(params.errorCategory ? { errorCategory: params.errorCategory } : {}),
     },
   };
 }

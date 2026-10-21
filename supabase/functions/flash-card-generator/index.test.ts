@@ -1,6 +1,23 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
+
+if (typeof (globalThis as any).Deno === "undefined") {
+  (globalThis as any).Deno = {
+    serve: () => {},
+    env: {
+      get: (key: string) => {
+        if (key === "SUPABASE_URL") return "http://127.0.0.1:54321";
+        if (key === "SUPABASE_SERVICE_ROLE_KEY") return "service-role-test-key";
+        if (key === "SUPABASE_ANON_KEY") return "anon-test-key";
+        if (key === "GEMINI_BASE_URL") return "https://generativelanguage.googleapis.com/v1beta";
+        return process.env[key];
+      },
+    },
+  };
+}
+
+import { processMaterialGeneration } from "./index.ts";
 import {
   assertFlashCardMaterialEditable,
   assertFlashCardMaterialPublishable,
@@ -741,5 +758,471 @@ describe("flash-card step-by-step processing and continuation", () => {
     });
     expect(updateWithCheckpoint.pipelineCheckpoint).toEqual(testCheckpoint);
     expect(updateWithCheckpoint.processingJob).toBeUndefined();
+  });
+  test("buildRateLimitMetadataUpdate supports GEMINI_PROVIDER_UNAVAILABLE with default 30s cooldown and errorCategory tracking", () => {
+    // First 503 failure without explicit retry hint: defaults to 30s cooldown
+    const update1 = buildRateLimitMetadataUpdate({
+      currentMetadata: {},
+      retryAfterSeconds: 30,
+      message: "Layanan Gemini sedang mengalami gangguan sementara dari sisi Google (503).",
+      errorCategory: "GEMINI_PROVIDER_UNAVAILABLE",
+    });
+    expect(update1.rateLimitInfo.consecutiveCount).toBe(1);
+    expect(update1.rateLimitInfo.retryAfterSeconds).toBe(30);
+    expect(update1.rateLimitInfo.isCircuitBroken).toBe(false);
+    expect(update1.rateLimitInfo.errorCategory).toBe("GEMINI_PROVIDER_UNAVAILABLE");
+
+    // Second consecutive 503 failure
+    const update2 = buildRateLimitMetadataUpdate({
+      currentMetadata: { rateLimitInfo: update1.rateLimitInfo },
+      retryAfterSeconds: 30,
+      message: "Layanan Gemini sedang mengalami gangguan sementara dari sisi Google (503).",
+      errorCategory: "GEMINI_PROVIDER_UNAVAILABLE",
+    });
+    expect(update2.rateLimitInfo.consecutiveCount).toBe(2);
+    expect(update2.rateLimitInfo.isCircuitBroken).toBe(false);
+
+    // Third consecutive 503 failure -> Circuit breaker trips!
+    const update3 = buildRateLimitMetadataUpdate({
+      currentMetadata: { rateLimitInfo: update2.rateLimitInfo },
+      retryAfterSeconds: 30,
+      message: "Layanan Gemini sedang mengalami gangguan sementara dari sisi Google (503).",
+      errorCategory: "GEMINI_PROVIDER_UNAVAILABLE",
+    });
+    expect(update3.rateLimitInfo.consecutiveCount).toBe(3);
+    expect(update3.rateLimitInfo.isCircuitBroken).toBe(true);
+  });
+
+  test("runs real index.ts processMaterialGeneration handler path on HTTP 503 GEMINI_PROVIDER_UNAVAILABLE, verifying checkpoint preservation, claim release, circuit breaker, resume without duplicate calls, and permanent error discrimination", async () => {
+    function createMockService(initialMaterial: any) {
+      let materialRow = {
+        ...initialMaterial,
+        metadata: { ...(initialMaterial.metadata ?? {}) },
+      };
+
+      const service: any = {
+        from: (table: string) => {
+          if (table === "flashcard_source_files") {
+            return {
+              select: () => ({
+                eq: () => ({
+                  order: () => Promise.resolve({
+                    data: [
+                      {
+                        id: "src-transcript-1",
+                        material_id: materialRow.id,
+                        file_kind: "transcript",
+                        storage_bucket: "sources",
+                        storage_path: "transcripts/lecture.txt",
+                        original_file_name: "lecture.txt",
+                        mime_type: "text/plain",
+                        size_bytes: 100,
+                        extraction_status: "pending",
+                        delete_after_publish: false,
+                      },
+                      {
+                        id: "src-slide-1",
+                        material_id: materialRow.id,
+                        file_kind: "slide_pdf",
+                        storage_bucket: "sources",
+                        storage_path: "slides/lecture.pdf",
+                        original_file_name: "lecture.pdf",
+                        mime_type: "application/pdf",
+                        size_bytes: 500,
+                        extraction_status: "pending",
+                        delete_after_publish: false,
+                      },
+                    ],
+                    error: null,
+                  }),
+                }),
+              }),
+              update: () => ({
+                eq: () => Promise.resolve({ data: null, error: null }),
+                in: () => Promise.resolve({ data: null, error: null }),
+              }),
+            };
+          }
+
+          if (table === "flashcard_subtopics") {
+            return {
+              select: () => ({
+                eq: () => ({
+                  order: () => Promise.resolve({ data: [], error: null }),
+                }),
+              }),
+            };
+          }
+
+          if (table === "flashcard_cards") {
+            return {
+              select: () => ({
+                in: () => ({
+                  order: () => Promise.resolve({ data: [], error: null }),
+                }),
+              }),
+            };
+          }
+
+          if (table === "flashcard_materials") {
+            return {
+              select: () => ({
+                eq: () => ({
+                  eq: () => ({
+                    maybeSingle: () => Promise.resolve({ data: materialRow, error: null }),
+                  }),
+                }),
+              }),
+              update: (updatePayload: any) => {
+                const chain: any = {
+                  eq: () => chain,
+                  in: () => chain,
+                  is: () => chain,
+                  select: () => chain,
+                  then: (resolve: any) => {
+                    materialRow = {
+                      ...materialRow,
+                      ...updatePayload,
+                      metadata: {
+                        ...(materialRow.metadata ?? {}),
+                        ...(updatePayload.metadata ?? {}),
+                      },
+                    };
+                    if (updatePayload.metadata && "processingJob" in updatePayload.metadata && updatePayload.metadata.processingJob === undefined) {
+                      delete materialRow.metadata.processingJob;
+                    }
+                    resolve({
+                      data: [{ id: materialRow.id, status: materialRow.status, metadata: materialRow.metadata }],
+                      error: null,
+                    });
+                  },
+                };
+                return chain;
+              },
+            };
+          }
+
+          return {} as any;
+        },
+        rpc: (fn: string) => {
+          if (fn === "read_vault_secret" || fn === "read_secret") {
+            return Promise.resolve({ data: "fake-vault-key-abc", error: null });
+          }
+          if (fn === "replace_flashcard_material_content") {
+            return Promise.resolve({ data: null, error: null });
+          }
+          return Promise.resolve({ data: null, error: null });
+        },
+        storage: {
+          from: () => ({
+            download: (path: string) => {
+              if (typeof path === "string" && path.endsWith(".txt")) {
+                return Promise.resolve({
+                  data: new Blob(["Captopril dosis awal 12.5 mg 2x sehari untuk pasien lansia."]),
+                  error: null,
+                });
+              }
+              return Promise.resolve({
+                data: new Blob([new Uint8Array([37, 80, 68, 70])]), // "%PDF"
+                error: null,
+              });
+            },
+          }),
+        },
+        getMaterial: () => materialRow,
+        setMaterial: (m: any) => { materialRow = m; },
+      };
+
+      return service;
+    }
+
+    const mockService = createMockService({
+      id: "mat-503-real-test",
+      title: "Materi Hipertensi Klinis",
+      academic_group: "farmakoterapi",
+      status: "draft",
+      global_summary: null,
+      processing_error: null,
+      created_by: "user-mentor-1",
+      published_at: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      metadata: {},
+    });
+
+    const credential: any = {
+      id: "cred-1",
+      model: "gemini-3.8-flash",
+      secret_id: "sec-1",
+      last_validated_at: new Date().toISOString(),
+      last_error: null,
+    };
+
+    let cleanerCallCount = 0;
+
+    // Phase 1: Run cleaning stage successfully
+    const fetchMock = vi.fn().mockImplementation(async (url: string, init?: any) => {
+      const body = JSON.parse(init?.body ?? "{}");
+      const promptText = JSON.stringify(body);
+
+      if (promptText.includes("classify transcript segments")) {
+        cleanerCallCount += 1;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ "content-type": "application/json" }),
+          json: async () => ({
+            candidates: [
+              {
+                content: {
+                  parts: [
+                    {
+                      text: JSON.stringify({
+                        classifications: [
+                          {
+                            segmentId: "seg-001",
+                            classification: "relevant",
+                            reason: "Dosis Captopril klinis",
+                          },
+                        ],
+                      }),
+                    },
+                  ],
+                },
+              },
+            ],
+            usageMetadata: { promptTokenCount: 50, candidatesTokenCount: 20, totalTokenCount: 70 },
+          }),
+        };
+      }
+
+      // Generation stage fails with HTTP 503 GEMINI_PROVIDER_UNAVAILABLE (no retry hint)
+      return {
+        ok: false,
+        status: 503,
+        statusText: "Service Unavailable",
+        headers: new Headers(),
+        json: async () => ({
+          error: {
+            code: 503,
+            message: "The model is overloaded. Please try again later.",
+            status: "UNAVAILABLE",
+          },
+        }),
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    // Run stepGroup: "cleaning" - succeeds and suspends cleanly
+    await processMaterialGeneration(mockService, mockService.getMaterial(), credential, {
+      stepGroup: "cleaning",
+    });
+
+    expect(mockService.getMaterial().status).toBe("processing");
+    const cleaningCheckpoint = mockService.getMaterial().metadata.pipelineCheckpoint;
+    expect(cleaningCheckpoint.completedStages).toContain("transcript_cleaning");
+    expect(cleanerCallCount).toBe(1);
+
+    // 1st 503 Failure during generation
+    await expect(() =>
+      processMaterialGeneration(mockService, mockService.getMaterial(), credential, {
+        isRetry: true,
+        stepGroup: "generation",
+      })
+    ).rejects.toMatchObject({
+      status: 503,
+      code: "GEMINI_PROVIDER_UNAVAILABLE",
+    });
+
+    // 1. Status materi tetap "processing", BUKAN "failed", processing_error null
+    expect(mockService.getMaterial().status).toBe("processing");
+    expect(mockService.getMaterial().processing_error).toBeNull();
+
+    // 2. Checkpoint dan completedStages tetap tersimpan
+    expect(mockService.getMaterial().metadata.pipelineCheckpoint).toBeDefined();
+    expect(mockService.getMaterial().metadata.pipelineCheckpoint.completedStages).toContain("transcript_cleaning");
+
+    // 3. processingJob dilepaskan sehingga claim baru dapat dilakukan setelah cooldown
+    expect(mockService.getMaterial().metadata.processingJob).toBeUndefined();
+    const claimCond1 = determineMaterialClaimConditions({
+      isRetry: true,
+      status: mockService.getMaterial().status,
+      metadata: mockService.getMaterial().metadata,
+    });
+    expect(claimCond1.statusFilter).toEqual({ type: "eq", value: "processing" });
+    expect(claimCond1.jobIdFilter).toEqual({ type: "is_null" });
+
+    // 4. rateLimitInfo menyimpan kategori, waktu retry (30s), consecutiveCount = 1, isCircuitBroken = false
+    const rateLimit1 = mockService.getMaterial().metadata.rateLimitInfo;
+    expect(rateLimit1.errorCategory).toBe("GEMINI_PROVIDER_UNAVAILABLE");
+    expect(rateLimit1.retryAfterSeconds).toBe(30);
+    expect(rateLimit1.consecutiveCount).toBe(1);
+    expect(rateLimit1.isCircuitBroken).toBe(false);
+
+    // 2nd consecutive 503 failure
+    await expect(() =>
+      processMaterialGeneration(mockService, mockService.getMaterial(), credential, {
+        isRetry: true,
+        stepGroup: "generation",
+      })
+    ).rejects.toMatchObject({
+      status: 503,
+      code: "GEMINI_PROVIDER_UNAVAILABLE",
+    });
+    expect(mockService.getMaterial().metadata.rateLimitInfo.consecutiveCount).toBe(2);
+    expect(mockService.getMaterial().metadata.rateLimitInfo.isCircuitBroken).toBe(false);
+
+    // 3rd consecutive 503 failure -> Circuit breaker trips!
+    await expect(() =>
+      processMaterialGeneration(mockService, mockService.getMaterial(), credential, {
+        isRetry: true,
+        stepGroup: "generation",
+      })
+    ).rejects.toMatchObject({
+      status: 503,
+      code: "GEMINI_PROVIDER_UNAVAILABLE",
+    });
+
+    // 7. Setelah 3 kegagalan 503 berturut-turut, circuit breaker aktif
+    const rateLimit3 = mockService.getMaterial().metadata.rateLimitInfo;
+    expect(rateLimit3.consecutiveCount).toBe(3);
+    expect(rateLimit3.isCircuitBroken).toBe(true);
+
+    // 5. Frontend can continue using continue-processing after cooldown
+    expect(canContinueFlashCardMaterial(mockService.getMaterial())).toBe(true);
+
+    // 6. Resume from checkpoint after Google service recovers:
+    // Completed stages (transcript_cleaning) are NOT re-called!
+    const cleanerCountBeforeResume = cleanerCallCount;
+
+    fetchMock.mockImplementation(async (url: string, init?: any) => {
+      const body = JSON.parse(init?.body ?? "{}");
+      const promptText = JSON.stringify(body);
+
+      if (promptText.includes("classify transcript segments")) {
+        cleanerCallCount += 1;
+        throw new Error("Cleaner should not be called again when resuming from checkpoint!");
+      }
+
+      // Generation returns valid cards
+      return {
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      global_summary: "Ringkasan Captopril",
+                      subtopics: [
+                        {
+                          title: "ACE Inhibitor",
+                          summary: "Mekanisme kerja",
+                          cards: [
+                            {
+                              id: "c-1",
+                              front_text: "Bagaimana mekanisme Captopril?",
+                              back_text: "Menghambat enzim konversi angiotensin.",
+                            },
+                          ],
+                        },
+                      ],
+                    }),
+                  },
+                ],
+              },
+            },
+          ],
+          usageMetadata: { promptTokenCount: 150, candidatesTokenCount: 50, totalTokenCount: 200 },
+        }),
+      };
+    });
+
+    // Resume generation
+    await processMaterialGeneration(mockService, mockService.getMaterial(), credential, {
+      isRetry: true,
+      stepGroup: "generation",
+    });
+
+    // Proves transcript_cleaning was skipped and NOT re-called by Gemini!
+    expect(cleanerCallCount).toBe(cleanerCountBeforeResume);
+    expect(mockService.getMaterial().metadata.pipelineCheckpoint.completedStages).toContain("candidate_generation");
+
+    // 8. Error 429 RPD (Daily quota exhausted) and 401/403 (Auth failure) follow the permanent failure path
+    // 8a. 429 RPD
+    fetchMock.mockImplementation(async () => ({
+      ok: false,
+      status: 429,
+      statusText: "Too Many Requests",
+      headers: new Headers(),
+      json: async () => ({
+        error: {
+          code: 429,
+          status: "RESOURCE_EXHAUSTED",
+          message: "Daily quota exhausted",
+          details: [
+            {
+              "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+              violations: [
+                {
+                  quota_limit: "GenerateContentRequestsPerDayPerProject",
+                  reason: "QUOTA_EXCEEDED",
+                },
+              ],
+            },
+          ],
+        },
+      }),
+    }));
+
+    await expect(() =>
+      processMaterialGeneration(mockService, mockService.getMaterial(), credential, {
+        isRetry: true,
+        stepGroup: "review",
+      })
+    ).rejects.toMatchObject({
+      code: "GEMINI_QUOTA_EXHAUSTED",
+    });
+
+    // 429 RPD results in permanent failure!
+    expect(mockService.getMaterial().status).toBe("failed");
+    expect(mockService.getMaterial().processing_error).toMatch(/kuota harian/i);
+
+    // 8b. 403 API Key Invalid
+    mockService.setMaterial({
+      ...mockService.getMaterial(),
+      status: "processing",
+      processing_error: null,
+    });
+
+    fetchMock.mockImplementation(async () => ({
+      ok: false,
+      status: 403,
+      statusText: "Forbidden",
+      headers: new Headers(),
+      json: async () => ({
+        error: {
+          code: 403,
+          status: "PERMISSION_DENIED",
+          message: "API key not valid. Please pass a valid API key.",
+        },
+      }),
+    }));
+
+    await expect(() =>
+      processMaterialGeneration(mockService, mockService.getMaterial(), credential, {
+        isRetry: true,
+        stepGroup: "review",
+      })
+    ).rejects.toMatchObject({
+      code: "GEMINI_AUTHENTICATION_FAILED",
+    });
+
+    // 403 results in permanent failure!
+    expect(mockService.getMaterial().status).toBe("failed");
+    expect(mockService.getMaterial().processing_error).toMatch(/api key/i);
   });
 });

@@ -3,7 +3,7 @@ import { cleanup } from "@testing-library/react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import FlashCardGeneratorReviewPage from "./flash-card-generator-review-page";
+import FlashCardGeneratorReviewPage, { determineNextPipelineStepGroup } from "./flash-card-generator-review-page";
 
 const mockGetFlashCardMaterialDetail = vi.fn();
 const mockSaveFlashCardMaterialReview = vi.fn();
@@ -104,6 +104,11 @@ beforeEach(() => {
   mockPublishFlashCardMaterial.mockResolvedValue({
     materialId: "material-1",
     status: "published",
+  });
+  mockContinueFlashCardMaterialProcessing.mockResolvedValue({
+    materialId: "material-1",
+    status: "processing",
+    isSuspended: true,
   });
 });
 
@@ -336,5 +341,225 @@ describe("FlashCardGeneratorReviewPage", () => {
     // Auto countdown is NOT running
     expect(screen.queryByText(/melanjutkan otomatis dalam/i)).not.toBeInTheDocument();
     expect(mockContinueFlashCardMaterialProcessing).not.toHaveBeenCalled();
+  });
+  test("displays 503 service high demand message during countdown when rateLimitInfo indicates provider unavailable", async () => {
+    mockGetFlashCardMaterialDetail.mockResolvedValue({
+      ...createDetail("ready_for_review"),
+      material: {
+        ...createDetail("ready_for_review").material,
+        status: "processing",
+        statusLabel: "Sedang diproses",
+        metadata: {
+          pipelineCheckpoint: {
+            completedStages: ["ingestion", "transcript_cleaning"],
+            stageArtifacts: {},
+          },
+          rateLimitInfo: {
+            rateLimitedAt: new Date().toISOString(),
+            retryAfterSeconds: 30,
+            consecutiveCount: 1,
+            isCircuitBroken: false,
+            errorCategory: "GEMINI_PROVIDER_UNAVAILABLE",
+            message: "Layanan Gemini sedang mengalami gangguan sementara dari Google (503).",
+          },
+        },
+      },
+      subtopics: [],
+    });
+
+    renderPage();
+
+    expect(await screen.findByText(/layanan gemini sedang padat \/ mengalami gangguan sementara/i)).toBeInTheDocument();
+  });
+
+  test("triggers continueFlashCardMaterialProcessing with stepGroup cleaning when cleaning is NOT yet completed", async () => {
+    mockContinueFlashCardMaterialProcessing.mockResolvedValueOnce({
+      materialId: "material-1",
+      status: "processing",
+      isSuspended: true,
+      nextStepGroup: "generation",
+    });
+
+    mockGetFlashCardMaterialDetail.mockResolvedValueOnce({
+      ...createDetail("ready_for_review"),
+      material: {
+        ...createDetail("ready_for_review").material,
+        status: "processing",
+        statusLabel: "Sedang diproses",
+        metadata: {
+          pipelineCheckpoint: {
+            currentStage: "transcript_cleaning",
+            completedStages: ["ingestion"],
+            stageArtifacts: {},
+          },
+        },
+      },
+      subtopics: [],
+    });
+
+    renderPage();
+
+    expect(await screen.findByText(/ai sedang menyusun flash card/i)).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(mockContinueFlashCardMaterialProcessing).toHaveBeenCalledWith({
+        materialId: "material-1",
+        stepGroup: "cleaning",
+      });
+    });
+  });
+
+  test("triggers continueFlashCardMaterialProcessing with stepGroup review when candidate_generation is completed", async () => {
+    mockContinueFlashCardMaterialProcessing.mockResolvedValueOnce({
+      materialId: "material-1",
+      status: "processing",
+      isSuspended: false,
+      nextStepGroup: "finished",
+    });
+
+    mockGetFlashCardMaterialDetail.mockResolvedValueOnce({
+      ...createDetail("ready_for_review"),
+      material: {
+        ...createDetail("ready_for_review").material,
+        status: "processing",
+        statusLabel: "Sedang diproses",
+        metadata: {
+          pipelineCheckpoint: {
+            currentStage: "adversarial_review",
+            completedStages: ["ingestion", "transcript_cleaning", "candidate_generation"],
+            stageArtifacts: {},
+          },
+        },
+      },
+      subtopics: [],
+    });
+
+    renderPage();
+
+    expect(await screen.findByText(/ai sedang menyusun flash card/i)).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(mockContinueFlashCardMaterialProcessing).toHaveBeenCalledWith({
+        materialId: "material-1",
+        stepGroup: "review",
+      });
+    });
+  });
+
+  test("manual continue button triggers stepGroup cleaning when cleaning is not completed", async () => {
+    mockContinueFlashCardMaterialProcessing.mockResolvedValueOnce({
+      materialId: "material-1",
+      status: "processing",
+      isSuspended: true,
+      nextStepGroup: "generation",
+    });
+
+    mockGetFlashCardMaterialDetail.mockResolvedValue({
+      ...createDetail("ready_for_review"),
+      material: {
+        ...createDetail("ready_for_review").material,
+        status: "processing",
+        statusLabel: "Sedang diproses",
+        metadata: {
+          pipelineCheckpoint: {
+            currentStage: "transcript_cleaning",
+            completedStages: ["ingestion"],
+            stageArtifacts: {},
+          },
+          rateLimitInfo: {
+            rateLimitedAt: new Date().toISOString(),
+            retryAfterSeconds: 60,
+            consecutiveCount: 3,
+            isCircuitBroken: true,
+            errorCategory: "GEMINI_PROVIDER_UNAVAILABLE",
+          },
+        },
+      },
+      subtopics: [],
+    });
+
+    renderPage();
+
+    const manualBtn = await screen.findByRole("button", { name: /lanjutkan pemrosesan manual/i });
+    expect(manualBtn).toBeInTheDocument();
+
+    fireEvent.click(manualBtn);
+
+    await waitFor(() => {
+      expect(mockContinueFlashCardMaterialProcessing).toHaveBeenCalledWith({
+        materialId: "material-1",
+        stepGroup: "cleaning",
+      });
+    });
+  });
+
+  test("does not trigger auto-continuation if processingJob is already active in another tab or worker", async () => {
+    mockGetFlashCardMaterialDetail.mockResolvedValue({
+      ...createDetail("ready_for_review"),
+      material: {
+        ...createDetail("ready_for_review").material,
+        status: "processing",
+        statusLabel: "Sedang diproses",
+        metadata: {
+          pipelineCheckpoint: {
+            currentStage: "transcript_cleaning",
+            completedStages: ["ingestion"],
+            stageArtifacts: {},
+          },
+          processingJob: {
+            jobId: "active-concurrent-job-uuid-1234",
+            startedAt: new Date().toISOString(),
+            heartbeatAt: new Date().toISOString(),
+            stage: "transcript_cleaning",
+          },
+        },
+      },
+      subtopics: [],
+    });
+
+    renderPage();
+
+    expect(await screen.findByText(/ai sedang menyusun flash card/i)).toBeInTheDocument();
+    // Multi-tab idempotency: Active job running means no duplicate request
+    expect(mockContinueFlashCardMaterialProcessing).not.toHaveBeenCalled();
+  });
+});
+
+describe("determineNextPipelineStepGroup helper", () => {
+  test("returns 'cleaning' when completedStages does not include transcript_cleaning", () => {
+    expect(determineNextPipelineStepGroup(undefined)).toBe("cleaning");
+    expect(determineNextPipelineStepGroup({})).toBe("cleaning");
+    expect(determineNextPipelineStepGroup({ completedStages: [] })).toBe("cleaning");
+    expect(determineNextPipelineStepGroup({ completedStages: ["ingestion"] })).toBe("cleaning");
+  });
+
+  test("returns 'generation' when transcript_cleaning is completed but candidate_generation is not", () => {
+    expect(determineNextPipelineStepGroup({ completedStages: ["ingestion", "transcript_cleaning"] })).toBe("generation");
+    expect(determineNextPipelineStepGroup({ completedStages: ["ingestion", "transcript_cleaning", "concept_mapping"] })).toBe("generation");
+  });
+
+  test("returns 'review' when candidate_generation is completed but validation_and_storage is not", () => {
+    expect(
+      determineNextPipelineStepGroup({
+        completedStages: ["ingestion", "transcript_cleaning", "concept_mapping", "alignment_and_conflict_detection", "candidate_generation"],
+      })
+    ).toBe("review");
+  });
+
+  test("returns null when validation_and_storage is completed", () => {
+    expect(
+      determineNextPipelineStepGroup({
+        completedStages: [
+          "ingestion",
+          "transcript_cleaning",
+          "concept_mapping",
+          "alignment_and_conflict_detection",
+          "candidate_generation",
+          "adversarial_review",
+          "targeted_repair",
+          "validation_and_storage",
+        ],
+      })
+    ).toBeNull();
   });
 });

@@ -37,6 +37,20 @@ function formatErrorMessage(error: unknown, fallback: string): string {
   return msg || fallback;
 }
 
+export function determineNextPipelineStepGroup(checkpoint: any): "cleaning" | "generation" | "review" | null {
+  const completedStages: string[] = checkpoint?.completedStages ?? [];
+  if (!completedStages.includes("transcript_cleaning")) {
+    return "cleaning";
+  }
+  if (!completedStages.includes("candidate_generation")) {
+    return "generation";
+  }
+  if (!completedStages.includes("validation_and_storage")) {
+    return "review";
+  }
+  return null;
+}
+
 function FlashCardGeneratorReviewPage() {
   const { materialId = "" } = useParams();
   const navigate = useNavigate();
@@ -114,19 +128,12 @@ function FlashCardGeneratorReviewPage() {
     if (isStepExecutingRef.current) return;
 
     const cp = meta.pipelineCheckpoint ?? meta.pipeline_checkpoint;
-    const completedStages: string[] = cp?.completedStages ?? [];
-    let nextStep: "generation" | "review" | null = null;
-
-    if (completedStages.includes("transcript_cleaning") && !completedStages.includes("candidate_generation")) {
-      nextStep = "generation";
-    } else if (completedStages.includes("candidate_generation") && !completedStages.includes("validation_and_storage")) {
-      nextStep = "review";
-    }
+    const nextStep = determineNextPipelineStepGroup(cp);
 
     if (!nextStep) return;
 
     isStepExecutingRef.current = true;
-    continueFlashCardMaterialProcessing({ materialId, stepGroup: nextStep })
+    Promise.resolve(continueFlashCardMaterialProcessing({ materialId, stepGroup: nextStep }))
       .then(() => {
         void detailQuery.refetch();
       })
@@ -149,19 +156,15 @@ function FlashCardGeneratorReviewPage() {
 
     const meta = (detailQuery.data.material.metadata ?? {}) as any;
     const cp = meta.pipelineCheckpoint ?? meta.pipeline_checkpoint;
-    const completedStages: string[] = cp?.completedStages ?? [];
-    let nextStep: "generation" | "review" | null = null;
+    const nextStep = determineNextPipelineStepGroup(cp);
 
-    if (completedStages.includes("transcript_cleaning") && !completedStages.includes("candidate_generation")) {
-      nextStep = "generation";
-    } else if (completedStages.includes("candidate_generation") && !completedStages.includes("validation_and_storage")) {
-      nextStep = "review";
-    } else if (!completedStages.includes("transcript_cleaning")) {
-      nextStep = "generation"; // Default fallback
+    if (!nextStep) {
+      setIsManualContinuing(false);
+      return;
     }
 
     try {
-      await continueFlashCardMaterialProcessing({ materialId, stepGroup: nextStep ?? undefined });
+      await continueFlashCardMaterialProcessing({ materialId, stepGroup: nextStep });
       await detailQuery.refetch();
     } catch (err: any) {
       setActionError(formatErrorMessage(err, "Gagal melanjutkan pemrosesan."));
@@ -311,6 +314,10 @@ function FlashCardGeneratorReviewPage() {
               rateLimitInfo?.isCircuitBroken ||
               (typeof rateLimitInfo?.consecutiveCount === "number" && rateLimitInfo.consecutiveCount >= 3),
             );
+            const is503 =
+              rateLimitInfo?.errorCategory === "GEMINI_PROVIDER_UNAVAILABLE" ||
+              rateLimitInfo?.message?.includes("gangguan") ||
+              rateLimitInfo?.message?.includes("503");
 
             if (isCircuitBroken) {
               return (
@@ -322,7 +329,9 @@ function FlashCardGeneratorReviewPage() {
                         Batas percobaan ulang otomatis tercapai
                       </p>
                       <p className="text-xs leading-5 opacity-90">
-                        Proses telah terkena batas kuota Gemini 3 kali berturut-turut. Percobaan ulang otomatis dihentikan sementara untuk menjaga akun Google Anda. Tunggu 1–2 menit, lalu klik tombol di bawah untuk melanjutkan secara manual.
+                        {is503
+                          ? "Layanan Gemini sedang mengalami gangguan/kepadatan tinggi (503) 3 kali berturut-turut. Percobaan otomatis dihentikan sementara. Tunggu beberapa saat hingga layanan Google stabil, lalu klik tombol di bawah untuk melanjutkan secara manual."
+                          : "Proses telah terkena batas kuota Gemini 3 kali berturut-turut. Percobaan ulang otomatis dihentikan sementara untuk menjaga akun Google Anda. Tunggu 1–2 menit, lalu klik tombol di bawah untuk melanjutkan secara manual."}
                       </p>
                     </div>
                   </div>
@@ -348,7 +357,9 @@ function FlashCardGeneratorReviewPage() {
                   <div className="flex items-center justify-center gap-2">
                     <AlertCircle className="h-5 w-5 shrink-0" />
                     <p className="text-sm font-medium">
-                      Batas kuota Gemini (5 RPM) tercapai. Menunggu jendela kuota... (Melanjutkan otomatis dalam {rateLimitCountdown} detik)
+                      {is503
+                        ? `Layanan Gemini sedang padat / mengalami gangguan sementara. Menunggu pemulihan... (Melanjutkan otomatis dalam ${rateLimitCountdown} detik)`
+                        : `Batas kuota Gemini (5 RPM) tercapai. Menunggu jendela kuota... (Melanjutkan otomatis dalam ${rateLimitCountdown} detik)`}
                     </p>
                   </div>
                 </div>

@@ -771,4 +771,33 @@ describe("gemini-client", () => {
     // Halts immediately: 1 attempt, zero retries for permanent quota exhaustion
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+  test("fails fast immediately on HTTP 503 without retry hint to delegate cooldown to backend orchestrator", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 503,
+      json: async () => ({
+        error: {
+          code: 503,
+          status: "UNAVAILABLE",
+          message: "The model is overloaded. Please try again later.",
+        },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { generateGeminiTextWithUsage } = await import("./gemini-client.ts");
+    await expect(() =>
+      generateGeminiTextWithUsage({
+        apiKey: "api-key",
+        model: "gemini-3.8-flash",
+        prompt: "Generate flashcard",
+      }),
+    ).rejects.toMatchObject({
+      code: "GEMINI_PROVIDER_UNAVAILABLE",
+      status: 503,
+    });
+
+    // Fails fast: exactly 1 attempt so the edge function releases worker immediately
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });

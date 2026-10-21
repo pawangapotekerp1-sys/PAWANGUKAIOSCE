@@ -785,11 +785,13 @@ function createSyncThenableResult(
   conflicts: SourceConflictRecord[],
   tokenUsage: StageTokenMetrics,
 ): SourceAlignmentResult & PromiseLike<SourceAlignmentResult> {
-  const result: SourceAlignmentResult = {
+  const plain: SourceAlignmentResult = {
     alignedSources,
     conflicts,
     tokenUsage,
   };
+
+  const result: SourceAlignmentResult = { ...plain };
 
   return Object.assign(result, {
     then<TResult1 = SourceAlignmentResult, TResult2 = never>(
@@ -798,22 +800,22 @@ function createSyncThenableResult(
         | null,
       onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
     ): Promise<TResult1 | TResult2> {
-      return Promise.resolve(result).then(onfulfilled, onrejected);
+      return Promise.resolve(plain).then(onfulfilled, onrejected);
     },
     catch<TResult = never>(
       onrejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | null,
     ): Promise<SourceAlignmentResult | TResult> {
-      return Promise.resolve(result).catch(onrejected);
+      return Promise.resolve(plain).catch(onrejected);
     },
     finally(onfinally?: (() => void) | null): Promise<SourceAlignmentResult> {
-      return Promise.resolve(result).finally(onfinally);
+      return Promise.resolve(plain).finally(onfinally);
     },
   });
 }
 
 /**
  * Aligns lecture slides with transcript segments and detects substantive conflicts.
- * When `geminiClient` is provided, performs LLM semantic alignment.
+ * When geminiClient is provided, performs LLM semantic alignment.
  * Otherwise, performs high-precision deterministic clinical alignment.
  */
 export function alignSourcesAndDetectConflicts(

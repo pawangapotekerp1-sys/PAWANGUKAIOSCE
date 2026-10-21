@@ -410,7 +410,7 @@ function logSafeTelemetry(event: string, data: Record<string, unknown> = {}) {
   console.log(JSON.stringify(payload));
 }
 
-async function processMaterialGeneration(
+export async function processMaterialGeneration(
   service: ServiceClient,
   material: MaterialRow,
   credential: UserAiCredentialRow,
@@ -766,7 +766,18 @@ async function processMaterialGeneration(
     const errorCode = error instanceof GeminiRequestError ? error.code : undefined;
     const errorStatus = error instanceof GeminiRequestError ? error.status : undefined;
 
-    logSafeTelemetry("job_failed", {
+    const isRateLimited =
+      errorDiagnostics?.category === "GEMINI_RATE_LIMITED" ||
+      errorDiagnostics?.category === "GEMINI_TOKEN_LIMITED" ||
+      (errorStatus === 429 && errorDiagnostics?.isRetryable !== false);
+
+    const isProviderUnavailable =
+      (errorDiagnostics?.category === "GEMINI_PROVIDER_UNAVAILABLE" || errorStatus === 503) &&
+      errorDiagnostics?.isRetryable !== false;
+
+    const isTransientError = isRateLimited || isProviderUnavailable;
+
+    logSafeTelemetry(isTransientError ? "job_transient_error" : "job_failed", {
       materialId: material.id,
       jobId,
       error: message,
@@ -774,18 +785,22 @@ async function processMaterialGeneration(
       errorStatus,
       isRetryable: errorDiagnostics?.isRetryable,
       retryAfterSeconds: errorDiagnostics?.retryAfterSeconds,
+      isTransient: isTransientError,
     });
     const currentMeta = (material.metadata ?? {}) as Record<string, unknown>;
     const checkpointToPreserve = (error as any)?.checkpoint ?? latestCheckpoint;
 
-    const isRateLimited = errorDiagnostics?.category === "GEMINI_RATE_LIMITED" || (errorStatus === 429 && errorDiagnostics?.isRetryable !== false);
-    if (isRateLimited) {
-      const retryAfterSeconds = errorDiagnostics?.retryAfterSeconds ?? 60;
+    if (isTransientError) {
+      const defaultRetrySeconds = isRateLimited ? 60 : 30;
+      const retryAfterSeconds = errorDiagnostics?.retryAfterSeconds ?? defaultRetrySeconds;
+      const errorCategory = errorDiagnostics?.category ?? (isRateLimited ? "GEMINI_RATE_LIMITED" : "GEMINI_PROVIDER_UNAVAILABLE");
+
       const rateLimitMeta = buildRateLimitMetadataUpdate({
         currentMetadata: currentMeta,
         checkpointToPreserve,
         retryAfterSeconds,
         message,
+        errorCategory,
       });
 
       await service
@@ -803,7 +818,19 @@ async function processMaterialGeneration(
         ? ` (Batas percobaan ulang otomatis tercapai [${rateLimitMeta.rateLimitInfo.consecutiveCount}x]. Silakan lanjutkan manual).`
         : "";
 
-      throw new HttpError(429, "GEMINI_RATE_LIMIT", `Batas kuota Gemini (5 RPM) tercapai. Menunggu ${retryAfterSeconds} detik.${circuitBrokenNotice}`);
+      if (isProviderUnavailable) {
+        throw new HttpError(
+          503,
+          "GEMINI_PROVIDER_UNAVAILABLE",
+          `Layanan Gemini sedang mengalami gangguan sementara dari Google (503). Menunggu pemulihan ${retryAfterSeconds} detik.${circuitBrokenNotice}`,
+        );
+      }
+
+      throw new HttpError(
+        429,
+        "GEMINI_RATE_LIMIT",
+        `Batas kuota Gemini (5 RPM) tercapai. Menunggu ${retryAfterSeconds} detik.${circuitBrokenNotice}`,
+      );
     }
 
     const failureUpdate: Record<string, unknown> = buildFlashCardFailureUpdate(message);
@@ -914,7 +941,8 @@ async function deletePublishedSourceFiles(service: ServiceClient, sourceFiles: S
   }
 }
 
-Deno.serve(async (req) => {
+if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
+  Deno.serve(async (req) => {
   const corsResponse = handleCors(req);
 
   if (corsResponse) {
@@ -1482,3 +1510,4 @@ Deno.serve(async (req) => {
     );
   }
 });
+}

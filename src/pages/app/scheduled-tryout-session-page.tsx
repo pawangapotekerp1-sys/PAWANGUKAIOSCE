@@ -9,6 +9,7 @@ import { Badge } from "../../components/ui/badge";
 import { Card, CardHeader, CardContent, CardDescription } from "../../components/ui/card";
 import SectionHeading from "../../components/ui/section-heading";
 import { SessionAnswerOptionButton, SessionQuestionNavButton } from "../../components/ui/session-option-buttons";
+import MobileQuestionNavDrawer from "../../components/tryout/mobile-question-nav-drawer";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -580,6 +581,7 @@ function ScheduledTryoutSessionPage() {
             </Link>
           </Alert>
         ) : sessionData?.view === "ready" && currentQuestion ? (
+          <>
           <div
             className={[
               "mt-6 grid gap-4",
@@ -587,7 +589,7 @@ function ScheduledTryoutSessionPage() {
             ].join(" ")}
           >
             {!isQuestionNavHidden ? (
-              <Card className="shadow-sm h-fit order-2">
+              <Card className="shadow-sm h-fit order-2 hidden md:block">
                 <CardHeader className="pb-3 border-b bg-muted/20">
                   <CardDescription className="font-semibold uppercase tracking-wider text-primary text-xs">
                     Navigasi Soal
@@ -755,6 +757,57 @@ function ScheduledTryoutSessionPage() {
             </Card>
             </div>
           </div>
+          <MobileQuestionNavDrawer
+            breakpoint="md"
+            currentIndex={currentIndex}
+            totalQuestions={questions.length}
+            disabled={isQuestionNavigationDisabled}
+            onSelectQuestion={(index) => {
+              goToQuestion(index);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            legend={
+              <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+                  Terjawab
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+                  Ragu-ragu
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full border border-border bg-card" />
+                  Belum dijawab
+                </span>
+              </div>
+            }
+            renderGrid={({ close }) => (
+              <div className="grid grid-cols-5 gap-2.5">
+                {questions.map((question, index) => (
+                  <SessionQuestionNavButton
+                    key={question.id}
+                    disabled={isQuestionNavigationDisabled}
+                    number={index + 1}
+                    onClick={() => {
+                      goToQuestion(index);
+                      close();
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    isCurrent={index === currentIndex}
+                    state={
+                      question.isDoubtful
+                        ? "doubtful"
+                        : question.selectedOptionKey
+                          ? "answered"
+                          : "idle"
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          />
+          </>
         ) : (
           <Alert className="mt-6 border-dashed flex flex-col items-start gap-4">
             <div>

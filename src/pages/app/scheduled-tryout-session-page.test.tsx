@@ -550,4 +550,20 @@ describe("Scheduled tryout session page", () => {
     fireEvent.click(optionA);
     expect(mockSaveScheduledTryoutAnswer).not.toHaveBeenCalled();
   });
+  test("renders mobile question nav drawer trigger and verifies responsive layout classes", async () => {
+    renderScheduledSession();
+
+    await screen.findByText(/timer 00:40:00/i);
+
+    const mobileNavTrigger = screen.getByRole("button", { name: /^navigasi soal$/i });
+    expect(mobileNavTrigger).toBeInTheDocument();
+    expect(mobileNavTrigger).toHaveTextContent(/soal 1 \/ 2/i);
+
+    const mobileContainer = mobileNavTrigger.closest(".md\\:hidden");
+    expect(mobileContainer).toBeInTheDocument();
+    expect(mobileContainer).toHaveClass("md:hidden");
+
+    const desktopCard = screen.getByText(/^navigasi soal$/i).closest(".shadow-sm");
+    expect(desktopCard).toHaveClass("hidden", "md:block");
+  });
 });

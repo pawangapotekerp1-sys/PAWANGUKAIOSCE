@@ -23,6 +23,7 @@ import Button, { getButtonStyleProps } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Alert, AlertTitle, AlertDescription } from "../../components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
+import MobileQuestionNavDrawer from "../../components/tryout/mobile-question-nav-drawer";
 import { listReviewHistory, getReviewDetailData } from "../../lib/api/review-api";
 import { useSession } from "../../lib/auth/use-session";
 import { productShellMeta } from "../../mocks/student-dashboard";
@@ -278,9 +279,10 @@ function ReviewPage() {
                   </Alert>
                 ) : (
                   /* 2-Column Tryout Layout (Exact structure of tryout-session-page.tsx) */
+                  <>
                   <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_18rem] items-start">
                     {/* Sidebar - Navigasi Soal Grid (With p-1.5 padding to prevent active ring cutoff) */}
-                    <Card className="shadow-xs h-fit order-2">
+                    <Card className="shadow-xs h-fit order-2 hidden xl:block">
                       <CardHeader className="pb-3 border-b bg-muted/20">
                         <CardDescription className="font-semibold uppercase tracking-wider text-primary text-xs">
                           Navigasi Soal
@@ -480,6 +482,55 @@ function ReviewPage() {
                       </div>
                     ) : null}
                   </div>
+                  <MobileQuestionNavDrawer
+                    breakpoint="xl"
+                    currentIndex={currentIndex}
+                    totalQuestions={items.length}
+                    onSelectQuestion={(index) => {
+                      setCurrentIndex(index);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    legend={
+                      <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <span className="h-2.5 w-2.5 rounded-full bg-emerald-600" />
+                          Jawaban Benar
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <span className="h-2.5 w-2.5 rounded-full bg-rose-600" />
+                          Jawaban Salah
+                        </span>
+                      </div>
+                    }
+                    renderGrid={({ close }) => (
+                      <div className="grid grid-cols-5 gap-2.5">
+                        {items.map((item, index) => {
+                          const isCurrent = index === currentIndex;
+                          return (
+                            <button
+                              key={item.id}
+                              onClick={() => {
+                                setCurrentIndex(index);
+                                close();
+                                window.scrollTo({ top: 0, behavior: "smooth" });
+                              }}
+                              aria-label={`Soal ${index + 1}`}
+                              className={[
+                                "h-10 w-full rounded-full border text-sm font-bold transition-all duration-150 flex items-center justify-center cursor-pointer shadow-2xs",
+                                item.isWrong
+                                  ? "!border-rose-600 !bg-rose-600 !text-white hover:!bg-rose-700"
+                                  : "!border-emerald-600 !bg-emerald-600 !text-white hover:!bg-emerald-700",
+                                isCurrent ? "ring-2 ring-primary ring-offset-2 !border-primary scale-[1.03]" : "",
+                              ].filter(Boolean).join(" ")}
+                            >
+                              {index + 1}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  />
+                  </>
                 )}
 
                 {/* Redesigned Summary Stats Section at the VERY BOTTOM */}

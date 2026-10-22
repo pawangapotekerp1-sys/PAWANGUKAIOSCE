@@ -135,7 +135,7 @@ describe("Review page", () => {
   test("renders merged review history with scheduled labels and scheduled detail links", async () => {
     renderReviewPage("/app/review");
 
-    expect(await screen.findByText(/riwayat pembahasan/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' })).toBeInTheDocument();
+    expect(await screen.findByText(/to klinik juni/i)).toBeInTheDocument();
     expect(await screen.findByText(/^terjadwal$/i)).toBeInTheDocument();
     const reviewLinks = await screen.findAllByRole("link", { name: /buka pembahasan/i });
     expect(reviewLinks[0]).toHaveAttribute(
@@ -212,5 +212,22 @@ describe("Review page", () => {
     expect(within(summaryPanel).getByText(/^jawaban salah$/i)).toBeInTheDocument();
     expect(within(summaryPanel).getByText(/^tanggal submit$/i)).toBeInTheDocument();
     expect(within(summaryPanel).getByText("78")).toBeInTheDocument();
+  });
+
+  test("renders mobile question nav drawer trigger and verifies responsive layout classes", async () => {
+    renderReviewPage("/app/review/attempt-1");
+
+    await screen.findByText(/apa target tekanan darah pada ckd/i);
+
+    const mobileNavTrigger = screen.getByRole("button", { name: /^navigasi soal$/i });
+    expect(mobileNavTrigger).toBeInTheDocument();
+    expect(mobileNavTrigger).toHaveTextContent(/soal 1 \/ 3/i);
+
+    const mobileContainer = mobileNavTrigger.closest(".xl\\:hidden");
+    expect(mobileContainer).toBeInTheDocument();
+    expect(mobileContainer).toHaveClass("xl:hidden");
+
+    const desktopCard = screen.getByText(/^navigasi soal$/i).closest(".shadow-xs");
+    expect(desktopCard).toHaveClass("hidden", "xl:block");
   });
 });

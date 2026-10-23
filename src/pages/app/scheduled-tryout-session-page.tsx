@@ -589,7 +589,7 @@ function ScheduledTryoutSessionPage() {
             ].join(" ")}
           >
             {!isQuestionNavHidden ? (
-              <Card className="shadow-sm h-fit order-2 hidden md:block">
+              <Card className="shadow-sm border border-slate-200/90 bg-card h-fit order-2 hidden md:block">
                 <CardHeader className="pb-3 border-b bg-muted/20">
                   <CardDescription className="font-semibold uppercase tracking-wider text-primary text-xs">
                     Navigasi Soal
@@ -620,7 +620,7 @@ function ScheduledTryoutSessionPage() {
 
             <div className="flex flex-col md:flex-row gap-4 lg:gap-6 order-1 items-start min-w-0">
               {/* Question Info Side Card */}
-              <Card className="shadow-sm w-full md:w-32 lg:w-36 shrink-0 md:sticky md:top-24">
+              <Card className="shadow-sm border border-slate-200/90 bg-card w-full md:w-32 lg:w-36 shrink-0 md:sticky md:top-24">
                 <CardContent className="p-4 flex flex-col gap-1.5 text-sm text-foreground/80">
                   <p className="font-bold text-lg text-foreground leading-none mb-1">Soal {currentIndex + 1}</p>
                   <p>
@@ -635,7 +635,7 @@ function ScheduledTryoutSessionPage() {
               </Card>
 
               {/* Main Question Card */}
-              <Card className="p-5 flex-1 min-w-0 shadow-sm">
+              <Card className="p-5 flex-1 min-w-0 shadow-sm border border-slate-200/90 bg-card">
               {syncNotice ? (
                 <Alert className="mb-5 border-primary text-primary">
                   <AlertDescription className="font-semibold text-sm">{syncNotice}</AlertDescription>

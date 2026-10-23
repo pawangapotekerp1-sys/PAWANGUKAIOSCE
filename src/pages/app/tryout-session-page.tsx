@@ -619,7 +619,7 @@ function TryoutSessionPage() {
           <>
           <div className={["mt-6 grid gap-6", isQuestionNavHidden ? "md:grid-cols-[minmax(0,1fr)]" : "md:grid-cols-[minmax(0,1fr)_16rem] lg:grid-cols-[minmax(0,1fr)_18rem]"].join(" ")}>
             {!isQuestionNavHidden ? (
-              <Card className="shadow-sm h-fit order-2 hidden md:block">
+              <Card className="shadow-sm border border-slate-200/90 bg-card h-fit order-2 hidden md:block">
                 <CardHeader className="pb-3 border-b bg-muted/20">
                   <CardDescription className="font-semibold uppercase tracking-wider text-primary text-xs">
                     Navigasi Soal
@@ -650,7 +650,7 @@ function TryoutSessionPage() {
 
             <div className="flex flex-col md:flex-row gap-4 lg:gap-6 order-1 items-start min-w-0">
               {/* Question Info Side Card */}
-              <Card className="shadow-sm w-full md:w-32 lg:w-36 shrink-0 md:sticky md:top-24">
+              <Card className="shadow-sm border border-slate-200/90 bg-card w-full md:w-32 lg:w-36 shrink-0 md:sticky md:top-24">
                 <CardContent className="p-4 flex flex-col gap-1.5 text-sm text-foreground/80">
                   <p className="font-bold text-lg text-foreground leading-none mb-1">Soal {currentIndex + 1}</p>
                   <p>
@@ -668,7 +668,7 @@ function TryoutSessionPage() {
               </Card>
 
               {/* Main Question Card */}
-              <Card className="shadow-sm flex-1 min-w-0">
+              <Card className="shadow-sm border border-slate-200/90 bg-card flex-1 min-w-0">
               {sessionAttempt?.status === "paused" && resumeMutation.isError ? (
                 <div className="m-5 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-4" role="alert">
                   <p className="text-sm font-semibold text-destructive">{resumeErrorMessage}</p>

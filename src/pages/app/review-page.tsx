@@ -282,7 +282,7 @@ function ReviewPage() {
                   <>
                   <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_18rem] items-start">
                     {/* Sidebar - Navigasi Soal Grid (With p-1.5 padding to prevent active ring cutoff) */}
-                    <Card className="shadow-xs h-fit order-2 hidden xl:block">
+                    <Card className="shadow-xs border border-slate-200/90 bg-card h-fit order-2 hidden xl:block">
                       <CardHeader className="pb-3 border-b bg-muted/20">
                         <CardDescription className="font-semibold uppercase tracking-wider text-primary text-xs">
                           Navigasi Soal
@@ -317,7 +317,7 @@ function ReviewPage() {
                     {currentItem ? (
                       <div className="flex flex-col md:flex-row gap-4 lg:gap-6 order-1 items-start min-w-0">
                         {/* Question Info Side Card */}
-                        <Card className="shadow-sm w-full md:w-32 lg:w-36 shrink-0 md:sticky md:top-24">
+                        <Card className="shadow-sm border border-slate-200/90 bg-card w-full md:w-32 lg:w-36 shrink-0 md:sticky md:top-24">
                           <CardContent className="p-4 flex flex-col gap-1.5 text-sm text-foreground/80">
                             <p className="font-bold text-lg text-foreground leading-none mb-1">Soal {currentIndex + 1}</p>
                             <p>
@@ -331,7 +331,7 @@ function ReviewPage() {
                         </Card>
 
                         {/* Main Question Card */}
-                        <Card className="shadow-sm flex-1 min-w-0">
+                        <Card className="shadow-sm border border-slate-200/90 bg-card flex-1 min-w-0">
 
 
                           <CardContent>

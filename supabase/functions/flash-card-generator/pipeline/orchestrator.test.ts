@@ -516,3 +516,128 @@ describe("FlashCard Pipeline Orchestrator", () => {
     expect(result.checkpoint.completedStages).toContain("transcript_cleaning");
   });
 });
+
+describe("Orchestrator Large Material & Resource Safety", () => {
+  it("suspends with nextStepGroup='cleaning' when transcript cleaning exceeds maxCleaningChunksPerRun, then completes cleaning on next run and deletes partial artifact", async () => {
+    const lines = Array.from(
+      { length: 6 },
+      (_, idx) => `Segmen kuliah farmakologi nomor ${idx + 1} dengan dosis ${idx + 10} mg.`,
+    );
+    const transcriptText = lines.join("\n");
+
+    const mockGeminiClient = vi.fn().mockResolvedValue({
+      text: JSON.stringify({
+        noiseSegmentIds: [],
+        uncertainSegments: [],
+      }),
+      usage: { isAvailable: true, promptTokenCount: 30, candidatesTokenCount: 10, totalTokenCount: 40 },
+    });
+
+    // Run 1: stepGroup="cleaning" with cleaningChunkSize=2 and maxCleaningChunksPerRun=2 (processes 4 of 6 segments)
+    const run1 = await runFlashCardPipeline({
+      title: "Kuliah Panjang 3 Jam",
+      transcriptText,
+      geminiClient: mockGeminiClient,
+      apiKey: "test-key",
+      stepGroup: "cleaning",
+      cleaningChunkSize: 2,
+      maxCleaningChunksPerRun: 2,
+    });
+
+    expect(run1.isSuspended).toBe(true);
+    expect(run1.nextStepGroup).toBe("cleaning");
+    expect(run1.checkpoint.completedStages).toContain("ingestion");
+    expect(run1.checkpoint.completedStages).not.toContain("transcript_cleaning");
+    expect(run1.checkpoint.stageArtifacts["transcript_cleaning_partial"]).toBeDefined();
+    expect((run1.checkpoint.stageArtifacts["ingestion"] as any).transcriptText).toBeUndefined();
+
+    // Run 2: resume stepGroup="cleaning" -> finishes remaining chunk (segments 5-6), transitions nextStepGroup to "generation", deletes partial artifact
+    const run2 = await runFlashCardPipeline({
+      title: "Kuliah Panjang 3 Jam",
+      transcriptText,
+      checkpoint: run1.checkpoint,
+      geminiClient: mockGeminiClient,
+      apiKey: "test-key",
+      stepGroup: "cleaning",
+      cleaningChunkSize: 2,
+      maxCleaningChunksPerRun: 2,
+    });
+
+    expect(run2.isSuspended).toBe(true);
+    expect(run2.nextStepGroup).toBe("generation");
+    expect(run2.checkpoint.completedStages).toContain("transcript_cleaning");
+    expect(run2.checkpoint.stageArtifacts["transcript_cleaning_partial"]).toBeUndefined();
+    expect((run2.checkpoint.stageArtifacts["transcript_cleaning"] as any).cleanedResult).toBeUndefined();
+  });
+
+  it("passes bounded evidencePack text instead of full raw retainedText to adversarial_review and targeted_repair", async () => {
+    const longSegments = Array.from({ length: 400 }, (_, idx) => ({
+      segmentId: `seg-${String(idx + 1).padStart(3, "0")}`,
+      rawText: `Penjelasan panjang kuliah farmakoterapi segmen nomor ${idx + 1} tentang terapi hipertensi kronis dan gagal jantung.`,
+      normalizedText: `Penjelasan panjang kuliah farmakoterapi segmen nomor ${idx + 1} tentang terapi hipertensi kronis dan gagal jantung.`,
+      lineOffset: idx + 1,
+      hasClinicalEntities: idx % 5 === 0,
+      matchedEntities: idx % 5 === 0 ? ["10 mg"] : [],
+      classification: "relevant" as const,
+    }));
+    const hugeRetainedText = longSegments.map((s) => s.normalizedText).join(" ");
+    expect(hugeRetainedText.length).toBeGreaterThan(35000);
+
+    let capturedReviewPrompt = "";
+    const mockGeminiClient = vi.fn().mockImplementation(async (req: any) => {
+      if (req.prompt.includes("Auditor Medis dan Reviewer Adversarial")) {
+        capturedReviewPrompt = req.prompt;
+        return {
+          text: JSON.stringify({
+            reviews: [{ cardId: "c-1", status: "ACCEPTED" }],
+          }),
+          usage: { isAvailable: true, totalTokenCount: 50 },
+        };
+      }
+      return { text: "{}", usage: { isAvailable: false } };
+    });
+
+    const checkpointAfterGen: PipelineCheckpoint = {
+      currentStage: "adversarial_review",
+      completedStages: [
+        "ingestion",
+        "transcript_cleaning",
+        "concept_mapping",
+        "alignment_and_conflict_detection",
+        "candidate_generation",
+      ],
+      stageArtifacts: {
+        ingestion: { hasPdf: false, pdfByteLength: 0 },
+        transcript_cleaning: {
+          retainedText: hugeRetainedText,
+          retainedSegments: longSegments,
+        },
+        concept_mapping: { concepts: [] },
+        alignment_and_conflict_detection: { alignedSources: [], conflicts: [] },
+        candidate_generation: {
+          globalSummary: "Ringkasan",
+          subtopics: [
+            {
+              title: "Hipertensi",
+              summary: "Terapi",
+              cards: [{ id: "c-1", front_text: "Apa obat lini pertama?", back_text: "ACE inhibitor." }],
+            },
+          ],
+          cards: [{ id: "c-1", front_text: "Apa obat lini pertama?", back_text: "ACE inhibitor." }],
+        },
+      },
+    };
+
+    await runFlashCardPipeline({
+      title: "Uji Review Bounded",
+      checkpoint: checkpointAfterGen,
+      geminiClient: mockGeminiClient,
+      apiKey: "test-key",
+      stepGroup: "review",
+    });
+
+    expect(capturedReviewPrompt.length).toBeGreaterThan(0);
+    // Prompt must be bounded (well under hugeRetainedText.length)
+    expect(capturedReviewPrompt.length).toBeLessThan(24000);
+  });
+});

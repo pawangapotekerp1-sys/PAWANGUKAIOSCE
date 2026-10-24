@@ -45,6 +45,8 @@ import {
   type RepairResult,
 } from "./repairer.ts";
 
+export const DEFAULT_MAX_CLEANING_CHUNKS_PER_STEP = 3;
+
 export type PipelineStageName =
   | "ingestion"
   | "transcript_cleaning"
@@ -70,6 +72,7 @@ export interface PipelineCheckpoint {
   currentStage: string;
   completedStages: string[];
   stageArtifacts: Record<string, unknown>;
+  updatedAt?: string;
 }
 
 export interface PipelineCardOutput {
@@ -109,6 +112,8 @@ export interface PipelineOptions {
   }>;
   checkpoint?: PipelineCheckpoint;
   stepGroup?: PipelineStepGroup;
+  cleaningChunkSize?: number;
+  maxCleaningChunksPerRun?: number;
   onStageComplete?: (stage: PipelineStageName, checkpoint: PipelineCheckpoint) => Promise<void> | void;
   onResumeCheckpoint?: (checkpoint: PipelineCheckpoint) => Promise<void> | void;
 }
@@ -116,6 +121,7 @@ export interface PipelineOptions {
 export interface PipelineResult {
   globalSummary: string;
   subtopics: PipelineSubtopicOutput[];
+  cards?: PipelineCardOutput[];
   metadata: MaterialMetadata;
   checkpoint: PipelineCheckpoint;
   isSuspended?: boolean;
@@ -188,6 +194,7 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
         currentStage: typeof rawCheckpoint.currentStage === "string" ? rawCheckpoint.currentStage : "ingestion",
         completedStages: Array.isArray(rawCheckpoint.completedStages) ? [...rawCheckpoint.completedStages] : [],
         stageArtifacts: rawCheckpoint.stageArtifacts && typeof rawCheckpoint.stageArtifacts === "object" ? { ...rawCheckpoint.stageArtifacts } : {},
+        updatedAt: typeof rawCheckpoint.updatedAt === "string" ? rawCheckpoint.updatedAt : undefined,
       }
     : {
         currentStage: "ingestion",
@@ -203,6 +210,7 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
       checkpoint.completedStages.push(stage);
     }
     checkpoint.currentStage = nextStage;
+    checkpoint.updatedAt = new Date().toISOString();
     if (options.onStageComplete) {
       await options.onStageComplete(stage, checkpoint);
     }
@@ -224,7 +232,9 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
   if (isStageCompleted("ingestion")) {
     const artifact = checkpoint.stageArtifacts["ingestion"] as Record<string, unknown> | undefined;
     if (artifact) {
-      if (typeof artifact.transcriptText === "string") transcriptText = artifact.transcriptText;
+      if (!transcriptText && typeof artifact.transcriptText === "string") {
+        transcriptText = artifact.transcriptText;
+      }
       // pdfBytes is kept from options.pdfBytes (already loaded from storage) to avoid duplicating binary in DB jsonb
       if (options.pdfBytes instanceof Uint8Array || options.pdfBytes === null) pdfBytes = options.pdfBytes;
       if (Array.isArray(artifact.slides)) slides = artifact.slides as SlideInput[];
@@ -237,7 +247,7 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
     await markStageCompleted(
       "ingestion",
       {
-        transcriptText,
+        transcriptCharCount: transcriptText.length,
         hasPdf: options.hasPdfSource ?? Boolean(pdfBytes && pdfBytes.byteLength > 0),
         pdfByteLength: options.pdfByteLength ?? (pdfBytes ? pdfBytes.byteLength : 0),
         isPdfBytesInMemory: Boolean(pdfBytes && pdfBytes.byteLength > 0),
@@ -260,31 +270,44 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
       retainedText?: string;
       retainedSegments?: TranscriptSegment[];
       tokenUsage?: StageTokenMetrics;
+      droppedNoiseCount?: number;
+      uncertainCount?: number;
     };
+    const retainedSegments = artifact?.retainedSegments ?? artifact?.cleanedResult?.retainedSegments ?? [];
+    const retainedText =
+      artifact?.retainedText ??
+      artifact?.cleanedResult?.retainedText ??
+      retainedSegments.map((s) => s.normalizedText).join(" ");
     cleanedResult = artifact?.cleanedResult ?? {
-      segments: artifact?.retainedSegments ?? [],
-      retainedSegments: artifact?.retainedSegments ?? [],
-      retainedText: artifact?.retainedText ?? transcriptText,
-      droppedNoiseCount: 0,
-      uncertainCount: 0,
+      segments: retainedSegments,
+      retainedSegments,
+      retainedText,
+      droppedNoiseCount: artifact?.droppedNoiseCount ?? artifact?.cleanedResult?.droppedNoiseCount ?? 0,
+      uncertainCount: artifact?.uncertainCount ?? artifact?.cleanedResult?.uncertainCount ?? 0,
       metrics: emptyTokenMetrics(),
-      tokenUsage: emptyTokenMetrics(),
+      tokenUsage: artifact?.tokenUsage ?? artifact?.cleanedResult?.tokenUsage ?? emptyTokenMetrics(),
     };
     cleanerTokenUsage = normalizeStageTokenMetrics(artifact?.tokenUsage ?? cleanedResult.tokenUsage);
   } else {
     checkpoint.currentStage = "transcript_cleaning";
     const partialCleaning = checkpoint.stageArtifacts["transcript_cleaning_partial"] as {
       completedSegments?: TranscriptSegment[];
+      totalSegmentsCount?: number;
+      tokenUsage?: GeminiUsageMetadata;
     } | undefined;
 
     cleanedResult = await cleanTranscript(transcriptText, {
       apiKey,
       model,
+      chunkSize: options.cleaningChunkSize,
+      maxChunksPerRun: options.maxCleaningChunksPerRun ?? (options.stepGroup === "cleaning" ? DEFAULT_MAX_CLEANING_CHUNKS_PER_STEP : undefined),
       cachedSegments: partialCleaning?.completedSegments,
       onChunkComplete: async (completedSegments) => {
         checkpoint.stageArtifacts["transcript_cleaning_partial"] = {
           completedSegments,
+          totalSegmentsCount: undefined,
         };
+        checkpoint.updatedAt = new Date().toISOString();
         if (options.onStageComplete) {
           await options.onStageComplete("transcript_cleaning", checkpoint);
         }
@@ -292,12 +315,56 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
       geminiClient: options.geminiClient as any,
     });
     cleanerTokenUsage = normalizeStageTokenMetrics(cleanedResult.tokenUsage);
+
+    if (cleanedResult.isComplete === false) {
+      checkpoint.stageArtifacts["transcript_cleaning_partial"] = {
+        completedSegments: cleanedResult.segments,
+        totalSegmentsCount: cleanedResult.totalSegmentsCount ?? cleanedResult.segments.length,
+        tokenUsage: cleanedResult.tokenUsage,
+      };
+      checkpoint.updatedAt = new Date().toISOString();
+      if (options.onStageComplete) {
+        await options.onStageComplete("transcript_cleaning", checkpoint);
+      }
+      const rawMetadata: MaterialMetadata = {
+        pipelineVersion: "gemini-3.8-source-aware-v1",
+        modelUsed: model,
+        executionDurationMs: Date.now() - startTime,
+        pipelineCheckpoint: checkpoint as any,
+        tokenUsage: {
+          transcript_cleaning: cleanerTokenUsage,
+          total: cleanerTokenUsage,
+        },
+        qualityReport: {
+          totalCardsGenerated: 0,
+          acceptedCount: 0,
+          repairedCount: 0,
+          droppedCount: 0,
+          conflictsCount: 0,
+          unresolvedCriticalOrHighConflicts: 0,
+        },
+        sourceConflicts: [],
+        rejectedAuditTrail: [],
+      };
+
+      return {
+        globalSummary: "",
+        subtopics: [],
+        cards: [],
+        metadata: validateMaterialMetadata(rawMetadata),
+        checkpoint,
+        isSuspended: true,
+        nextStepGroup: "cleaning",
+      };
+    }
+
+    delete checkpoint.stageArtifacts["transcript_cleaning_partial"];
     await markStageCompleted(
       "transcript_cleaning",
       {
-        cleanedResult,
-        retainedText: cleanedResult.retainedText,
         retainedSegments: cleanedResult.retainedSegments,
+        droppedNoiseCount: cleanedResult.droppedNoiseCount,
+        uncertainCount: cleanedResult.uncertainCount,
         tokenUsage: cleanerTokenUsage,
       },
       "concept_mapping",
@@ -329,6 +396,7 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
     return {
       globalSummary: "",
       subtopics: [],
+      cards: [],
       metadata: validateMaterialMetadata(rawMetadata),
       checkpoint,
       isSuspended: true,
@@ -453,6 +521,7 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
         tokenUsage: generationTokenUsage,
         evidencePack,
         evidencePackMetrics: evidencePack.metrics,
+        evidenceText: evidencePack.evidenceText,
       },
       "adversarial_review",
     );
@@ -525,6 +594,19 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
   let reviewResult: ReviewResult;
   let reviewTokenUsage: StageTokenMetrics;
 
+  const cachedEvidenceText = (
+    checkpoint.stageArtifacts["candidate_generation"] as { evidenceText?: string } | undefined
+  )?.evidenceText;
+  const boundedReviewContext =
+    typeof cachedEvidenceText === "string" && cachedEvidenceText.length > 0
+      ? cachedEvidenceText
+      : buildCandidateEvidencePack({
+          segments: cleanedResult.retainedSegments,
+          concepts: knowledgeGraph.getAllNodes(),
+          alignedSources: alignmentResult.alignedSources,
+          maxCharacters: 16_000,
+        }).evidenceText || cleanedResult.retainedText.slice(0, 16_000);
+
   if (isStageCompleted("adversarial_review")) {
     const artifact = checkpoint.stageArtifacts["adversarial_review"] as {
       reviewResult?: ReviewResult;
@@ -552,7 +634,7 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
       cards: generationResult.cards,
       conflicts: alignmentResult.conflicts,
       alignedSources: alignmentResult.alignedSources,
-      sourceContext: cleanedResult.retainedText,
+      sourceContext: boundedReviewContext,
       apiKey,
       model,
       geminiClient: options.geminiClient as any,
@@ -609,7 +691,7 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
       repairResult = await repairDefectiveCards({
         defectiveCards,
         cards: [...reviewResult.reviewedCards],
-        sourceContext: cleanedResult.retainedText,
+        sourceContext: boundedReviewContext,
         apiKey,
         model,
         geminiClient: options.geminiClient as any,

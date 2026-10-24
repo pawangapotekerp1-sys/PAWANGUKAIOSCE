@@ -641,4 +641,156 @@ describe("Orchestrator Large Material & Resource Safety", () => {
     // Prompt must be bounded (well under hugeRetainedText.length)
     expect(capturedReviewPrompt.length).toBeLessThan(24000);
   });
+
+  it("defaults DEFAULT_MAX_CLEANING_CHUNKS_PER_STEP to 2 and forwards maxCleaningExecutionMs to cleanTranscript", async () => {
+    const { DEFAULT_MAX_CLEANING_CHUNKS_PER_STEP, DEFAULT_MAX_STEP_EXECUTION_MS } = await import("./orchestrator.ts");
+    expect(DEFAULT_MAX_CLEANING_CHUNKS_PER_STEP).toBe(2);
+    expect(DEFAULT_MAX_STEP_EXECUTION_MS).toBe(45_000);
+
+    const lines = Array.from(
+      { length: 6 },
+      (_, idx) => `Segmen kuliah sediaan solid nomor ${idx + 1} dengan uji friabilitas ${idx + 1}%.`,
+    );
+    const transcriptText = lines.join("\n");
+
+    const mockGeminiClient = vi.fn().mockImplementation(async () => {
+      await new Promise((r) => setTimeout(r, 20));
+      return {
+        text: JSON.stringify({
+          noiseSegmentIds: [],
+          uncertainSegments: [],
+        }),
+        usage: { isAvailable: true, promptTokenCount: 20, candidatesTokenCount: 5, totalTokenCount: 25 },
+      };
+    });
+
+    // With maxCleaningExecutionMs=10, stops after chunk 1 even though maxCleaningChunksPerRun=5
+    const run1 = await runFlashCardPipeline({
+      title: "Uji Time Budget Cleaning",
+      transcriptText,
+      geminiClient: mockGeminiClient,
+      apiKey: "test-key",
+      stepGroup: "cleaning",
+      cleaningChunkSize: 2,
+      maxCleaningChunksPerRun: 5,
+      maxCleaningExecutionMs: 10,
+    });
+
+    expect(mockGeminiClient).toHaveBeenCalledTimes(1);
+    expect(run1.isSuspended).toBe(true);
+    expect(run1.nextStepGroup).toBe("cleaning");
+    expect(run1.checkpoint.completedStages).not.toContain("transcript_cleaning");
+    expect(
+      (run1.checkpoint.stageArtifacts["transcript_cleaning_partial"] as any)?.completedSegments,
+    ).toHaveLength(2);
+  });
+
+  it("suspends with nextStepGroup='review' after adversarial_review when defectiveCards exist and maxStepExecutionMs is exceeded, then finishes targeted_repair on next run", async () => {
+    const mockGeminiClient = vi.fn().mockImplementation(async (req: any) => {
+      await new Promise((r) => setTimeout(r, 20));
+      if (req.prompt.includes("Auditor Medis dan Reviewer Adversarial")) {
+        return {
+          text: JSON.stringify({
+            reviews: [
+              {
+                cardId: "c-1",
+                status: "REPAIRABLE_DEFECT",
+                reason: "Perlu memperjelas syarat friabilitas < 1%.",
+              },
+            ],
+          }),
+          usage: { isAvailable: true, promptTokenCount: 30, candidatesTokenCount: 10, totalTokenCount: 40 },
+        };
+      }
+      return {
+        text: JSON.stringify({
+          repairs: [
+            {
+              cardId: "c-1",
+              action: "REPAIRED",
+              front_text: "Berapa syarat uji friabilitas tablet?",
+              back_text: "Kurang dari 1% (< 1%).",
+              repairReason: "Diperjelas sesuai sumber.",
+            },
+          ],
+        }),
+        usage: { isAvailable: true, promptTokenCount: 25, candidatesTokenCount: 10, totalTokenCount: 35 },
+      };
+    });
+
+    const checkpointAfterGen: PipelineCheckpoint = {
+      currentStage: "adversarial_review",
+      completedStages: [
+        "ingestion",
+        "transcript_cleaning",
+        "concept_mapping",
+        "alignment_and_conflict_detection",
+        "candidate_generation",
+      ],
+      stageArtifacts: {
+        ingestion: { hasPdf: false, pdfByteLength: 0 },
+        transcript_cleaning: {
+          retainedSegments: [
+            {
+              segmentId: "seg-001",
+              rawText: "Syarat uji friabilitas tablet adalah kurang dari 1%.",
+              normalizedText: "Syarat uji friabilitas tablet adalah kurang dari 1%.",
+              lineOffset: 1,
+              hasClinicalEntities: true,
+              matchedEntities: ["friabilitas", "1%"],
+              classification: "relevant",
+            },
+          ],
+          droppedNoiseCount: 0,
+          uncertainCount: 0,
+        },
+        concept_mapping: { concepts: [], relations: [] },
+        alignment_and_conflict_detection: { alignedSources: [], conflicts: [] },
+        candidate_generation: {
+          globalSummary: "Ringkasan Sediaan Solid",
+          subtopics: [
+            {
+              title: "Evaluasi Tablet",
+              summary: "Uji IPC Tablet",
+              cards: [{ id: "c-1", front_text: "Syarat friabilitas?", back_text: "Kurang dari 1%" }],
+            },
+          ],
+          cards: [{ id: "c-1", front_text: "Syarat friabilitas?", back_text: "Kurang dari 1%" }],
+          evidenceText: "[seg-001] Syarat uji friabilitas tablet adalah kurang dari 1%.",
+        },
+      },
+    };
+
+    // Run 1: maxStepExecutionMs=10 -> suspends right after adversarial_review before targeted_repair
+    const reviewRun1 = await runFlashCardPipeline({
+      title: "Uji Suspensi Review-Repair",
+      checkpoint: checkpointAfterGen,
+      geminiClient: mockGeminiClient,
+      apiKey: "test-key",
+      stepGroup: "review",
+      maxStepExecutionMs: 10,
+    });
+
+    expect(mockGeminiClient).toHaveBeenCalledTimes(1);
+    expect(reviewRun1.isSuspended).toBe(true);
+    expect(reviewRun1.nextStepGroup).toBe("review");
+    expect(reviewRun1.checkpoint.completedStages).toContain("adversarial_review");
+    expect(reviewRun1.checkpoint.completedStages).not.toContain("targeted_repair");
+
+    // Run 2: resumes from checkpoint -> skips adversarial_review, executes targeted_repair and completes
+    const reviewRun2 = await runFlashCardPipeline({
+      title: "Uji Suspensi Review-Repair",
+      checkpoint: reviewRun1.checkpoint,
+      geminiClient: mockGeminiClient,
+      apiKey: "test-key",
+      stepGroup: "review",
+      maxStepExecutionMs: 45_000,
+    });
+
+    expect(mockGeminiClient).toHaveBeenCalledTimes(2);
+    expect(reviewRun2.isSuspended).toBe(false);
+    expect(reviewRun2.nextStepGroup).toBe("finished");
+    expect(reviewRun2.checkpoint.completedStages).toContain("targeted_repair");
+    expect(reviewRun2.checkpoint.completedStages).toContain("validation_and_storage");
+  });
 });

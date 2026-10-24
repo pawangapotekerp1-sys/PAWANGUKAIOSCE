@@ -45,7 +45,8 @@ import {
   type RepairResult,
 } from "./repairer.ts";
 
-export const DEFAULT_MAX_CLEANING_CHUNKS_PER_STEP = 3;
+export const DEFAULT_MAX_CLEANING_CHUNKS_PER_STEP = 2;
+export const DEFAULT_MAX_STEP_EXECUTION_MS = 45_000;
 
 export type PipelineStageName =
   | "ingestion"
@@ -114,6 +115,8 @@ export interface PipelineOptions {
   stepGroup?: PipelineStepGroup;
   cleaningChunkSize?: number;
   maxCleaningChunksPerRun?: number;
+  maxCleaningExecutionMs?: number;
+  maxStepExecutionMs?: number;
   onStageComplete?: (stage: PipelineStageName, checkpoint: PipelineCheckpoint) => Promise<void> | void;
   onResumeCheckpoint?: (checkpoint: PipelineCheckpoint) => Promise<void> | void;
 }
@@ -296,11 +299,20 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
       tokenUsage?: GeminiUsageMetadata | StageTokenMetrics;
     } | undefined;
 
+    const effectiveMaxStepExecutionMs =
+      options.maxStepExecutionMs ??
+      (options.stepGroup && options.stepGroup !== "all" ? DEFAULT_MAX_STEP_EXECUTION_MS : undefined);
+
     cleanedResult = await cleanTranscript(transcriptText, {
       apiKey,
       model,
       chunkSize: options.cleaningChunkSize,
-      maxChunksPerRun: options.maxCleaningChunksPerRun ?? (options.stepGroup === "cleaning" ? DEFAULT_MAX_CLEANING_CHUNKS_PER_STEP : undefined),
+      maxChunksPerRun:
+        options.maxCleaningChunksPerRun ??
+        (options.stepGroup === "cleaning" ? DEFAULT_MAX_CLEANING_CHUNKS_PER_STEP : undefined),
+      maxExecutionMs:
+        options.maxCleaningExecutionMs ??
+        (options.stepGroup === "cleaning" ? effectiveMaxStepExecutionMs : undefined),
       cachedSegments: partialCleaning?.completedSegments,
       onChunkComplete: async (completedSegments) => {
         checkpoint.stageArtifacts["transcript_cleaning_partial"] = {
@@ -668,6 +680,65 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
       },
       "targeted_repair",
     );
+
+    const defectiveAfterReview = reviewResult.reviewedCards.filter(
+      (c) => c.qualityStatus === "REPAIRABLE_DEFECT",
+    );
+    const reviewMaxStepMs =
+      options.maxStepExecutionMs ??
+      (options.stepGroup === "review" ? DEFAULT_MAX_STEP_EXECUTION_MS : undefined);
+
+    if (
+      options.stepGroup === "review" &&
+      defectiveAfterReview.length > 0 &&
+      reviewMaxStepMs !== undefined &&
+      Date.now() - startTime >= reviewMaxStepMs
+    ) {
+      const stageTokensRecord: Record<string, StageTokenMetrics> = {
+        transcript_cleaning: cleanerTokenUsage,
+        alignment: alignmentTokenUsage,
+        generation: generationTokenUsage,
+        review: reviewTokenUsage,
+      };
+      stageTokensRecord.total = aggregateStageTokenMetrics([
+        cleanerTokenUsage,
+        alignmentTokenUsage,
+        generationTokenUsage,
+        reviewTokenUsage,
+      ]);
+
+      const rawMetadata: MaterialMetadata = {
+        pipelineVersion: "gemini-3.8-source-aware-v1",
+        modelUsed: model,
+        executionDurationMs: Date.now() - startTime,
+        pipelineCheckpoint: checkpoint as any,
+        tokenUsage: stageTokensRecord,
+        qualityReport: {
+          totalCardsGenerated: generationResult.cards.length,
+          acceptedCount: reviewResult.acceptedCount,
+          repairedCount: 0,
+          droppedCount: reviewResult.unsupportedCount,
+          conflictsCount: alignmentResult.conflicts.length,
+          unresolvedCriticalOrHighConflicts: alignmentResult.conflicts.filter(
+            (c) =>
+              (c.severity === "critical" || c.severity === "high") &&
+              c.resolutionStatus === "unresolved",
+          ).length,
+        },
+        sourceConflicts: alignmentResult.conflicts,
+        rejectedAuditTrail: reviewResult.rejectedAuditTrail.slice(0, 10),
+      };
+
+      return {
+        globalSummary: generationResult.global_summary,
+        subtopics: [],
+        cards: [],
+        metadata: validateMaterialMetadata(rawMetadata),
+        checkpoint,
+        isSuspended: true,
+        nextStepGroup: "review",
+      };
+    }
   }
 
   // Stage 7: Single-Cycle Targeted Repair

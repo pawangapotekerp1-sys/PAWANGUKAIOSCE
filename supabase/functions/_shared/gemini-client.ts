@@ -53,13 +53,17 @@ export type GeminiRequest = {
   thinkingLevel?: "low" | "medium" | "high";
   responseMimeType?: string;
   responseSchema?: Record<string, unknown>;
+  timeoutMs?: number;
 };
 
+const DEFAULT_GEMINI_FETCH_TIMEOUT_MS = 45_000;
 const GEMINI_RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
 const GEMINI_CAPACITY_MESSAGE_PATTERNS = [
   "resource_exhausted",
   "overloaded",
   "try again later",
+  "high demand",
+  "experiencing high demand",
 ];
 const GEMINI_TRANSIENT_RETRY_DELAY_MS = 200;
 const GEMINI_TEXT_MAX_ATTEMPTS = 3;
@@ -359,7 +363,8 @@ export function classifyGeminiErrorResponse(params: {
     status === 504 ||
     normalizedStatus === "unavailable" ||
     normalizedMessage.includes("overloaded") ||
-    normalizedMessage.includes("try again later");
+    normalizedMessage.includes("try again later") ||
+    normalizedMessage.includes("high demand");
 
   if (isOverloadOrUnavailable) {
     const rawDetail = sanitizeText(rawMessage);
@@ -440,7 +445,7 @@ function toGeminiTransientUserMessage() {
 }
 
 function shouldRetryStructuredResponseError(error: GeminiRequestError) {
-  return error.code === "GEMINI_INVALID_JSON" || error.code === "GEMINI_MAX_TOKENS";
+  return error.code === "GEMINI_INVALID_JSON";
 }
 
 function toGeminiMaxTokensMessage() {
@@ -549,9 +554,14 @@ async function generateGeminiTextOnce({
   thinkingLevel,
   responseMimeType,
   responseSchema,
+  timeoutMs,
 }: GeminiRequest): Promise<GeminiOnceResult> {
   const env = readEdgeEnv();
   const resolvedModel = normalizeAiModel(model);
+  const effectiveTimeoutMs =
+    typeof timeoutMs === "number" && timeoutMs > 0
+      ? timeoutMs
+      : DEFAULT_GEMINI_FETCH_TIMEOUT_MS;
   const effectiveMaxOutputTokens = typeof maxOutputTokens === "number"
     ? maxOutputTokens
     : (thinkingLevel || typeof thinkingBudget === "number" || responseMimeType === "application/json")
@@ -590,24 +600,53 @@ async function generateGeminiTextOnce({
       },
     ];
 
-  const response = await fetch(
-    `${env.geminiBaseUrl}/models/${encodeURIComponent(resolvedModel)}:generateContent?key=${encodeURIComponent(apiKey)}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+  let response: Response;
+  try {
+    response = await fetch(
+      `${env.geminiBaseUrl}/models/${encodeURIComponent(resolvedModel)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        signal:
+          typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function"
+            ? AbortSignal.timeout(effectiveTimeoutMs)
+            : undefined,
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: requestParts,
+            },
+          ],
+          generationConfig,
+        }),
       },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: "user",
-            parts: requestParts,
-          },
-        ],
-        generationConfig,
-      }),
-    },
-  );
+    );
+  } catch (fetchErr: any) {
+    const errName = typeof fetchErr?.name === "string" ? fetchErr.name : "";
+    const errMsg = typeof fetchErr?.message === "string" ? fetchErr.message : "";
+    if (
+      errName === "TimeoutError" ||
+      errName === "AbortError" ||
+      /aborted|timeout|timed out/i.test(errMsg)
+    ) {
+      throw new GeminiRequestError(
+        504,
+        "Waktu tunggu respons Gemini habis (timeout). Sistem akan mencoba kembali dalam beberapa saat.",
+        "GEMINI_PROVIDER_UNAVAILABLE",
+        {
+          category: "GEMINI_PROVIDER_UNAVAILABLE",
+          isRetryable: true,
+          retryAfterSeconds: null,
+          rawStatus: 504,
+          originalMessage: sanitizeText(errMsg || "Request timed out via AbortSignal"),
+        },
+      );
+    }
+    throw fetchErr;
+  }
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
@@ -691,29 +730,32 @@ export async function generateGeminiTextWithUsage(request: GeminiRequest): Promi
       const isProviderUnavailable =
         error.code === "GEMINI_PROVIDER_UNAVAILABLE" ||
         error.diagnostics?.category === "GEMINI_PROVIDER_UNAVAILABLE" ||
-        error.status === 503;
+        error.status === 503 ||
+        error.status === 504;
 
       const retryAfterSeconds = error.diagnostics?.retryAfterSeconds;
       const hasReliableRetryHint = typeof retryAfterSeconds === "number" && retryAfterSeconds > 0;
       const normalizedOriginalMsg = (error.diagnostics?.originalMessage ?? error.message ?? "").toLowerCase();
-      const isServerOverload = normalizedOriginalMsg.includes("overloaded") || normalizedOriginalMsg.includes("try again later");
+      const isServerOverload =
+        normalizedOriginalMsg.includes("overloaded") ||
+        normalizedOriginalMsg.includes("try again later") ||
+        normalizedOriginalMsg.includes("high demand") ||
+        normalizedOriginalMsg.includes("timeout") ||
+        normalizedOriginalMsg.includes("timed out");
 
       // Retry policy:
       // 1. If explicit retry hint is provided and within reasonable threshold (<= 30s for rate limit, <= 10s for 503): retry ONCE after waiting.
       // 2. If Gemini server capacity overload on rate limit (429): retry ONCE after transient backoff.
-      // 3. If HTTP 503 / GEMINI_PROVIDER_UNAVAILABLE with server overload ("model is overloaded", "try again later"):
-      //    Fail fast immediately (maxAttempts = 1) so edge isolate execution time is preserved and
-      //    the backend orchestrator / frontend step driver can perform a realistic cooldown (30-60s).
-      // 4. If generic server failure (503/500/502/504) without overload: retry ONCE for transient network glitches.
-      // 5. If rate limited without reliable retry hint or overload: DO NOT perform fast repeated retries inline! (maxAttempts = 1)
+      // 3. If HTTP 503/504 / GEMINI_PROVIDER_UNAVAILABLE without a short retryAfterSeconds hint:
+      //    Fail fast immediately (maxAttempts = 1) so edge isolate execution time and RPD quota are preserved and
+      //    the backend orchestrator / frontend step driver can perform a realistic cooldown (30-60s) or deterministic fallback.
+      // 4. If rate limited without reliable retry hint or overload: DO NOT perform fast repeated retries inline! (maxAttempts = 1)
       let maxAttempts = 2;
       if (isProviderUnavailable) {
         if (hasReliableRetryHint && retryAfterSeconds! <= 10) {
           maxAttempts = 2;
-        } else if (isServerOverload) {
-          maxAttempts = 1;
         } else {
-          maxAttempts = 2;
+          maxAttempts = 1;
         }
       } else if (isRateLimit) {
         if (hasReliableRetryHint && retryAfterSeconds! <= 30) {

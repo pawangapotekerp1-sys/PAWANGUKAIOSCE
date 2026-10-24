@@ -970,7 +970,115 @@ describe("Zoom ASR Transcript Optimization, Pharmaceutics Entities & Wall-Clock 
       vi.unstubAllGlobals();
     }
   });
+
+  it("cleans transcript deterministically in 0 Gemini API calls when geminiClient and useLlmClassifier are omitted", async () => {
+    const fetchSpy = vi.fn().mockRejectedValue(new Error("Should not call fetch in deterministic cleaning mode"));
+    vi.stubGlobal("fetch", fetchSpy);
+
+    try {
+      const raw = [
+        "Halo teman-teman semua, cek suara apakah terdengar jelas?",
+        "Silakan isi link absen di chat terlebih dahulu.",
+        "Dosis paracetamol dewasa adalah 500 mg tetapi untuk pasien...",
+        "Metode granulasi basah menggunakan pengikat mucilago amili dan dievaluasi uji friabilitas kurang dari 1%.",
+      ].join("\n");
+
+      const result = await cleanTranscript(raw, {
+        apiKey: "test-key",
+      });
+
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(result.isComplete).toBe(true);
+      expect(result.tokenUsage.statusText).toBe("DETERMINISTIC_CLEANING");
+      expect(result.droppedNoiseCount).toBe(2);
+      expect(result.uncertainCount).toBe(1);
+      expect(result.retainedSegments).toHaveLength(2);
+      expect(result.retainedSegments.some((s) => s.classification === "uncertain" && s.suspectedTranscriptionError)).toBe(true);
+      expect(result.retainedSegments.some((s) => s.classification === "relevant" && s.hasClinicalEntities)).toBe(true);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("attaches AbortSignal timeout to fetch in generateGeminiTextWithUsage and fails fast (1 attempt) on 503 high demand or AbortError timeout", async () => {
+    vi.stubGlobal("Deno", {
+      env: {
+        get(name: string) {
+          const values: Record<string, string> = {
+            SUPABASE_URL: "http://127.0.0.1:54321",
+            SUPABASE_SERVICE_ROLE_KEY: "service-role",
+            SUPABASE_ANON_KEY: "anon-key",
+          };
+          return values[name];
+        },
+      },
+    });
+    const { generateGeminiTextWithUsage } = await import("../../_shared/gemini-client.ts");
+
+    let highDemandCalls = 0;
+    let capturedSignal: AbortSignal | undefined;
+    const fetchMock = vi.fn().mockImplementation(async (_url: string, init?: RequestInit) => {
+      highDemandCalls += 1;
+      capturedSignal = init?.signal ?? undefined;
+      return {
+        ok: false,
+        status: 503,
+        headers: new Headers(),
+        json: async () => ({
+          error: {
+            code: 503,
+            status: "UNAVAILABLE",
+            message: "This model is currently experiencing high demand.",
+          },
+        }),
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      await expect(() =>
+        generateGeminiTextWithUsage({
+          apiKey: "test-key",
+          model: "gemini-3.8-flash",
+          prompt: "Test 503 high demand",
+          timeoutMs: 15_000,
+        }),
+      ).rejects.toMatchObject({
+        status: 503,
+        code: "GEMINI_PROVIDER_UNAVAILABLE",
+      });
+
+      // Must fail fast in 1 attempt without burning a 2nd RPD call inline
+      expect(highDemandCalls).toBe(1);
+      expect(capturedSignal).toBeDefined();
+
+      // Now test AbortError / TimeoutError handling -> 1 attempt, status 504 GEMINI_PROVIDER_UNAVAILABLE
+      let timeoutCalls = 0;
+      fetchMock.mockImplementation(async () => {
+        timeoutCalls += 1;
+        const abortErr = new DOMException("The operation was aborted due to timeout", "TimeoutError");
+        throw abortErr;
+      });
+
+      await expect(() =>
+        generateGeminiTextWithUsage({
+          apiKey: "test-key",
+          model: "gemini-3.8-flash",
+          prompt: "Test timeout",
+          timeoutMs: 5_000,
+        }),
+      ).rejects.toMatchObject({
+        status: 504,
+        code: "GEMINI_PROVIDER_UNAVAILABLE",
+      });
+
+      expect(timeoutCalls).toBe(1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });
+
 
 
 

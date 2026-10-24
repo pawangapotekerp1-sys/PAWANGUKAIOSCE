@@ -793,4 +793,77 @@ describe("Orchestrator Large Material & Resource Safety", () => {
     expect(reviewRun2.checkpoint.completedStages).toContain("targeted_repair");
     expect(reviewRun2.checkpoint.completedStages).toContain("validation_and_storage");
   });
+
+  it("uses thinkingLevel='low' for adversarial_review and gracefully falls back to deterministic review/repair when Gemini throws 503 or 429 RPD so generated cards are never lost", async () => {
+    let capturedThinkingLevel: string | undefined;
+    const failingReviewClient = vi.fn().mockImplementation(async (req: any) => {
+      capturedThinkingLevel = req.thinkingLevel;
+      const err: any = new Error("Batas kuota harian Gemini (Daily Quota) terlampaui.");
+      err.status = 429;
+      err.code = "GEMINI_QUOTA_EXHAUSTED";
+      throw err;
+    });
+
+    const checkpointAfterGen: PipelineCheckpoint = {
+      currentStage: "adversarial_review",
+      completedStages: [
+        "ingestion",
+        "transcript_cleaning",
+        "concept_mapping",
+        "alignment_and_conflict_detection",
+        "candidate_generation",
+      ],
+      stageArtifacts: {
+        ingestion: { hasPdf: false, pdfByteLength: 0 },
+        transcript_cleaning: {
+          retainedSegments: [],
+          droppedNoiseCount: 0,
+          uncertainCount: 0,
+        },
+        concept_mapping: { concepts: [], relations: [] },
+        alignment_and_conflict_detection: { alignedSources: [], conflicts: [] },
+        candidate_generation: {
+          globalSummary: "Ringkasan Sediaan Solid",
+          subtopics: [
+            {
+              title: "Evaluasi Tablet",
+              summary: "Uji IPC Tablet",
+              cards: [
+                {
+                  id: "c-1",
+                  front_text: "Berapa syarat uji friabilitas tablet konvensional?",
+                  back_text: "Kurang dari 1% (< 1%).",
+                },
+              ],
+            },
+          ],
+          cards: [
+            {
+              id: "c-1",
+              front_text: "Berapa syarat uji friabilitas tablet konvensional?",
+              back_text: "Kurang dari 1% (< 1%).",
+            },
+          ],
+          evidenceText: "[seg-001] Syarat uji friabilitas tablet adalah kurang dari 1%.",
+        },
+      },
+    };
+
+    const result = await runFlashCardPipeline({
+      title: "Sediaan Solid",
+      checkpoint: checkpointAfterGen,
+      geminiClient: failingReviewClient,
+      apiKey: "test-key",
+      stepGroup: "review",
+    });
+
+    expect(capturedThinkingLevel).toBe("low");
+    expect(result.isSuspended).toBe(false);
+    expect(result.nextStepGroup).toBe("finished");
+    expect(result.subtopics).toHaveLength(1);
+    expect(result.subtopics[0].cards).toHaveLength(1);
+    expect(result.metadata.qualityReport?.acceptedCount).toBe(1);
+    expect(result.metadata.tokenUsage?.review?.statusText).toBe("FALLBACK_DETERMINISTIC_REVIEW");
+  });
 });
+

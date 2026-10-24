@@ -27,6 +27,7 @@ export type CleanerOptions = {
   chunkOverlap?: number;
   maxChunksPerRun?: number;
   maxExecutionMs?: number;
+  useLlmClassifier?: boolean;
   cachedSegments?: TranscriptSegment[];
   onChunkComplete?: (
     completedSegments: TranscriptSegment[],
@@ -311,6 +312,87 @@ export async function cleanTranscript(
     };
   }
 
+  if (Array.isArray(options.cachedSegments) && options.cachedSegments.length > 0) {
+    const cachedMap = new Map<string, TranscriptSegment>();
+    for (const cached of options.cachedSegments) {
+      if (cached?.segmentId) {
+        cachedMap.set(cached.segmentId, cached);
+      }
+    }
+
+    for (const seg of segments) {
+      const cached = cachedMap.get(seg.segmentId);
+      if (cached && cached.classification) {
+        seg.classification = cached.classification;
+        seg.reason = cached.reason;
+        seg.suspectedTranscriptionError = cached.suspectedTranscriptionError;
+      }
+    }
+  }
+
+  const CONVERSATIONAL_NOISE_PATTERNS: RegExp[] = [
+    /^(?:halo|hai|tes|cek)\b.*(?:suara|mic|mikrofon|satu\s+dua|terdengar|jelas)/i,
+    /\b(?:link\s+absen|absensi\s+di\s+(?:chat|portal)|isi\s+daftar\s+hadir|daftar\s+hadir\s+di\s+chat|share\s+screen|apakah\s+slide\s+sudah\s+terlihat|slide\s+selanjutnya\s+tolong|lanjut\s+slide\s+berikutnya)\b/i,
+    /^(?:assalamualaikum[\s.,!]*warahmatullahi[\s.,!]*wabarakatuh|selamat\s+(?:pagi|siang|sore|malam)\s+(?:rekan-rekan|teman-teman|semua|peserta)[^.]*\.?)$/i,
+    /^(?:oke\s+kita\s+mulai\s+ya|terima\s+kasih\s+semuanya|sampai\s+jumpa\s+di\s+pertemuan\s+berikutnya)\b/i,
+  ];
+
+  // Quota-conserving deterministic cleaning by default in production when no custom geminiClient is injected
+  if (!options.geminiClient && !options.useLlmClassifier) {
+    for (const seg of segments) {
+      if (!seg.classification) {
+        const trimmed = seg.normalizedText.trim();
+        if (/(?:\.\.\.|…)$/.test(trimmed)) {
+          seg.classification = "uncertain";
+          seg.reason = "Ambiguous or fragmented transcript";
+          seg.suspectedTranscriptionError = true;
+        } else if (
+          !seg.hasClinicalEntities &&
+          CONVERSATIONAL_NOISE_PATTERNS.some((rx) => rx.test(trimmed))
+        ) {
+          seg.classification = "noise";
+          seg.reason = "Conversational noise";
+          seg.suspectedTranscriptionError = false;
+        } else {
+          seg.classification = "relevant";
+          seg.reason = seg.hasClinicalEntities ? "Clinical entity detected" : "Default relevant";
+          seg.suspectedTranscriptionError = false;
+        }
+      }
+      if (seg.hasClinicalEntities && seg.classification === "noise") {
+        seg.classification = "uncertain";
+        seg.reason = "Protected by Clinical Entity Shield";
+      }
+    }
+
+    if (options.onChunkComplete) {
+      await options.onChunkComplete(segments, 0, 1);
+    }
+
+    const retainedSegments = segments.filter(
+      (s) => s.classification === "relevant" || s.classification === "uncertain",
+    );
+    const droppedNoiseCount = segments.filter((s) => s.classification === "noise").length;
+    const uncertainCount = segments.filter((s) => s.classification === "uncertain").length;
+    const retainedText = retainedSegments.map((s) => s.normalizedText).join("\n");
+    const deterministicUsage: GeminiUsageMetadata = {
+      ...emptyUsage,
+      statusText: "DETERMINISTIC_CLEANING",
+    };
+
+    return {
+      segments,
+      retainedSegments,
+      retainedText,
+      droppedNoiseCount,
+      uncertainCount,
+      metrics: deterministicUsage,
+      tokenUsage: deterministicUsage,
+      isComplete: true,
+      totalSegmentsCount: segments.length,
+    };
+  }
+
   const chunkSize = options.chunkSize ?? 250;
   const chunkOverlap = options.chunkOverlap ?? 2;
   const model = options.model ?? "gemini-3.8-flash";
@@ -329,24 +411,6 @@ export async function cleanTranscript(
     totalTokenCount: 0,
     thoughtsTokenCount: 0,
   };
-
-  if (Array.isArray(options.cachedSegments) && options.cachedSegments.length > 0) {
-    const cachedMap = new Map<string, TranscriptSegment>();
-    for (const cached of options.cachedSegments) {
-      if (cached?.segmentId) {
-        cachedMap.set(cached.segmentId, cached);
-      }
-    }
-
-    for (const seg of segments) {
-      const cached = cachedMap.get(seg.segmentId);
-      if (cached && cached.classification) {
-        seg.classification = cached.classification;
-        seg.reason = cached.reason;
-        seg.suspectedTranscriptionError = cached.suspectedTranscriptionError;
-      }
-    }
-  }
 
   const MAX_SUBDIVISION_DEPTH = 2;
   const MAX_MATERIAL_SUBDIVISION_CALLS = 4;

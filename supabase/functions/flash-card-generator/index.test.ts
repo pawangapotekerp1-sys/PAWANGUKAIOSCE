@@ -1017,7 +1017,7 @@ describe("flash-card step-by-step processing and continuation", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    // Run stepGroup: "cleaning" - succeeds and suspends cleanly
+    // Run stepGroup: "cleaning" - succeeds deterministically with 0 Gemini API calls (0 RPD) and suspends cleanly
     await processMaterialGeneration(mockService, mockService.getMaterial(), credential, {
       stepGroup: "cleaning",
     });
@@ -1025,7 +1025,7 @@ describe("flash-card step-by-step processing and continuation", () => {
     expect(mockService.getMaterial().status).toBe("processing");
     const cleaningCheckpoint = mockService.getMaterial().metadata.pipelineCheckpoint;
     expect(cleaningCheckpoint.completedStages).toContain("transcript_cleaning");
-    expect(cleanerCallCount).toBe(1);
+    expect(cleanerCallCount).toBe(0);
 
     // 1st 503 Failure during generation
     await expect(() =>
@@ -1155,53 +1155,8 @@ describe("flash-card step-by-step processing and continuation", () => {
     expect(cleanerCallCount).toBe(cleanerCountBeforeResume);
     expect(mockService.getMaterial().metadata.pipelineCheckpoint.completedStages).toContain("candidate_generation");
 
-    // 8. Error 429 RPD (Daily quota exhausted) and 401/403 (Auth failure) follow the permanent failure path
-    // 8a. 429 RPD
-    fetchMock.mockImplementation(async () => ({
-      ok: false,
-      status: 429,
-      statusText: "Too Many Requests",
-      headers: new Headers(),
-      json: async () => ({
-        error: {
-          code: 429,
-          status: "RESOURCE_EXHAUSTED",
-          message: "Daily quota exhausted",
-          details: [
-            {
-              "@type": "type.googleapis.com/google.rpc.QuotaFailure",
-              violations: [
-                {
-                  quota_limit: "GenerateContentRequestsPerDayPerProject",
-                  reason: "QUOTA_EXCEEDED",
-                },
-              ],
-            },
-          ],
-        },
-      }),
-    }));
-
-    await expect(() =>
-      processMaterialGeneration(mockService, mockService.getMaterial(), credential, {
-        isRetry: true,
-        stepGroup: "review",
-      })
-    ).rejects.toMatchObject({
-      code: "GEMINI_QUOTA_EXHAUSTED",
-    });
-
-    // 429 RPD results in permanent failure!
-    expect(mockService.getMaterial().status).toBe("failed");
-    expect(mockService.getMaterial().processing_error).toMatch(/kuota harian/i);
-
-    // 8b. 403 API Key Invalid
-    mockService.setMaterial({
-      ...mockService.getMaterial(),
-      status: "processing",
-      processing_error: null,
-    });
-
+    // 8. Error 429 RPD (Daily quota exhausted) during generation vs review, and 401/403 (Auth failure)
+    // 8a. 403 API Key Invalid during review MUST still fail permanently
     fetchMock.mockImplementation(async () => ({
       ok: false,
       status: 403,
@@ -1228,6 +1183,69 @@ describe("flash-card step-by-step processing and continuation", () => {
     // 403 results in permanent failure!
     expect(mockService.getMaterial().status).toBe("failed");
     expect(mockService.getMaterial().processing_error).toMatch(/api key/i);
+
+    // 8b. 429 RPD during review (when candidate_generation already succeeded) gracefully falls back to deterministic review and rescues generated cards!
+    mockService.setMaterial({
+      ...mockService.getMaterial(),
+      status: "processing",
+      processing_error: null,
+    });
+
+    fetchMock.mockImplementation(async () => ({
+      ok: false,
+      status: 429,
+      statusText: "Too Many Requests",
+      headers: new Headers(),
+      json: async () => ({
+        error: {
+          code: 429,
+          status: "RESOURCE_EXHAUSTED",
+          message: "Daily quota exhausted",
+          details: [
+            {
+              "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+              violations: [
+                {
+                  quota_limit: "GenerateContentRequestsPerDayPerProject",
+                  reason: "QUOTA_EXCEEDED",
+                },
+              ],
+            },
+          ],
+        },
+      }),
+    }));
+
+    await processMaterialGeneration(mockService, mockService.getMaterial(), credential, {
+      isRetry: true,
+      stepGroup: "review",
+    });
+
+    // Generated cards are rescued via deterministic review fallback and persisted as ready_for_review!
+    expect(mockService.getMaterial().status).toBe("ready_for_review");
+    expect(mockService.getMaterial().processing_error).toBeNull();
+
+    // 8c. 429 RPD during generation (before cards exist) results in permanent failure!
+    mockService.setMaterial({
+      ...mockService.getMaterial(),
+      status: "processing",
+      processing_error: null,
+      metadata: {
+        pipelineCheckpoint: cleaningCheckpoint,
+      },
+    });
+
+    await expect(() =>
+      processMaterialGeneration(mockService, mockService.getMaterial(), credential, {
+        isRetry: true,
+        stepGroup: "generation",
+      })
+    ).rejects.toMatchObject({
+      code: "GEMINI_QUOTA_EXHAUSTED",
+    });
+
+    expect(mockService.getMaterial().status).toBe("failed");
+    expect(mockService.getMaterial().processing_error).toMatch(/kuota harian/i);
   });
 });
 

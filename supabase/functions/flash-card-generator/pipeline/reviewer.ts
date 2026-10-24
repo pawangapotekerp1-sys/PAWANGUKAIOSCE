@@ -1,5 +1,6 @@
 import {
   generateGeminiStructuredDataWithUsage,
+  isGeminiCredentialError,
   type GeminiRequest,
   type GeminiUsageMetadata,
 } from "../../_shared/gemini-client.ts";
@@ -75,7 +76,7 @@ function buildReviewPrompt(cards: CandidateCard[], options: ReviewOptions): stri
   ];
 
   if (options.sourceContext) {
-    parts.push(`Konteks Sumber:\n${options.sourceContext}`);
+    parts.push(`Konteks Sumber:\n${options.sourceContext.slice(0, 4000)}`);
   }
 
   if (options.conflicts && options.conflicts.length > 0) {
@@ -189,109 +190,8 @@ export async function reviewCandidateCards(
     thoughtsTokenCount: null,
   };
 
-  // If there are cards that need adversarial audit and an LLM client/apiKey is available
-  if (cardsNeedingLlm.length > 0 && (options.geminiClient || options.apiKey)) {
-    const prompt = buildReviewPrompt(cardsNeedingLlm, options);
-    const geminiReq: GeminiRequest = {
-      apiKey: options.apiKey ?? "internal",
-      model: options.model ?? "gemini-3.8-flash",
-      prompt,
-      maxOutputTokens: 8192,
-      thinkingLevel: "medium", // Adversarial audit pass uses medium thinkingLevel
-      responseMimeType: "application/json",
-      responseSchema: getReviewResponseSchema(),
-    };
-
-    let rawOutput: {
-      reviews?: Array<{
-        cardId: string;
-        status: CardQualityStatus;
-        defectNotes?: string;
-        conflictRefId?: string;
-        rejectionReason?: string;
-        triggerSourceId?: string;
-      }>;
-    } | null = null;
-
-    if (options.geminiClient) {
-      const res = await options.geminiClient(geminiReq);
-      if (res?.usage) {
-        usageMetadata = res.usage;
-      }
-      if (res?.data && typeof res.data === "object") {
-        rawOutput = res.data as typeof rawOutput;
-      } else if (res?.text) {
-        try {
-          rawOutput = JSON.parse(res.text);
-        } catch {
-          rawOutput = null;
-        }
-      }
-    } else {
-      const res = await generateGeminiStructuredDataWithUsage<typeof rawOutput>(
-        geminiReq,
-      );
-      rawOutput = res.data;
-      if (res.usage) {
-        usageMetadata = res.usage;
-      }
-    }
-
-    const reviewMap = new Map<string, {
-      status: CardQualityStatus;
-      defectNotes?: string;
-      conflictRefId?: string;
-      rejectionReason?: string;
-      triggerSourceId?: string;
-    }>();
-
-    if (Array.isArray(rawOutput?.reviews)) {
-      for (const rev of rawOutput!.reviews) {
-        if (rev.cardId) {
-          reviewMap.set(rev.cardId, rev);
-        }
-      }
-    }
-
-    for (const card of cardsNeedingLlm) {
-      const rev = reviewMap.get(card.id);
-      const status: CardQualityStatus = rev?.status ?? "ACCEPTED";
-      const defectNotes = rev?.defectNotes;
-      const conflictRefId = rev?.conflictRefId ?? null;
-
-      if (status === "UNSUPPORTED_CLAIM" && rejectedAuditTrail.length < 10) {
-        const rejectionReason = (
-          rev?.rejectionReason ??
-          defectNotes ??
-          "Klaim fakta tidak didukung bukti materi sumber."
-        ).trim().slice(0, 300);
-
-        rejectedAuditTrail.push({
-          draftFront: card.front_text.trim().slice(0, 200),
-          rejectionReason,
-          triggerSourceId: rev?.triggerSourceId ?? card.sources?.[0]?.sourceId,
-        });
-      }
-
-      const updatedCard: CandidateCard = {
-        ...card,
-        qualityStatus: status,
-        defectNotes: status === "REPAIRABLE_DEFECT" ? defectNotes : undefined,
-        conflictRefId: status === "SUBSTANTIVE_CONFLICT" ? conflictRefId : null,
-        metadata: {
-          ...(card.metadata ?? { sources: [] }),
-          sources: card.sources ?? card.metadata?.sources ?? [],
-          clinicalVerification: card.metadata?.clinicalVerification ?? { status: "not_assessed" },
-          qualityStatus: status,
-          conflictRefId: status === "SUBSTANTIVE_CONFLICT" ? conflictRefId : null,
-        },
-      };
-
-      reviewedCards.push(updatedCard);
-    }
-  } else {
-    // If no LLM was called, apply fallback heuristic classification
-    for (const card of cardsNeedingLlm) {
+  const applyDeterministicFallbackReview = (targetCards: CandidateCard[]) => {
+    for (const card of targetCards) {
       const front = card.front_text.trim();
       const back = card.back_text.trim();
       let status: CardQualityStatus = "ACCEPTED";
@@ -300,6 +200,9 @@ export async function reviewCandidateCards(
       if (front.split(/\s+/).length < 2 || back.split(/\s+/).length < 2) {
         status = "REPAIRABLE_DEFECT";
         defectNotes = "Teks pertanyaan atau jawaban terlalu singkat.";
+      } else if (front.toLowerCase() === back.toLowerCase()) {
+        status = "REPAIRABLE_DEFECT";
+        defectNotes = "Teks pertanyaan dan jawaban identik.";
       }
 
       reviewedCards.push({
@@ -314,6 +217,129 @@ export async function reviewCandidateCards(
         },
       });
     }
+  };
+
+  // If there are cards that need adversarial audit and an LLM client/apiKey is available
+  if (cardsNeedingLlm.length > 0 && (options.geminiClient || options.apiKey)) {
+    const prompt = buildReviewPrompt(cardsNeedingLlm, options);
+    const geminiReq: GeminiRequest = {
+      apiKey: options.apiKey ?? "internal",
+      model: options.model ?? "gemini-3.8-flash",
+      prompt,
+      maxOutputTokens: 8192,
+      thinkingLevel: "low", // Use low thinkingLevel to prevent 120s+ server hangs & 503 overload spikes
+      timeoutMs: 35_000,
+      responseMimeType: "application/json",
+      responseSchema: getReviewResponseSchema(),
+    };
+
+    let rawOutput: {
+      reviews?: Array<{
+        cardId: string;
+        status: CardQualityStatus;
+        defectNotes?: string;
+        conflictRefId?: string;
+        rejectionReason?: string;
+        triggerSourceId?: string;
+      }>;
+    } | null = null;
+    let fellBackToDeterministic = false;
+
+    try {
+      if (options.geminiClient) {
+        const res = await options.geminiClient(geminiReq);
+        if (res?.usage) {
+          usageMetadata = res.usage;
+        }
+        if (res?.data && typeof res.data === "object") {
+          rawOutput = res.data as typeof rawOutput;
+        } else if (res?.text) {
+          try {
+            rawOutput = JSON.parse(res.text);
+          } catch {
+            rawOutput = null;
+          }
+        }
+      } else {
+        const res = await generateGeminiStructuredDataWithUsage<typeof rawOutput>(
+          geminiReq,
+        );
+        rawOutput = res.data;
+        if (res.usage) {
+          usageMetadata = res.usage;
+        }
+      }
+    } catch (error) {
+      if (isGeminiCredentialError(error)) {
+        throw error;
+      }
+      fellBackToDeterministic = true;
+      usageMetadata = {
+        ...usageMetadata,
+        isAvailable: false,
+        statusText: "FALLBACK_DETERMINISTIC_REVIEW",
+      };
+    }
+
+    if (fellBackToDeterministic) {
+      applyDeterministicFallbackReview(cardsNeedingLlm);
+    } else {
+      const reviewMap = new Map<string, {
+        status: CardQualityStatus;
+        defectNotes?: string;
+        conflictRefId?: string;
+        rejectionReason?: string;
+        triggerSourceId?: string;
+      }>();
+
+      if (Array.isArray(rawOutput?.reviews)) {
+        for (const rev of rawOutput!.reviews) {
+          if (rev.cardId) {
+            reviewMap.set(rev.cardId, rev);
+          }
+        }
+      }
+
+      for (const card of cardsNeedingLlm) {
+        const rev = reviewMap.get(card.id);
+        const status: CardQualityStatus = rev?.status ?? "ACCEPTED";
+        const defectNotes = rev?.defectNotes;
+        const conflictRefId = rev?.conflictRefId ?? null;
+
+        if (status === "UNSUPPORTED_CLAIM" && rejectedAuditTrail.length < 10) {
+          const rejectionReason = (
+            rev?.rejectionReason ??
+            defectNotes ??
+            "Klaim fakta tidak didukung bukti materi sumber."
+          ).trim().slice(0, 300);
+
+          rejectedAuditTrail.push({
+            draftFront: card.front_text.trim().slice(0, 200),
+            rejectionReason,
+            triggerSourceId: rev?.triggerSourceId ?? card.sources?.[0]?.sourceId,
+          });
+        }
+
+        const updatedCard: CandidateCard = {
+          ...card,
+          qualityStatus: status,
+          defectNotes: status === "REPAIRABLE_DEFECT" ? defectNotes : undefined,
+          conflictRefId: status === "SUBSTANTIVE_CONFLICT" ? conflictRefId : null,
+          metadata: {
+            ...(card.metadata ?? { sources: [] }),
+            sources: card.sources ?? card.metadata?.sources ?? [],
+            clinicalVerification: card.metadata?.clinicalVerification ?? { status: "not_assessed" },
+            qualityStatus: status,
+            conflictRefId: status === "SUBSTANTIVE_CONFLICT" ? conflictRefId : null,
+          },
+        };
+
+        reviewedCards.push(updatedCard);
+      }
+    }
+  } else {
+    // If no LLM was called, apply fallback heuristic classification
+    applyDeterministicFallbackReview(cardsNeedingLlm);
   }
 
   // Preserve original order of cards
@@ -341,7 +367,7 @@ export async function reviewCandidateCards(
     candidatesTokenCount: usageMetadata.candidatesTokenCount ?? null,
     totalTokenCount: usageMetadata.totalTokenCount ?? null,
     thoughtsTokenCount: usageMetadata.thoughtsTokenCount ?? null,
-    statusText: "COMPLETED",
+    statusText: usageMetadata.statusText ?? "COMPLETED",
   };
 
   return {

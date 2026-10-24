@@ -1,5 +1,6 @@
 import {
   generateGeminiStructuredDataWithUsage,
+  isGeminiCredentialError,
   type GeminiRequest,
   type GeminiUsageMetadata,
 } from "../../_shared/gemini-client.ts";
@@ -54,7 +55,7 @@ function buildRepairPrompt(
   ];
 
   if (options.sourceContext) {
-    parts.push(`Konteks Tambahan Materi Sumber:\n${options.sourceContext}`);
+    parts.push(`Konteks Tambahan Materi Sumber:\n${options.sourceContext.slice(0, 4000)}`);
   }
 
   parts.push(
@@ -186,6 +187,7 @@ export async function repairDefectiveCards(
     prompt,
     maxOutputTokens: 8192,
     thinkingLevel: "low", // Targeted repair uses low thinkingLevel
+    timeoutMs: 30_000,
     responseMimeType: "application/json",
     responseSchema: getRepairResponseSchema(),
   };
@@ -205,33 +207,53 @@ export async function repairDefectiveCards(
       back_text: string;
     }>;
   } | null = null;
+  let fellBackToDeterministic = false;
 
-  if (options.geminiClient) {
-    const res = await options.geminiClient(geminiReq);
-    if (res?.usage) {
-      usageMetadata = res.usage;
-    }
-    if (res?.data && typeof res.data === "object") {
-      rawOutput = res.data as typeof rawOutput;
-    } else if (res?.text) {
-      try {
-        rawOutput = JSON.parse(res.text);
-      } catch {
-        rawOutput = null;
+  try {
+    if (options.geminiClient) {
+      const res = await options.geminiClient(geminiReq);
+      if (res?.usage) {
+        usageMetadata = res.usage;
+      }
+      if (res?.data && typeof res.data === "object") {
+        rawOutput = res.data as typeof rawOutput;
+      } else if (res?.text) {
+        try {
+          rawOutput = JSON.parse(res.text);
+        } catch {
+          rawOutput = null;
+        }
+      }
+    } else {
+      const res = await generateGeminiStructuredDataWithUsage<typeof rawOutput>(
+        geminiReq,
+      );
+      rawOutput = res.data;
+      if (res.usage) {
+        usageMetadata = res.usage;
       }
     }
-  } else {
-    const res = await generateGeminiStructuredDataWithUsage<typeof rawOutput>(
-      geminiReq,
-    );
-    rawOutput = res.data;
-    if (res.usage) {
-      usageMetadata = res.usage;
+  } catch (error) {
+    if (isGeminiCredentialError(error)) {
+      throw error;
     }
+    fellBackToDeterministic = true;
+    usageMetadata = {
+      ...usageMetadata,
+      isAvailable: false,
+      statusText: "FALLBACK_DETERMINISTIC_REPAIR",
+    };
   }
 
   const repairedMap = new Map<string, { front_text: string; back_text: string }>();
-  if (Array.isArray(rawOutput?.repairedCards)) {
+  if (fellBackToDeterministic) {
+    for (const c of defectiveCards) {
+      repairedMap.set(c.id, {
+        front_text: c.front_text,
+        back_text: c.back_text,
+      });
+    }
+  } else if (Array.isArray(rawOutput?.repairedCards)) {
     for (const r of rawOutput!.repairedCards) {
       if (r.id) {
         repairedMap.set(r.id, {
@@ -325,7 +347,7 @@ export async function repairDefectiveCards(
     candidatesTokenCount: usageMetadata.candidatesTokenCount ?? null,
     totalTokenCount: usageMetadata.totalTokenCount ?? null,
     thoughtsTokenCount: usageMetadata.thoughtsTokenCount ?? null,
-    statusText: "COMPLETED",
+    statusText: usageMetadata.statusText ?? "COMPLETED",
   };
 
   return {

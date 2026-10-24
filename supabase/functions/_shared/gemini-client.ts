@@ -572,8 +572,10 @@ async function generateGeminiTextOnce({
     };
   }
 
-  if (responseMimeType && responseSchema) {
+  if (responseMimeType) {
     generationConfig.response_mime_type = responseMimeType;
+  }
+  if (responseSchema) {
     generationConfig.response_schema = toRestSchema(responseSchema);
   }
 

@@ -758,5 +758,152 @@ describe("cleanTranscript - bounded maxChunksPerRun", () => {
   });
 });
 
+describe("Zoom ASR Transcript Optimization, Pharmaceutics Entities & Wall-Clock Budget", () => {
+  it("strips generic Zoom participant speaker prefixes at line start while preserving clinical headings", () => {
+    const raw = [
+      "00:18:10.000 --> 00:18:16.000",
+      "Pawang_Royhan: Halo teman-teman semua, malam ini kita bahas sediaan solid.",
+      "Eneng Sipa Pujia: Kak izin bertanya tentang granulasi basah.",
+      "Dosis: Paracetamol 500 mg diberikan 3x sehari.",
+      "Kontraindikasi: Pasien dengan gangguan fungsi hati berat.",
+      "Catatan: Uji friabilitas harus kurang dari 1%.",
+    ].join("\n");
+
+    const normalized = normalizeDeterministicTranscript(raw);
+
+    expect(normalized).not.toContain("Pawang_Royhan:");
+    expect(normalized).not.toContain("Eneng Sipa Pujia:");
+    expect(normalized).toContain("Halo teman-teman semua, malam ini kita bahas sediaan solid.");
+    expect(normalized).toContain("Kak izin bertanya tentang granulasi basah.");
+    expect(normalized).toContain("Dosis: Paracetamol 500 mg diberikan 3x sehari.");
+    expect(normalized).toContain("Kontraindikasi: Pasien dengan gangguan fungsi hati berat.");
+    expect(normalized).toContain("Catatan: Uji friabilitas harus kurang dari 1%.");
+  });
+
+  it("coalesces short non-ellipsis ASR sentence fragments on the same line when clinical entity status matches, but never coalesces across ellipses", () => {
+    // Same line with short Zoom ASR fragments (no ellipses, same entity status) -> coalesced
+    const zoomLine = "Assalamualaikum. Warahmatullahi. Wabarakatuh. Selamat malam teman-teman semua.";
+    const zoomSegments = segmentTranscript(zoomLine);
+    expect(zoomSegments.length).toBe(1);
+    expect(zoomSegments[0].normalizedText).toBe(
+      "Assalamualaikum. Warahmatullahi. Wabarakatuh. Selamat malam teman-teman semua.",
+    );
+
+    // Ellipsis line must NOT coalesce across '...'
+    const ellipsisLine = "Tes mic satu dua... Dosisnya 500 mg tapi...\nBaris kedua pasien minum captopril.";
+    const ellipsisSegments = segmentTranscript(ellipsisLine);
+    expect(ellipsisSegments.length).toBe(3);
+    expect(ellipsisSegments[0].normalizedText).toBe("Tes mic satu dua...");
+    expect(ellipsisSegments[1].normalizedText).toBe("Dosisnya 500 mg tapi...");
+    expect(ellipsisSegments[2].normalizedText).toBe("Baris kedua pasien minum captopril.");
+  });
+
+  it("detects Pharmaceutics / Sediaan Solid entities and spoken dosage units in scanClinicalEntities", () => {
+    const solidText =
+      "Pada metode granulasi basah, digunakan pengikat mucilago amili dan penghancur amprotab, lalu diuji friabilitas kurang dari satu persen serta waktu hancur.";
+    const scan = scanClinicalEntities(solidText);
+
+    expect(scan.hasClinicalEntities).toBe(true);
+    expect(scan.matchedEntities.some((e) => /granulasi basah/i.test(e))).toBe(true);
+    expect(scan.matchedEntities.some((e) => /pengikat/i.test(e))).toBe(true);
+    expect(scan.matchedEntities.some((e) => /friabilitas/i.test(e))).toBe(true);
+    expect(scan.matchedEntities.some((e) => /satu persen/i.test(e))).toBe(true);
+
+    const defectText = "Masalah pencetakan tablet meliputi capping, laminating, mottling, dan sticking pada punch.";
+    const defectScan = scanClinicalEntities(defectText);
+    expect(defectScan.hasClinicalEntities).toBe(true);
+    expect(defectScan.matchedEntities).toEqual(
+      expect.arrayContaining(["capping", "laminating", "mottling", "sticking"]),
+    );
+
+    const casualText = "Halo teman-teman semua, cek suara apakah jelas di layar masing-masing?";
+    expect(scanClinicalEntities(casualText).hasClinicalEntities).toBe(false);
+  });
+
+  it("stops early with isComplete=false when maxExecutionMs wall-clock budget is reached after completing at least 1 chunk", async () => {
+    const lines = Array.from(
+      { length: 6 },
+      (_, idx) => `Segmen kuliah sediaan solid nomor ${idx + 1} tentang granulasi basah dan kempa langsung.`,
+    );
+    const rawTranscript = lines.join("\n");
+
+    const mockClient = vi.fn().mockImplementation(async () => {
+      await new Promise((r) => setTimeout(r, 25));
+      return {
+        text: JSON.stringify({
+          noiseSegmentIds: [],
+          uncertainSegments: [],
+        }),
+        usage: { isAvailable: true, promptTokenCount: 20, candidatesTokenCount: 5, totalTokenCount: 25 },
+      };
+    });
+
+    const result = await cleanTranscript(rawTranscript, {
+      chunkSize: 2,
+      maxChunksPerRun: 10,
+      maxExecutionMs: 15,
+      geminiClient: mockClient,
+    });
+
+    expect(mockClient).toHaveBeenCalledTimes(1);
+    expect(result.isComplete).toBe(false);
+    expect(result.segments).toHaveLength(2);
+    expect(result.totalSegmentsCount).toBe(6);
+  });
+
+  it("sends generationConfig.response_mime_type='application/json' in generateGeminiTextWithUsage even when responseSchema is omitted", async () => {
+    vi.stubGlobal("Deno", {
+      env: {
+        get(name: string) {
+          const values: Record<string, string> = {
+            SUPABASE_URL: "http://127.0.0.1:54321",
+            SUPABASE_SERVICE_ROLE_KEY: "service-role",
+            SUPABASE_ANON_KEY: "anon-key",
+          };
+          return values[name];
+        },
+      },
+    });
+    const { generateGeminiTextWithUsage } = await import("../../_shared/gemini-client.ts");
+    let capturedBody: any = null;
+
+    const fetchMock = vi.fn().mockImplementation(async (_url: string, init?: RequestInit) => {
+      capturedBody = init?.body ? JSON.parse(String(init.body)) : null;
+      return {
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({
+          candidates: [
+            {
+              content: {
+                parts: [{ text: JSON.stringify({ noiseSegmentIds: [], uncertainSegments: [] }) }],
+              },
+            },
+          ],
+          usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 5, totalTokenCount: 15 },
+        }),
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      await generateGeminiTextWithUsage({
+        apiKey: "test-key",
+        model: "gemini-3.8-flash",
+        prompt: "Classify segments",
+        responseMimeType: "application/json",
+      });
+
+      expect(capturedBody).not.toBeNull();
+      expect(capturedBody.generationConfig?.response_mime_type).toBe("application/json");
+      expect(capturedBody.generationConfig?.response_schema).toBeUndefined();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+});
+
+
 
 

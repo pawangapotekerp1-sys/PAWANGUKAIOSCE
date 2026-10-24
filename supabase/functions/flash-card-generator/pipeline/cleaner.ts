@@ -26,6 +26,7 @@ export type CleanerOptions = {
   chunkSize?: number;
   chunkOverlap?: number;
   maxChunksPerRun?: number;
+  maxExecutionMs?: number;
   cachedSegments?: TranscriptSegment[];
   onChunkComplete?: (
     completedSegments: TranscriptSegment[],
@@ -79,10 +80,43 @@ export function normalizeDeterministicTranscript(rawText: string): string {
   text = text.replace(/\[\d{1,2}:\d{2}(?::\d{2})?(?:[,.]\d{1,3})?\]/g, "");
   text = text.replace(/\(\d{1,2}:\d{2}(?::\d{2})?(?:[,.]\d{1,3})?\)/g, "");
 
-  // 5. Strip speaker tags (accounting for possible leading spaces)
+  // 5. Strip speaker tags (explicit roles and generic Zoom/Meet participant prefixes at line start)
   text = text.replace(
     /^\s*(?:Speaker(?:\s+\d+|\s+[A-Za-z0-9_-]+)?|Mentor(?:\s+[A-Za-z0-9_-]+)?|Dosen(?:\s+[A-Za-z0-9_-]+)?|Audience|Host(?:\s+\d+)?|Narasumber|Moderator)\s*:\s*/gmi,
     "",
+  );
+  const PROTECTED_CLINICAL_LABELS = new Set([
+    "dosis",
+    "indikasi",
+    "kontraindikasi",
+    "efek samping",
+    "perhatian",
+    "peringatan",
+    "interaksi",
+    "mekanisme",
+    "catatan",
+    "kesimpulan",
+    "rumus",
+    "contoh",
+    "definisi",
+    "tujuan",
+    "syarat",
+    "uji",
+    "pasien",
+    "obat",
+    "terapi",
+    "diagnosis",
+    "gejala",
+  ]);
+  text = text.replace(
+    /^(\s*)([A-Za-z][A-Za-z0-9_.\s-]{1,34})\s*:\s+/gm,
+    (fullMatch, leadingSpace: string, label: string) => {
+      const normalizedLabel = label.trim().toLowerCase().replace(/\s+/g, " ");
+      if (PROTECTED_CLINICAL_LABELS.has(normalizedLabel)) {
+        return fullMatch;
+      }
+      return leadingSpace;
+    },
   );
 
   // 6. Safe stutter deduplication on common conjunctions/particles (case-insensitive, preserving first token)
@@ -106,9 +140,10 @@ export function normalizeDeterministicTranscript(rawText: string): string {
 
 /**
  * Scans text for clinical entities:
- * - Units & dosages (mg, mcg, µg, g, ml, iu, tetes, %, iu/ml, mg/kg)
- * - Regimen, frequency & administration routes (1x1, 2x1, 1x sehari, prn, ac, pc, subkutan, iv, po, im)
- * - Pharmacological drug stems (olol, pril, sartan, statin, mab, floxacin, cillin, prazole, mycin, sone, glitazone)
+ * - Units & dosages (numeric and spoken)
+ * - Regimen, frequency & administration routes
+ * - Pharmacological drug stems and common active ingredients
+ * - Pharmaceutics, dosage forms, formulation excipients, and IPC/QC testing terms
  */
 export function scanClinicalEntities(text: string): {
   hasClinicalEntities: boolean;
@@ -119,12 +154,14 @@ export function scanClinicalEntities(text: string): {
   }
 
   const patterns = [
-    // 1. Units and dosages
-    /\b\d+(?:[.,]\d+)?\s*(?:iu\/ml|mg\/kg|mcg\/kg|mg\/ml|mg|mcg|µg|ug|g|ml|iu|tetes|%)(?!\w)/gi,
+    // 1. Units and dosages (numeric and spoken)
+    /\b(?:\d+(?:[.,]\d+)?|satu|dua|tiga|empat|lima|enam|tujuh|delapan|sembilan|sepuluh|seratus| lima ratus|seribu)\s*(?:iu\/ml|mg\/kg|mcg\/kg|mg\/ml|mg|miligram|mcg|µg|ug|gram|g|ml|mililiter|iu|tetes|%|persen)(?!\w)/gi,
     // 2. Regimen, frequency, and administration routes
-    /\b(?:\d+\s*x\s*\d+|\d+\s*x\s*sehari|1x sehari|2x sehari|3x sehari|prn|ac|pc|subkutan|intravena|iv|po|im)\b/gi,
-    // 3. Drug naming stems
-    /\b[a-zA-Z]*(?:olol|pril|sartan|statin|mab|floxacin|cillin|prazole|mycin|sone|glitazone)\b/gi,
+    /\b(?:\d+\s*x\s*\d+|\d+\s*x\s*sehari|1x sehari|2x sehari|3x sehari|prn|ac|pc|subkutan|intravena|iv|po|im|peroral|parenteral|topikal|rektal|vaginal|sublingual|bukal)\b/gi,
+    // 3. Drug naming stems and common pharmaceutical active ingredients
+    /\b(?:[a-zA-Z]*(?:olol|pril|sartan|statin|mab|floxacin|cillin|prazole|mycin|sone|glitazone|zepam|zolam|dipine|conazole|vir|tidine|setron|profen|kain|caine)|paracetamol|parasetamol|asetosal|aspirin|ibuprofen|amoksisilin|metformin|kaptopril|captopril|amlodipin|simvastatin|omeprazol|digoksin|warfarin|insulin|fenitoin|rifampisin|isoniazid)\b/gi,
+    // 4. Pharmaceutics, dosage forms, formulation excipients, andIPC/QC testing terms
+    /\b(?:pulvis|pulveres|kapsul|supositoria|ovula|salut\s+(?:gula|film|enterik|entrick)|granulasi\s+(?:basah|kering)|kempa\s+langsung|eksipien|zat\s+aktif|pengisi|diluen|pengikat|binder|penghancur|disintegran|pelicin|lubrikan|glidan|antiadheren|pembasah|surfaktan|friabilitas|kerapuhan|disolusi|waktu\s+hancur|keseragaman\s+(?:bobot|kandungan)|kekerasan\s+tablet|daya\s+alir|sudut\s+(?:diam|istirahat)|kompresibilitas|indeks\s+tap|capping|laminating|mottling|sticking|picking|binding|cracking|chipping|laktosa|avicel|amprotab|magnesium\s+stearat|talkum|mucilago|aerosil|nipagin|nipasol|eudragit|hpmc|pvp|cmc)\b/gi,
   ];
 
   const matched: string[] = [];
@@ -146,6 +183,8 @@ export function scanClinicalEntities(text: string): {
     matchedEntities: matched,
   };
 }
+
+const MAX_COALESCED_LINE_SEGMENT_CHARS = 180;
 
 /**
  * Segments normalized text into structured TranscriptSegments with segment IDs,
@@ -172,16 +211,38 @@ export function segmentTranscript(normalizedText: string): TranscriptSegment[] {
 
     // Split on sentence boundaries: . ! ? … followed by whitespace, or ... followed by whitespace
     // Negative lookbehind protects common honorifics: dr. apt. prof. tn. ny. nn. no. hal.
-    const sentenceParts = line.split(
-      /(?<!\b(?:dr|apt|prof|tn|ny|nn|no|hal)\.)(?<=[.!?…]+)\s+/i,
-    );
+    const sentenceParts = line
+      .split(/(?<!\b(?:dr|apt|prof|tn|ny|nn|no|hal)\.)(?<=[.!?…]+)\s+/i)
+      .map((p) => p.trim())
+      .filter(Boolean);
 
+    // Coalesce short ASR micro-sentences on the SAME line up to MAX_COALESCED_LINE_SEGMENT_CHARS
+    // ONLY when neither part ends with an ellipsis (... / …) and both share the same hasClinicalEntities flag.
+    const coalescedParts: string[] = [];
     for (const part of sentenceParts) {
-      const trimmedPart = part.trim();
-      if (!trimmedPart) {
+      if (coalescedParts.length === 0) {
+        coalescedParts.push(part);
         continue;
       }
+      const prev = coalescedParts[coalescedParts.length - 1];
+      const prevEndsWithEllipsis = /(?:\.\.\.|…)$/.test(prev);
+      const currEndsWithEllipsis = /(?:\.\.\.|…)$/.test(part);
+      const prevHasEntities = scanClinicalEntities(prev).hasClinicalEntities;
+      const currHasEntities = scanClinicalEntities(part).hasClinicalEntities;
 
+      if (
+        !prevEndsWithEllipsis &&
+        !currEndsWithEllipsis &&
+        prevHasEntities === currHasEntities &&
+        prev.length + 1 + part.length <= MAX_COALESCED_LINE_SEGMENT_CHARS
+      ) {
+        coalescedParts[coalescedParts.length - 1] = `${prev} ${part}`;
+      } else {
+        coalescedParts.push(part);
+      }
+    }
+
+    for (const trimmedPart of coalescedParts) {
       const segmentId = `seg-${String(segmentIndex).padStart(3, "0")}`;
       segmentIndex++;
 
@@ -291,6 +352,11 @@ export async function cleanTranscript(
     typeof options.maxChunksPerRun === "number" && options.maxChunksPerRun > 0
       ? Math.floor(options.maxChunksPerRun)
       : undefined;
+  const maxExecutionMs =
+    typeof options.maxExecutionMs === "number" && options.maxExecutionMs > 0
+      ? options.maxExecutionMs
+      : undefined;
+  const runStartedAt = Date.now();
   let newlyProcessedChunksCount = 0;
   let stoppedEarlyForChunkCap = false;
 
@@ -527,11 +593,14 @@ Respond ONLY with valid JSON in this exact structure:
     }
 
     newlyProcessedChunksCount += 1;
-    if (
+    const hitChunkCap =
       maxChunksPerRun !== undefined &&
-      newlyProcessedChunksCount >= maxChunksPerRun &&
-      i + chunkSize < segments.length
-    ) {
+      newlyProcessedChunksCount >= maxChunksPerRun;
+    const hitTimeBudget =
+      maxExecutionMs !== undefined &&
+      Date.now() - runStartedAt >= maxExecutionMs;
+
+    if ((hitChunkCap || hitTimeBudget) && i + chunkSize < segments.length) {
       stoppedEarlyForChunkCap = true;
       break;
     }

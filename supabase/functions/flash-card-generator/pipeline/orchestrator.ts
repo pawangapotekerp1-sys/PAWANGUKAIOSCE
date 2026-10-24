@@ -293,7 +293,7 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
     const partialCleaning = checkpoint.stageArtifacts["transcript_cleaning_partial"] as {
       completedSegments?: TranscriptSegment[];
       totalSegmentsCount?: number;
-      tokenUsage?: GeminiUsageMetadata;
+      tokenUsage?: GeminiUsageMetadata | StageTokenMetrics;
     } | undefined;
 
     cleanedResult = await cleanTranscript(transcriptText, {
@@ -305,7 +305,8 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
       onChunkComplete: async (completedSegments) => {
         checkpoint.stageArtifacts["transcript_cleaning_partial"] = {
           completedSegments,
-          totalSegmentsCount: undefined,
+          totalSegmentsCount: partialCleaning?.totalSegmentsCount,
+          tokenUsage: partialCleaning?.tokenUsage,
         };
         checkpoint.updatedAt = new Date().toISOString();
         if (options.onStageComplete) {
@@ -314,13 +315,26 @@ export async function runFlashCardPipeline(options: PipelineOptions): Promise<Pi
       },
       geminiClient: options.geminiClient as any,
     });
-    cleanerTokenUsage = normalizeStageTokenMetrics(cleanedResult.tokenUsage);
+
+    const currentBatchTokenUsage = normalizeStageTokenMetrics(cleanedResult.tokenUsage);
+    const priorBatchTokenUsage = partialCleaning?.tokenUsage
+      ? normalizeStageTokenMetrics(partialCleaning.tokenUsage)
+      : null;
+    cleanerTokenUsage = priorBatchTokenUsage
+      ? {
+          isAvailable: currentBatchTokenUsage.isAvailable || priorBatchTokenUsage.isAvailable,
+          promptTokenCount: (priorBatchTokenUsage.promptTokenCount ?? 0) + (currentBatchTokenUsage.promptTokenCount ?? 0),
+          candidatesTokenCount: (priorBatchTokenUsage.candidatesTokenCount ?? 0) + (currentBatchTokenUsage.candidatesTokenCount ?? 0),
+          thoughtsTokenCount: (priorBatchTokenUsage.thoughtsTokenCount ?? 0) + (currentBatchTokenUsage.thoughtsTokenCount ?? 0),
+          totalTokenCount: (priorBatchTokenUsage.totalTokenCount ?? 0) + (currentBatchTokenUsage.totalTokenCount ?? 0),
+        }
+      : currentBatchTokenUsage;
 
     if (cleanedResult.isComplete === false) {
       checkpoint.stageArtifacts["transcript_cleaning_partial"] = {
         completedSegments: cleanedResult.segments,
         totalSegmentsCount: cleanedResult.totalSegmentsCount ?? cleanedResult.segments.length,
-        tokenUsage: cleanedResult.tokenUsage,
+        tokenUsage: cleanerTokenUsage,
       };
       checkpoint.updatedAt = new Date().toISOString();
       if (options.onStageComplete) {

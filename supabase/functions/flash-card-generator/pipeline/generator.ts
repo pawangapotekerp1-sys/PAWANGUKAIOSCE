@@ -247,11 +247,11 @@ export function buildCandidateEvidencePack(
     const clinicalCandidates = candidates.filter((c) => c.segment.hasClinicalEntities);
     const nonClinicalCandidates = candidates.filter((c) => !c.segment.hasClinicalEntities);
 
-    const selectBucketed = (pool: typeof candidates) => {
+    const selectBucketed = (pool: typeof candidates, bucketCount: number = CHRONOLOGICAL_BUCKET_COUNT) => {
       if (pool.length === 0 || currentChars >= maxCharacters) return;
-      const bucketCount = Math.min(CHRONOLOGICAL_BUCKET_COUNT, Math.max(1, pool.length));
-      const bucketSize = Math.ceil(pool.length / bucketCount);
-      const buckets = Array.from({ length: bucketCount }, (_, bIdx) => {
+      const actualBucketCount = Math.min(bucketCount, Math.max(1, pool.length));
+      const bucketSize = Math.ceil(pool.length / actualBucketCount);
+      const buckets = Array.from({ length: actualBucketCount }, (_, bIdx) => {
         const slice = pool.slice(bIdx * bucketSize, (bIdx + 1) * bucketSize);
         return [...slice].sort((a, b) => {
           if (b.score !== a.score) return b.score - a.score;
@@ -259,11 +259,11 @@ export function buildCandidateEvidencePack(
         });
       });
 
-      const bucketCursors = new Array<number>(bucketCount).fill(0);
+      const bucketCursors = new Array<number>(actualBucketCount).fill(0);
       let madeProgress = true;
       while (madeProgress && currentChars < maxCharacters) {
         madeProgress = false;
-        for (let bIdx = 0; bIdx < bucketCount; bIdx++) {
+        for (let bIdx = 0; bIdx < actualBucketCount; bIdx++) {
           const bucket = buckets[bIdx];
           while (bucketCursors[bIdx] < bucket.length) {
             const candidate = bucket[bucketCursors[bIdx]];

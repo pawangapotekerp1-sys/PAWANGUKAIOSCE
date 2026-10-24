@@ -568,6 +568,7 @@ describe("Orchestrator Large Material & Resource Safety", () => {
     expect(run2.checkpoint.completedStages).toContain("transcript_cleaning");
     expect(run2.checkpoint.stageArtifacts["transcript_cleaning_partial"]).toBeUndefined();
     expect((run2.checkpoint.stageArtifacts["transcript_cleaning"] as any).cleanedResult).toBeUndefined();
+    expect(run2.metadata.tokenUsage?.transcript_cleaning?.totalTokenCount).toBe(120);
   });
 
   it("passes bounded evidencePack text instead of full raw retainedText to adversarial_review and targeted_repair", async () => {

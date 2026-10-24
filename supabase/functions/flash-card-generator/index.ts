@@ -1140,7 +1140,11 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
         });
       }
 
-      const stepGroup = typeof payload.stepGroup === "string" ? (payload.stepGroup as PipelineStepGroup) : undefined;
+      const cp = (material.metadata as any)?.pipelineCheckpoint ?? (material.metadata as any)?.pipeline_checkpoint;
+      const stepGroup = resolveStepGroupFromCheckpoint(
+        typeof payload.stepGroup === "string" ? payload.stepGroup : undefined,
+        cp,
+      );
       return await processMaterialGeneration(service, material, credential, { stepGroup });
     }
 

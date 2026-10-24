@@ -29,6 +29,7 @@ import {
   buildFlashCardSourceFileRows,
   buildRateLimitMetadataUpdate,
   buildStageCheckpointMetadataUpdate,
+  buildStaleJobRecoveryUpdate,
   canContinueFlashCardMaterial,
   determineMaterialClaimConditions,
   ensureFlashCardManagerAccess,
@@ -36,6 +37,7 @@ import {
   handlePublishMaterial,
   handleResolveConflict,
   handleUpdateMaterialProtectedMetadata,
+  MAX_STALE_AUTO_RECOVERIES,
   validateGeneratedFlashCardOutput,
   validateFlashCardMaterialDraftInput,
   resolveStepGroupFromCheckpoint,
@@ -1475,5 +1477,88 @@ describe("Large Material Runtime Guards (Step Inference, PDF Skip, Client Metada
       stepGroup: "generation",
     });
     expect(pdfDownloadCount).toBe(1);
+  });
+
+  test("buildStaleJobRecoveryUpdate auto-resumes stale jobs that have checkpoint progress up to MAX_STALE_AUTO_RECOVERIES, then transitions to failed", () => {
+    const timeoutMessage =
+      "Pemrosesan flash card terhenti di latar belakang karena batas waktu atau resource runtime terlampaui. Silakan gunakan tombol 'Coba Proses Ulang'.";
+
+    // Case 1: Stale job with partial transcript cleaning progress (recovery #1) -> keeps status='processing' and clears processingJob
+    const recovery1 = buildStaleJobRecoveryUpdate({
+      metadata: {
+        processingJob: {
+          jobId: "job-dead-1",
+          stage: "transcript_cleaning",
+          heartbeatAt: "2026-10-24T07:17:27.852Z",
+        },
+        pipelineCheckpoint: {
+          currentStage: "transcript_cleaning",
+          completedStages: ["ingestion"],
+          stageArtifacts: {
+            transcript_cleaning_partial: {
+              completedSegments: [{ segmentId: "seg-001" }],
+            },
+          },
+        },
+      },
+      timeoutMessage,
+    });
+
+    expect(recovery1.autoResumed).toBe(true);
+    expect(recovery1.updatePayload.status).toBe("processing");
+    expect(recovery1.updatePayload.processing_error).toBeNull();
+    expect(recovery1.updatePayload.metadata.processingJob).toBeUndefined();
+    expect(recovery1.updatePayload.metadata.staleRecoveryCount).toBe(1);
+
+    // Case 2: Second stale crash on the same material (recovery #2) -> still auto-resumes (up to MAX_STALE_AUTO_RECOVERIES = 2)
+    const recovery2 = buildStaleJobRecoveryUpdate({
+      metadata: {
+        ...recovery1.updatePayload.metadata,
+        processingJob: {
+          jobId: "job-dead-2",
+          stage: "transcript_cleaning",
+          heartbeatAt: "2026-10-24T07:22:00.000Z",
+        },
+      },
+      timeoutMessage,
+    });
+
+    expect(recovery2.autoResumed).toBe(true);
+    expect(recovery2.updatePayload.status).toBe("processing");
+    expect(recovery2.updatePayload.metadata.staleRecoveryCount).toBe(2);
+
+    // Case 3: Third consecutive stale crash (staleRecoveryCount === 2 >= MAX_STALE_AUTO_RECOVERIES) -> fails permanently to prevent infinite crash loop
+    const recovery3 = buildStaleJobRecoveryUpdate({
+      metadata: {
+        ...recovery2.updatePayload.metadata,
+        processingJob: {
+          jobId: "job-dead-3",
+          stage: "transcript_cleaning",
+          heartbeatAt: "2026-10-24T07:26:00.000Z",
+        },
+      },
+      timeoutMessage,
+    });
+
+    expect(recovery3.autoResumed).toBe(false);
+    expect(recovery3.updatePayload.status).toBe("failed");
+    expect(recovery3.updatePayload.processing_error).toBe(timeoutMessage);
+    expect(recovery3.updatePayload.metadata.processingJob).toBeUndefined();
+
+    // Case 4: Stale job with NO checkpoint progress at all -> fails immediately
+    const noProgressRecovery = buildStaleJobRecoveryUpdate({
+      metadata: {
+        processingJob: {
+          jobId: "job-dead-0",
+          stage: "ingestion",
+          heartbeatAt: "2026-10-24T07:17:27.852Z",
+        },
+      },
+      timeoutMessage,
+    });
+
+    expect(noProgressRecovery.autoResumed).toBe(false);
+    expect(noProgressRecovery.updatePayload.status).toBe("failed");
+    expect(noProgressRecovery.updatePayload.processing_error).toBe(timeoutMessage);
   });
 });

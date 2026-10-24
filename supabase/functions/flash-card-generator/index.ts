@@ -43,6 +43,7 @@ import {
   buildFlashCardSourceFileRows,
   buildRateLimitMetadataUpdate,
   buildStageCheckpointMetadataUpdate,
+  buildStaleJobRecoveryUpdate,
   canContinueFlashCardMaterial,
   canRetryFlashCardMaterial,
   createFlashCardResponseSchema,
@@ -685,6 +686,7 @@ export async function processMaterialGeneration(
         ...(pipelineResult.metadata ?? {}),
         pipelineCheckpoint: latestCheckpoint,
         processingJob: undefined,
+        staleRecoveryCount: undefined,
       };
 
       const { error: materialUpdateError } = await service
@@ -761,6 +763,7 @@ export async function processMaterialGeneration(
           }
         : {}),
       processingJob: undefined,
+      staleRecoveryCount: undefined,
     };
 
     const { error: materialUpdateError } = await service
@@ -1202,22 +1205,17 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
       ) {
         const timeoutMessage =
           "Pemrosesan flash card terhenti di latar belakang karena batas waktu atau resource runtime terlampaui. Silakan gunakan tombol 'Coba Proses Ulang'.";
-        const meta = (material.metadata ?? {}) as Record<string, unknown>;
         const diagnosticPayload = extractStaleRecoveryDiagnostics({
           materialId,
           metadata: material.metadata as any,
         });
-        const failureUpdate = {
-          status: "failed",
-          processing_error: timeoutMessage,
-          metadata: {
-            ...meta,
-            processingJob: undefined,
-          },
-        };
+        const { autoResumed, updatePayload } = buildStaleJobRecoveryUpdate({
+          metadata: material.metadata as any,
+          timeoutMessage,
+        });
         const { data: updateData, error: updateError } = await service
           .from("flashcard_materials")
-          .update(failureUpdate)
+          .update(updatePayload)
           .eq("id", material.id)
           .eq("status", "processing")
           .select("id, status");
@@ -1225,11 +1223,15 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
         if (!updateError && updateData && updateData.length > 0) {
           material = {
             ...material,
-            status: "failed",
-            processing_error: timeoutMessage,
-            metadata: failureUpdate.metadata as any,
+            status: updatePayload.status,
+            processing_error: updatePayload.processing_error,
+            metadata: updatePayload.metadata as any,
           };
-          logSafeTelemetry("stale_job_recovered", diagnosticPayload);
+          logSafeTelemetry("stale_job_recovered", {
+            ...diagnosticPayload,
+            autoResumed,
+            staleRecoveryCount: updatePayload.metadata.staleRecoveryCount ?? 0,
+          });
         } else {
           material = await loadOwnedMaterial(service, materialId, user.id);
         }

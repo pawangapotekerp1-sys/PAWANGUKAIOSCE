@@ -139,6 +139,71 @@ export function extractStaleRecoveryDiagnostics(params: {
   };
 }
 
+export const MAX_STALE_AUTO_RECOVERIES = 2;
+
+export function buildStaleJobRecoveryUpdate(params: {
+  metadata?: Record<string, unknown> | null;
+  timeoutMessage: string;
+  maxAutoRecoveries?: number;
+}): {
+  autoResumed: boolean;
+  updatePayload: {
+    status: "processing" | "failed";
+    processing_error: string | null;
+    metadata: Record<string, unknown>;
+  };
+} {
+  const meta = (params.metadata ?? {}) as Record<string, unknown>;
+  const maxAutoRecoveries = params.maxAutoRecoveries ?? MAX_STALE_AUTO_RECOVERIES;
+  const currentRecoveryCount =
+    typeof meta.staleRecoveryCount === "number" && Number.isFinite(meta.staleRecoveryCount)
+      ? Math.max(0, Math.floor(meta.staleRecoveryCount))
+      : 0;
+
+  const rawCp = (meta.pipelineCheckpoint ?? meta.pipeline_checkpoint) as
+    | {
+        completedStages?: unknown;
+        stageArtifacts?: Record<string, unknown> | null;
+      }
+    | undefined;
+
+  const completedStages = Array.isArray(rawCp?.completedStages) ? rawCp.completedStages : [];
+  const partialCleaning = rawCp?.stageArtifacts?.["transcript_cleaning_partial"] as
+    | { completedSegments?: unknown }
+    | undefined;
+  const hasPartialSegments =
+    Array.isArray(partialCleaning?.completedSegments) &&
+    partialCleaning.completedSegments.length > 0;
+  const hasCheckpointProgress = completedStages.length > 0 || hasPartialSegments;
+
+  if (hasCheckpointProgress && currentRecoveryCount < maxAutoRecoveries) {
+    return {
+      autoResumed: true,
+      updatePayload: {
+        status: "processing",
+        processing_error: null,
+        metadata: {
+          ...meta,
+          processingJob: undefined,
+          staleRecoveryCount: currentRecoveryCount + 1,
+        },
+      },
+    };
+  }
+
+  return {
+    autoResumed: false,
+    updatePayload: {
+      status: "failed",
+      processing_error: params.timeoutMessage,
+      metadata: {
+        ...meta,
+        processingJob: undefined,
+      },
+    },
+  };
+}
+
 export interface MaterialClaimConditions {
   statusFilter: { type: "eq"; value: string } | { type: "in"; value: string[] };
   jobIdFilter?: { type: "eq"; value: string } | { type: "is_null" };

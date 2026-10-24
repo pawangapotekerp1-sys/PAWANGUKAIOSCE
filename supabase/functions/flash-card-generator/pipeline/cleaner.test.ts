@@ -816,6 +816,10 @@ describe("Zoom ASR Transcript Optimization, Pharmaceutics Entities & Wall-Clock 
       expect.arrayContaining(["capping", "laminating", "mottling", "sticking"]),
     );
 
+    const spokenScan = scanClinicalEntities("lima ratus miligram paracetamol");
+    expect(spokenScan.hasClinicalEntities).toBe(true);
+    expect(spokenScan.matchedEntities).toContain("lima ratus miligram");
+
     const casualText = "Halo teman-teman semua, cek suara apakah jelas di layar masing-masing?";
     expect(scanClinicalEntities(casualText).hasClinicalEntities).toBe(false);
   });

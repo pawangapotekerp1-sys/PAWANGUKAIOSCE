@@ -47,6 +47,30 @@ export type CleanedTranscriptResult = {
   totalSegmentsCount?: number;
 };
 
+const PROTECTED_CLINICAL_LABELS = new Set([
+  "dosis",
+  "indikasi",
+  "kontraindikasi",
+  "efek samping",
+  "perhatian",
+  "peringatan",
+  "interaksi",
+  "mekanisme",
+  "catatan",
+  "kesimpulan",
+  "rumus",
+  "contoh",
+  "definisi",
+  "tujuan",
+  "syarat",
+  "uji",
+  "pasien",
+  "obat",
+  "terapi",
+  "diagnosis",
+  "gejala",
+]);
+
 /**
  * Normalizes deterministic transcript noise:
  * - Strips ASR timestamps: [14:20], [00:14:20], (14:20), (00:14:20), and SRT/VTT timecodes
@@ -85,29 +109,6 @@ export function normalizeDeterministicTranscript(rawText: string): string {
     /^\s*(?:Speaker(?:\s+\d+|\s+[A-Za-z0-9_-]+)?|Mentor(?:\s+[A-Za-z0-9_-]+)?|Dosen(?:\s+[A-Za-z0-9_-]+)?|Audience|Host(?:\s+\d+)?|Narasumber|Moderator)\s*:\s*/gmi,
     "",
   );
-  const PROTECTED_CLINICAL_LABELS = new Set([
-    "dosis",
-    "indikasi",
-    "kontraindikasi",
-    "efek samping",
-    "perhatian",
-    "peringatan",
-    "interaksi",
-    "mekanisme",
-    "catatan",
-    "kesimpulan",
-    "rumus",
-    "contoh",
-    "definisi",
-    "tujuan",
-    "syarat",
-    "uji",
-    "pasien",
-    "obat",
-    "terapi",
-    "diagnosis",
-    "gejala",
-  ]);
   text = text.replace(
     /^(\s*)([A-Za-z][A-Za-z0-9_.\s-]{1,34})\s*:\s+/gm,
     (fullMatch, leadingSpace: string, label: string) => {
@@ -155,7 +156,7 @@ export function scanClinicalEntities(text: string): {
 
   const patterns = [
     // 1. Units and dosages (numeric and spoken)
-    /\b(?:\d+(?:[.,]\d+)?|satu|dua|tiga|empat|lima|enam|tujuh|delapan|sembilan|sepuluh|seratus| lima ratus|seribu)\s*(?:iu\/ml|mg\/kg|mcg\/kg|mg\/ml|mg|miligram|mcg|µg|ug|gram|g|ml|mililiter|iu|tetes|%|persen)(?!\w)/gi,
+    /\b(?:\d+(?:[.,]\d+)?|satu|dua|tiga|empat|lima\s+ratus|lima|enam|tujuh|delapan|sembilan|sepuluh|seratus|seribu)\s*(?:iu\/ml|mg\/kg|mcg\/kg|mg\/ml|mg|miligram|mcg|µg|ug|gram|g|ml|mililiter|iu|tetes|%|persen)(?!\w)/gi,
     // 2. Regimen, frequency, and administration routes
     /\b(?:\d+\s*x\s*\d+|\d+\s*x\s*sehari|1x sehari|2x sehari|3x sehari|prn|ac|pc|subkutan|intravena|iv|po|im|peroral|parenteral|topikal|rektal|vaginal|sublingual|bukal)\b/gi,
     // 3. Drug naming stems and common pharmaceutical active ingredients

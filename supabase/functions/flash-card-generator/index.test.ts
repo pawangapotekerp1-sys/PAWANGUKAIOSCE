@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, it, test, vi } from "vitest";
 
 if (typeof (globalThis as any).Deno === "undefined") {
   (globalThis as any).Deno = {
@@ -38,6 +38,8 @@ import {
   handleUpdateMaterialProtectedMetadata,
   validateGeneratedFlashCardOutput,
   validateFlashCardMaterialDraftInput,
+  resolveStepGroupFromCheckpoint,
+  sanitizeMaterialMetadataForClient,
 } from "./handler";
 import { validateMaterialMetadata } from "../_shared/flash-card.ts";
 
@@ -1224,5 +1226,254 @@ describe("flash-card step-by-step processing and continuation", () => {
     // 403 results in permanent failure!
     expect(mockService.getMaterial().status).toBe("failed");
     expect(mockService.getMaterial().processing_error).toMatch(/api key/i);
+  });
+});
+
+describe("Large Material Runtime Guards (Step Inference, PDF Skip, Client Metadata Sanitization)", () => {
+  it("resolveStepGroupFromCheckpoint infers cleaning, generation, or review when stepGroup is omitted", () => {
+    expect(resolveStepGroupFromCheckpoint(undefined, undefined)).toBe("cleaning");
+    expect(
+      resolveStepGroupFromCheckpoint(undefined, {
+        currentStage: "transcript_cleaning",
+        completedStages: ["ingestion"],
+        stageArtifacts: {},
+      }),
+    ).toBe("cleaning");
+    expect(
+      resolveStepGroupFromCheckpoint(undefined, {
+        currentStage: "concept_mapping",
+        completedStages: ["ingestion", "transcript_cleaning"],
+        stageArtifacts: {},
+      }),
+    ).toBe("generation");
+    expect(
+      resolveStepGroupFromCheckpoint(undefined, {
+        currentStage: "adversarial_review",
+        completedStages: ["ingestion", "transcript_cleaning", "candidate_generation"],
+        stageArtifacts: {},
+      }),
+    ).toBe("review");
+    expect(
+      resolveStepGroupFromCheckpoint("review", {
+        currentStage: "transcript_cleaning",
+        completedStages: ["ingestion"],
+        stageArtifacts: {},
+      }),
+    ).toBe("review");
+  });
+
+  it("sanitizeMaterialMetadataForClient strips heavy stageArtifacts from pipelineCheckpoint while preserving cleaningProgress and completedStages", () => {
+    const rawMetadata = {
+      pipelineVersion: "gemini-3.8-source-aware-v1",
+      pipelineCheckpoint: {
+        currentStage: "transcript_cleaning",
+        completedStages: ["ingestion"],
+        updatedAt: "2026-10-24T04:00:00.000Z",
+        stageArtifacts: {
+          transcript_cleaning_partial: {
+            completedSegments: Array.from({ length: 500 }, (_, i) => ({
+              segmentId: `seg-${i + 1}`,
+              normalizedText: "Kalimat panjang sekali",
+            })),
+            totalSegmentsCount: 1500,
+          },
+          transcript_cleaning: {
+            retainedSegments: [{ segmentId: "seg-1", normalizedText: "Kalimat" }],
+          },
+        },
+      },
+    };
+
+    const sanitized = sanitizeMaterialMetadataForClient(rawMetadata);
+    const cp = (sanitized as any).pipelineCheckpoint;
+    expect(cp.currentStage).toBe("transcript_cleaning");
+    expect(cp.completedStages).toEqual(["ingestion"]);
+    expect(cp.stageArtifacts).toEqual({});
+    expect(cp.cleaningProgress).toEqual({
+      completedSegmentsCount: 500,
+      totalSegmentsCount: 1500,
+    });
+  });
+
+  it("skips downloading slide PDF from storage during stepGroup='cleaning' and downloads it during stepGroup='generation'", async () => {
+    let pdfDownloadCount = 0;
+    let txtDownloadCount = 0;
+
+    const materialRow: any = {
+      id: "mat-pdf-skip-test",
+      title: "Materi Farmakoterapi",
+      academic_group: "clinical_science",
+      status: "draft",
+      global_summary: null,
+      processing_error: null,
+      created_by: "user-1",
+      published_at: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      metadata: {},
+    };
+
+    const service: any = {
+      from: (table: string) => {
+        if (table === "flashcard_source_files") {
+          return {
+            select: () => ({
+              eq: () => ({
+                order: () =>
+                  Promise.resolve({
+                    data: [
+                      {
+                        id: "src-txt",
+                        material_id: materialRow.id,
+                        file_kind: "transcript",
+                        storage_bucket: "sources",
+                        storage_path: "t.txt",
+                        original_file_name: "t.txt",
+                        mime_type: "text/plain",
+                        size_bytes: 100,
+                        extraction_status: "pending",
+                        delete_after_publish: false,
+                      },
+                      {
+                        id: "src-pdf",
+                        material_id: materialRow.id,
+                        file_kind: "slide_pdf",
+                        storage_bucket: "sources",
+                        storage_path: "s.pdf",
+                        original_file_name: "s.pdf",
+                        mime_type: "application/pdf",
+                        size_bytes: 4_500_000,
+                        extraction_status: "pending",
+                        delete_after_publish: false,
+                      },
+                    ],
+                    error: null,
+                  }),
+              }),
+            }),
+            update: () => ({
+              eq: () => Promise.resolve({ data: null, error: null }),
+              in: () => Promise.resolve({ data: null, error: null }),
+            }),
+          };
+        }
+        if (table === "flashcard_subtopics") {
+          return {
+            select: () => ({
+              eq: () => ({
+                order: () => Promise.resolve({ data: [], error: null }),
+              }),
+            }),
+          };
+        }
+        if (table === "flashcard_cards") {
+          return {
+            select: () => ({
+              in: () => ({
+                order: () => Promise.resolve({ data: [], error: null }),
+              }),
+            }),
+          };
+        }
+        if (table === "flashcard_materials") {
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  maybeSingle: () => Promise.resolve({ data: materialRow, error: null }),
+                }),
+              }),
+            }),
+            update: (updatePayload: any) => {
+              const chain: any = {
+                eq: () => chain,
+                in: () => chain,
+                is: () => chain,
+                select: () => chain,
+                then: (resolve: any) => {
+                  Object.assign(materialRow, updatePayload);
+                  resolve({ data: [materialRow], error: null });
+                },
+              };
+              return chain;
+            },
+          };
+        }
+        return {} as any;
+      },
+      rpc: () => Promise.resolve({ data: "fake-key", error: null }),
+      storage: {
+        from: () => ({
+          download: (path: string) => {
+            if (path.endsWith(".txt")) {
+              txtDownloadCount += 1;
+              return Promise.resolve({
+                data: new Blob(["Captopril 25 mg 2x sehari."]),
+                error: null,
+              });
+            }
+            pdfDownloadCount += 1;
+            return Promise.resolve({
+              data: new Blob([new Uint8Array([37, 80, 68, 70])]),
+              error: null,
+            });
+          },
+        }),
+      },
+    };
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers({ "content-type": "application/json" }),
+      json: async () => ({
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  text: JSON.stringify({
+                    noiseSegmentIds: [],
+                    uncertainSegments: [],
+                    global_summary: "Ringkasan",
+                    subtopics: [
+                      {
+                        title: "ACEi",
+                        summary: "Ringkasan",
+                        cards: [{ id: "c-1", front_text: "Q", back_text: "A" }],
+                      },
+                    ],
+                  }),
+                },
+              ],
+            },
+          },
+        ],
+        usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 10, totalTokenCount: 20 },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const credential: any = {
+      id: "cred-1",
+      model: "gemini-3.8-flash",
+      secret_id: "sec-1",
+      last_validated_at: new Date().toISOString(),
+      last_error: null,
+    };
+
+    // 1. Run cleaning step: PDF must NOT be downloaded
+    await processMaterialGeneration(service, materialRow, credential, {
+      stepGroup: "cleaning",
+    });
+    expect(txtDownloadCount).toBe(1);
+    expect(pdfDownloadCount).toBe(0);
+
+    // 2. Run generation step: PDF MUST be downloaded
+    await processMaterialGeneration(service, materialRow, credential, {
+      isRetry: true,
+      stepGroup: "generation",
+    });
+    expect(pdfDownloadCount).toBe(1);
   });
 });

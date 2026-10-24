@@ -27,7 +27,7 @@ import {
   type PipelineCheckpoint,
   type PipelineStepGroup,
 } from "./pipeline/orchestrator.ts";
-import { type CandidateCard } from "./pipeline/generator.ts";
+import { MAX_INLINE_PDF_BYTES, type CandidateCard } from "./pipeline/generator.ts";
 import { reviewCandidateCards } from "./pipeline/reviewer.ts";
 import { repairDefectiveCards } from "./pipeline/repairer.ts";
 import {
@@ -54,6 +54,8 @@ import {
   handleResolveConflict,
   handleUpdateMaterialProtectedMetadata,
   isProcessingJobStale,
+  resolveStepGroupFromCheckpoint,
+  sanitizeMaterialMetadataForClient,
   shouldApplyStaleRecovery,
   STALE_PROCESSING_TIMEOUT_MS,
   validateGeneratedFlashCardOutput,
@@ -306,7 +308,6 @@ async function downloadTextFromStorage(service: ServiceClient, sourceFile: Sourc
 }
 
 async function downloadBytesFromStorage(service: ServiceClient, sourceFile: SourceFileRow) {
-  const MAX_INLINE_PDF_BYTES = 4 * 1024 * 1024;
   if (typeof sourceFile.size_bytes === "number" && sourceFile.size_bytes > MAX_INLINE_PDF_BYTES) {
     logSafeTelemetry("pdf_download_skipped_large_file", {
       sourceFileId: sourceFile.id,
@@ -539,7 +540,15 @@ export async function processMaterialGeneration(
         return;
       }
 
-      material.metadata = rpcData as Record<string, unknown>;
+      if (rpcData && typeof rpcData === "object") {
+        const currentMeta = (material.metadata ?? {}) as Record<string, any>;
+        if (currentMeta.processingJob && typeof currentMeta.processingJob === "object") {
+          currentMeta.processingJob = {
+            ...currentMeta.processingJob,
+            heartbeatAt: stageNow,
+          };
+        }
+      }
     } catch (err) {
       console.warn("Heartbeat update failed:", err);
     } finally {
@@ -553,10 +562,20 @@ export async function processMaterialGeneration(
       heartbeatTimer.unref();
     }
 
-    const needsPdfBytes = !initialCheckpoint?.completedStages?.includes("candidate_generation");
+    const completedStages = Array.isArray(initialCheckpoint?.completedStages)
+      ? (initialCheckpoint.completedStages as string[])
+      : [];
+    const shouldDownloadPdfBytes =
+      Boolean(slidePdfSource) &&
+      options.stepGroup !== "cleaning" &&
+      options.stepGroup !== "review" &&
+      !completedStages.includes("candidate_generation");
+
     const [transcriptText, pdfBytes, apiKey] = await Promise.all([
       downloadTextFromStorage(service, transcriptSource),
-      needsPdfBytes ? downloadBytesFromStorage(service, slidePdfSource) : Promise.resolve(null),
+      shouldDownloadPdfBytes && slidePdfSource
+        ? downloadBytesFromStorage(service, slidePdfSource)
+        : Promise.resolve(null),
       readVaultSecret(service, credential.secret_id!),
     ]);
     const model = normalizeAiModel(credential.model);
@@ -674,8 +693,11 @@ export async function processMaterialGeneration(
           status: "processing",
           processing_error: null,
           metadata: suspendedMetadata,
+          updated_at: new Date().toISOString(),
         })
-        .eq("id", material.id);
+        .eq("id", material.id)
+        .eq("status", "processing")
+        .eq("metadata->processingJob->>jobId", jobId);
 
       if (materialUpdateError) {
         throw new HttpError(500, "FLASHCARD_MATERIAL_UPDATE_FAILED", materialUpdateError.message);
@@ -730,6 +752,14 @@ export async function processMaterialGeneration(
 
     const finalMetadata = {
       ...(pipelineResult.metadata ?? {}),
+      ...(pipelineResult.checkpoint
+        ? {
+            pipelineCheckpoint: {
+              ...pipelineResult.checkpoint,
+              stageArtifacts: {},
+            },
+          }
+        : {}),
       processingJob: undefined,
     };
 
@@ -874,7 +904,7 @@ function mapMaterialDetail({
       publishedAt: material.published_at,
       createdAt: material.created_at,
       updatedAt: material.updated_at,
-      metadata: material.metadata ?? {},
+      metadata: sanitizeMaterialMetadataForClient(material.metadata),
     },
     sourceFiles: sourceFiles.map((sourceFile) => ({
       id: sourceFile.id,
@@ -1141,13 +1171,10 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
       }
 
       const cp = (material.metadata as any)?.pipelineCheckpoint ?? (material.metadata as any)?.pipeline_checkpoint;
-      const stepGroup: PipelineStepGroup = typeof payload.stepGroup === "string"
-        ? (payload.stepGroup as PipelineStepGroup)
-        : cp?.completedStages?.includes("candidate_generation")
-          ? "review"
-          : cp?.completedStages?.includes("transcript_cleaning")
-            ? "generation"
-            : "cleaning";
+      const stepGroup: PipelineStepGroup = resolveStepGroupFromCheckpoint(
+        typeof payload.stepGroup === "string" ? payload.stepGroup : undefined,
+        cp,
+      );
 
       return await processMaterialGeneration(service, material, credential, {
         isRetry: true,
@@ -1283,7 +1310,11 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
         });
       }
 
-      const stepGroup = typeof payload.stepGroup === "string" ? (payload.stepGroup as PipelineStepGroup) : undefined;
+      const cp = (material.metadata as any)?.pipelineCheckpoint ?? (material.metadata as any)?.pipeline_checkpoint;
+      const stepGroup: PipelineStepGroup = resolveStepGroupFromCheckpoint(
+        typeof payload.stepGroup === "string" ? payload.stepGroup : undefined,
+        cp,
+      );
       return await processMaterialGeneration(service, material, credential, { isRetry: true, stepGroup });
     }
 

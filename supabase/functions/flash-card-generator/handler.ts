@@ -620,3 +620,78 @@ export function handleUpdateMaterialProtectedMetadata(
     mentorCustomNotes,
   };
 }
+
+export function resolveStepGroupFromCheckpoint(
+  explicitStepGroup: string | undefined,
+  checkpoint: { completedStages?: unknown } | null | undefined,
+): "cleaning" | "generation" | "review" {
+  if (
+    explicitStepGroup === "cleaning" ||
+    explicitStepGroup === "generation" ||
+    explicitStepGroup === "review"
+  ) {
+    return explicitStepGroup;
+  }
+
+  const completedStages = Array.isArray(checkpoint?.completedStages)
+    ? (checkpoint.completedStages as string[])
+    : [];
+
+  if (!completedStages.includes("transcript_cleaning")) {
+    return "cleaning";
+  }
+  if (!completedStages.includes("candidate_generation")) {
+    return "generation";
+  }
+  return "review";
+}
+
+export function sanitizeMaterialMetadataForClient(
+  metadata: Record<string, unknown> | null | undefined,
+): Record<string, unknown> {
+  if (!metadata || typeof metadata !== "object") {
+    return {};
+  }
+
+  const rawCp = (metadata.pipelineCheckpoint ?? metadata.pipeline_checkpoint) as
+    | Record<string, unknown>
+    | undefined;
+  if (!rawCp || typeof rawCp !== "object") {
+    return { ...metadata };
+  }
+
+  const stageArtifacts =
+    rawCp.stageArtifacts && typeof rawCp.stageArtifacts === "object"
+      ? (rawCp.stageArtifacts as Record<string, any>)
+      : {};
+  const partialCleaning = stageArtifacts["transcript_cleaning_partial"];
+  const completedSegmentsCount = Array.isArray(partialCleaning?.completedSegments)
+    ? partialCleaning.completedSegments.length
+    : undefined;
+  const totalSegmentsCount =
+    typeof partialCleaning?.totalSegmentsCount === "number"
+      ? partialCleaning.totalSegmentsCount
+      : undefined;
+
+  const sanitizedCheckpoint: Record<string, unknown> = {
+    ...rawCp,
+    stageArtifacts: {},
+    ...(typeof completedSegmentsCount === "number"
+      ? {
+          cleaningProgress: {
+            completedSegmentsCount,
+            ...(typeof totalSegmentsCount === "number" ? { totalSegmentsCount } : {}),
+          },
+        }
+      : {}),
+  };
+
+  const result: Record<string, unknown> = {
+    ...metadata,
+    pipelineCheckpoint: sanitizedCheckpoint,
+  };
+  if ("pipeline_checkpoint" in result) {
+    delete result.pipeline_checkpoint;
+  }
+  return result;
+}

@@ -113,7 +113,10 @@ export function normalizeDeterministicTranscript(rawText: string): string {
     /^(\s*)([A-Za-z][A-Za-z0-9_.\s-]{1,34})\s*:\s+/gm,
     (fullMatch, leadingSpace: string, label: string) => {
       const normalizedLabel = label.trim().toLowerCase().replace(/\s+/g, " ");
-      if (PROTECTED_CLINICAL_LABELS.has(normalizedLabel)) {
+      if (
+        PROTECTED_CLINICAL_LABELS.has(normalizedLabel) ||
+        scanClinicalEntities(label).hasClinicalEntities
+      ) {
         return fullMatch;
       }
       return leadingSpace;
@@ -156,7 +159,7 @@ export function scanClinicalEntities(text: string): {
 
   const patterns = [
     // 1. Units and dosages (numeric and spoken)
-    /\b(?:\d+(?:[.,]\d+)?|satu|dua|tiga|empat|lima\s+ratus|lima|enam|tujuh|delapan|sembilan|sepuluh|seratus|seribu)\s*(?:iu\/ml|mg\/kg|mcg\/kg|mg\/ml|mg|miligram|mcg|µg|ug|gram|g|ml|mililiter|iu|tetes|%|persen)(?!\w)/gi,
+    /\b(?:\d+(?:[.,]\d+)?|(?:(?:satu|dua|tiga|empat|lima|enam|tujuh|delapan|sembilan)\s+ratus(?:\s+(?:satu|dua|tiga|empat|lima|enam|tujuh|delapan|sembilan)\s+puluh)?(?:\s+(?:satu|dua|tiga|empat|lima|enam|tujuh|delapan|sembilan|sepuluh|sebelas|belas))?|(?:satu|dua|tiga|empat|lima|enam|tujuh|delapan|sembilan)\s+puluh(?:\s+(?:satu|dua|tiga|empat|lima|enam|tujuh|delapan|sembilan|sepuluh|sebelas|belas))?|satu|dua|tiga|empat|lima|enam|tujuh|delapan|sembilan|sepuluh|sebelas|seratus|seribu))\s*(?:iu\/ml|mg\/kg|mcg\/kg|mg\/ml|mg|miligram|mcg|µg|ug|gram|g|ml|mililiter|iu|tetes|%|persen)(?!\w)/gi,
     // 2. Regimen, frequency, and administration routes
     /\b(?:\d+\s*x\s*\d+|\d+\s*x\s*sehari|1x sehari|2x sehari|3x sehari|prn|ac|pc|subkutan|intravena|iv|po|im|peroral|parenteral|topikal|rektal|vaginal|sublingual|bukal)\b/gi,
     // 3. Drug naming stems and common pharmaceutical active ingredients

@@ -767,6 +767,8 @@ describe("Zoom ASR Transcript Optimization, Pharmaceutics Entities & Wall-Clock 
       "Dosis: Paracetamol 500 mg diberikan 3x sehari.",
       "Kontraindikasi: Pasien dengan gangguan fungsi hati berat.",
       "Catatan: Uji friabilitas harus kurang dari 1%.",
+      "Paracetamol: Dosis dewasa 500 mg.",
+      "Granulasi basah: menggunakan pengikat.",
     ].join("\n");
 
     const normalized = normalizeDeterministicTranscript(raw);
@@ -778,6 +780,8 @@ describe("Zoom ASR Transcript Optimization, Pharmaceutics Entities & Wall-Clock 
     expect(normalized).toContain("Dosis: Paracetamol 500 mg diberikan 3x sehari.");
     expect(normalized).toContain("Kontraindikasi: Pasien dengan gangguan fungsi hati berat.");
     expect(normalized).toContain("Catatan: Uji friabilitas harus kurang dari 1%.");
+    expect(normalized).toContain("Paracetamol: Dosis dewasa 500 mg.");
+    expect(normalized).toContain("Granulasi basah: menggunakan pengikat.");
   });
 
   it("coalesces short non-ellipsis ASR sentence fragments on the same line when clinical entity status matches, but never coalesces across ellipses", () => {
@@ -819,6 +823,11 @@ describe("Zoom ASR Transcript Optimization, Pharmaceutics Entities & Wall-Clock 
     const spokenScan = scanClinicalEntities("lima ratus miligram paracetamol");
     expect(spokenScan.hasClinicalEntities).toBe(true);
     expect(spokenScan.matchedEntities).toContain("lima ratus miligram");
+
+    const tensScan = scanClinicalEntities("diberikan dua puluh lima miligram dan dua ratus miligram");
+    expect(tensScan.hasClinicalEntities).toBe(true);
+    expect(tensScan.matchedEntities).toContain("dua puluh lima miligram");
+    expect(tensScan.matchedEntities).toContain("dua ratus miligram");
 
     const casualText = "Halo teman-teman semua, cek suara apakah jelas di layar masing-masing?";
     expect(scanClinicalEntities(casualText).hasClinicalEntities).toBe(false);
@@ -902,6 +911,61 @@ describe("Zoom ASR Transcript Optimization, Pharmaceutics Entities & Wall-Clock 
       expect(capturedBody).not.toBeNull();
       expect(capturedBody.generationConfig?.response_mime_type).toBe("application/json");
       expect(capturedBody.generationConfig?.response_schema).toBeUndefined();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("defaults generationConfig.response_mime_type to 'application/json' when responseSchema is provided without responseMimeType", async () => {
+    vi.stubGlobal("Deno", {
+      env: {
+        get(name: string) {
+          const values: Record<string, string> = {
+            SUPABASE_URL: "http://127.0.0.1:54321",
+            SUPABASE_SERVICE_ROLE_KEY: "service-role",
+            SUPABASE_ANON_KEY: "anon-key",
+          };
+          return values[name];
+        },
+      },
+    });
+    const { generateGeminiTextWithUsage } = await import("../../_shared/gemini-client.ts");
+    let capturedBody: any = null;
+
+    const fetchMock = vi.fn().mockImplementation(async (_url: string, init?: RequestInit) => {
+      capturedBody = init?.body ? JSON.parse(String(init.body)) : null;
+      return {
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({
+          candidates: [
+            {
+              content: {
+                parts: [{ text: JSON.stringify({ ok: true }) }],
+              },
+            },
+          ],
+          usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 5, totalTokenCount: 15 },
+        }),
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      await generateGeminiTextWithUsage({
+        apiKey: "test-key",
+        model: "gemini-3.8-flash",
+        prompt: "Generate with schema",
+        responseSchema: {
+          type: "OBJECT",
+          properties: { ok: { type: "BOOLEAN" } },
+        },
+      });
+
+      expect(capturedBody).not.toBeNull();
+      expect(capturedBody.generationConfig?.response_mime_type).toBe("application/json");
+      expect(capturedBody.generationConfig?.response_schema).toBeDefined();
     } finally {
       vi.unstubAllGlobals();
     }

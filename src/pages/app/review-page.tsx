@@ -24,7 +24,7 @@ import { Badge } from "../../components/ui/badge";
 import { Alert, AlertTitle, AlertDescription } from "../../components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
 import MobileQuestionNavDrawer from "../../components/tryout/mobile-question-nav-drawer";
-import { listReviewHistory, getReviewDetailData } from "../../lib/api/review-api";
+import { listReviewHistory, getReviewDetailData, type ReviewFilterCategory } from "../../lib/api/review-api";
 import { useSession } from "../../lib/auth/use-session";
 import { productShellMeta } from "../../mocks/student-dashboard";
 import { useStudentShell } from "./use-student-shell";
@@ -66,12 +66,24 @@ function getUserAnswerCopy(value: string | null | undefined) {
   return value;
 }
 
+const REVIEW_CATEGORY_OPTIONS: Array<{
+  id: ReviewFilterCategory;
+  label: string;
+}> = [
+  { id: "all_blok", label: "Try Out All Blok" },
+  { id: "blok_cs", label: "Try Out Blok CS" },
+  { id: "blok_ps", label: "Try Out Blok PS" },
+  { id: "blok_sba", label: "Try Out Blok SBA" },
+  { id: "terjadwal", label: "Try Out Terjadwal" },
+];
+
 function ReviewPage() {
   const { attemptId } = useParams();
   const [searchParams] = useSearchParams();
   const { user } = useSession();
   const studentShell = useStudentShell("/app/review");
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [activeCategory, setActiveCategory] = useState<ReviewFilterCategory>("all_blok");
   const isDetailRoute = Boolean(attemptId);
   const searchSource = searchParams.get("source");
   const source = searchSource === "scheduled" ? "scheduled" : searchSource === "osce" ? "osce" : "tryout";
@@ -102,6 +114,11 @@ function ReviewPage() {
   const currentItem = items[currentIndex] ?? items[0] ?? null;
   const osceData = (reviewQuery.data as any)?.osce_data;
 
+  const allAttempts = historyQuery.data ?? [];
+  const filteredAttempts = allAttempts.filter(
+    (attempt) => attempt.category === activeCategory,
+  );
+
   return (
     <ProductShell
       brand={productShellMeta.brand}
@@ -111,6 +128,25 @@ function ReviewPage() {
       <div className="flex flex-col gap-8 w-full py-4">
         {!isDetailRoute ? (
           <>
+            {/* Category Filter Bar */}
+            <div className="flex flex-wrap items-center gap-2 pb-2 border-b border-border/20">
+              {REVIEW_CATEGORY_OPTIONS.map((option) => {
+                const isActive = activeCategory === option.id;
+                return (
+                  <Button
+                    key={option.id}
+                    onClick={() => setActiveCategory(option.id)}
+                    size="sm"
+                    variant={isActive ? "primary" : "outline"}
+                    className={`rounded-full px-5 py-2 text-xs font-semibold transition-all ${
+                      isActive ? "shadow-md shadow-primary/20" : "hover:bg-accent"
+                    }`}
+                  >
+                    {option.label}
+                  </Button>
+                );
+              })}
+            </div>
 
             {historyQuery.isLoading ? (
               <div className="mt-6 flex flex-col items-center justify-center space-y-4 py-16 text-center text-muted-foreground border rounded-2xl bg-card/60 shadow-sm backdrop-blur-sm">
@@ -123,79 +159,73 @@ function ReviewPage() {
                 <AlertTitle>Riwayat pembahasan belum bisa dimuat</AlertTitle>
                 <AlertDescription>Coba lagi sebentar.</AlertDescription>
               </Alert>
-            ) : (historyQuery.data?.length ?? 0) === 0 ? (
-              <Alert className="mt-6 border-border/80 bg-card/60">
+            ) : filteredAttempts.length === 0 ? (
+              <Alert className="mt-4 border-border/80 bg-card/60">
                 <Info className="h-4 w-4 text-primary" />
-                <AlertTitle>Belum ada hasil untuk dibahas</AlertTitle>
+                <AlertTitle>
+                  Belum ada hasil untuk {REVIEW_CATEGORY_OPTIONS.find((c) => c.id === activeCategory)?.label}
+                </AlertTitle>
                 <AlertDescription>Hasil yang sudah selesai akan muncul di sini.</AlertDescription>
               </Alert>
             ) : (
-              <div className="mt-6 grid gap-4 w-full">
-                {historyQuery.data?.map((attempt) => (
+              <div className="mt-4 grid gap-3.5 w-full">
+                {filteredAttempts.map((attempt) => (
                   <Card 
-                    key={attempt.attemptId}
-                    className="group relative overflow-hidden border-border/80 bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/40"
+                    key={`${attempt.source}-${attempt.attemptId}`}
+                    data-testid={`review-card-${attempt.attemptId}`}
+                    className="overflow-hidden border-border/80 bg-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:border-primary/40"
                   >
-                    <CardContent className="p-6">
-                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
+                    <CardContent className="p-5">
+                      <div className="grid gap-4 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center">
+                        <div className="flex items-center gap-4">
+                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl border bg-primary/10 text-primary border-primary/20 shrink-0">
+                            <BookOpenCheck className="h-7 w-7" />
+                          </div>
+                          <div>
+                            <p className="text-lg font-extrabold tracking-tight text-foreground">
+                              {attempt.title}
+                            </p>
+                            <p className="mt-1 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                              <Calendar className="h-3.5 w-3.5 text-primary" />
+                              {formatSubmittedAttemptLabel(attempt.submittedAt)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2.5 lg:justify-end">
                           <Badge 
-                            variant={attempt.source === "scheduled" ? "secondary" : attempt.source === "osce" ? "default" : "outline"}
-                            className="font-mono text-xs font-semibold px-2.5 py-0.5"
+                            variant="outline" 
+                            className="font-mono text-xs font-bold px-3 py-1 bg-primary/5 text-primary border-primary/20"
                           >
-                            {attempt.source === "scheduled" ? "Terjadwal" : attempt.source === "osce" ? "Simulasi OSCE" : "Try out"}
+                            <Award className="h-3.5 w-3.5 mr-1 inline-block" />
+                            Skor {Math.round(attempt.score)}
                           </Badge>
-                          <h2 className="mt-3 text-2xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
-                            {attempt.title}
-                          </h2>
-                          <p className="mt-1 text-sm text-muted-foreground flex items-center gap-1.5">
-                            <Calendar className="h-3.5 w-3.5 text-muted-foreground/70" />
-                            {formatSubmittedAttemptLabel(attempt.submittedAt)}
-                          </p>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 self-start rounded-full bg-primary/10 border border-primary/20 px-4 py-2 text-sm font-extrabold text-primary shadow-xs">
-                          <Award className="h-4 w-4" />
-                          Skor {Math.round(attempt.score)}
-                        </div>
-                      </div>
-
-                      <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center pt-4 border-t border-border/40">
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3.5 backdrop-blur-xs">
-                            <p className="font-mono text-[0.7rem] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                          <div className="flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full border border-border/80 bg-muted/40">
+                            <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-mono">
                               <CheckCircle className="h-3.5 w-3.5" />
-                              Jawaban benar
-                            </p>
-                            <p className="mt-1.5 text-xl font-extrabold text-foreground">
-                              {attempt.correctAnswers} <span className="text-xs font-normal text-muted-foreground">Soal</span>
-                            </p>
-                          </div>
-                          <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3.5 backdrop-blur-xs">
-                            <p className="font-mono text-[0.7rem] font-bold uppercase tracking-wider text-destructive/80 flex items-center gap-1.5">
+                              {attempt.correctAnswers}
+                            </span>
+                            <span className="text-muted-foreground">•</span>
+                            <span className="text-destructive flex items-center gap-1 font-mono">
                               <XCircle className="h-3.5 w-3.5" />
-                              Jawaban salah
-                            </p>
-                            <p className="mt-1.5 text-xl font-extrabold text-foreground">
-                              {attempt.wrongAnswers} <span className="text-xs font-normal text-muted-foreground">Soal</span>
-                            </p>
+                              {attempt.wrongAnswers}
+                            </span>
                           </div>
+                          <Link
+                            aria-label={`Buka pembahasan ${attempt.title}`}
+                            {...getButtonStyleProps({
+                              variant: "outline",
+                              className: "font-semibold hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all",
+                            })}
+                            to={attempt.source === "scheduled"
+                              ? `/app/review/${attempt.attemptId}?source=scheduled`
+                              : attempt.source === "osce"
+                              ? `/app/review/${attempt.attemptId}?source=osce`
+                              : `/app/review/${attempt.attemptId}`}
+                          >
+                            Buka pembahasan <ArrowRight className="ml-2 h-4 w-4" />
+                          </Link>
                         </div>
-
-                        <Link
-                          aria-label={`Buka pembahasan ${attempt.title}`}
-                          {...getButtonStyleProps({
-                            variant: "outline",
-                            className: "w-full lg:w-auto justify-center font-semibold group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all",
-                          })}
-                          to={attempt.source === "scheduled"
-                            ? `/app/review/${attempt.attemptId}?source=scheduled`
-                            : attempt.source === "osce"
-                            ? `/app/review/${attempt.attemptId}?source=osce`
-                            : `/app/review/${attempt.attemptId}`}
-                        >
-                          Buka pembahasan <ArrowRight className="ml-2 h-4 w-4" />
-                        </Link>
                       </div>
                     </CardContent>
                   </Card>

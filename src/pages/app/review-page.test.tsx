@@ -64,6 +64,7 @@ beforeEach(() => {
       correctAnswers: 33,
       wrongAnswers: 7,
       source: "scheduled",
+      category: "terjadwal",
     },
     {
       attemptId: "attempt-1",
@@ -73,6 +74,7 @@ beforeEach(() => {
       correctAnswers: 156,
       wrongAnswers: 44,
       source: "tryout",
+      category: "all_blok",
     },
     {
       attemptId: "attempt-2",
@@ -82,6 +84,7 @@ beforeEach(() => {
       correctAnswers: 70,
       wrongAnswers: 30,
       source: "tryout",
+      category: "blok_cs",
     },
   ]);
   mockGetReviewDetailData.mockResolvedValue({
@@ -132,21 +135,44 @@ beforeEach(() => {
 });
 
 describe("Review page", () => {
-  test("renders merged review history with scheduled labels and scheduled detail links", async () => {
+  test("renders 5 category filter buttons and filters items by active category", async () => {
     renderReviewPage("/app/review");
 
-    expect(await screen.findByText(/to klinik juni/i)).toBeInTheDocument();
-    expect(await screen.findByText(/^terjadwal$/i)).toBeInTheDocument();
-    const reviewLinks = await screen.findAllByRole("link", { name: /buka pembahasan/i });
-    expect(reviewLinks[0]).toHaveAttribute(
-      "href",
-      "/app/review/scheduled-attempt-1?source=scheduled",
-    );
-    expect(screen.getAllByText(/^try out$/i).length).toBeGreaterThan(0);
+    // Check all 5 filter buttons exist
+    expect(await screen.findByRole("button", { name: "Try Out All Blok" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Try Out Blok CS" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Try Out Blok PS" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Try Out Blok SBA" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Try Out Terjadwal" })).toBeInTheDocument();
+
+    // Default tab is "Try Out All Blok" -> shows "Try Out Besar"
+    expect(await screen.findByText("Try Out Besar")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /buka pembahasan try out besar/i })).toHaveAttribute(
       "href",
       "/app/review/attempt-1",
     );
+    expect(screen.queryByText("TO Klinik Juni")).not.toBeInTheDocument();
+
+    // Switch to "Try Out Terjadwal"
+    fireEvent.click(screen.getByRole("button", { name: "Try Out Terjadwal" }));
+    expect(await screen.findByText("TO Klinik Juni")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /buka pembahasan to klinik juni/i })).toHaveAttribute(
+      "href",
+      "/app/review/scheduled-attempt-1?source=scheduled",
+    );
+    expect(screen.queryByText("Try Out Besar")).not.toBeInTheDocument();
+
+    // Switch to "Try Out Blok CS"
+    fireEvent.click(screen.getByRole("button", { name: "Try Out Blok CS" }));
+    expect(await screen.findByText("Clinical Science")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /buka pembahasan clinical science/i })).toHaveAttribute(
+      "href",
+      "/app/review/attempt-2",
+    );
+
+    // Switch to "Try Out Blok PS" (empty)
+    fireEvent.click(screen.getByRole("button", { name: "Try Out Blok PS" }));
+    expect(await screen.findByText(/belum ada hasil untuk try out blok ps/i)).toBeInTheDocument();
   });
 
   test("uses scheduled detail source and renders question navigation grid with question details", async () => {

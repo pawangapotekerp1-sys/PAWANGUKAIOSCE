@@ -703,4 +703,60 @@ describe("Transcript Cleaner - Pipeline & Clinical Entity Shield Guardrail", () 
   });
 });
 
+describe("cleanTranscript - bounded maxChunksPerRun", () => {
+  it("pauses after maxChunksPerRun newly processed chunks and marks isComplete=false until final batch", async () => {
+    const lines = Array.from(
+      { length: 6 },
+      (_, idx) => `Kalimat farmakoterapi nomor ${idx + 1} tentang dosis klinis.`,
+    );
+    const rawTranscript = lines.join("\n");
+
+    const mockGemini = vi.fn().mockImplementation(async () => ({
+      text: JSON.stringify({
+        noiseSegmentIds: [],
+        uncertainSegments: [],
+      }),
+      usage: {
+        isAvailable: true,
+        promptTokenCount: 40,
+        candidatesTokenCount: 10,
+        totalTokenCount: 50,
+      },
+    }));
+
+    // 6 segments with chunkSize=2, chunkOverlap=0 -> 3 chunks total.
+    // Batch 1: maxChunksPerRun=2 -> processes chunks 1 & 2 (4 segments), pauses with isComplete=false
+    const batch1 = await cleanTranscript(rawTranscript, {
+      apiKey: "test-key",
+      chunkSize: 2,
+      chunkOverlap: 0,
+      maxChunksPerRun: 2,
+      geminiClient: mockGemini,
+    });
+
+    expect(mockGemini).toHaveBeenCalledTimes(2);
+    expect(batch1.isComplete).toBe(false);
+    expect(batch1.totalSegmentsCount).toBe(6);
+    expect(batch1.segments).toHaveLength(4);
+    expect(batch1.retainedSegments).toHaveLength(4);
+
+    // Batch 2: resume with cachedSegments from batch1 -> skips chunks 1 & 2, processes chunk 3, completes with isComplete=true
+    const batch2 = await cleanTranscript(rawTranscript, {
+      apiKey: "test-key",
+      chunkSize: 2,
+      chunkOverlap: 0,
+      maxChunksPerRun: 2,
+      cachedSegments: batch1.segments,
+      geminiClient: mockGemini,
+    });
+
+    expect(mockGemini).toHaveBeenCalledTimes(3);
+    expect(batch2.isComplete).toBe(true);
+    expect(batch2.totalSegmentsCount).toBe(6);
+    expect(batch2.segments).toHaveLength(6);
+    expect(batch2.retainedSegments).toHaveLength(6);
+  });
+});
+
+
 

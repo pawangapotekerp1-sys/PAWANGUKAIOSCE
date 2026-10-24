@@ -25,8 +25,13 @@ export type CleanerOptions = {
   }>;
   chunkSize?: number;
   chunkOverlap?: number;
+  maxChunksPerRun?: number;
   cachedSegments?: TranscriptSegment[];
-  onChunkComplete?: (completedSegments: TranscriptSegment[]) => Promise<void> | void;
+  onChunkComplete?: (
+    completedSegments: TranscriptSegment[],
+    chunkIndex?: number,
+    totalChunks?: number,
+  ) => Promise<void> | void;
 };
 
 export type CleanedTranscriptResult = {
@@ -37,6 +42,8 @@ export type CleanedTranscriptResult = {
   uncertainCount: number;
   metrics: GeminiUsageMetadata;
   tokenUsage: GeminiUsageMetadata;
+  isComplete?: boolean;
+  totalSegmentsCount?: number;
 };
 
 /**
@@ -234,6 +241,8 @@ export async function cleanTranscript(
       uncertainCount: 0,
       metrics: emptyUsage,
       tokenUsage: emptyUsage,
+      isComplete: true,
+      totalSegmentsCount: 0,
     };
   }
 
@@ -277,6 +286,13 @@ export async function cleanTranscript(
   const MAX_SUBDIVISION_DEPTH = 2;
   const MAX_MATERIAL_SUBDIVISION_CALLS = 4;
   let subdivisionCallsRemaining = MAX_MATERIAL_SUBDIVISION_CALLS;
+
+  const maxChunksPerRun =
+    typeof options.maxChunksPerRun === "number" && options.maxChunksPerRun > 0
+      ? Math.floor(options.maxChunksPerRun)
+      : undefined;
+  let newlyProcessedChunksCount = 0;
+  let stoppedEarlyForChunkCap = false;
 
   for (let i = 0; i < segments.length; i += chunkSize) {
     const targetSlice = segments.slice(i, i + chunkSize);
@@ -501,7 +517,23 @@ Respond ONLY with valid JSON in this exact structure:
     }
 
     if (options.onChunkComplete) {
-      await options.onChunkComplete(segments.slice(0, i + chunkSize));
+      const chunkIdx = Math.floor(i / chunkSize);
+      const totalChunks = Math.ceil(segments.length / chunkSize);
+      await options.onChunkComplete(
+        segments.slice(0, i + chunkSize),
+        chunkIdx,
+        totalChunks,
+      );
+    }
+
+    newlyProcessedChunksCount += 1;
+    if (
+      maxChunksPerRun !== undefined &&
+      newlyProcessedChunksCount >= maxChunksPerRun &&
+      i + chunkSize < segments.length
+    ) {
+      stoppedEarlyForChunkCap = true;
+      break;
     }
 
     if (i + chunkSize < segments.length) {
@@ -513,22 +545,27 @@ Respond ONLY with valid JSON in this exact structure:
     }
   }
 
-  const retainedSegments = segments.filter(
+  const cleanedSegments = stoppedEarlyForChunkCap
+    ? segments.filter((s) => s.classification !== undefined)
+    : segments;
+  const retainedSegments = cleanedSegments.filter(
     (s) => s.classification === "relevant" || s.classification === "uncertain",
   );
   const droppedNoiseCount =
-    segments.filter((s) => s.classification === "noise").length;
+    cleanedSegments.filter((s) => s.classification === "noise").length;
   const uncertainCount =
-    segments.filter((s) => s.classification === "uncertain").length;
+    cleanedSegments.filter((s) => s.classification === "uncertain").length;
   const retainedText = retainedSegments.map((s) => s.normalizedText).join("\n");
 
   return {
-    segments,
+    segments: cleanedSegments,
     retainedSegments,
     retainedText,
     droppedNoiseCount,
     uncertainCount,
     metrics: aggregatedMetrics,
     tokenUsage: aggregatedMetrics,
+    isComplete: !stoppedEarlyForChunkCap,
+    totalSegmentsCount: segments.length,
   };
 }

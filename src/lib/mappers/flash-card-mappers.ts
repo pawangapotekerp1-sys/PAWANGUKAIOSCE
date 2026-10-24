@@ -115,6 +115,7 @@ type PublishedLibraryRow = {
     id: string;
     title: string;
     academic_group: FlashCardAcademicGroup;
+    global_summary?: string | null;
     status: FlashCardMaterialStatus;
     published_at: string | null;
   } | null;
@@ -233,20 +234,62 @@ export function mapFlashCardMaterialStatusLabel(status: FlashCardMaterialStatus)
 }
 
 export function mapPublishedFlashCardLibraryRows(rows: PublishedLibraryRow[]) {
-  return rows
-    .filter((row) => row.flashcard_materials?.status === "published")
-    .map((row) => ({
-      subtopicId: row.id,
-      materialId: row.flashcard_materials!.id,
-      materialTitle: row.flashcard_materials!.title,
-      academicGroup: row.flashcard_materials!.academic_group,
-      academicGroupLabel: mapFlashCardAcademicGroupLabel(row.flashcard_materials!.academic_group),
-      subtopicTitle: row.title,
-      subtopicSummary: row.summary,
-      cardCount: row.flashcard_cards?.length ?? 0,
-      sortOrder: row.sort_order,
-      publishedAt: row.flashcard_materials!.published_at,
-    }))
+  const publishedRows = rows.filter(
+    (row) => row.flashcard_materials?.status === "published",
+  );
+
+  const groupedByMaterial = new Map<
+    string,
+    {
+      material: NonNullable<PublishedLibraryRow["flashcard_materials"]>;
+      subtopics: PublishedLibraryRow[];
+    }
+  >();
+
+  for (const row of publishedRows) {
+    const material = row.flashcard_materials!;
+    const existing = groupedByMaterial.get(material.id);
+    if (existing) {
+      existing.subtopics.push(row);
+    } else {
+      groupedByMaterial.set(material.id, {
+        material,
+        subtopics: [row],
+      });
+    }
+  }
+
+  return Array.from(groupedByMaterial.values())
+    .map(({ material, subtopics }) => {
+      const sortedSubtopics = [...subtopics].sort(
+        (left, right) => left.sort_order - right.sort_order,
+      );
+      const primarySubtopic = sortedSubtopics[0];
+      const totalCardCount = sortedSubtopics.reduce(
+        (sum, subtopic) => sum + (subtopic.flashcard_cards?.length ?? 0),
+        0,
+      );
+
+      const combinedSummary =
+        material.global_summary?.trim() ||
+        (sortedSubtopics.length === 1
+          ? primarySubtopic.summary
+          : sortedSubtopics.map((s) => s.title).join(" • "));
+
+      return {
+        subtopicId: primarySubtopic.id,
+        materialId: material.id,
+        materialTitle: material.title,
+        academicGroup: material.academic_group,
+        academicGroupLabel: mapFlashCardAcademicGroupLabel(material.academic_group),
+        subtopicTitle:
+          sortedSubtopics.length === 1 ? primarySubtopic.title : material.title,
+        subtopicSummary: combinedSummary,
+        cardCount: totalCardCount,
+        sortOrder: primarySubtopic.sort_order,
+        publishedAt: material.published_at,
+      };
+    })
     .sort((a, b) => {
       const dateA = a.publishedAt ?? "";
       const dateB = b.publishedAt ?? "";

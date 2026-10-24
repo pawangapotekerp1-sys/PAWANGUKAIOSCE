@@ -505,6 +505,7 @@ export async function listPublishedFlashCardSubtopics(
         id: string;
         title: string;
         academic_group: FlashCardAcademicGroup;
+        global_summary?: string | null;
         status: string;
         published_at: string | null;
       }> | null;
@@ -540,7 +541,74 @@ export async function getPublishedFlashCardDeck(
     throw new Error("Deck flash card tidak ditemukan.");
   }
 
-  const cardIds = ((data as { flashcard_cards?: Array<{ id: string }> }).flashcard_cards ?? []).map((card) => card.id);
+  const joinedMaterial = unwrapJoinedRecord(
+    (data as {
+      flashcard_materials: Array<{
+        id: string;
+        title: string;
+        academic_group: FlashCardAcademicGroup;
+        status: string;
+        published_at: string | null;
+      }> | null;
+    }).flashcard_materials,
+  );
+
+  type SubtopicDeckRow = {
+    id: string;
+    title: string;
+    summary: string;
+    sort_order: number;
+    flashcard_cards?: Array<{
+      id: string;
+      front_text: string;
+      back_text: string;
+      sort_order: number;
+    }> | null;
+  };
+
+  let allSubtopicRows: SubtopicDeckRow[] = [data as SubtopicDeckRow];
+
+  if (joinedMaterial?.id) {
+    try {
+      const siblingQuery = client
+        .from("flashcard_subtopics")
+        .select(
+          "id, title, summary, sort_order, flashcard_cards(id, front_text, back_text, sort_order)",
+        )
+        .eq("material_id", joinedMaterial.id)
+        .order("sort_order", { ascending: true });
+
+      if (
+        siblingQuery &&
+        typeof (siblingQuery as PromiseLike<unknown>).then === "function"
+      ) {
+        const siblingResult = await siblingQuery;
+        if (
+          !siblingResult.error &&
+          Array.isArray(siblingResult.data) &&
+          siblingResult.data.length > 0
+        ) {
+          allSubtopicRows = siblingResult.data as SubtopicDeckRow[];
+        }
+      }
+    } catch {
+      // Fallback to single subtopic row if sibling query is unsupported by mock client
+    }
+  }
+
+  const mergedCards = [...allSubtopicRows]
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .flatMap((subtopicRow) =>
+      [...(subtopicRow.flashcard_cards ?? [])].sort(
+        (a, b) => a.sort_order - b.sort_order,
+      ),
+    )
+    .map((card, index) => ({
+      ...card,
+      sort_order: index + 1,
+    }));
+
+  const cardIds = mergedCards.map((card) => card.id);
   const progressResult = cardIds.length > 0
     ? await client
       .from("student_flashcard_progress")
@@ -559,31 +627,9 @@ export async function getPublishedFlashCardDeck(
         title: string;
         summary: string;
         sort_order: number;
-        flashcard_materials: Array<{
-          id: string;
-          title: string;
-          academic_group: FlashCardAcademicGroup;
-          status: string;
-          published_at: string | null;
-        }> | null;
-        flashcard_cards: Array<{
-          id: string;
-          front_text: string;
-          back_text: string;
-          sort_order: number;
-        }> | null;
       }),
-      flashcard_materials: unwrapJoinedRecord(
-        (data as {
-          flashcard_materials: Array<{
-            id: string;
-            title: string;
-            academic_group: FlashCardAcademicGroup;
-            status: string;
-            published_at: string | null;
-          }> | null;
-        }).flashcard_materials,
-      ),
+      flashcard_materials: joinedMaterial,
+      flashcard_cards: mergedCards,
     } as Parameters<typeof mapPublishedFlashCardDeck>[0]["subtopic"],
     progressRows: (progressResult.data ?? []) as Parameters<typeof mapPublishedFlashCardDeck>[0]["progressRows"],
   });

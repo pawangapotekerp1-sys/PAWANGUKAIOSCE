@@ -54,6 +54,61 @@ describe("flash-card-mappers", () => {
     ]);
   });
 
+  test("merges multiple subtopics generated in one material into a single flashcard group with summed card count", () => {
+    expect(
+      mapPublishedFlashCardLibraryRows([
+        {
+          id: "subtopic-2",
+          title: "Eksipien dan Formulasi Tablet",
+          summary: "Menguraikan fungsi dan contoh eksipien.",
+          sort_order: 2,
+          flashcard_materials: {
+            id: "material-solid",
+            title: "Sediaan Solid",
+            academic_group: "pharmaceutical_science",
+            status: "published",
+            published_at: "2026-06-06T12:00:00.000Z",
+          },
+          flashcard_cards: [{ id: "c-6" }, { id: "c-7" }, { id: "c-8" }, { id: "c-9" }],
+        },
+        {
+          id: "subtopic-1",
+          title: "Bentuk Sediaan Solid dan Klasifikasi Tablet",
+          summary: "Membahas klasifikasi bentuk sediaan solid.",
+          sort_order: 1,
+          flashcard_materials: {
+            id: "material-solid",
+            title: "Sediaan Solid",
+            academic_group: "pharmaceutical_science",
+            status: "published",
+            published_at: "2026-06-06T12:00:00.000Z",
+          },
+          flashcard_cards: [
+            { id: "c-1" },
+            { id: "c-2" },
+            { id: "c-3" },
+            { id: "c-4" },
+            { id: "c-5" },
+          ],
+        },
+      ]),
+    ).toEqual([
+      {
+        academicGroup: "pharmaceutical_science",
+        academicGroupLabel: "Pharmaceutical Science",
+        cardCount: 9,
+        materialId: "material-solid",
+        materialTitle: "Sediaan Solid",
+        publishedAt: "2026-06-06T12:00:00.000Z",
+        sortOrder: 1,
+        subtopicId: "subtopic-1",
+        subtopicSummary:
+          "Bentuk Sediaan Solid dan Klasifikasi Tablet • Eksipien dan Formulasi Tablet",
+        subtopicTitle: "Sediaan Solid",
+      },
+    ]);
+  });
+
   test("maps mentor detail status labels and sorts cards plus progress into deck order", () => {
     expect(
       mapFlashCardMaterialDetail({

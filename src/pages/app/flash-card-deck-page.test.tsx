@@ -77,12 +77,13 @@ afterEach(() => {
 });
 
 describe("FlashCardDeckPage", () => {
-  test("loads one published deck and saves a difficulty rating", async () => {
+  test("loads one published deck with materialTitle and saves Benar/Salah rating to progress", async () => {
     renderPage();
 
-    expect(await screen.findByText(/ace inhibitor pada ckd/i)).toBeInTheDocument();
+    expect(await screen.findByText(/farmakoterapi hipertensi/i)).toBeInTheDocument();
+    expect(screen.getAllByText("Belum dijawab").length).toBeGreaterThan(0);
 
-    fireEvent.click(screen.getByRole("button", { name: /mudah/i }));
+    fireEvent.click(screen.getByRole("button", { name: /tandai benar/i }));
 
     await waitFor(() => {
       expect(mockSaveStudentFlashCardDifficulty).toHaveBeenCalledWith({

@@ -1,63 +1,72 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, AlertCircle } from "lucide-react";
-import FlashCardRecallControls from "../../components/flash-cards/flash-card-recall-controls";
-import FlashCardViewer from "../../components/flash-cards/flash-card-viewer";
+import { useParams } from "react-router";
+import FlashCardViewer, {
+  type FlashCardViewerCard,
+} from "../../components/flash-cards/flash-card-viewer";
 import ProductShell from "../../components/layout/product-shell";
 import { Alert, AlertTitle, AlertDescription } from "../../components/ui/alert";
-import { Card } from "../../components/ui/card";
 import {
   getPublishedFlashCardDeck,
   saveStudentFlashCardDifficulty,
 } from "../../lib/api/flash-card-api";
+import type { FlashCardAcademicGroup } from "../../lib/mappers/flash-card-mappers";
 import { useSession } from "../../lib/auth/use-session";
 import { productShellMeta } from "../../mocks/student-dashboard";
 import { useStudentShell } from "./use-student-shell";
-import { useParams } from "react-router";
+
+function mapAcademicGroupToBlockParam(group?: FlashCardAcademicGroup) {
+  switch (group) {
+    case "clinical_science":
+      return "clinical-science";
+    case "pharmaceutical_science":
+      return "pharmaceutical-science";
+    case "social_behavioral_and_administration":
+      return "social-behavioural-administration";
+    default:
+      return null;
+  }
+}
 
 function FlashCardDeckPage() {
   const { subtopicId = "" } = useParams();
   const { user } = useSession();
   const studentShell = useStudentShell("/app/flash-cards");
-  const [activeCardId, setActiveCardId] = useState<string | null>(null);
-  const [difficultyOverrides, setDifficultyOverrides] = useState<Record<string, "easy" | "medium" | "hard">>({});
   const [isSavingDifficulty, setIsSavingDifficulty] = useState(false);
+
   const deckQuery = useQuery({
     queryKey: ["flash-card-deck", subtopicId],
     enabled: subtopicId.length > 0,
     queryFn: () => getPublishedFlashCardDeck({ subtopicId }),
   });
-  const activeCard = deckQuery.data?.cards.find((card) => card.id === activeCardId) ?? deckQuery.data?.cards[0] ?? null;
 
-  async function handleDifficultySelect(difficulty: "easy" | "medium" | "hard") {
-    if (!activeCard || !user?.id) {
+  async function handleRateCard(
+    card: FlashCardViewerCard,
+    status: "correct" | "wrong",
+  ) {
+    if (!user?.id) {
       return;
     }
 
+    const difficulty = status === "correct" ? "easy" : "hard";
     setIsSavingDifficulty(true);
 
     try {
       await saveStudentFlashCardDifficulty({
         userId: user.id,
-        cardId: activeCard.id,
+        cardId: card.id,
         difficulty,
       });
-      setDifficultyOverrides((current) => ({
-        ...current,
-        [activeCard.id]: difficulty,
-      }));
-
-      const cards = deckQuery.data?.cards ?? [];
-      const currentIndex = cards.findIndex((c) => c.id === activeCard.id);
-      if (currentIndex >= 0 && currentIndex < cards.length - 1) {
-        setTimeout(() => {
-          setActiveCardId(cards[currentIndex + 1].id);
-        }, 300);
-      }
     } finally {
       setIsSavingDifficulty(false);
     }
   }
+
+  const blockParam = mapAcademicGroupToBlockParam(deckQuery.data?.academicGroup);
+  const backHref = blockParam
+    ? `/app/flash-cards?block=${blockParam}`
+    : "/app/flash-cards";
 
   return (
     <ProductShell
@@ -67,8 +76,10 @@ function FlashCardDeckPage() {
     >
       {deckQuery.isLoading ? (
         <div className="flex h-64 flex-col items-center justify-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Set kartu belajar sedang dimuat...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">
+            Set kartu belajar sedang dimuat...
+          </p>
         </div>
       ) : deckQuery.isError || !deckQuery.data ? (
         <Alert variant="destructive">
@@ -77,22 +88,17 @@ function FlashCardDeckPage() {
           <AlertDescription>Set kartu belajar belum bisa dimuat.</AlertDescription>
         </Alert>
       ) : (
-        <section className="space-y-6">
-          <Card className="space-y-4 px-5 py-5">
-            <h1 className="text-3xl font-semibold text-foreground">Set Kartu Belajar</h1>
-            <p className="text-sm font-medium text-foreground">{deckQuery.data.subtopicTitle}</p>
-            <p className="text-sm leading-7 text-muted-foreground">{deckQuery.data.subtopicSummary}</p>
-          </Card>
-
+        <section className="py-2 sm:py-4">
           <FlashCardViewer
             cards={deckQuery.data.cards}
-            onCardChange={(card) => setActiveCardId(card.id)}
-          />
-
-          <FlashCardRecallControls
+            subtopicTitle={
+              deckQuery.data.materialTitle || deckQuery.data.subtopicTitle
+            }
+            subtopicSummary={deckQuery.data.subtopicSummary}
+            academicGroupLabel={deckQuery.data.academicGroupLabel}
+            backHref={backHref}
             isSaving={isSavingDifficulty}
-            selectedDifficulty={activeCard ? difficultyOverrides[activeCard.id] ?? activeCard.savedDifficulty : null}
-            onSelect={handleDifficultySelect}
+            onRateCard={handleRateCard}
           />
         </section>
       )}

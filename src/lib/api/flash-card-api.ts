@@ -435,15 +435,19 @@ export async function auditRepairFlashCardMaterial(
 export async function retryFlashCardMaterialProcessing(
   input: {
     materialId: string;
+    stepGroup?: "cleaning" | "generation" | "review";
   },
   client: FlashCardApiClient = getSupabaseBrowserClient(),
 ) {
   return invokeFlashCardGenerator<{
     materialId: string;
     status: string;
+    isSuspended?: boolean;
+    nextStepGroup?: string;
   }>({
     action: "retry-processing",
     materialId: input.materialId,
+    ...(input.stepGroup ? { stepGroup: input.stepGroup } : {}),
   }, client);
 }
 

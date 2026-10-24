@@ -531,6 +531,39 @@ describe("flash-card-api", () => {
     });
   });
 
+  test("forwards optional stepGroup in retryFlashCardMaterialProcessing when provided", async () => {
+    const invoke = vi.fn().mockResolvedValue({
+      data: {
+        materialId: "material-1",
+        status: "processing",
+        isSuspended: true,
+        nextStepGroup: "generation",
+      },
+      error: null,
+    });
+    const client = {
+      functions: {
+        invoke,
+      },
+    };
+
+    await retryFlashCardMaterialProcessing(
+      {
+        materialId: "material-1",
+        stepGroup: "cleaning",
+      },
+      client as never,
+    );
+
+    expect(invoke).toHaveBeenCalledWith("flash-card-generator", {
+      body: {
+        action: "retry-processing",
+        materialId: "material-1",
+        stepGroup: "cleaning",
+      },
+    });
+  });
+
   test("invokes resolveFlashCardConflict with action resolve-conflict and correct payload", async () => {
     const mockMetadata: MaterialMetadata = {
       pipelineVersion: "gemini-3.8-source-aware-v1",

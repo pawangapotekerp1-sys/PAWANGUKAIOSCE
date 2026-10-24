@@ -493,6 +493,68 @@ describe("FlashCardGeneratorReviewPage", () => {
     });
   });
 
+  test("passes inferred stepGroup from checkpoint when clicking Coba Proses Ulang on a failed material", async () => {
+    mockRetryFlashCardMaterialProcessing.mockResolvedValueOnce({
+      materialId: "material-1",
+      status: "processing",
+      isSuspended: true,
+      nextStepGroup: "review",
+    });
+
+    mockGetFlashCardMaterialDetail.mockResolvedValue({
+      ...createDetail("failed"),
+      material: {
+        ...createDetail("failed").material,
+        metadata: {
+          pipelineCheckpoint: {
+            currentStage: "concept_mapping",
+            completedStages: ["ingestion", "transcript_cleaning"],
+            stageArtifacts: {},
+          },
+        },
+      },
+    });
+
+    renderPage();
+
+    const retryBtn = await screen.findByRole("button", { name: /coba proses ulang/i });
+    fireEvent.click(retryBtn);
+
+    await waitFor(() => {
+      expect(mockRetryFlashCardMaterialProcessing).toHaveBeenCalledWith({
+        materialId: "material-1",
+        stepGroup: "generation",
+      });
+    });
+  });
+
+  test("displays segment progress in cleaning badge when cleaningProgress is present", async () => {
+    mockGetFlashCardMaterialDetail.mockResolvedValueOnce({
+      ...createDetail("ready_for_review"),
+      material: {
+        ...createDetail("ready_for_review").material,
+        status: "processing",
+        statusLabel: "Sedang diproses",
+        metadata: {
+          pipelineCheckpoint: {
+            currentStage: "transcript_cleaning",
+            completedStages: ["ingestion"],
+            cleaningProgress: {
+              completedSegmentsCount: 500,
+              totalSegmentsCount: 1500,
+            },
+            stageArtifacts: {},
+          },
+        },
+      },
+      subtopics: [],
+    });
+
+    renderPage();
+
+    expect(await screen.findByText(/Pembersihan Transkrip \(500\/1500 segmen\)/i)).toBeInTheDocument();
+  });
+
   test("does not trigger auto-continuation if processingJob is already active in another tab or worker", async () => {
     mockGetFlashCardMaterialDetail.mockResolvedValue({
       ...createDetail("ready_for_review"),

@@ -134,18 +134,15 @@ function FlashCardGeneratorReviewPage() {
 
     isStepExecutingRef.current = true;
     Promise.resolve(continueFlashCardMaterialProcessing({ materialId, stepGroup: nextStep }))
-      .then(() => {
-        void detailQuery.refetch();
-      })
       .catch((err: any) => {
         const isRateLimit = err?.status === 429 || err?.message?.includes("429") || err?.message?.includes("kuota");
         if (isRateLimit) {
           setRateLimitCountdown(60);
         }
-        void detailQuery.refetch();
       })
       .finally(() => {
         isStepExecutingRef.current = false;
+        void detailQuery.refetch();
       });
   }, [detailQuery.data, materialId, rateLimitCountdown]);
 
@@ -224,9 +221,14 @@ function FlashCardGeneratorReviewPage() {
     setIsRetrying(true);
     setActionError(null);
 
+    const meta = (detailQuery.data?.material.metadata ?? {}) as any;
+    const cp = meta.pipelineCheckpoint ?? meta.pipeline_checkpoint;
+    const nextStep = determineNextPipelineStepGroup(cp) ?? "cleaning";
+
     try {
       await retryFlashCardMaterialProcessing({
         materialId,
+        stepGroup: nextStep,
       });
       await detailQuery.refetch();
     } catch (error) {
@@ -372,7 +374,18 @@ function FlashCardGeneratorReviewPage() {
           <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3.5 py-1 text-xs font-medium text-foreground">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-              Pembersihan Transkrip
+              {(() => {
+                const meta = (detailQuery.data?.material.metadata ?? {}) as any;
+                const cp = meta.pipelineCheckpoint ?? meta.pipeline_checkpoint;
+                const completedSegs = cp?.cleaningProgress?.completedSegmentsCount;
+                const totalSegs = cp?.cleaningProgress?.totalSegmentsCount;
+                if (typeof completedSegs === "number" && completedSegs > 0) {
+                  return typeof totalSegs === "number" && totalSegs > 0
+                    ? `Pembersihan Transkrip (${completedSegs}/${totalSegs} segmen)`
+                    : `Pembersihan Transkrip (${completedSegs} segmen)`;
+                }
+                return "Pembersihan Transkrip";
+              })()}
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3.5 py-1 text-xs font-medium text-foreground">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />

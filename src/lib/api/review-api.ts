@@ -13,6 +13,13 @@ import {
 
 export type ReviewSource = "tryout" | "scheduled" | "osce";
 
+export type ReviewFilterCategory =
+  | "all_blok"
+  | "blok_cs"
+  | "blok_ps"
+  | "blok_sba"
+  | "terjadwal";
+
 export type ReviewHistoryItem = {
   attemptId: string;
   title: string;
@@ -21,7 +28,52 @@ export type ReviewHistoryItem = {
   correctAnswers: number;
   wrongAnswers: number;
   source: ReviewSource;
+  category: ReviewFilterCategory;
 };
+
+export function determineReviewCategory(item: {
+  source: ReviewSource;
+  title?: string;
+  mode?: "full" | "block" | "topic" | null;
+  blockSlug?: string | null;
+  blockName?: string | null;
+}): ReviewFilterCategory {
+  if (item.source === "scheduled") {
+    return "terjadwal";
+  }
+
+  const slug = (item.blockSlug || "").toLowerCase();
+  const blockName = (item.blockName || "").toLowerCase();
+  const title = (item.title || "").toLowerCase();
+
+  // Clinical Science
+  if (slug === "clinical-science" || blockName.includes("clinical") || title.includes("clinical science") || title.includes("blok cs")) {
+    return "blok_cs";
+  }
+
+  // Pharmaceutical Science
+  if (slug === "pharmaceutical-science" || blockName.includes("pharmaceutical") || title.includes("pharmaceutical science") || title.includes("blok ps")) {
+    return "blok_ps";
+  }
+
+  // Social, Behavioral & Administrative Pharmacy
+  if (
+    slug === "social-behavior-administrative-pharmacy" ||
+    blockName.includes("social") ||
+    blockName.includes("sba") ||
+    title.includes("social, behavioral") ||
+    title.includes("blok sba")
+  ) {
+    return "blok_sba";
+  }
+
+  // All Blok / Full
+  if (item.mode === "full" || title.includes("besar") || title.includes("all blok")) {
+    return "all_blok";
+  }
+
+  return "all_blok";
+}
 
 export async function listReviewHistory({
   userId,
@@ -34,12 +86,27 @@ export async function listReviewHistory({
     listOsceAttemptHistory(),
   ]);
 
-  return [
+  const items: ReviewHistoryItem[] = [
     ...tryoutHistory.map((item) => ({
-      ...item,
+      attemptId: item.attemptId,
+      title: item.title,
+      submittedAt: item.submittedAt,
+      score: item.score,
+      correctAnswers: item.correctAnswers,
+      wrongAnswers: item.wrongAnswers,
       source: "tryout" as const,
+      category: determineReviewCategory({
+        source: "tryout",
+        title: item.title,
+        mode: item.mode,
+        blockSlug: item.blockSlug,
+        blockName: item.blockName,
+      }),
     })),
-    ...scheduledHistory,
+    ...scheduledHistory.map((item) => ({
+      ...item,
+      category: "terjadwal" as const,
+    })),
     ...osceHistory.map((item: any) => ({
       attemptId: item.id,
       title: item.station?.title || "Simulasi OSCE",
@@ -48,8 +115,11 @@ export async function listReviewHistory({
       correctAnswers: 0,
       wrongAnswers: 0,
       source: "osce" as const,
+      category: "terjadwal" as const,
     })),
-  ].sort(
+  ];
+
+  return items.sort(
     (left, right) =>
       new Date(right.submittedAt).getTime() - new Date(left.submittedAt).getTime(),
   );

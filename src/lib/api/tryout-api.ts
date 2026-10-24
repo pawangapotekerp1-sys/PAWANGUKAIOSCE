@@ -122,9 +122,27 @@ type AttemptHistoryRow = {
   exam_template?:
     | {
       title: string;
+      mode?: "full" | "block" | "topic" | null;
+      block_id?: string | null;
+      block?: {
+        name: string;
+        slug: string;
+      } | Array<{
+        name: string;
+        slug: string;
+      }> | null;
     }
     | Array<{
       title: string;
+      mode?: "full" | "block" | "topic" | null;
+      block_id?: string | null;
+      block?: {
+        name: string;
+        slug: string;
+      } | Array<{
+        name: string;
+        slug: string;
+      }> | null;
     }>
     | null;
   attempt_result?:
@@ -282,6 +300,9 @@ export type SubmittedAttemptHistoryItem = {
   score: number;
   correctAnswers: number;
   wrongAnswers: number;
+  mode?: "full" | "block" | "topic" | null;
+  blockSlug?: string | null;
+  blockName?: string | null;
 };
 
 export type ActiveAttemptSummary = {
@@ -603,6 +624,8 @@ function calculateTimeRemainingSeconds(attempt: PersistedAttempt, now: Date): nu
 function mapSubmittedAttemptHistoryItem(row: AttemptHistoryRow): SubmittedAttemptHistoryItem {
   const relatedTemplate = Array.isArray(row.exam_template) ? row.exam_template[0] ?? null : row.exam_template;
   const relatedResult = Array.isArray(row.attempt_result) ? row.attempt_result[0] ?? null : row.attempt_result;
+  const rawBlock = relatedTemplate?.block;
+  const relatedBlock = rawBlock ? (Array.isArray(rawBlock) ? rawBlock[0] ?? null : rawBlock) : null;
 
   return {
     attemptId: row.id,
@@ -611,6 +634,9 @@ function mapSubmittedAttemptHistoryItem(row: AttemptHistoryRow): SubmittedAttemp
     score: relatedResult?.score ?? 0,
     correctAnswers: relatedResult?.correct_answers ?? 0,
     wrongAnswers: relatedResult?.wrong_answers ?? 0,
+    mode: relatedTemplate?.mode ?? null,
+    blockSlug: relatedBlock?.slug ?? null,
+    blockName: relatedBlock?.name ?? null,
   };
 }
 
@@ -1237,7 +1263,12 @@ export async function listSubmittedAttemptHistory(
     .select(`
       id,
       submitted_at,
-      exam_template:exam_templates(title),
+      exam_template:exam_templates(
+        title,
+        mode,
+        block_id,
+        block:blocks(name, slug)
+      ),
       attempt_result:attempt_results(score, correct_answers, wrong_answers)
     `)
     .eq("user_id", userId)

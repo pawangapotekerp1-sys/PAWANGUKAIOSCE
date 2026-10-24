@@ -55,8 +55,8 @@ describe("Flash Card Generator Resource Limits & Stale Job Regression Suite", ()
     expect(typeof inlinePart.inlineData.data).toBe("string");
   });
 
-  // Scenario 2: PDF exceeding 4MB size limit is guarded (omits inlineData to protect 150MB Deno RAM ceiling)
-  test("Scenario 2: PDF exceeding 4MB size limit omits inlineData to prevent OOM", async () => {
+  // Scenario 2: PDF exceeding 8MB size limit is guarded (omits inlineData to protect 150MB Deno RAM ceiling)
+  test("Scenario 2: PDF exceeding 8MB size limit omits inlineData to prevent OOM", async () => {
     let capturedRequest: any = null;
     const mockGeminiClient = async (req: any) => {
       capturedRequest = req;
@@ -80,8 +80,8 @@ describe("Flash Card Generator Resource Limits & Stale Job Regression Suite", ()
       };
     };
 
-    // 5MB dummy PDF bytes (exceeds 4MB limit)
-    const largePdfBytes = new Uint8Array(5 * 1024 * 1024);
+    // 9MB dummy PDF bytes (exceeds 8MB limit)
+    const largePdfBytes = new Uint8Array(9 * 1024 * 1024);
     largePdfBytes[0] = 0x25;
     largePdfBytes[1] = 0x50;
 

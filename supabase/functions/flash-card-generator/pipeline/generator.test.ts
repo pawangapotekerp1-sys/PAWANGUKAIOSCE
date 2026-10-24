@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   buildCandidateEvidencePack,
   generateCandidateCards,
+  MAX_INLINE_PDF_BYTES,
   type CandidateEvidencePackParams,
 } from "./generator.ts";
 import type { TranscriptSegment } from "./cleaner.ts";
@@ -307,7 +308,46 @@ describe("Candidate Generation Stage 5 - buildCandidateEvidencePack", () => {
     expect(result.evidencePackMetrics?.selectedSegmentsCount).toBe(pack.metrics.selectedSegmentsCount);
   });
 
-  it("handles multimodal PDF inline data when <= 4MB and skips inline data when > 4MB to prevent OOM", async () => {
+  it("distributes fallback selection chronologically across early, middle, and late lecture segments when concepts are empty", () => {
+    const segments: TranscriptSegment[] = [];
+    // 300 segments total: first 100 have slightly higher entity count, but middle (101-200) and late (201-300) also have clinical content
+    for (let i = 1; i <= 300; i++) {
+      const segId = `seg-${String(i).padStart(3, "0")}`;
+      const isEarly = i <= 100;
+      segments.push({
+        segmentId: segId,
+        rawText: isEarly
+          ? `Bagian awal kuliah segmen ${i}: Captopril 25 mg 2x sehari per oral untuk hipertensi.`
+          : `Bagian lanjutan kuliah segmen ${i}: Amlodipin 10 mg sehari untuk kontrol tekanan darah.`,
+        normalizedText: isEarly
+          ? `Bagian awal kuliah segmen ${i}: Captopril 25 mg 2x sehari per oral untuk hipertensi.`
+          : `Bagian lanjutan kuliah segmen ${i}: Amlodipin 10 mg sehari untuk kontrol tekanan darah.`,
+        lineOffset: i,
+        hasClinicalEntities: true,
+        matchedEntities: isEarly ? ["25 mg", "2x sehari", "pril"] : ["10 mg"],
+        classification: "relevant",
+      });
+    }
+
+    const pack = buildCandidateEvidencePack({
+      segments,
+      concepts: [],
+      maxCharacters: 4000,
+    });
+
+    const selectedNumbers = pack.selectedSegmentIds.map((id) => Number(id.replace("seg-", "")));
+    const hasEarly = selectedNumbers.some((n) => n <= 100);
+    const hasMiddle = selectedNumbers.some((n) => n > 100 && n <= 200);
+    const hasLate = selectedNumbers.some((n) => n > 200);
+
+    expect(hasEarly).toBe(true);
+    expect(hasMiddle).toBe(true);
+    expect(hasLate).toBe(true);
+  });
+
+  it("handles multimodal PDF inline data up to 8MB (including 4.5MB slide PDFs) and skips inline data when > 8MB to prevent OOM", async () => {
+    expect(MAX_INLINE_PDF_BYTES).toBe(8 * 1024 * 1024);
+
     const mockGemini = vi.fn().mockResolvedValue({
       text: JSON.stringify({
         global_summary: "Ringkasan uji",
@@ -322,23 +362,24 @@ describe("Candidate Generation Stage 5 - buildCandidateEvidencePack", () => {
       usage: { isAvailable: false },
     });
 
-    // 1. Small PDF (under 4MB)
-    const smallPdf = new Uint8Array([37, 80, 68, 70]); // %PDF
+    // 1. 4.5 MB PDF (under 8MB ceiling)
+    const fourPointFiveMbPdf = new Uint8Array(Math.floor(4.5 * 1024 * 1024));
+    fourPointFiveMbPdf.set([37, 80, 68, 70], 0); // %PDF
     await generateCandidateCards({
-      title: "Uji PDF Kecil",
+      title: "Uji PDF 4.5MB",
       academicGroup: "clinical_science",
-      pdfBytes: smallPdf,
+      pdfBytes: fourPointFiveMbPdf,
       geminiClient: mockGemini as any,
     });
 
-    const smallCallParts = mockGemini.mock.calls[0][0].parts;
-    const hasInlineDataSmall = smallCallParts.some((p: any) => p.inlineData?.mimeType === "application/pdf");
-    expect(hasInlineDataSmall).toBe(true);
+    const mediumCallParts = mockGemini.mock.calls[0][0].parts;
+    const hasInlineDataMedium = mediumCallParts.some((p: any) => p.inlineData?.mimeType === "application/pdf");
+    expect(hasInlineDataMedium).toBe(true);
 
     mockGemini.mockClear();
 
-    // 2. Oversized PDF (> 4MB)
-    const oversizedPdf = new Uint8Array(4 * 1024 * 1024 + 1);
+    // 2. Oversized PDF (> 8MB)
+    const oversizedPdf = new Uint8Array(MAX_INLINE_PDF_BYTES + 1);
     await generateCandidateCards({
       title: "Uji PDF Besar",
       academicGroup: "clinical_science",

@@ -37,6 +37,8 @@ export type CandidateEvidencePackResult = {
 
 export const DEFAULT_MAX_EVIDENCE_CHARACTERS = 16_000;
 export const DEFAULT_MAX_SEGMENTS_PER_CONCEPT = 4;
+export const CHRONOLOGICAL_BUCKET_COUNT = 6;
+export const MAX_INLINE_PDF_BYTES = 8 * 1024 * 1024; // 8 MB ceiling supports 4.5 MB slide decks safely within 150 MB Edge RAM
 
 const CRITICAL_CLINICAL_KEYWORDS = [
   "kontraindikasi",
@@ -239,13 +241,46 @@ export function buildCandidateEvidencePack(
       }
     }
   } else {
-    // Fallback: strictly global priority order
-    candidates.sort((a, b) => b.score - a.score);
-    for (const cand of candidates) {
-      if (!tryAddSegment(cand.segment)) {
-        break;
+    // Fallback: Chronological bucketed selection across CHRONOLOGICAL_BUCKET_COUNT buckets
+    // Phase 1: High-yield clinical segments distributed chronologically across lecture buckets
+    // Phase 2: Remaining segments distributed chronologically to fill available character budget
+    const clinicalCandidates = candidates.filter((c) => c.segment.hasClinicalEntities);
+    const nonClinicalCandidates = candidates.filter((c) => !c.segment.hasClinicalEntities);
+
+    const selectBucketed = (pool: typeof candidates) => {
+      if (pool.length === 0 || currentChars >= maxCharacters) return;
+      const bucketCount = Math.min(CHRONOLOGICAL_BUCKET_COUNT, Math.max(1, pool.length));
+      const bucketSize = Math.ceil(pool.length / bucketCount);
+      const buckets = Array.from({ length: bucketCount }, (_, bIdx) => {
+        const slice = pool.slice(bIdx * bucketSize, (bIdx + 1) * bucketSize);
+        return [...slice].sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          return (a.segment.lineOffset ?? 0) - (b.segment.lineOffset ?? 0);
+        });
+      });
+
+      const bucketCursors = new Array<number>(bucketCount).fill(0);
+      let madeProgress = true;
+      while (madeProgress && currentChars < maxCharacters) {
+        madeProgress = false;
+        for (let bIdx = 0; bIdx < bucketCount; bIdx++) {
+          const bucket = buckets[bIdx];
+          while (bucketCursors[bIdx] < bucket.length) {
+            const candidate = bucket[bucketCursors[bIdx]];
+            bucketCursors[bIdx] += 1;
+            if (selectedMap.has(candidate.segment.segmentId)) continue;
+
+            if (tryAddSegment(candidate.segment)) {
+              madeProgress = true;
+              break;
+            }
+          }
+        }
       }
-    }
+    };
+
+    selectBucketed(clinicalCandidates);
+    selectBucketed(nonClinicalCandidates);
   }
 
   // 3. Format in chronological order
@@ -421,9 +456,8 @@ export async function generateCandidateCards(
   const requestParts: GeminiRequest["parts"] = [];
 
   // Safety cap: Edge Functions have a 150MB isolate memory ceiling.
-  // A 4MB PDF becomes ~5.3MB Base64, fitting comfortably within memory limits without risking Memory Limit Exceeded.
+  // An 8MB PDF becomes ~10.7MB Base64, fitting comfortably within memory limits without risking Memory Limit Exceeded.
   // Larger PDFs rely on the comprehensive transcriptText and alignedSources already present in the prompt.
-  const MAX_INLINE_PDF_BYTES = 4 * 1024 * 1024;
   if (options.pdfBytes && options.pdfBytes.byteLength > 0 && options.pdfBytes.byteLength <= MAX_INLINE_PDF_BYTES) {
     requestParts.push({
       inlineData: {

@@ -1,8 +1,11 @@
 {
   "files": [],
   "compilerOptions": {
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "npm:zod": ["./node_modules/zod"],
+      "npm:zod@*": ["./node_modules/zod"]
     }
   },
   "references": [

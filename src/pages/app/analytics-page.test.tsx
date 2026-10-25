@@ -8,6 +8,10 @@ import AnalyticsPage from "./analytics-page";
 const mockUseSession = vi.fn();
 const mockGetPersonalWeaknessDiagnosis = vi.fn();
 
+vi.mock("react-markdown", () => ({
+  default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
 vi.mock("../../lib/auth/use-session", () => ({
   useSession: () => mockUseSession(),
 }));
@@ -35,7 +39,25 @@ vi.mock("../../lib/diagnosis-date-range", () => ({
     dateFrom: "2026-05-03",
     dateTo: "2026-05-09",
   }),
-  createPresetDiagnosisRange: (preset: "7d" | "14d" | "30d") => {
+  createPresetDiagnosisRange: (preset: "7d" | "14d" | "30d" | "last3" | "last5") => {
+    if (preset === "last3") {
+      return {
+        preset,
+        dateFrom: "2026-02-09",
+        dateTo: "2026-05-09",
+        limitAttempts: 3,
+      };
+    }
+
+    if (preset === "last5") {
+      return {
+        preset,
+        dateFrom: "2026-02-09",
+        dateTo: "2026-05-09",
+        limitAttempts: 5,
+      };
+    }
+
     if (preset === "14d") {
       return {
         preset,
@@ -245,9 +267,9 @@ describe("Analytics page", () => {
     );
 
     expect(
-      await screen.findByText(/area yang perlu diperbaiki/i),
+      await screen.findByText(/periode analisis/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/lihat topik dan materi yang paling sering menahan/i)).toBeInTheDocument();
+    expect(screen.getByText(/topik paling perlu perhatian/i)).toBeInTheDocument();
     expect(screen.queryByText(/analisis pola belajar/i)).not.toBeInTheDocument();
   });
 
@@ -257,6 +279,19 @@ describe("Analytics page", () => {
     expect(screen.getByRole("button", { name: /7 hari/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /14 hari/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /30 hari/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /3 to terakhir/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /5 to terakhir/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /3 to terakhir/i }));
+
+    await waitFor(() =>
+      expect(mockGetPersonalWeaknessDiagnosis).toHaveBeenLastCalledWith({
+        dateFrom: "2026-02-09",
+        dateTo: "2026-05-09",
+        timezone: "Asia/Jakarta",
+        limitAttempts: 3,
+      }),
+    );
 
     fireEvent.click(screen.getByRole("button", { name: /14 hari/i }));
 
@@ -374,7 +409,7 @@ describe("Analytics page", () => {
   test("does not render any legacy analytics sections", async () => {
     renderAnalytics();
 
-    await screen.findByText(/area yang perlu diperbaiki/i);
+    await screen.findByText(/periode analisis/i);
 
     expect(screen.queryByText(/analisis pola belajar/i)).not.toBeInTheDocument();
     expect(

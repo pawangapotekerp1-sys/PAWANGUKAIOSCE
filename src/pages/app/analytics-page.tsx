@@ -25,6 +25,19 @@ import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 import { Badge } from "../../components/ui/badge";
 import { Loader2, AlertCircle, PackageSearch, BarChart3, Bot, Sparkles, Key } from "lucide-react";
 
+import ReactMarkdown from "react-markdown";
+
+function sanitizeMarkdown(text: string | null | undefined): string {
+  if (!text || typeof text !== "string") return "";
+  return text
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "")
+    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, "")
+    .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, "")
+    .replace(/javascript:[^\s"']+/gi, "")
+    .replace(/on\w+\s*=/gi, "");
+}
+
 function AnalyticsPage() {
   const { user } = useSession();
   const studentShell = useStudentShell("/app/analytics");
@@ -42,8 +55,10 @@ function AnalyticsPage() {
     queryKey: [
       "personal-weakness-diagnosis",
       user?.id,
+      appliedRange.preset,
       appliedRange.dateFrom,
       appliedRange.dateTo,
+      appliedRange.limitAttempts,
       timezone,
     ],
     enabled: analyticsView === "ready" && Boolean(user?.id),
@@ -53,6 +68,7 @@ function AnalyticsPage() {
         dateFrom: appliedRange.dateFrom,
         dateTo: appliedRange.dateTo,
         timezone,
+        ...(typeof appliedRange.limitAttempts === "number" ? { limitAttempts: appliedRange.limitAttempts } : {}),
       }),
   });
   const diagnosis = diagnosisQuery.data;
@@ -70,19 +86,22 @@ function AnalyticsPage() {
     queryKey: [
       "student-ai-range-insight",
       user?.id,
+      appliedRange.preset,
       appliedRange.dateFrom,
       appliedRange.dateTo,
+      appliedRange.limitAttempts,
       timezone,
     ],
     queryFn: () => generateStudentAiRangeInsight({
       dateFrom: appliedRange.dateFrom,
       dateTo: appliedRange.dateTo,
       timezone,
+      ...(typeof appliedRange.limitAttempts === "number" ? { limitAttempts: appliedRange.limitAttempts } : {}),
     }),
     enabled: false, // Only run when triggered
   });
 
-  function handlePresetSelect(preset: "7d" | "14d" | "30d") {
+  function handlePresetSelect(preset: "7d" | "14d" | "30d" | "last3" | "last5") {
     const nextRange = createPresetDiagnosisRange(preset);
     setDraftRange(nextRange);
     setAppliedRange(nextRange);
@@ -246,7 +265,7 @@ function AnalyticsPage() {
                       <Bot className="h-6 w-6 text-primary" />
                     </div>
                     <p className="text-sm text-muted-foreground max-w-md mb-4">
-                      Dapatkan rangkuman kelemahan yang lebih spesifik dan saran strategi belajar dari asisten AI cerdas berdasarkan {diagnosis.summary.eligibleAttemptCount} try out Anda.
+                      Dapatkan rangkuman kelemahan yang lebih spesifik dan saran strategi belajar dari asisten AI cerdas berdasarkan {diagnosis.summary.overallQuestionCount} soal ({diagnosis.summary.eligibleAttemptCount} try out) Anda.
                     </p>
                     <Button 
                       onClick={() => aiInsightQuery.refetch()}
@@ -273,11 +292,13 @@ function AnalyticsPage() {
                   </Alert>
                 ) : (
                   <div className="space-y-4">
-                    <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                      {aiInsightQuery.data?.summary}
+                    <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground leading-relaxed">
+                      <ReactMarkdown>
+                        {sanitizeMarkdown(aiInsightQuery.data?.summary)}
+                      </ReactMarkdown>
                     </div>
                     <div className="text-[11px] font-mono font-medium text-muted-foreground/60 uppercase tracking-wide flex items-center justify-between border-t border-border/50 pt-4 mt-6">
-                      <span>Model: Gemini 3.6 Flash</span>
+                      <span>Model: {aiInsightQuery.data?.model ?? "Gemini 3.8 Flash"}</span>
                       <span>Digenerasi: {new Date(aiInsightQuery.data?.generatedAt ?? "").toLocaleString("id-ID")}</span>
                     </div>
                   </div>

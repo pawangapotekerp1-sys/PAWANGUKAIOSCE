@@ -8,6 +8,8 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
+      "npm:zod@^4.4.1": "zod",
+      "npm:zod@4.4.1": "zod",
       "npm:zod": "zod",
       "npm:@supabase/supabase-js@2": "@supabase/supabase-js",
       "jsr:@supabase/functions-js/edge-runtime.d.ts": path.resolve(__dirname, "./src/test/empty-shim.ts"),
@@ -28,6 +30,24 @@ export default defineConfig({
           include: ["src/**/*.{test,spec}.?(c|m)[jt]s?(x)", "tests/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
           environment: "jsdom",
           setupFiles: ["./src/test/setup.ts"],
+          exclude: [...sharedExclude, "tests/migrations/**", "tests/schemas/**"],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "migrations",
+          include: ["tests/migrations/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
+          environment: "node",
+          exclude: sharedExclude,
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "schemas",
+          include: ["tests/schemas/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
+          environment: "node",
           exclude: sharedExclude,
         },
       },

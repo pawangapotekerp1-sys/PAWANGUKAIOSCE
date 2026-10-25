@@ -67,6 +67,11 @@ function SubtopicCard({
               <Award className="h-3 w-3 mr-1 inline-block" />
               Peringkat #{item.rank}
             </Badge>
+            {item.isIndicative && (
+              <Badge variant="secondary" className="text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/30">
+                Indikatif (10-19 soal)
+              </Badge>
+            )}
             <Badge variant="secondary" className="text-xs font-semibold text-muted-foreground bg-muted/60">
               {item.blockName}
             </Badge>

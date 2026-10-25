@@ -18,7 +18,9 @@
     "types": ["vite/client", "vitest/globals", "vitest/jsdom"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "npm:zod": ["./node_modules/zod"],
+      "npm:zod@*": ["./node_modules/zod"]
     },
     "ignoreDeprecations": "6.0"
   },

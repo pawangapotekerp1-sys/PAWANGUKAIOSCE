@@ -61,7 +61,7 @@ begin
   end if;
 
   -- Create temporary table for eligible snapshots in scope
-  drop table if exists temp_eligible_snapshots;
+  drop table if exists pg_temp.temp_eligible_snapshots;
   create temporary table temp_eligible_snapshots on commit drop as
   select snapshot.*
   from public.attempt_diagnostic_snapshots as snapshot

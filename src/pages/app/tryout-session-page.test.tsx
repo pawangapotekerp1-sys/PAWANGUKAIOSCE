@@ -986,38 +986,27 @@ describe("Tryout session page", () => {
     });
   }, 10000);
 
-  test("allows mentor role to answer questions and submit tryout normally", async () => {
+  test("renders in read-only mode for mentor role without saving answers on question navigation", async () => {
     mockUseStudentShell.mockReturnValue({
       navItems: [],
-      tierLabel: "Mentor",
+      tierLabel: "PRO MENTOR",
       role: "mentor",
     });
 
     renderTryoutSession();
 
-    await screen.findByText(/timer 02:59:00/i);
-    expect(screen.queryByText(/Mode Mentor \(Read-Only\)/i)).not.toBeInTheDocument();
+    await screen.findByText(/Mode Mentor \(Read-Only\)/i);
 
-    const optionA = screen.getByRole("button", { name: /A Pilihan A/i });
-    expect(optionA).not.toBeDisabled();
+    const nextButton = await screen.findByRole("button", { name: /selanjutnya/i });
+    fireEvent.click(nextButton);
+
+    expect(mockSaveAnswer).not.toHaveBeenCalled();
+
+    const optionA = screen.getByRole("button", { name: /Pilihan A/i });
+    expect(optionA).toBeDisabled();
 
     fireEvent.click(optionA);
-
-    await waitFor(() => {
-      expect(mockSaveAnswer).toHaveBeenCalledWith({
-        attemptId: "attempt-1",
-        attemptItemId: "item-1",
-        selectedOptionKey: "A",
-        isDoubtful: false,
-        timeSpentDeltaSeconds: expect.any(Number),
-      });
-    });
-
-    fireEvent.click(screen.getAllByRole("button", { name: /^4$/i })[0]);
-    expect(screen.queryByRole("link", { name: /selesai pratinjau/i })).not.toBeInTheDocument();
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /kirim hasil/i })).not.toBeDisabled();
-    });
+    expect(mockSaveAnswer).not.toHaveBeenCalled();
   });
 
   test("renders mobile question nav drawer trigger and verifies responsive layout classes", async () => {

@@ -37,7 +37,6 @@ import {
   handlePublishMaterial,
   handleResolveConflict,
   handleUpdateMaterialProtectedMetadata,
-  isGlobalAiCredentialAction,
   MAX_STALE_AUTO_RECOVERIES,
   validateGeneratedFlashCardOutput,
   validateFlashCardMaterialDraftInput,
@@ -76,23 +75,9 @@ describe("flash-card generator manager access", () => {
     expect(indexSource).toMatch(/action === "audit-repair-material"[\s\S]+validateMaterialMetadata\(/);
   });
 
-  test("rejects users who are not admin or mentor for flash-card authoring", () => {
+  test("rejects users who are not admin or mentor", () => {
     expect(() => ensureFlashCardManagerAccess("pro")).toThrow(FlashCardManagerAccessError);
     expect(() => ensureFlashCardManagerAccess("pendaftar_baru")).toThrow(/admin atau mentor/i);
-  });
-
-  test("allows any authenticated user to invoke global AI credential actions without manager guard", () => {
-    expect(isGlobalAiCredentialAction("get-status")).toBe(true);
-    expect(isGlobalAiCredentialAction("save-credential")).toBe(true);
-    expect(isGlobalAiCredentialAction("test-credential")).toBe(true);
-    expect(isGlobalAiCredentialAction("delete-credential")).toBe(true);
-    expect(isGlobalAiCredentialAction("export-credential")).toBe(true);
-    expect(isGlobalAiCredentialAction("create-material")).toBe(false);
-    expect(isGlobalAiCredentialAction("process-material")).toBe(false);
-
-    const indexSource = readFileSync(resolve(import.meta.dirname, "./index.ts"), "utf8");
-    expect(indexSource).toContain("requireAuthenticatedUser");
-    expect(indexSource).toMatch(/if\s*\(isGlobalAiCredentialAction\(payload\.action\)\)\s*\{[\s\S]*?requireAuthenticatedUser\(req\)/);
   });
 
   test("prevents editing or retrying materials that are already published", () => {

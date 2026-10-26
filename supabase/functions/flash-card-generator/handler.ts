@@ -28,18 +28,6 @@ const SUPPORTED_TRANSCRIPT_MIME_TYPES = new Set([
   "text/markdown",
 ]);
 
-export const GLOBAL_AI_CREDENTIAL_ACTIONS = new Set([
-  "get-status",
-  "export-credential",
-  "save-credential",
-  "delete-credential",
-  "test-credential",
-]);
-
-export function isGlobalAiCredentialAction(action: unknown): boolean {
-  return typeof action === "string" && GLOBAL_AI_CREDENTIAL_ACTIONS.has(action);
-}
-
 export function ensureFlashCardManagerAccess(role: FlashCardManagerRole) {
   if (role !== "admin" && role !== "mentor") {
     throw new FlashCardManagerAccessError("Fitur flash card hanya bisa diakses admin atau mentor.");

@@ -3,7 +3,6 @@ import { Buffer } from "node:buffer";
 import {
   HttpError,
   createServiceClient,
-  requireAuthenticatedUser,
   requireQuestionBankManager,
 } from "../_shared/auth.ts";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
@@ -55,7 +54,6 @@ import {
   handlePublishMaterial,
   handleResolveConflict,
   handleUpdateMaterialProtectedMetadata,
-  isGlobalAiCredentialAction,
   isProcessingJobStale,
   resolveStepGroupFromCheckpoint,
   sanitizeMaterialMetadataForClient,
@@ -985,20 +983,9 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
   }
 
   try {
+    const { user, profile, service } = await requireQuestionBankManager(req);
+    ensureFlashCardManagerAccess(profile.role as "admin" | "mentor" | "pro" | "pendaftar_baru");
     const payload = await req.json();
-    let user: Awaited<ReturnType<typeof requireAuthenticatedUser>>;
-    let service: ServiceClient;
-
-    if (isGlobalAiCredentialAction(payload.action)) {
-      user = await requireAuthenticatedUser(req);
-      service = createServiceClient();
-    } else {
-      const manager = await requireQuestionBankManager(req);
-      ensureFlashCardManagerAccess(manager.profile.role as "admin" | "mentor" | "pro" | "pendaftar_baru");
-      user = manager.user;
-      service = manager.service;
-    }
-
     const credential = await readUserCredential(service, user.id);
 
     if (payload.action === "get-status") {

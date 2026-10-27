@@ -14,6 +14,7 @@ import {
   testGeminiConnection,
 } from "../_shared/gemini-client.ts";
 import { DIAGNOSIS_CONFIG, ENGINE_VERSION } from "../_shared/diagnosis-engine/config.ts";
+import { RECOMMENDATION_TEMPLATES } from "../_shared/diagnosis-engine/recommend.ts";
 import { PersonalWeaknessDiagnosisDataSchema } from "../_shared/diagnosis-engine/schemas.ts";
 import { runDiagnosisEngine } from "../_shared/diagnosis-engine/engine.ts";
 import { EvidenceRowSchema } from "../_shared/diagnosis-engine/validate.ts";
@@ -32,6 +33,8 @@ export async function computeDiagnosisInputHash(params: {
   engineVersion: string;
   unreleasedScheduledAttemptsCount: number;
   attempts: Array<{ id: string; submittedAt: string }>;
+  config?: Record<string, unknown>;
+  templateStatuses?: Record<string, string>;
 }): Promise<string> {
   const normalized = {
     userId: params.userId,
@@ -40,6 +43,12 @@ export async function computeDiagnosisInputHash(params: {
     attempts: [...params.attempts]
       .map((a) => ({ id: a.id, submittedAt: a.submittedAt }))
       .sort((a, b) => a.id.localeCompare(b.id)),
+    config: params.config ?? DIAGNOSIS_CONFIG,
+    templateStatuses:
+      params.templateStatuses ??
+      Object.fromEntries(
+        Object.entries(RECOMMENDATION_TEMPLATES).map(([k, v]) => [k, v.status]),
+      ),
   };
   const encoder = new TextEncoder();
   const data = encoder.encode(JSON.stringify(normalized));
@@ -556,7 +565,10 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
         .maybeSingle();
 
       if (cachedReport) {
-        const canUpgradeToGemini = cachedReport.source === "fallback" && Boolean(apiKey);
+        const canUpgradeToGemini =
+          cachedReport.source === "fallback" &&
+          cachedReport.fallback_reason === "no_key" &&
+          Boolean(apiKey);
         if (!canUpgradeToGemini) {
           return jsonResponse({
             insight: {

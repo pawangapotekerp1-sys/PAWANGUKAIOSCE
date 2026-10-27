@@ -4,7 +4,8 @@ export type ErrorTag =
   | "miskonsepsi"
   | "kehabisan_waktu"
   | "ceroboh"
-  | "celah_pengetahuan";
+  | "celah_pengetahuan"
+  | "tidak_terklasifikasi";
 
 export type FindingCode =
   | "RECURRING_DISTRACTOR"

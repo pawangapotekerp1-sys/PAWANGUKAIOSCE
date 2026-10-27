@@ -48,7 +48,8 @@ export const RECOMMENDATION_TEMPLATES: Record<FindingCode, RecommendationTemplat
       const topicName = (slots.topicName as string) || "Topik terkait";
       const count = slots.count ?? 3;
       const ratio = slots.ratio !== undefined ? slots.ratio : 20;
-      return `Rekalibrasi Keyakinan Jawaban: Pada topik "${topicName}", terdeteksi ${count} butir salah (${ratio}% dari total soal) yang dijawab tanpa tanda ragu. Pola ini mengindikasikan keyakinan semu pada materi yang belum sepenuhnya dikuasai. Cocokkan jawaban Anda dengan pembahasan resmi dan catat konsep yang meleset agar tidak mengulang kekeliruan serupa.`;
+      const totalQuestions = slots.totalQuestions !== undefined ? slots.totalQuestions : count;
+      return `Rekalibrasi Keyakinan Jawaban: Pada topik "${topicName}", terdeteksi ${count} butir salah (${ratio}% dari ${totalQuestions} butir soal topik) yang dijawab tanpa tanda ragu. Pola ini mengindikasikan keyakinan semu pada materi yang belum sepenuhnya dikuasai. Cocokkan jawaban Anda dengan pembahasan resmi dan catat konsep yang meleset agar tidak mengulang kekeliruan serupa.`;
     },
   },
 

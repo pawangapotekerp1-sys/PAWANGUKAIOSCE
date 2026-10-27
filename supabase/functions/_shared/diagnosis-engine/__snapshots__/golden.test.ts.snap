@@ -1,0 +1,581 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Diagnosis Engine - Fase 6 Golden Tests (Synthetic History Scenarios) > skenario 1: data kurang (<10 soal) menghasilkan laporan tanpa temuan signifikan 1`] = `
+{
+  "classifiedErrorCounts": {
+    "celah_pengetahuan": 0,
+    "ceroboh": 0,
+    "kehabisan_waktu": 0,
+    "miskonsepsi": 0,
+    "tidak_terklasifikasi": 2,
+  },
+  "fallbackMarkdown": "# Laporan Analisis Kelemahan Belajar
+*Versi Engine: 1.2.0 | Mode Analisis: BASIC*
+
+## 1. Ringkasan Kinerja
+- **Total Sesi Try Out:** 1
+- **Total Butir Soal Teranalisis:** 5
+- **Akurasi Kumulatif:** 60.0%
+
+## 2. Profil Karakteristik Kesalahan
+Berdasarkan waktu respon, perilaku ragu-ragu, dan distorsi pilihan jawaban:
+- **Miskonsepsi (Distraktor Kuat Berulang):** 0 butir
+- **Kendala Manajemen Waktu Akhir Sesi:** 0 butir
+- **Kecerobohan (Terlalu Cepat Tanpa Ragu):** 0 butir
+- **Celah Pengetahuan (Ragu / Berpikir Panjang):** 0 butir
+- **Tidak Terklasifikasi:** 2 butir
+
+## 3. Temuan Prioritas & Rekomendasi Studi
+Belum ditemukan pola kelemahan spesifik yang signifikan dari data yang ada. Pertahankan konsistensi latihan soal.
+## 4. Disiplin Ujian & Rekomendasi Belajar
+Fokuskan sesi perbaikan pada pemahaman konseptual literatur acuan resmi serta perhatikan ritme waktu per butir soal untuk memaksimalkan akurasi pada ujian sesungguhnya.",
+  "findings": [],
+  "generatedAt": "2026-10-27T12:00:00.000Z",
+  "mode": "basic",
+  "overallAccuracy": 60,
+  "topFindings": [],
+  "totalAttempts": 1,
+  "totalQuestions": 5,
+  "unreleasedScheduledAttemptsCount": 0,
+  "version": "1.2.0",
+}
+`;
+
+exports[`Diagnosis Engine - Fase 6 Golden Tests (Synthetic History Scenarios) > skenario 2: topik sampel indikatif (12 butir) berlabel 'sampel indikatif' dan tidak masuk peringkat utama 1`] = `
+{
+  "classifiedErrorCounts": {
+    "celah_pengetahuan": 0,
+    "ceroboh": 0,
+    "kehabisan_waktu": 0,
+    "miskonsepsi": 0,
+    "tidak_terklasifikasi": 8,
+  },
+  "fallbackMarkdown": "# Laporan Analisis Kelemahan Belajar
+*Versi Engine: 1.2.0 | Mode Analisis: FULL*
+
+## 1. Ringkasan Kinerja
+- **Total Sesi Try Out:** 2
+- **Total Butir Soal Teranalisis:** 12
+- **Akurasi Kumulatif:** 33.3%
+
+## 2. Profil Karakteristik Kesalahan
+Berdasarkan waktu respon, perilaku ragu-ragu, dan distorsi pilihan jawaban:
+- **Miskonsepsi (Distraktor Kuat Berulang):** 0 butir
+- **Kendala Manajemen Waktu Akhir Sesi:** 0 butir
+- **Kecerobohan (Terlalu Cepat Tanpa Ragu):** 0 butir
+- **Celah Pengetahuan (Ragu / Berpikir Panjang):** 0 butir
+- **Tidak Terklasifikasi:** 8 butir
+
+## 3. Temuan Prioritas & Rekomendasi Studi
+### 1. Kesalahan Tanpa Ragu di Farmakoterapi Respiratori
+- **Indikator Bukti:** Ditemukan 8 kesalahan (67% dari 12 butir) yang dijawab dengan rasa yakin tanpa tanda ragu.
+- **Rekomendasi Tindakan:**
+  > Rekalibrasi Keyakinan Jawaban: Pada topik "Farmakoterapi Respiratori", terdeteksi 8 butir salah (67% dari 12 butir soal topik) yang dijawab tanpa tanda ragu. Pola ini mengindikasikan keyakinan semu pada materi yang belum sepenuhnya dikuasai. Cocokkan jawaban Anda dengan pembahasan resmi dan catat konsep yang meleset agar tidak mengulang kekeliruan serupa.
+
+### 2. Kelemahan Persisten di Farmakoterapi Respiratori
+- **Indikator Bukti:** Akurasi bertahan rendah (33%, sampel indikatif) di 2 sesi try out berurutan.
+- **Rekomendasi Tindakan:**
+  > Penguatan Fondasi Teori: Akurasi pada topik "Farmakoterapi Respiratori" berada pada tingkat 33% (sampel indikatif) di 2 sesi try out berurutan. Jadwalkan pendalaman materi dari literatur acuan resmi untuk membangun pemahaman konseptual yang kokoh sebelum melanjutkan latihan berikutnya.
+
+## 4. Disiplin Ujian & Rekomendasi Belajar
+Fokuskan sesi perbaikan pada pemahaman konseptual literatur acuan resmi serta perhatikan ritme waktu per butir soal untuk memaksimalkan akurasi pada ujian sesungguhnya.",
+  "findings": [
+    {
+      "code": "CONFIDENT_ERRORS_TOPIC",
+      "confidence": 4,
+      "evidenceSummary": "Ditemukan 8 kesalahan (67% dari 12 butir) yang dijawab dengan rasa yakin tanpa tanda ragu.",
+      "id": "FND_CONFIDENT_ERRORS_top-resp",
+      "metadata": {
+        "confidentErrorRatio": 0.6666666666666666,
+        "confidentErrors": 8,
+        "ratio": 67,
+        "totalQuestions": 12,
+      },
+      "persistence": 5,
+      "recommendationDraft": "Rekalibrasi Keyakinan Jawaban: Pada topik "Farmakoterapi Respiratori", terdeteksi 8 butir salah (67% dari 12 butir soal topik) yang dijawab tanpa tanda ragu. Pola ini mengindikasikan keyakinan semu pada materi yang belum sepenuhnya dikuasai. Cocokkan jawaban Anda dengan pembahasan resmi dan catat konsep yang meleset agar tidak mengulang kekeliruan serupa.",
+      "recommendationTemplateId": "TPL_CONFIDENT_ERRORS_V1",
+      "recommendationTemplateStatus": "draft",
+      "severity": 4,
+      "title": "Kesalahan Tanpa Ragu di Farmakoterapi Respiratori",
+      "topicId": "top-resp",
+      "topicName": "Farmakoterapi Respiratori",
+      "topicWeight": 1,
+      "urgencyScore": 80,
+    },
+    {
+      "code": "PERSISTENT_WEAKNESS",
+      "confidence": 4,
+      "evidenceSummary": "Akurasi bertahan rendah (33%, sampel indikatif) di 2 sesi try out berurutan.",
+      "id": "FND_PERSISTENT_WEAKNESS_top-resp",
+      "metadata": {
+        "accuracy": 33,
+        "attemptCount": 2,
+        "isConsecutive": true,
+        "sampleStatus": "sampel indikatif",
+      },
+      "persistence": 3,
+      "recommendationDraft": "Penguatan Fondasi Teori: Akurasi pada topik "Farmakoterapi Respiratori" berada pada tingkat 33% (sampel indikatif) di 2 sesi try out berurutan. Jadwalkan pendalaman materi dari literatur acuan resmi untuk membangun pemahaman konseptual yang kokoh sebelum melanjutkan latihan berikutnya.",
+      "recommendationTemplateId": "TPL_PERSISTENT_WEAKNESS_V1",
+      "recommendationTemplateStatus": "draft",
+      "severity": 4,
+      "title": "Kelemahan Persisten di Farmakoterapi Respiratori",
+      "topicId": "top-resp",
+      "topicName": "Farmakoterapi Respiratori",
+      "topicWeight": 1.2,
+      "urgencyScore": 57.599999999999994,
+    },
+  ],
+  "generatedAt": "2026-10-27T12:00:00.000Z",
+  "mode": "full",
+  "overallAccuracy": 33.33,
+  "topFindings": [
+    {
+      "code": "CONFIDENT_ERRORS_TOPIC",
+      "confidence": 4,
+      "evidenceSummary": "Ditemukan 8 kesalahan (67% dari 12 butir) yang dijawab dengan rasa yakin tanpa tanda ragu.",
+      "id": "FND_CONFIDENT_ERRORS_top-resp",
+      "metadata": {
+        "confidentErrorRatio": 0.6666666666666666,
+        "confidentErrors": 8,
+        "ratio": 67,
+        "totalQuestions": 12,
+      },
+      "persistence": 5,
+      "recommendationDraft": "Rekalibrasi Keyakinan Jawaban: Pada topik "Farmakoterapi Respiratori", terdeteksi 8 butir salah (67% dari 12 butir soal topik) yang dijawab tanpa tanda ragu. Pola ini mengindikasikan keyakinan semu pada materi yang belum sepenuhnya dikuasai. Cocokkan jawaban Anda dengan pembahasan resmi dan catat konsep yang meleset agar tidak mengulang kekeliruan serupa.",
+      "recommendationTemplateId": "TPL_CONFIDENT_ERRORS_V1",
+      "recommendationTemplateStatus": "draft",
+      "severity": 4,
+      "title": "Kesalahan Tanpa Ragu di Farmakoterapi Respiratori",
+      "topicId": "top-resp",
+      "topicName": "Farmakoterapi Respiratori",
+      "topicWeight": 1,
+      "urgencyScore": 80,
+    },
+    {
+      "code": "PERSISTENT_WEAKNESS",
+      "confidence": 4,
+      "evidenceSummary": "Akurasi bertahan rendah (33%, sampel indikatif) di 2 sesi try out berurutan.",
+      "id": "FND_PERSISTENT_WEAKNESS_top-resp",
+      "metadata": {
+        "accuracy": 33,
+        "attemptCount": 2,
+        "isConsecutive": true,
+        "sampleStatus": "sampel indikatif",
+      },
+      "persistence": 3,
+      "recommendationDraft": "Penguatan Fondasi Teori: Akurasi pada topik "Farmakoterapi Respiratori" berada pada tingkat 33% (sampel indikatif) di 2 sesi try out berurutan. Jadwalkan pendalaman materi dari literatur acuan resmi untuk membangun pemahaman konseptual yang kokoh sebelum melanjutkan latihan berikutnya.",
+      "recommendationTemplateId": "TPL_PERSISTENT_WEAKNESS_V1",
+      "recommendationTemplateStatus": "draft",
+      "severity": 4,
+      "title": "Kelemahan Persisten di Farmakoterapi Respiratori",
+      "topicId": "top-resp",
+      "topicName": "Farmakoterapi Respiratori",
+      "topicWeight": 1.2,
+      "urgencyScore": 57.599999999999994,
+    },
+  ],
+  "totalAttempts": 2,
+  "totalQuestions": 12,
+  "unreleasedScheduledAttemptsCount": 0,
+  "version": "1.2.0",
+}
+`;
+
+exports[`Diagnosis Engine - Fase 6 Golden Tests (Synthetic History Scenarios) > skenario 3: pengecoh sama pada butir yang sama lintas >= 2 sesi memicu tag miskonsepsi dan temuan RECURRING_DISTRACTOR 1`] = `
+{
+  "classifiedErrorCounts": {
+    "celah_pengetahuan": 0,
+    "ceroboh": 0,
+    "kehabisan_waktu": 0,
+    "miskonsepsi": 2,
+    "tidak_terklasifikasi": 0,
+  },
+  "fallbackMarkdown": "# Laporan Analisis Kelemahan Belajar
+*Versi Engine: 1.2.0 | Mode Analisis: FULL*
+
+## 1. Ringkasan Kinerja
+- **Total Sesi Try Out:** 2
+- **Total Butir Soal Teranalisis:** 10
+- **Akurasi Kumulatif:** 80.0%
+
+## 2. Profil Karakteristik Kesalahan
+Berdasarkan waktu respon, perilaku ragu-ragu, dan distorsi pilihan jawaban:
+- **Miskonsepsi (Distraktor Kuat Berulang):** 2 butir
+- **Kendala Manajemen Waktu Akhir Sesi:** 0 butir
+- **Kecerobohan (Terlalu Cepat Tanpa Ragu):** 0 butir
+- **Celah Pengetahuan (Ragu / Berpikir Panjang):** 0 butir
+- **Tidak Terklasifikasi:** 0 butir
+
+## 3. Temuan Prioritas & Rekomendasi Studi
+### 1. Pengecoh Berulang pada Opsi C
+- **Indikator Bukti:** Opsi salah 'C' dipilih 2 kali di sesi try out berbeda pada butir 'Pasien gagal ginjal kronis stadium 4 membutuhkan penyesua...'.
+- **Rekomendasi Tindakan:**
+  > Evaluasi Distraktor Berulang: Pada butir soal "Pasien gagal ginjal kronis stadium 4 membutuhkan penyesua..." (topik Farmakoterapi Kardiovaskular), opsi 'C' dipilih berulang sebanyak 2 kali di sesi try out yang berbeda sebagai jawaban salah. Disarankan menelaah kembali materi pembeda antara opsi tersebut dengan konsep kunci jawaban yang tepat agar tidak terjebak pola distorsi pemahaman yang sama.
+
+## 4. Disiplin Ujian & Rekomendasi Belajar
+Fokuskan sesi perbaikan pada pemahaman konseptual literatur acuan resmi serta perhatikan ritme waktu per butir soal untuk memaksimalkan akurasi pada ujian sesungguhnya.",
+  "findings": [
+    {
+      "code": "RECURRING_DISTRACTOR",
+      "confidence": 4,
+      "evidenceSummary": "Opsi salah 'C' dipilih 2 kali di sesi try out berbeda pada butir 'Pasien gagal ginjal kronis stadium 4 membutuhkan penyesua...'.",
+      "id": "FND_RECURRING_DISTRACTOR_q-distractor_C",
+      "metadata": {
+        "count": 2,
+        "optionKey": "C",
+        "questionId": "q-distractor",
+        "questionSummary": "Pasien gagal ginjal kronis stadium 4 membutuhkan penyesua...",
+      },
+      "persistence": 2,
+      "recommendationDraft": "Evaluasi Distraktor Berulang: Pada butir soal "Pasien gagal ginjal kronis stadium 4 membutuhkan penyesua..." (topik Farmakoterapi Kardiovaskular), opsi 'C' dipilih berulang sebanyak 2 kali di sesi try out yang berbeda sebagai jawaban salah. Disarankan menelaah kembali materi pembeda antara opsi tersebut dengan konsep kunci jawaban yang tepat agar tidak terjebak pola distorsi pemahaman yang sama.",
+      "recommendationTemplateId": "TPL_RECURRING_DISTRACTOR_V1",
+      "recommendationTemplateStatus": "draft",
+      "severity": 3,
+      "title": "Pengecoh Berulang pada Opsi C",
+      "topicId": "top-cardio",
+      "topicName": "Farmakoterapi Kardiovaskular",
+      "topicWeight": 1,
+      "urgencyScore": 24,
+    },
+  ],
+  "generatedAt": "2026-10-27T12:00:00.000Z",
+  "mode": "full",
+  "overallAccuracy": 80,
+  "topFindings": [
+    {
+      "code": "RECURRING_DISTRACTOR",
+      "confidence": 4,
+      "evidenceSummary": "Opsi salah 'C' dipilih 2 kali di sesi try out berbeda pada butir 'Pasien gagal ginjal kronis stadium 4 membutuhkan penyesua...'.",
+      "id": "FND_RECURRING_DISTRACTOR_q-distractor_C",
+      "metadata": {
+        "count": 2,
+        "optionKey": "C",
+        "questionId": "q-distractor",
+        "questionSummary": "Pasien gagal ginjal kronis stadium 4 membutuhkan penyesua...",
+      },
+      "persistence": 2,
+      "recommendationDraft": "Evaluasi Distraktor Berulang: Pada butir soal "Pasien gagal ginjal kronis stadium 4 membutuhkan penyesua..." (topik Farmakoterapi Kardiovaskular), opsi 'C' dipilih berulang sebanyak 2 kali di sesi try out yang berbeda sebagai jawaban salah. Disarankan menelaah kembali materi pembeda antara opsi tersebut dengan konsep kunci jawaban yang tepat agar tidak terjebak pola distorsi pemahaman yang sama.",
+      "recommendationTemplateId": "TPL_RECURRING_DISTRACTOR_V1",
+      "recommendationTemplateStatus": "draft",
+      "severity": 3,
+      "title": "Pengecoh Berulang pada Opsi C",
+      "topicId": "top-cardio",
+      "topicName": "Farmakoterapi Kardiovaskular",
+      "topicWeight": 1,
+      "urgencyScore": 24,
+    },
+  ],
+  "totalAttempts": 2,
+  "totalQuestions": 10,
+  "unreleasedScheduledAttemptsCount": 0,
+  "version": "1.2.0",
+}
+`;
+
+exports[`Diagnosis Engine - Fase 6 Golden Tests (Synthetic History Scenarios) > skenario 4: topik sampel utama (>=20 soal) dengan kesalahan yakin tinggi memicu CONFIDENT_ERRORS_TOPIC dengan angka konsisten 1`] = `
+{
+  "classifiedErrorCounts": {
+    "celah_pengetahuan": 0,
+    "ceroboh": 0,
+    "kehabisan_waktu": 0,
+    "miskonsepsi": 0,
+    "tidak_terklasifikasi": 8,
+  },
+  "fallbackMarkdown": "# Laporan Analisis Kelemahan Belajar
+*Versi Engine: 1.2.0 | Mode Analisis: FULL*
+
+## 1. Ringkasan Kinerja
+- **Total Sesi Try Out:** 1
+- **Total Butir Soal Teranalisis:** 20
+- **Akurasi Kumulatif:** 60.0%
+
+## 2. Profil Karakteristik Kesalahan
+Berdasarkan waktu respon, perilaku ragu-ragu, dan distorsi pilihan jawaban:
+- **Miskonsepsi (Distraktor Kuat Berulang):** 0 butir
+- **Kendala Manajemen Waktu Akhir Sesi:** 0 butir
+- **Kecerobohan (Terlalu Cepat Tanpa Ragu):** 0 butir
+- **Celah Pengetahuan (Ragu / Berpikir Panjang):** 0 butir
+- **Tidak Terklasifikasi:** 8 butir
+
+## 3. Temuan Prioritas & Rekomendasi Studi
+### 1. Kesalahan Tanpa Ragu di Farmakoterapi Endokrin
+- **Indikator Bukti:** Ditemukan 8 kesalahan (40% dari 20 butir) yang dijawab dengan rasa yakin tanpa tanda ragu.
+- **Rekomendasi Tindakan:**
+  > Rekalibrasi Keyakinan Jawaban: Pada topik "Farmakoterapi Endokrin", terdeteksi 8 butir salah (40% dari 20 butir soal topik) yang dijawab tanpa tanda ragu. Pola ini mengindikasikan keyakinan semu pada materi yang belum sepenuhnya dikuasai. Cocokkan jawaban Anda dengan pembahasan resmi dan catat konsep yang meleset agar tidak mengulang kekeliruan serupa.
+
+## 4. Disiplin Ujian & Rekomendasi Belajar
+Fokuskan sesi perbaikan pada pemahaman konseptual literatur acuan resmi serta perhatikan ritme waktu per butir soal untuk memaksimalkan akurasi pada ujian sesungguhnya.",
+  "findings": [
+    {
+      "code": "CONFIDENT_ERRORS_TOPIC",
+      "confidence": 4,
+      "evidenceSummary": "Ditemukan 8 kesalahan (40% dari 20 butir) yang dijawab dengan rasa yakin tanpa tanda ragu.",
+      "id": "FND_CONFIDENT_ERRORS_top-endo",
+      "metadata": {
+        "confidentErrorRatio": 0.4,
+        "confidentErrors": 8,
+        "ratio": 40,
+        "totalQuestions": 20,
+      },
+      "persistence": 5,
+      "recommendationDraft": "Rekalibrasi Keyakinan Jawaban: Pada topik "Farmakoterapi Endokrin", terdeteksi 8 butir salah (40% dari 20 butir soal topik) yang dijawab tanpa tanda ragu. Pola ini mengindikasikan keyakinan semu pada materi yang belum sepenuhnya dikuasai. Cocokkan jawaban Anda dengan pembahasan resmi dan catat konsep yang meleset agar tidak mengulang kekeliruan serupa.",
+      "recommendationTemplateId": "TPL_CONFIDENT_ERRORS_V1",
+      "recommendationTemplateStatus": "draft",
+      "severity": 4,
+      "title": "Kesalahan Tanpa Ragu di Farmakoterapi Endokrin",
+      "topicId": "top-endo",
+      "topicName": "Farmakoterapi Endokrin",
+      "topicWeight": 1,
+      "urgencyScore": 80,
+    },
+  ],
+  "generatedAt": "2026-10-27T12:00:00.000Z",
+  "mode": "full",
+  "overallAccuracy": 60,
+  "topFindings": [
+    {
+      "code": "CONFIDENT_ERRORS_TOPIC",
+      "confidence": 4,
+      "evidenceSummary": "Ditemukan 8 kesalahan (40% dari 20 butir) yang dijawab dengan rasa yakin tanpa tanda ragu.",
+      "id": "FND_CONFIDENT_ERRORS_top-endo",
+      "metadata": {
+        "confidentErrorRatio": 0.4,
+        "confidentErrors": 8,
+        "ratio": 40,
+        "totalQuestions": 20,
+      },
+      "persistence": 5,
+      "recommendationDraft": "Rekalibrasi Keyakinan Jawaban: Pada topik "Farmakoterapi Endokrin", terdeteksi 8 butir salah (40% dari 20 butir soal topik) yang dijawab tanpa tanda ragu. Pola ini mengindikasikan keyakinan semu pada materi yang belum sepenuhnya dikuasai. Cocokkan jawaban Anda dengan pembahasan resmi dan catat konsep yang meleset agar tidak mengulang kekeliruan serupa.",
+      "recommendationTemplateId": "TPL_CONFIDENT_ERRORS_V1",
+      "recommendationTemplateStatus": "draft",
+      "severity": 4,
+      "title": "Kesalahan Tanpa Ragu di Farmakoterapi Endokrin",
+      "topicId": "top-endo",
+      "topicName": "Farmakoterapi Endokrin",
+      "topicWeight": 1,
+      "urgencyScore": 80,
+    },
+  ],
+  "totalAttempts": 1,
+  "totalQuestions": 20,
+  "unreleasedScheduledAttemptsCount": 0,
+  "version": "1.2.0",
+}
+`;
+
+exports[`Diagnosis Engine - Fase 6 Golden Tests (Synthetic History Scenarios) > skenario 5: sampel global >=100 butir memicu NET_ANSWER_CHANGE dan RUSHED_WRONG 1`] = `
+{
+  "classifiedErrorCounts": {
+    "celah_pengetahuan": 0,
+    "ceroboh": 6,
+    "kehabisan_waktu": 0,
+    "miskonsepsi": 0,
+    "tidak_terklasifikasi": 4,
+  },
+  "fallbackMarkdown": "# Laporan Analisis Kelemahan Belajar
+*Versi Engine: 1.2.0 | Mode Analisis: FULL*
+
+## 1. Ringkasan Kinerja
+- **Total Sesi Try Out:** 1
+- **Total Butir Soal Teranalisis:** 100
+- **Akurasi Kumulatif:** 90.0%
+
+## 2. Profil Karakteristik Kesalahan
+Berdasarkan waktu respon, perilaku ragu-ragu, dan distorsi pilihan jawaban:
+- **Miskonsepsi (Distraktor Kuat Berulang):** 0 butir
+- **Kendala Manajemen Waktu Akhir Sesi:** 0 butir
+- **Kecerobohan (Terlalu Cepat Tanpa Ragu):** 6 butir
+- **Celah Pengetahuan (Ragu / Berpikir Panjang):** 0 butir
+- **Tidak Terklasifikasi:** 4 butir
+
+## 3. Temuan Prioritas & Rekomendasi Studi
+### 1. Pengerjaan Terburu-buru pada Soal Salah
+- **Indikator Bukti:** Ditemukan 6 butir salah (6% dari total soal) yang dijawab dengan kecepatan abnormal (z < -0.8).
+- **Rekomendasi Tindakan:**
+  > Pengendalian Ritme Pengerjaan: Terdapat 6 butir salah (6% dari total soal) yang dikerjakan dengan kecepatan jauh melampaui rata-rata. Biasakan membaca ulang inti pertanyaan dan kata kunci dalam skenario soal sebelum menetapkan pilihan jawaban.
+
+### 2. Perubahan Jawaban Berdampak Negatif
+- **Indikator Bukti:** Pengubahan jawaban dari benar ke salah (4x) melampaui pengubahan dari salah ke benar (1x).
+- **Rekomendasi Tindakan:**
+  > Disiplin Pergantian Jawaban: Dalam data Anda, perubahan jawaban dari benar ke salah (4 kali) lebih sering terjadi daripada dari salah ke benar (1 kali). Biasakan untuk mengubah pilihan jawaban hanya bila Anda menemukan alasan atau data konkret yang membuktikan kekeliruan interpretasi awal.
+
+## 4. Disiplin Ujian & Rekomendasi Belajar
+Fokuskan sesi perbaikan pada pemahaman konseptual literatur acuan resmi serta perhatikan ritme waktu per butir soal untuk memaksimalkan akurasi pada ujian sesungguhnya.",
+  "findings": [
+    {
+      "code": "RUSHED_WRONG",
+      "confidence": 4,
+      "evidenceSummary": "Ditemukan 6 butir salah (6% dari total soal) yang dijawab dengan kecepatan abnormal (z < -0.8).",
+      "id": "FND_RUSHED_WRONG_GLOBAL",
+      "metadata": {
+        "count": 6,
+        "ratio": 6,
+      },
+      "persistence": 5,
+      "recommendationDraft": "Pengendalian Ritme Pengerjaan: Terdapat 6 butir salah (6% dari total soal) yang dikerjakan dengan kecepatan jauh melampaui rata-rata. Biasakan membaca ulang inti pertanyaan dan kata kunci dalam skenario soal sebelum menetapkan pilihan jawaban.",
+      "recommendationTemplateId": "TPL_RUSHED_WRONG_V1",
+      "recommendationTemplateStatus": "draft",
+      "severity": 3,
+      "title": "Pengerjaan Terburu-buru pada Soal Salah",
+      "topicWeight": 1,
+      "urgencyScore": 60,
+    },
+    {
+      "code": "NET_ANSWER_CHANGE",
+      "confidence": 4,
+      "evidenceSummary": "Pengubahan jawaban dari benar ke salah (4x) melampaui pengubahan dari salah ke benar (1x).",
+      "id": "FND_NET_ANSWER_CHANGE_GLOBAL",
+      "metadata": {
+        "changedCorrectToWrong": 4,
+        "changedWrongToCorrect": 1,
+      },
+      "persistence": 4,
+      "recommendationDraft": "Disiplin Pergantian Jawaban: Dalam data Anda, perubahan jawaban dari benar ke salah (4 kali) lebih sering terjadi daripada dari salah ke benar (1 kali). Biasakan untuk mengubah pilihan jawaban hanya bila Anda menemukan alasan atau data konkret yang membuktikan kekeliruan interpretasi awal.",
+      "recommendationTemplateId": "TPL_NET_ANSWER_CHANGE_V1",
+      "recommendationTemplateStatus": "draft",
+      "severity": 3,
+      "title": "Perubahan Jawaban Berdampak Negatif",
+      "topicWeight": 1,
+      "urgencyScore": 48,
+    },
+  ],
+  "generatedAt": "2026-10-27T12:00:00.000Z",
+  "mode": "full",
+  "overallAccuracy": 90,
+  "topFindings": [
+    {
+      "code": "RUSHED_WRONG",
+      "confidence": 4,
+      "evidenceSummary": "Ditemukan 6 butir salah (6% dari total soal) yang dijawab dengan kecepatan abnormal (z < -0.8).",
+      "id": "FND_RUSHED_WRONG_GLOBAL",
+      "metadata": {
+        "count": 6,
+        "ratio": 6,
+      },
+      "persistence": 5,
+      "recommendationDraft": "Pengendalian Ritme Pengerjaan: Terdapat 6 butir salah (6% dari total soal) yang dikerjakan dengan kecepatan jauh melampaui rata-rata. Biasakan membaca ulang inti pertanyaan dan kata kunci dalam skenario soal sebelum menetapkan pilihan jawaban.",
+      "recommendationTemplateId": "TPL_RUSHED_WRONG_V1",
+      "recommendationTemplateStatus": "draft",
+      "severity": 3,
+      "title": "Pengerjaan Terburu-buru pada Soal Salah",
+      "topicWeight": 1,
+      "urgencyScore": 60,
+    },
+    {
+      "code": "NET_ANSWER_CHANGE",
+      "confidence": 4,
+      "evidenceSummary": "Pengubahan jawaban dari benar ke salah (4x) melampaui pengubahan dari salah ke benar (1x).",
+      "id": "FND_NET_ANSWER_CHANGE_GLOBAL",
+      "metadata": {
+        "changedCorrectToWrong": 4,
+        "changedWrongToCorrect": 1,
+      },
+      "persistence": 4,
+      "recommendationDraft": "Disiplin Pergantian Jawaban: Dalam data Anda, perubahan jawaban dari benar ke salah (4 kali) lebih sering terjadi daripada dari salah ke benar (1 kali). Biasakan untuk mengubah pilihan jawaban hanya bila Anda menemukan alasan atau data konkret yang membuktikan kekeliruan interpretasi awal.",
+      "recommendationTemplateId": "TPL_NET_ANSWER_CHANGE_V1",
+      "recommendationTemplateStatus": "draft",
+      "severity": 3,
+      "title": "Perubahan Jawaban Berdampak Negatif",
+      "topicWeight": 1,
+      "urgencyScore": 48,
+    },
+  ],
+  "totalAttempts": 1,
+  "totalQuestions": 100,
+  "unreleasedScheduledAttemptsCount": 0,
+  "version": "1.2.0",
+}
+`;
+
+exports[`Diagnosis Engine - Fase 6 Golden Tests (Synthetic History Scenarios) > skenario 6: try out terjadwal dengan data perilaku NULL dan unreleased attempts menjaga zero false positive 1`] = `
+{
+  "classifiedErrorCounts": {
+    "celah_pengetahuan": 0,
+    "ceroboh": 0,
+    "kehabisan_waktu": 0,
+    "miskonsepsi": 0,
+    "tidak_terklasifikasi": 20,
+  },
+  "fallbackMarkdown": "# Laporan Analisis Kelemahan Belajar
+*Versi Engine: 1.2.0 | Mode Analisis: FULL*
+
+> **Catatan Try Out Terjadwal:** Terdapat 2 sesi try out terjadwal yang belum disertakan dalam analisis ini karena periode pelaksanaan event belum berakhir. Hasil dan pembahasan butir soal akan otomatis masuk setelah event ditutup.
+
+## 1. Ringkasan Kinerja
+- **Total Sesi Try Out:** 1
+- **Total Butir Soal Teranalisis:** 50
+- **Akurasi Kumulatif:** 60.0%
+
+## 2. Profil Karakteristik Kesalahan
+Berdasarkan waktu respon, perilaku ragu-ragu, dan distorsi pilihan jawaban:
+- **Miskonsepsi (Distraktor Kuat Berulang):** 0 butir
+- **Kendala Manajemen Waktu Akhir Sesi:** 0 butir
+- **Kecerobohan (Terlalu Cepat Tanpa Ragu):** 0 butir
+- **Celah Pengetahuan (Ragu / Berpikir Panjang):** 0 butir
+- **Tidak Terklasifikasi:** 20 butir
+
+## 3. Temuan Prioritas & Rekomendasi Studi
+### 1. Kesalahan Tanpa Ragu di Farmakoterapi Kardiovaskular
+- **Indikator Bukti:** Ditemukan 20 kesalahan (40% dari 50 butir) yang dijawab dengan rasa yakin tanpa tanda ragu.
+- **Rekomendasi Tindakan:**
+  > Rekalibrasi Keyakinan Jawaban: Pada topik "Farmakoterapi Kardiovaskular", terdeteksi 20 butir salah (40% dari 50 butir soal topik) yang dijawab tanpa tanda ragu. Pola ini mengindikasikan keyakinan semu pada materi yang belum sepenuhnya dikuasai. Cocokkan jawaban Anda dengan pembahasan resmi dan catat konsep yang meleset agar tidak mengulang kekeliruan serupa.
+
+## 4. Disiplin Ujian & Rekomendasi Belajar
+Fokuskan sesi perbaikan pada pemahaman konseptual literatur acuan resmi serta perhatikan ritme waktu per butir soal untuk memaksimalkan akurasi pada ujian sesungguhnya.",
+  "findings": [
+    {
+      "code": "CONFIDENT_ERRORS_TOPIC",
+      "confidence": 3,
+      "evidenceSummary": "Ditemukan 20 kesalahan (40% dari 50 butir) yang dijawab dengan rasa yakin tanpa tanda ragu.",
+      "id": "FND_CONFIDENT_ERRORS_top-cardio",
+      "metadata": {
+        "confidentErrorRatio": 0.4,
+        "confidentErrors": 20,
+        "ratio": 40,
+        "totalQuestions": 50,
+      },
+      "persistence": 5,
+      "recommendationDraft": "Rekalibrasi Keyakinan Jawaban: Pada topik "Farmakoterapi Kardiovaskular", terdeteksi 20 butir salah (40% dari 50 butir soal topik) yang dijawab tanpa tanda ragu. Pola ini mengindikasikan keyakinan semu pada materi yang belum sepenuhnya dikuasai. Cocokkan jawaban Anda dengan pembahasan resmi dan catat konsep yang meleset agar tidak mengulang kekeliruan serupa.",
+      "recommendationTemplateId": "TPL_CONFIDENT_ERRORS_V1",
+      "recommendationTemplateStatus": "draft",
+      "severity": 4,
+      "title": "Kesalahan Tanpa Ragu di Farmakoterapi Kardiovaskular",
+      "topicId": "top-cardio",
+      "topicName": "Farmakoterapi Kardiovaskular",
+      "topicWeight": 1,
+      "urgencyScore": 60,
+    },
+  ],
+  "generatedAt": "2026-10-27T12:00:00.000Z",
+  "mode": "full",
+  "overallAccuracy": 60,
+  "topFindings": [
+    {
+      "code": "CONFIDENT_ERRORS_TOPIC",
+      "confidence": 3,
+      "evidenceSummary": "Ditemukan 20 kesalahan (40% dari 50 butir) yang dijawab dengan rasa yakin tanpa tanda ragu.",
+      "id": "FND_CONFIDENT_ERRORS_top-cardio",
+      "metadata": {
+        "confidentErrorRatio": 0.4,
+        "confidentErrors": 20,
+        "ratio": 40,
+        "totalQuestions": 50,
+      },
+      "persistence": 5,
+      "recommendationDraft": "Rekalibrasi Keyakinan Jawaban: Pada topik "Farmakoterapi Kardiovaskular", terdeteksi 20 butir salah (40% dari 50 butir soal topik) yang dijawab tanpa tanda ragu. Pola ini mengindikasikan keyakinan semu pada materi yang belum sepenuhnya dikuasai. Cocokkan jawaban Anda dengan pembahasan resmi dan catat konsep yang meleset agar tidak mengulang kekeliruan serupa.",
+      "recommendationTemplateId": "TPL_CONFIDENT_ERRORS_V1",
+      "recommendationTemplateStatus": "draft",
+      "severity": 4,
+      "title": "Kesalahan Tanpa Ragu di Farmakoterapi Kardiovaskular",
+      "topicId": "top-cardio",
+      "topicName": "Farmakoterapi Kardiovaskular",
+      "topicWeight": 1,
+      "urgencyScore": 60,
+    },
+  ],
+  "totalAttempts": 1,
+  "totalQuestions": 50,
+  "unreleasedScheduledAttemptsCount": 2,
+  "version": "1.2.0",
+}
+`;

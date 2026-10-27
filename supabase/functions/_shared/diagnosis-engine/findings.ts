@@ -183,6 +183,8 @@ export function detectFindings(
       const rec = buildRecommendationDraft("CONFIDENT_ERRORS_TOPIC", {
         topicName: acc.topicName,
         count: acc.confidentErrors,
+        ratio: percent,
+        totalQuestions: acc.totalQuestions,
       });
       const confidence = acc.hasFallbackConfidence ? 3 : 4;
       findings.push({
@@ -204,6 +206,7 @@ export function detectFindings(
           confidentErrors: acc.confidentErrors,
           totalQuestions: acc.totalQuestions,
           confidentErrorRatio,
+          ratio: percent,
         },
       });
     }

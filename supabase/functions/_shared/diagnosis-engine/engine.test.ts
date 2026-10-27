@@ -104,6 +104,7 @@ describe("Diagnosis Engine - classify.ts & Priorities", () => {
       "kehabisan_waktu",
       "ceroboh",
       "celah_pengetahuan",
+      "tidak_terklasifikasi",
     ]);
   });
 
@@ -124,6 +125,40 @@ describe("Diagnosis Engine - classify.ts & Priorities", () => {
     });
     // With distractor >= 2 attempts on same question, confident scheduled row receives miskonsepsi
     expect(classifyEvidenceRow(scheduledRowConfident, { recurringDistractorAttemptsCount: 2 })).toContain("miskonsepsi");
+  });
+
+  test("tag distribution invariant: sum(tagCounts) === totalWrong and each wrong answer gets exactly 1 primary tag", () => {
+    const mixedRows: EvidenceRow[] = [
+      // 1. miskonsepsi (recurring distractor)
+      createMockRow({ attempt_id: "att-1", question_id: "q-1", selected_option_key: "C", is_correct: false }),
+      createMockRow({ attempt_id: "att-2", question_id: "q-1", selected_option_key: "C", is_correct: false }),
+      // 2. kehabisan_waktu (late session, rushed)
+      createMockRow({ attempt_id: "att-1", question_id: "q-2", session_position_ratio: 0.9, time_spent_seconds: 15, is_correct: false }),
+      // 3. ceroboh (fast response, not doubtful)
+      createMockRow({ attempt_id: "att-1", question_id: "q-3", time_spent_z_score: -1.5, was_ever_flagged_ragu: false, is_correct: false }),
+      // 4. celah_pengetahuan (doubtful)
+      createMockRow({ attempt_id: "att-1", question_id: "q-4", was_ever_flagged_ragu: true, is_correct: false }),
+      // 5. tidak_terklasifikasi (normal speed z=0, no doubt, no recurring distractor, early position)
+      createMockRow({ attempt_id: "att-1", question_id: "q-5", time_spent_z_score: 0.2, time_spent_seconds: 50, was_ever_flagged_ragu: false, session_position_ratio: 0.3, is_correct: false }),
+      // 6. correct answer (should not count in wrong or tags)
+      createMockRow({ attempt_id: "att-1", question_id: "q-6", is_correct: true }),
+    ];
+
+    const report = runDiagnosisEngine(mixedRows);
+    const totalWrong = mixedRows.filter((r) => !r.is_correct).length; // 6 wrong
+    const sumTags =
+      report.classifiedErrorCounts.miskonsepsi +
+      report.classifiedErrorCounts.kehabisan_waktu +
+      report.classifiedErrorCounts.ceroboh +
+      report.classifiedErrorCounts.celah_pengetahuan +
+      (report.classifiedErrorCounts.tidak_terklasifikasi ?? 0);
+
+    expect(sumTags).toBe(totalWrong);
+    expect(report.classifiedErrorCounts.tidak_terklasifikasi).toBe(1);
+    expect(report.classifiedErrorCounts.miskonsepsi).toBe(2);
+    expect(report.classifiedErrorCounts.kehabisan_waktu).toBe(1);
+    expect(report.classifiedErrorCounts.ceroboh).toBe(1);
+    expect(report.classifiedErrorCounts.celah_pengetahuan).toBe(1);
   });
 });
 
@@ -349,6 +384,28 @@ describe("Diagnosis Engine - Findings Detectors & Revised Triggers", () => {
     expect(fnd?.metadata.confidentErrors).toBe(3);
     expect(fnd?.metadata.totalQuestions).toBe(10);
     expect(fnd?.evidenceSummary).toContain("3 kesalahan (30% dari 10 butir)");
+    expect(fnd?.recommendationDraft).toContain("3 butir salah (30% dari 10 butir soal topik)");
+  });
+
+  test("CONFIDENT_ERRORS_TOPIC: number and percentage consistency between evidenceSummary and recommendationDraft", () => {
+    // 10 questions on topic: 6 confident errors (60%), 4 correct
+    const rows: EvidenceRow[] = Array.from({ length: 10 }, (_, i) =>
+      createMockRow({
+        question_id: `q-ce-consistent-${i}`,
+        topic_name: "Farmakoterapi Kardiovaskular",
+        is_correct: i >= 6,
+        was_ever_flagged_ragu: false,
+      }),
+    );
+
+    const fnd = detectFindings(rows).find((f) => f.code === "CONFIDENT_ERRORS_TOPIC");
+    expect(fnd).toBeDefined();
+    expect(fnd?.evidenceSummary).toContain("6 kesalahan (60% dari 10 butir)");
+    expect(fnd?.recommendationDraft).toContain("6 butir salah (60% dari 10 butir soal topik)");
+    // Denominator is strictly total questions in the topic (10)
+    expect(fnd?.metadata.confidentErrors).toBe(6);
+    expect(fnd?.metadata.totalQuestions).toBe(10);
+    expect(fnd?.metadata.ratio).toBe(60);
   });
 
   test("IMPROVING requires >= 10 questions per period and >= 15 percentage points gain", () => {

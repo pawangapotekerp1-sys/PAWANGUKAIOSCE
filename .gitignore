@@ -13,6 +13,7 @@ vite-preview.log
 vite-preview.err.log
 
 .env.local
+.env*
 
 # Generated config outputs from local TypeScript builds
 vite.config.js

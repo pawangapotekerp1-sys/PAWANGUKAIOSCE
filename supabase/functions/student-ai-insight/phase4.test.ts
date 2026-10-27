@@ -270,6 +270,84 @@ describe("Phase 4 Pipeline - Evidence -> Engine -> Gemini -> Validator -> Retry 
     expect(updatedHash).not.toBe(initialHash); // New hash -> CACHE MISS!
   });
 
+  test("cache miss: modifying DIAGNOSIS_CONFIG changes hash automatically without manual flush", async () => {
+    const attempts = [{ id: "att-1", submittedAt: "2026-10-20T10:00:00Z" }];
+    const baseHash = await computeDiagnosisInputHash({
+      userId: "user-1",
+      engineVersion: "1.2.0",
+      unreleasedScheduledAttemptsCount: 0,
+      attempts,
+    });
+
+    const modifiedConfigHash = await computeDiagnosisInputHash({
+      userId: "user-1",
+      engineVersion: "1.2.0",
+      unreleasedScheduledAttemptsCount: 0,
+      attempts,
+      config: { sampleThresholds: { confidentErrorsMinTopicQuestions: 25 } },
+    });
+
+    expect(modifiedConfigHash).not.toBe(baseHash);
+  });
+
+  test("cache miss: changing template approval status changes hash automatically", async () => {
+    const attempts = [{ id: "att-1", submittedAt: "2026-10-20T10:00:00Z" }];
+    const baseHash = await computeDiagnosisInputHash({
+      userId: "user-1",
+      engineVersion: "1.2.0",
+      unreleasedScheduledAttemptsCount: 0,
+      attempts,
+    });
+
+    const approvedStatusHash = await computeDiagnosisInputHash({
+      userId: "user-1",
+      engineVersion: "1.2.0",
+      unreleasedScheduledAttemptsCount: 0,
+      attempts,
+      templateStatuses: { CONFIDENT_ERRORS_TOPIC: "approved" },
+    });
+
+    expect(approvedStatusHash).not.toBe(baseHash);
+  });
+
+  test("re-generation gating: only allows upgrade when cached fallback_reason === 'no_key' and student now has key", () => {
+    const shouldUpgrade = (source: string, fallbackReason: string | null, hasKey: boolean) =>
+      source === "fallback" && fallbackReason === "no_key" && hasKey;
+
+    // 1. Fallback due to no_key, student now connects key -> ALLOWED to upgrade
+    expect(shouldUpgrade("fallback", "no_key", true)).toBe(true);
+
+    // 2. Fallback due to no_key, still no key -> CACHE HIT (no upgrade)
+    expect(shouldUpgrade("fallback", "no_key", false)).toBe(false);
+
+    // 3. Fallback due to validation_failed, student has key -> DO NOT upgrade (serve cached rule-based report)
+    expect(shouldUpgrade("fallback", "validation_failed", true)).toBe(false);
+
+    // 4. Fallback due to gemini_error, student has key -> DO NOT upgrade until cooldown / new data
+    expect(shouldUpgrade("fallback", "gemini_error", true)).toBe(false);
+
+    // 5. Already valid Gemini narrative -> DO NOT upgrade (serve cached AI narrative)
+    expect(shouldUpgrade("gemini", null, true)).toBe(false);
+  });
+
+  test("user isolation in cache: identical attempts produce distinct hashes for different users", async () => {
+    const attempts = [{ id: "att-1", submittedAt: "2026-10-20T10:00:00Z" }];
+    const hashUserA = await computeDiagnosisInputHash({
+      userId: "user-alpha",
+      engineVersion: "1.2.0",
+      unreleasedScheduledAttemptsCount: 0,
+      attempts,
+    });
+    const hashUserB = await computeDiagnosisInputHash({
+      userId: "user-beta",
+      engineVersion: "1.2.0",
+      unreleasedScheduledAttemptsCount: 0,
+      attempts,
+    });
+
+    expect(hashUserA).not.toBe(hashUserB);
+  });
+
   test("cache hit within 30 seconds returns cached report without triggering 429 cooldown", () => {
     // In student-ai-insight/index.ts:
     // Step 1: cachedReport check is performed BEFORE ai_usage_logs cooldown check.
@@ -278,7 +356,7 @@ describe("Phase 4 Pipeline - Evidence -> Engine -> Gemini -> Validator -> Retry 
       id: "report-123",
       user_id: "user-1",
       input_hash: "hash-abc",
-      engine_version: "1.1.0",
+      engine_version: "1.2.0",
       report: {},
       narrative: "# Cached Narrative",
       summary: "# Cached Narrative",
@@ -289,7 +367,10 @@ describe("Phase 4 Pipeline - Evidence -> Engine -> Gemini -> Validator -> Retry 
     };
 
     // When cache hit occurs:
-    const canUpgradeToGemini = cachedReport.source === "fallback" && false;
+    const canUpgradeToGemini =
+      cachedReport.source === "fallback" &&
+      cachedReport.fallback_reason === "no_key" &&
+      true;
     expect(canUpgradeToGemini).toBe(false);
 
     // Bypasses the 30s cooldown logic completely:

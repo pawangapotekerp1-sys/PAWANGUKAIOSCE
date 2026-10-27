@@ -1,3 +1,20 @@
+/**
+ * Sanitizes alphanumeric clinical terminology (e.g. CYP3A4, CYP2D6, COX-2, vitamin B12,
+ * 5-HT3, H2-antagonis, kelas II) so that embedded digits are not treated as quantitative statistics
+ * while keeping standalone quantitative numbers (e.g. 500mg, 45,5%, 15 butir) intact for validation.
+ */
+export function sanitizeClinicalIdentifiers(text: string): string {
+  return text
+    .replace(/\bCYP\d+[A-Z]\d*\b/gi, "[CLINICAL_TOKEN]")
+    .replace(/\b(?:vitamin|vit)\.?\s+[A-Z]\d+\b/gi, "[CLINICAL_TOKEN]")
+    .replace(/\b5-HT\d*[a-z]?\b/gi, "[CLINICAL_TOKEN]")
+    .replace(/\bCOX-\d+\b/gi, "[CLINICAL_TOKEN]")
+    .replace(/\b[A-Z]\d+-(?:antagonis|agonis|reseptor|blocker|inhibitor)\b/gi, "[CLINICAL_TOKEN]")
+    .replace(/\b(?:SGLT-2|DPP-4|GLP-1|ACE-2)\b/gi, "[CLINICAL_TOKEN]")
+    .replace(/\b(?:kelas|grade|stage|fase|tipe)\s+(?:[IVXLCDM]+|\d+)\b/gi, "[CLINICAL_TOKEN]")
+    .replace(/\b[A-Za-z]+\d+[A-Za-z0-9]*\b/g, "[CLINICAL_TOKEN]");
+}
+
 import { DIAGNOSIS_CONFIG } from "./config.ts";
 import { formatQuestionSummary } from "./recommend.ts";
 import type { DiagnosisReport } from "./types.ts";
@@ -54,9 +71,12 @@ export function buildDiagnosisNarrationPrompt(report: DiagnosisReport): string {
   }
   lines.push("- Distribusi Kesalahan:");
   lines.push(`  * Miskonsepsi: ${report.classifiedErrorCounts.miskonsepsi} butir`);
-  lines.push(`  * Celah Pengetahuan: ${report.classifiedErrorCounts.celah_pengetahuan} butir`);
-  lines.push(`  * Kecerobohan: ${report.classifiedErrorCounts.ceroboh} butir`);
   lines.push(`  * Kehabisan Waktu: ${report.classifiedErrorCounts.kehabisan_waktu} butir`);
+  lines.push(`  * Kecerobohan: ${report.classifiedErrorCounts.ceroboh} butir`);
+  lines.push(`  * Celah Pengetahuan: ${report.classifiedErrorCounts.celah_pengetahuan} butir`);
+  if (report.classifiedErrorCounts.tidak_terklasifikasi !== undefined) {
+    lines.push(`  * Tidak Terklasifikasi: ${report.classifiedErrorCounts.tidak_terklasifikasi} butir`);
+  }
   lines.push("");
   lines.push("TEMUAN PRIORITAS DAN REKOMENDASI:");
   if (report.topFindings.length === 0) {
@@ -194,8 +214,9 @@ export function validateNarrative(
   const allowedNumbers = extractAllowedNumbers(report);
   const allowedIds = extractAllowedIds(report);
 
-  // 1. Check numbers in generated text
-  const numberMatches = text.match(/\b\d+(?:[.,]\d+)?\b/g);
+  // 1. Check numbers in generated text (with clinical terminology sanitized)
+  const sanitized = sanitizeClinicalIdentifiers(text);
+  const numberMatches = sanitized.match(/\b\d+(?:[.,]\d+)?\b/g);
   const invalidNumbers: number[] = [];
 
   if (numberMatches) {

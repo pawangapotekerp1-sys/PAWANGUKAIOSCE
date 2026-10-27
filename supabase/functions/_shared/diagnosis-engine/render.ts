@@ -31,9 +31,12 @@ export function renderFallbackMarkdown(report: DiagnosisReport): string {
   lines.push("## 2. Profil Karakteristik Kesalahan");
   lines.push("Berdasarkan waktu respon, perilaku ragu-ragu, dan distorsi pilihan jawaban:");
   lines.push(`- **Miskonsepsi (Distraktor Kuat Berulang):** ${report.classifiedErrorCounts.miskonsepsi} butir`);
-  lines.push(`- **Celah Pengetahuan (Ragu / Berpikir Panjang):** ${report.classifiedErrorCounts.celah_pengetahuan} butir`);
-  lines.push(`- **Kecerobohan (Terlalu Cepat Tanpa Ragu):** ${report.classifiedErrorCounts.ceroboh} butir`);
   lines.push(`- **Kendala Manajemen Waktu Akhir Sesi:** ${report.classifiedErrorCounts.kehabisan_waktu} butir`);
+  lines.push(`- **Kecerobohan (Terlalu Cepat Tanpa Ragu):** ${report.classifiedErrorCounts.ceroboh} butir`);
+  lines.push(`- **Celah Pengetahuan (Ragu / Berpikir Panjang):** ${report.classifiedErrorCounts.celah_pengetahuan} butir`);
+  if (report.classifiedErrorCounts.tidak_terklasifikasi !== undefined) {
+    lines.push(`- **Tidak Terklasifikasi:** ${report.classifiedErrorCounts.tidak_terklasifikasi} butir`);
+  }
   lines.push("");
 
   // 3. Temuan Prioritas & Rekomendasi Studi

@@ -17,6 +17,7 @@ export const ERROR_TAG_PRIORITY: readonly ErrorTag[] = [
   "kehabisan_waktu",
   "ceroboh",
   "celah_pengetahuan",
+  "tidak_terklasifikasi",
 ] as const;
 
 export interface ClassificationContext {
@@ -110,8 +111,14 @@ export function classifyEvidenceRow(
     matchingTags.add("celah_pengetahuan");
   }
 
+  // 5. Tidak Terklasifikasi:
+  // Jika soal salah tetapi tidak memenuhi salah satu dari 4 sinyal kognitif di atas
+  if (matchingTags.size === 0) {
+    matchingTags.add("tidak_terklasifikasi");
+  }
+
   // Sort matching tags according to defined priority hierarchy:
-  // miskonsepsi > kehabisan_waktu > ceroboh > celah_pengetahuan
+  // miskonsepsi > kehabisan_waktu > ceroboh > celah_pengetahuan > tidak_terklasifikasi
   return ERROR_TAG_PRIORITY.filter((tag) => matchingTags.has(tag));
 }
 
@@ -131,6 +138,7 @@ export function classifyAllEvidenceRows(
     kehabisan_waktu: 0,
     ceroboh: 0,
     celah_pengetahuan: 0,
+    tidak_terklasifikasi: 0,
   };
 
   // Grouping kunci: question_id -> selected_option_key -> Set<attempt_id>
@@ -165,14 +173,18 @@ export function classifyAllEvidenceRows(
       config,
     );
 
-    for (const tag of error_tags) {
-      tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+    const primary_error_tag = error_tags.length > 0 ? error_tags[0] : null;
+
+    // Setiap jawaban salah memiliki tepat 1 primary tag dalam distribusi klasifikasi
+    // untuk menjamin invarian: jumlah semua kategori == jumlah jawaban salah.
+    if (primary_error_tag) {
+      tagCounts[primary_error_tag] = (tagCounts[primary_error_tag] || 0) + 1;
     }
 
     return {
       ...row,
       error_tags,
-      primary_error_tag: error_tags.length > 0 ? error_tags[0] : null,
+      primary_error_tag,
     };
   });
 

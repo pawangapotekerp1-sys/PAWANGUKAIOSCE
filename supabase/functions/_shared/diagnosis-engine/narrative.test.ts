@@ -229,4 +229,45 @@ Belajar lagi.
     expect(decorated).toContain("> **Catatan Try Out Terjadwal:** Terdapat 2 sesi try out terjadwal yang belum disertakan dalam analisis ini karena periode pelaksanaan event belum berakhir.");
     expect(decorated).toContain("# Laporan Analisis Kelemahan Belajar");
   });
+
+  test("validateNarrative ignores clinical alphanumeric identifiers (CYP3A4, CYP2D6, COX-2, vitamin B12, 5-HT3, H2-antagonis, kelas II) while strictly rejecting foreign quantitative numbers", () => {
+    const rows: EvidenceRow[] = [
+      createMockRow({ question_id: "q-1", is_correct: false }),
+      createMockRow({ question_id: "q-2", is_correct: true }),
+    ];
+    const report = runDiagnosisEngine(rows); // attempts=1, questions=2, acc=50%
+
+    // Narrative with multiple clinical alphanumeric identifiers (should PASS)
+    const clinicalText = `
+# Laporan Analisis Kelemahan Belajar
+## 1. Ringkasan Kinerja
+Siswa menyelesaikan 1 sesi try out dengan 2 butir soal dan akurasi 50%.
+## 2. Profil Karakteristik Kesalahan
+Terdapat 0 butir miskonsepsi.
+## 3. Temuan Prioritas & Rekomendasi Studi
+Pelajari interaksi substrat CYP3A4 dan CYP2D6, mekanisme inhibitor COX-2, absorpsi vitamin B12, serta antagonis reseptor 5-HT3 dan obat golongan H2-antagonis pada gagal jantung kelas II.
+## 4. Disiplin Ujian & Rekomendasi Belajar
+Pertahankan ritme belajar.
+    `.trim();
+
+    const passResult = validateNarrative(clinicalText, report);
+    expect(passResult.valid).toBe(true);
+
+    // Narrative with clinical tokens PLUS foreign quantitative number (500mg) (should FAIL)
+    const foreignNumText = `
+# Laporan Analisis Kelemahan Belajar
+## 1. Ringkasan Kinerja
+Siswa menyelesaikan 1 sesi try out dengan 2 butir soal dan akurasi 50%.
+## 2. Profil Karakteristik Kesalahan
+Terdapat 0 butir miskonsepsi.
+## 3. Temuan Prioritas & Rekomendasi Studi
+Diberikan inhibitor CYP3A4 dengan dosis 500 mg.
+## 4. Disiplin Ujian & Rekomendasi Belajar
+Pertahankan ritme belajar.
+    `.trim();
+
+    const failResult = validateNarrative(foreignNumText, report);
+    expect(failResult.valid).toBe(false);
+    expect(failResult.invalidNumbers).toContain(500);
+  });
 });

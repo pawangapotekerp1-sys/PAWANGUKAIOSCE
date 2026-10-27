@@ -705,12 +705,32 @@ async function createSignedMediaUrls(
   }
 
   if (pathsToFetch.length > 0) {
-    const { data, error } = await client.storage
-      .from("question-media")
-      .createSignedUrls(pathsToFetch, 3600);
+    const bucket = client.storage?.from?.("question-media");
+    if (typeof bucket?.createSignedUrls === "function") {
+      const { data, error } = await bucket.createSignedUrls(pathsToFetch, 3600);
 
-    if (error) {
-      // Fall back to sequential individual requests to avoid rate limits when a file is missing.
+      if (error) {
+        // Fall back to sequential individual requests to avoid rate limits when a file is missing.
+        for (const p of pathsToFetch) {
+          const url = await createSignedMediaUrl(client, p);
+          if (url) {
+            urlMap.set(p, url);
+            signedUrlCache.set(p, { url, expiresAt: now + 3000 * 1000 });
+          } else {
+            missingUrlCache.set(p, now + 300 * 1000);
+          }
+        }
+      } else {
+        for (const item of (data ?? [])) {
+          if (!item.error && item.path && item.signedUrl) {
+            urlMap.set(item.path, item.signedUrl);
+            signedUrlCache.set(item.path, { url: item.signedUrl, expiresAt: now + 3000 * 1000 });
+          } else if (item.path && item.error) {
+            missingUrlCache.set(item.path, now + 300 * 1000);
+          }
+        }
+      }
+    } else {
       for (const p of pathsToFetch) {
         const url = await createSignedMediaUrl(client, p);
         if (url) {
@@ -718,15 +738,6 @@ async function createSignedMediaUrls(
           signedUrlCache.set(p, { url, expiresAt: now + 3000 * 1000 });
         } else {
           missingUrlCache.set(p, now + 300 * 1000);
-        }
-      }
-    } else {
-      for (const item of (data ?? [])) {
-        if (!item.error && item.path && item.signedUrl) {
-          urlMap.set(item.path, item.signedUrl);
-          signedUrlCache.set(item.path, { url: item.signedUrl, expiresAt: now + 3000 * 1000 });
-        } else if (item.path && item.error) {
-          missingUrlCache.set(item.path, now + 300 * 1000);
         }
       }
     }
@@ -843,7 +854,7 @@ export async function listTryoutCatalogEntries(
     .sort(compareTryoutTemplates);
 }
 
-async function getActiveAttemptForCurrentUser(client: TryoutClient): Promise<PersistedAttempt | null> {
+async function getActiveAttemptForCurrentUser(client: TryoutClient, now = new Date()): Promise<PersistedAttempt | null> {
   const { data, error } = await client
     .from("attempts")
     .select("id, user_id, exam_template_id, status, started_at, submitted_at, time_limit_seconds, total_questions, elapsed_seconds, last_resumed_at, paused_at")
@@ -864,25 +875,41 @@ export async function createAttempt(
   {
     client = getSupabaseBrowserClient(),
     examTemplateId,
+    now = new Date(),
   }: {
     client?: TryoutClient;
     examTemplateId: string;
+    now?: Date;
   },
 ): Promise<PersistedAttempt> {
-  const { data, error } = await client.rpc("start_attempt_from_template", {
+  let { data, error } = await client.rpc("start_attempt_from_template", {
     target_exam_template_id: examTemplateId,
   });
 
   if (error) {
     if (/lanjutkan try out yang masih aktif/i.test(error.message)) {
-      const activeAttempt = await getActiveAttemptForCurrentUser(client);
+      const activeAttempt = await getActiveAttemptForCurrentUser(client, now);
 
       if (activeAttempt) {
-        return activeAttempt;
+        if (calculateTimeRemainingSeconds(activeAttempt, now) <= 0) {
+          await client.rpc("submit_attempt", {
+            target_attempt_id: activeAttempt.id,
+          });
+
+          const retryResult = await client.rpc("start_attempt_from_template", {
+            target_exam_template_id: examTemplateId,
+          });
+          data = retryResult.data;
+          error = retryResult.error;
+        } else {
+          return activeAttempt;
+        }
       }
     }
 
-    throw new Error(error.message);
+    if (error) {
+      throw new Error(error.message);
+    }
   }
 
   return mapAttempt(data as AttemptRow);
@@ -964,6 +991,12 @@ export async function findActiveAttemptForUser(
     throw new Error(countError.message);
   }
 
+  const timeRemainingSeconds = calculateTimeRemainingSeconds(attempt, now);
+
+  if (timeRemainingSeconds <= 0) {
+    return null;
+  }
+
   return {
     attemptId: attempt.id,
     status: attempt.status === "paused" ? "paused" : "in_progress",
@@ -971,7 +1004,7 @@ export async function findActiveAttemptForUser(
     mode: relatedTemplate?.mode ?? "full",
     answeredCount: count ?? 0,
     totalQuestions: attempt.totalQuestions,
-    timeRemainingSeconds: calculateTimeRemainingSeconds(attempt, now),
+    timeRemainingSeconds,
   };
 }
 

@@ -611,6 +611,7 @@ describe("tryout-api", () => {
           rpc,
         } as never,
         examTemplateId: "template-1",
+        now: new Date("2026-05-01T10:05:00.000Z"),
       }),
     ).resolves.toMatchObject({
       id: "attempt-active",
@@ -621,6 +622,84 @@ describe("tryout-api", () => {
     expect(from).toHaveBeenCalledWith("attempts");
     expect(inFilter).toHaveBeenCalledWith("status", ["in_progress", "paused"]);
     expect(is).toHaveBeenCalledWith("submitted_at", null);
+  });
+
+  test("auto-submits an expired active attempt and retries creation when blocked by an expired session", async () => {
+    const rpc = vi.fn()
+      .mockResolvedValueOnce({
+        data: null,
+        error: {
+          message: "Silakan lanjutkan try out yang masih aktif sebelum memulai sesi baru.",
+        },
+      })
+      .mockResolvedValueOnce({
+        data: { attempt_id: "attempt-expired" },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: {
+          id: "attempt-new",
+          user_id: "user-1",
+          exam_template_id: "template-2",
+          status: "in_progress",
+          started_at: "2026-05-01T14:00:00.000Z",
+          submitted_at: null,
+          time_limit_seconds: 1200,
+          total_questions: 20,
+          elapsed_seconds: 0,
+          last_resumed_at: "2026-05-01T14:00:00.000Z",
+          paused_at: null,
+        },
+        error: null,
+      });
+
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: "attempt-expired",
+        user_id: "user-1",
+        exam_template_id: "template-1",
+        status: "in_progress",
+        started_at: "2026-05-01T10:00:00.000Z",
+        submitted_at: null,
+        time_limit_seconds: 1200,
+        total_questions: 20,
+        elapsed_seconds: 0,
+        last_resumed_at: "2026-05-01T10:00:00.000Z",
+        paused_at: null,
+      },
+      error: null,
+    });
+    const limit = vi.fn(() => ({ maybeSingle }));
+    const order = vi.fn(() => ({ limit }));
+    const is = vi.fn(() => ({ order }));
+    const inFilter = vi.fn(() => ({ is }));
+    const select = vi.fn(() => ({ in: inFilter }));
+    const from = vi.fn(() => ({ select }));
+
+    await expect(
+      createAttempt({
+        client: {
+          from,
+          rpc,
+        } as never,
+        examTemplateId: "template-2",
+        now: new Date("2026-05-01T14:00:00.000Z"),
+      }),
+    ).resolves.toMatchObject({
+      id: "attempt-new",
+      examTemplateId: "template-2",
+      status: "in_progress",
+    });
+
+    expect(rpc).toHaveBeenNthCalledWith(1, "start_attempt_from_template", {
+      target_exam_template_id: "template-2",
+    });
+    expect(rpc).toHaveBeenNthCalledWith(2, "submit_attempt", {
+      target_attempt_id: "attempt-expired",
+    });
+    expect(rpc).toHaveBeenNthCalledWith(3, "start_attempt_from_template", {
+      target_exam_template_id: "template-2",
+    });
   });
 
   test("builds the session page contract from attempt, snapshot items, and answers", async () => {
@@ -1215,6 +1294,80 @@ describe("tryout-api", () => {
     expect(attemptResultEq).toHaveBeenCalledWith("attempt_id", "attempt-2");
   });
 
+  test("does not surface a resume panel for an attempt that has expired", async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: "attempt-expired",
+        user_id: "user-1",
+        exam_template_id: "template-1",
+        status: "in_progress",
+        started_at: "2026-05-01T08:00:00.000Z",
+        submitted_at: null,
+        time_limit_seconds: 1200,
+        total_questions: 20,
+        elapsed_seconds: 0,
+        last_resumed_at: "2026-05-01T08:00:00.000Z",
+        paused_at: null,
+        exam_template: {
+          title: "Semisolid",
+          mode: "topic",
+        },
+      },
+      error: null,
+    });
+    const attemptResultEq = vi.fn().mockResolvedValue({
+      count: 0,
+      error: null,
+    });
+    const client = {
+      from: vi.fn((table: string) => {
+        if (table === "attempts") {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                in: vi.fn(() => ({
+                  order: vi.fn(() => ({
+                    limit: vi.fn(() => ({
+                      maybeSingle,
+                    })),
+                  })),
+                })),
+              })),
+            })),
+          };
+        }
+
+        if (table === "attempt_results") {
+          return {
+            select: vi.fn(() => ({
+              eq: attemptResultEq,
+            })),
+          };
+        }
+
+        if (table === "answers") {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                not: vi.fn().mockResolvedValue({ count: 0, error: null }),
+              })),
+            })),
+          };
+        }
+
+        throw new Error(`Unexpected table ${table}`);
+      }),
+    };
+
+    await expect(
+      findActiveAttemptForUser({
+        client: client as never,
+        userId: "user-1",
+        now: new Date("2026-05-01T11:00:00.000Z"),
+      }),
+    ).resolves.toBeNull();
+  });
+
   test("pauses an attempt through the runtime rpc", async () => {
     const rpc = vi.fn().mockResolvedValue({
       data: {
@@ -1774,6 +1927,9 @@ describe("tryout-api", () => {
       {
         attemptId: "attempt-9",
         title: "Try Out Besar",
+        mode: null,
+        blockName: null,
+        blockSlug: null,
         submittedAt: "2026-05-03T09:00:00.000Z",
         score: 82,
         correctAnswers: 164,
@@ -1782,6 +1938,9 @@ describe("tryout-api", () => {
       {
         attemptId: "attempt-7",
         title: "Clinical Science",
+        mode: null,
+        blockName: null,
+        blockSlug: null,
         submittedAt: "2026-05-01T09:00:00.000Z",
         score: 71,
         correctAnswers: 71,

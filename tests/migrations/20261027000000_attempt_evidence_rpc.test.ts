@@ -47,11 +47,18 @@ describe("20261027000000_attempt_evidence_rpc migration", () => {
     expect(sql).toContain("where status = 'submitted'");
   });
 
-  test("enforces security definer and restricts execution to authenticated and service_role", () => {
+  test("enforces security definer with secure search_path = public, pg_temp", () => {
     expect(sql).toContain("security definer");
+    expect(sql).toMatch(/set\s+search_path\s*=\s*public,\s*pg_temp/i);
     expect(sql).toContain("target_user_id uuid := auth.uid();");
     expect(sql).toContain("revoke all on function public.get_attempt_evidence");
     expect(sql).toContain("grant execute on function public.get_attempt_evidence(date, date, text, integer) to authenticated");
     expect(sql).toContain("grant execute on function public.get_attempt_evidence(date, date, text, integer) to service_role");
+  });
+
+  test("enforces event release gate for scheduled tryouts (timezone('utc', now()) >= ste.access_end_at)", () => {
+    expect(sql).toContain("public.scheduled_tryout_attempts");
+    expect(sql).toContain("public.scheduled_tryout_events");
+    expect(sql).toMatch(/timezone\('utc',\s*now\(\)\)\s*>=\s*ste\.access_end_at/i);
   });
 });

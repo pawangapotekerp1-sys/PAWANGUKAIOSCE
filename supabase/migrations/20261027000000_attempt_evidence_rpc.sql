@@ -31,7 +31,7 @@ returns table (
 )
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, pg_temp
 as $$
 declare
   target_user_id uuid := auth.uid();
@@ -63,9 +63,11 @@ begin
 
   return query
   with target_attempts as (
+    -- 1. Regular diagnostic tryouts
     select
       att.id,
-      att.submitted_at
+      att.submitted_at,
+      'regular'::text as attempt_type
     from public.attempts as att
     join public.exam_templates as tmpl
       on tmpl.id = att.exam_template_id
@@ -74,15 +76,26 @@ begin
       and tmpl.diagnostic_source = true
       and (range_start_utc is null or att.submitted_at >= range_start_utc)
       and (range_end_utc is null or att.submitted_at < range_end_utc)
-    order by att.submitted_at desc
-    limit coalesce(limit_attempts, 2147483647)
-  ),
-  attempt_scope_stats as (
+
+    union all
+
+    -- 2. Scheduled tryout events (only released when access_end_at has passed)
     select
-      count(*)::integer as total_items_count
-    from target_attempts as ta
-    join public.attempt_items as ai
-      on ai.attempt_id = ta.id
+      sta.id,
+      sta.submitted_at,
+      'scheduled'::text as attempt_type
+    from public.scheduled_tryout_attempts as sta
+    join public.scheduled_tryout_events as ste
+      on ste.id = sta.event_id
+    where sta.user_id = target_user_id
+      and sta.status = 'submitted'
+      and ste.editorial_status = 'published'
+      and timezone('utc', now()) >= ste.access_end_at
+      and (range_start_utc is null or sta.submitted_at >= range_start_utc)
+      and (range_end_utc is null or sta.submitted_at < range_end_utc)
+
+    order by submitted_at desc
+    limit coalesce(limit_attempts, 2147483647)
   ),
   change_event_stats as (
     select
@@ -92,9 +105,11 @@ begin
     from public.attempt_answer_change_events as ace
     join target_attempts as ta
       on ta.id = ace.attempt_id
+    where ta.attempt_type = 'regular'
     group by ace.attempt_item_id
   ),
   scoped_items as (
+    -- Regular attempt items
     select
       ta.id as attempt_id,
       ta.submitted_at,
@@ -126,6 +141,37 @@ begin
       on ces.attempt_item_id = ai.id
     left join public.question_explanations as qe
       on qe.question_id = ai.question_id
+    where ta.attempt_type = 'regular'
+
+    union all
+
+    -- Scheduled attempt items (keys and explanations available only post-event)
+    select
+      ta.id as attempt_id,
+      ta.submitted_at,
+      sai.id as attempt_item_id,
+      sai.event_question_id as question_id,
+      sai.topic_id_snapshot as topic_id,
+      coalesce(top.name, 'Tanpa Topik') as topic_name,
+      sans.selected_option_key,
+      sai.correct_option_key_snapshot as correct_option_key,
+      (sans.selected_option_key is not null and sans.selected_option_key = sai.correct_option_key_snapshot) as is_correct,
+      sai.explanation_text_snapshot as explanation,
+      coalesce(sans.is_doubtful, false) as was_ever_flagged_ragu,
+      0::integer as time_spent_seconds,
+      0::integer as answer_change_count,
+      0::integer as changed_correct_to_wrong_count,
+      0::integer as changed_wrong_to_correct_count,
+      sai.sort_order,
+      count(*) over (partition by ta.id)::integer as attempt_total_items
+    from target_attempts as ta
+    join public.scheduled_tryout_attempt_items as sai
+      on sai.attempt_id = ta.id
+    left join public.topics as top
+      on top.id = sai.topic_id_snapshot
+    left join public.scheduled_tryout_answers as sans
+      on sans.attempt_item_id = sai.id
+    where ta.attempt_type = 'scheduled'
   ),
   timing_stats as (
     select

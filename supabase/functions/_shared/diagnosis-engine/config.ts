@@ -5,13 +5,12 @@ export const DIAGNOSIS_CONFIG = {
   bayesianSmoothingK: 5,
   sampleThresholds: {
     subtopicDropBelow: 10,
-    subtopicIndicativeMin: 10,
-    subtopicPrimaryMin: 20,
+    subtopicIndicativeMin: 10,       // Minimal 10 soal untuk status indikatif
+    subtopicPrimaryMin: 20,          // Minimal 20 soal untuk status utama
     globalBehaviorMinQuestions: 100, // Minimal 100 soal terjawab global untuk temuan perilaku global
-    recurringDistractorMinCount: 3,  // Minimal 3 kali kemunculan untuk RECURRING_DISTRACTOR
-    recurringDistractorMinTryouts: 2,// Minimal 2 try out berbeda untuk RECURRING_DISTRACTOR
+    recurringDistractorMinAttempts: 2, // Minimal 2 attempt memilih pengecoh sama pada butir soal yang sama
     trendMinQuestionsPerPeriod: 10,  // Minimal 10 soal per periode (awal & akhir) untuk tren IMPROVING
-    recurringDistractorInTopicThreshold: 2, // Minimal 2 kali untuk tag miskonsepsi dalam subtopik
+    fragileKnowledgeMinQuestions: 10,// Minimal 10 soal pada subtopik untuk FRAGILE_KNOWLEDGE
   },
   behaviorThresholds: {
     slowZScore: 1.0,                 // Z-score waktu lambat (celah_pengetahuan)
@@ -19,11 +18,12 @@ export const DIAGNOSIS_CONFIG = {
     lateSessionPositionRatio: 0.85,  // Posisi sesi akhir (kehabisan_waktu: 15% terakhir)
     timeTroubleMaxSeconds: 30,       // Batas durasi kehabisan waktu (< 30 detik)
     lateSessionDropRatio: 0.75,      // Batas kuartil akhir sesi (LATE_SESSION_DROP: 25% terakhir)
-    lateSessionDropMinPercentage: 20,// Penurunan akurasi minimal 20% pada kuartil akhir
+    lateSessionDropThresholdPoints: 20, // Penurunan akurasi minimal 20 poin persentase pada kuartil akhir
+    lateSessionDropMetric: "percentage_points" as const,
+    rushedWrongMinRatio: 0.05,       // Proporsi butir salah-cepat terhadap total jawaban (>= 5%)
+    fragileKnowledgeDoubtfulCorrectRatio: 0.30, // Proporsi jawaban BENAR yang ditandai ragu pada topik (>= 30%)
     confidentErrorsTopicMinCount: 3, // Minimal salah tanpa ragu pada topik
     persistentWeaknessMaxAccuracy: 60, // Batas akurasi kelemahan persisten (< 60%)
-    fragileKnowledgeConfMinAcc: 70,  // Akurasi yakin minimal 70% untuk FRAGILE_KNOWLEDGE
-    fragileKnowledgeDoubtMaxAcc: 40, // Akurasi ragu maksimal 40% untuk FRAGILE_KNOWLEDGE
   },
   rateLimits: {
     cooldownSeconds: 30,

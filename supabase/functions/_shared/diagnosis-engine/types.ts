@@ -1,9 +1,9 @@
 import type { DiagnosisConfig } from "./config.ts";
 
 export type ErrorTag =
+  | "miskonsepsi"
   | "kehabisan_waktu"
   | "ceroboh"
-  | "miskonsepsi"
   | "celah_pengetahuan";
 
 export type FindingCode =
@@ -22,11 +22,13 @@ export interface EvidenceRow {
   question_id: string;
   topic_id: string | null;
   topic_name: string;
+  question_text?: string | null;
   selected_option_key: string | null;
   correct_option_key: string;
   is_correct: boolean;
   explanation: string | null;
   was_ever_flagged_ragu: boolean | null;
+  flagged_ragu_at_submit?: boolean | null;
   time_spent_seconds: number | null;
   time_spent_z_score: number | null;
   answer_change_count: number | null;

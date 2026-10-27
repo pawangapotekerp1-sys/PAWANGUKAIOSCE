@@ -1,9 +1,9 @@
 import { z } from "npm:zod@4.4.1";
 
 export const ErrorTagSchema = z.enum([
+  "miskonsepsi",
   "kehabisan_waktu",
   "ceroboh",
-  "miskonsepsi",
   "celah_pengetahuan",
 ]);
 
@@ -26,11 +26,13 @@ export const EvidenceRowSchema = z.object({
   question_id: z.string(),
   topic_id: z.string().nullable(),
   topic_name: z.string(),
+  question_text: z.string().nullable().optional(),
   selected_option_key: z.string().nullable(),
   correct_option_key: z.string(),
   is_correct: z.boolean(),
   explanation: z.string().nullable(),
   was_ever_flagged_ragu: z.boolean().nullable(),
+  flagged_ragu_at_submit: z.boolean().nullable().optional(),
   time_spent_seconds: z.number().nullable(),
   time_spent_z_score: z.number().nullable(),
   answer_change_count: z.number().nullable(),
@@ -67,9 +69,9 @@ export const DiagnosisReportSchema = z.object({
   overallAccuracy: z.number(),
   unreleasedScheduledAttemptsCount: z.number(),
   classifiedErrorCounts: z.object({
+    miskonsepsi: z.number(),
     kehabisan_waktu: z.number(),
     ceroboh: z.number(),
-    miskonsepsi: z.number(),
     celah_pengetahuan: z.number(),
   }),
   findings: z.array(FindingSchema),

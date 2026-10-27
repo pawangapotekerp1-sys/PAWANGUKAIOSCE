@@ -5,21 +5,48 @@ import type { ErrorTag, EvidenceRow, ClassifiedEvidenceRow } from "./types.ts";
 /**
  * Aturan Prioritas Klasifikasi Tag Kesalahan:
  * Bila satu jawaban salah memenuhi beberapa kriteria tag sekaligus, urutan dominansi
- * ditentukan secara hierarkis berdasarkan urgensi perilaku:
- * 1. kehabisan_waktu: Faktor eksternal waktu habis mendominasi kekeliruan (jawaban tergesa di akhir sesi).
- * 2. ceroboh: Tergesa-gesa tanpa ragu di luar zona akhir sesi (kecepatan abnormal mengindikasikan impulsivitas).
- * 3. miskonsepsi: Salah dengan yakin pada distraktor yang konsisten (cacat model mental sistematis).
- * 4. celah_pengetahuan: Keraguan eksplisit atau durasi berpikir panjang (ketiadaan informasi/memori).
+ * ditentukan secara hierarkis (miskonsepsi > kehabisan_waktu > ceroboh > celah_pengetahuan):
+ * 1. miskonsepsi: Salah dengan yakin pada opsi pengecoh yang sama di butir soal yang sama (question_id)
+ *    selama minimal 2 attempt. Menunjukkan cacat model mental sistematis yang mendahului tag perilaku lain.
+ * 2. kehabisan_waktu: Faktor eksternal waktu habis (dikerjakan tergesa di 15% akhir sesi ujian dengan durasi < 30 detik).
+ * 3. ceroboh: Tergesa-gesa tanpa ragu di luar zona akhir sesi (kecepatan abnormal z < -0.8 mencerminkan impulsivitas).
+ * 4. celah_pengetahuan: Keraguan eksplisit (flag ragu) atau durasi berpikir panjang (z > 1.0) menunjukkan ketiadaan memori/konsep.
  */
 export const ERROR_TAG_PRIORITY: readonly ErrorTag[] = [
+  "miskonsepsi",
   "kehabisan_waktu",
   "ceroboh",
-  "miskonsepsi",
   "celah_pengetahuan",
 ] as const;
 
 export interface ClassificationContext {
-  recurringDistractorCount?: number;
+  recurringDistractorAttemptsCount?: number;
+}
+
+/**
+ * Helper to determine effective doubt status.
+ * Prefers was_ever_flagged_ragu (telemetry attempt reguler);
+ * fallbacks to flagged_ragu_at_submit (statis submit tryout terjadwal) if was_ever_flagged_ragu is null.
+ */
+export function getEffectiveRaguStatus(row: EvidenceRow): {
+  isDoubtful: boolean;
+  isConfident: boolean;
+} {
+  if (row.was_ever_flagged_ragu !== null && row.was_ever_flagged_ragu !== undefined) {
+    return {
+      isDoubtful: row.was_ever_flagged_ragu === true,
+      isConfident: row.was_ever_flagged_ragu === false,
+    };
+  }
+
+  if (row.flagged_ragu_at_submit !== null && row.flagged_ragu_at_submit !== undefined) {
+    return {
+      isDoubtful: row.flagged_ragu_at_submit === true,
+      isConfident: row.flagged_ragu_at_submit === false,
+    };
+  }
+
+  return { isDoubtful: false, isConfident: false };
 }
 
 /**
@@ -37,8 +64,21 @@ export function classifyEvidenceRow(
   }
 
   const matchingTags = new Set<ErrorTag>();
+  const { isDoubtful, isConfident } = getEffectiveRaguStatus(row);
 
-  // 1. Kehabisan Waktu:
+  // 1. Miskonsepsi:
+  // Salah, tidak ragu (yakin), dan opsi pengecoh yang sama dipilih >= recurringDistractorMinAttempts (2)
+  // pada BUTIR SOAL YANG SAMA (question_id yang sama) di attempt berbeda.
+  // Catatan: Tidak lagi dihitung per huruf lintas soal berbeda, dan tidak mencakup answer change.
+  const distractorAttempts = context.recurringDistractorAttemptsCount ?? 0;
+  if (
+    isConfident &&
+    distractorAttempts >= config.sampleThresholds.recurringDistractorMinAttempts
+  ) {
+    matchingTags.add("miskonsepsi");
+  }
+
+  // 2. Kehabisan Waktu:
   // Soal salah/tidak dijawab di 15% akhir sesi (position >= lateSessionPositionRatio)
   // dengan durasi pengerjaan singkat (< timeTroubleMaxSeconds)
   if (
@@ -50,30 +90,18 @@ export function classifyEvidenceRow(
     matchingTags.add("kehabisan_waktu");
   }
 
-  // 2. Ceroboh:
+  // 3. Ceroboh:
   // Salah pada butir yang dijawab sangat cepat (z-score < rushedZScore) dengan rasa yakin (tanpa tanda ragu)
   if (
     row.time_spent_z_score !== null &&
-    row.was_ever_flagged_ragu === false &&
+    isConfident &&
     row.time_spent_z_score < config.behaviorThresholds.rushedZScore
   ) {
     matchingTags.add("ceroboh");
   }
 
-  // 3. Miskonsepsi:
-  // Salah, tidak ragu (yakin), dan opsi pengecoh yang sama dipilih >= 2 kali di subtopik/topik terkait
-  // Catatan: perubahan jawaban dari benar ke salah TIDAK dimasukkan di sini (dianalisis khusus di NET_ANSWER_CHANGE).
-  const distractorCount = context.recurringDistractorCount ?? 0;
-  if (
-    row.was_ever_flagged_ragu === false &&
-    distractorCount >= config.sampleThresholds.recurringDistractorInTopicThreshold
-  ) {
-    matchingTags.add("miskonsepsi");
-  }
-
   // 4. Celah Pengetahuan:
   // Salah + ragu-ragu ATAU waktu berpikir jauh di atas rata-rata (z-score > slowZScore)
-  const isDoubtful = row.was_ever_flagged_ragu === true;
   const isSlow =
     row.time_spent_z_score !== null &&
     row.time_spent_z_score > config.behaviorThresholds.slowZScore;
@@ -82,13 +110,14 @@ export function classifyEvidenceRow(
     matchingTags.add("celah_pengetahuan");
   }
 
-  // Sort matching tags according to defined priority hierarchy
+  // Sort matching tags according to defined priority hierarchy:
+  // miskonsepsi > kehabisan_waktu > ceroboh > celah_pengetahuan
   return ERROR_TAG_PRIORITY.filter((tag) => matchingTags.has(tag));
 }
 
 /**
  * Classifies a list of evidence rows and counts error tag distributions.
- * Computes topic distractor distributions across the dataset to accurately identify miskonsepsi.
+ * Computes distractor frequency PER QUESTION_ID across distinct attempts.
  */
 export function classifyAllEvidenceRows(
   rows: EvidenceRow[],
@@ -98,36 +127,41 @@ export function classifyAllEvidenceRows(
   tagCounts: Record<ErrorTag, number>;
 } {
   const tagCounts: Record<ErrorTag, number> = {
+    miskonsepsi: 0,
     kehabisan_waktu: 0,
     ceroboh: 0,
-    miskonsepsi: 0,
     celah_pengetahuan: 0,
   };
 
-  // Pre-calculate distractor counts per topic and option key: topicKey -> optionKey -> count
-  const distractorFrequency = new Map<string, Map<string, number>>();
+  // Grouping kunci: question_id -> selected_option_key -> Set<attempt_id>
+  // Pengecoh berulang hanya valid jika question_id yang sama dan opsi salah yang sama dipilih di >= 2 attempt.
+  const questionDistractorAttempts = new Map<string, Map<string, Set<string>>>();
   for (const row of rows) {
     if (!row.is_correct && row.selected_option_key) {
-      const topicKey = row.topic_id || row.topic_name || "unknown";
-      let optMap = distractorFrequency.get(topicKey);
+      let optMap = questionDistractorAttempts.get(row.question_id);
       if (!optMap) {
         optMap = new Map();
-        distractorFrequency.set(topicKey, optMap);
+        questionDistractorAttempts.set(row.question_id, optMap);
       }
-      optMap.set(row.selected_option_key, (optMap.get(row.selected_option_key) || 0) + 1);
+      let attSet = optMap.get(row.selected_option_key);
+      if (!attSet) {
+        attSet = new Set();
+        optMap.set(row.selected_option_key, attSet);
+      }
+      attSet.add(row.attempt_id);
     }
   }
 
   const classifiedRows: ClassifiedEvidenceRow[] = rows.map((row) => {
-    let recurringDistractorCount = 0;
+    let recurringDistractorAttemptsCount = 0;
     if (!row.is_correct && row.selected_option_key) {
-      const topicKey = row.topic_id || row.topic_name || "unknown";
-      recurringDistractorCount = distractorFrequency.get(topicKey)?.get(row.selected_option_key) || 0;
+      recurringDistractorAttemptsCount =
+        questionDistractorAttempts.get(row.question_id)?.get(row.selected_option_key)?.size || 0;
     }
 
     const error_tags = classifyEvidenceRow(
       row,
-      { recurringDistractorCount },
+      { recurringDistractorAttemptsCount },
       config,
     );
 

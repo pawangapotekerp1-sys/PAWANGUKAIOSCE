@@ -19,11 +19,13 @@ returns table (
   question_id uuid,
   topic_id uuid,
   topic_name text,
+  question_text text,
   selected_option_key text,
   correct_option_key text,
   is_correct boolean,
   explanation text,
   was_ever_flagged_ragu boolean,
+  flagged_ragu_at_submit boolean,
   time_spent_seconds integer,
   time_spent_z_score numeric,
   answer_change_count integer,
@@ -134,11 +136,13 @@ begin
       ai.question_id,
       ai.topic_id,
       coalesce(top.name, 'Tanpa Topik') as topic_name,
+      coalesce(q.stem, 'Soal') as question_text,
       ans.selected_option_key,
       ai.correct_option_key,
       (ans.selected_option_key is not null and ans.selected_option_key = ai.correct_option_key) as is_correct,
       qe.explanation,
       coalesce(bm.was_ever_flagged_ragu, ans.is_doubtful, false) as was_ever_flagged_ragu,
+      coalesce(ans.is_doubtful, false) as flagged_ragu_at_submit,
       coalesce(bm.time_spent_seconds, 0)::integer as time_spent_seconds,
       coalesce(bm.answer_change_count, 0)::integer as answer_change_count,
       coalesce(ces.c_to_w, bm.changed_correct_to_wrong_count, 0)::integer as changed_correct_to_wrong_count,
@@ -148,6 +152,8 @@ begin
     from target_attempts as ta
     join public.attempt_items as ai
       on ai.attempt_id = ta.id
+    left join public.questions as q
+      on q.id = ai.question_id
     left join public.topics as top
       on top.id = ai.topic_id
     left join public.answers as ans
@@ -170,11 +176,13 @@ begin
       sai.event_question_id as question_id,
       sai.topic_id_snapshot as topic_id,
       coalesce(top.name, 'Tanpa Topik') as topic_name,
+      coalesce(sai.question_snapshot, 'Soal') as question_text,
       sans.selected_option_key,
       sai.correct_option_key_snapshot as correct_option_key,
       (sans.selected_option_key is not null and sans.selected_option_key = sai.correct_option_key_snapshot) as is_correct,
       sai.explanation_text_snapshot as explanation,
       null::boolean as was_ever_flagged_ragu,
+      coalesce(sans.is_doubtful, false) as flagged_ragu_at_submit,
       null::integer as time_spent_seconds,
       null::integer as answer_change_count,
       null::integer as changed_correct_to_wrong_count,
@@ -203,11 +211,13 @@ begin
     si.question_id,
     si.topic_id,
     si.topic_name,
+    si.question_text,
     si.selected_option_key,
     si.correct_option_key,
     si.is_correct,
     si.explanation,
     si.was_ever_flagged_ragu,
+    si.flagged_ragu_at_submit,
     si.time_spent_seconds,
     round(
       case

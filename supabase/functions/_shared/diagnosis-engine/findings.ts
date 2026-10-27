@@ -1,6 +1,7 @@
+import { getEffectiveRaguStatus } from "./classify.ts";
 import type { DiagnosisConfig } from "./config.ts";
 import { DIAGNOSIS_CONFIG } from "./config.ts";
-import { buildRecommendationDraft } from "./recommend.ts";
+import { buildRecommendationDraft, formatQuestionSummary } from "./recommend.ts";
 import type { EvidenceRow, Finding } from "./types.ts";
 
 interface TopicAccumulator {
@@ -10,18 +11,25 @@ interface TopicAccumulator {
   correctQuestions: number;
   attempts: Set<string>;
   attemptOrderMap: Map<string, { submittedAt: string; total: number; correct: number }>;
-  wrongAnswersByOption: Map<string, number>;
-  wrongOptionAttempts: Map<string, Set<string>>;
   confidentErrors: number;
+  hasFallbackConfidence: boolean;
   doubtfulTotal: number;
   doubtfulCorrect: number;
   confidentTotal: number;
   confidentCorrect: number;
 }
 
+interface QuestionDistractorAccumulator {
+  questionId: string;
+  questionText: string;
+  topicId: string;
+  topicName: string;
+  wrongOptionAttempts: Map<string, Set<string>>;
+}
+
 /**
  * Deterministically detects the 8 cognitive/behavioral patterns from evidence rows.
- * Enforces strict sample gates and handles nullable telemetry safely.
+ * Enforces strict sample gates, question-level distractor tracking, and handles nullable telemetry safely.
  */
 export function detectFindings(
   rows: EvidenceRow[],
@@ -33,29 +41,31 @@ export function detectFindings(
 
   const findings: Finding[] = [];
 
-  // 1. Group data by topic
+  // 1. Group data by question_id for RECURRING_DISTRACTOR
+  const questionMap = new Map<string, QuestionDistractorAccumulator>();
+
+  // 2. Group data by topic
   const topicMap = new Map<string, TopicAccumulator>();
 
   for (const row of rows) {
-    const key = row.topic_id || row.topic_name || "unknown";
-    let acc = topicMap.get(key);
+    const topicKey = row.topic_id || row.topic_name || "unknown";
+    let acc = topicMap.get(topicKey);
     if (!acc) {
       acc = {
-        topicId: row.topic_id || key,
+        topicId: row.topic_id || topicKey,
         topicName: row.topic_name || "Tanpa Topik",
         totalQuestions: 0,
         correctQuestions: 0,
         attempts: new Set<string>(),
         attemptOrderMap: new Map(),
-        wrongAnswersByOption: new Map(),
-        wrongOptionAttempts: new Map(),
         confidentErrors: 0,
+        hasFallbackConfidence: false,
         doubtfulTotal: 0,
         doubtfulCorrect: 0,
         confidentTotal: 0,
         confidentCorrect: 0,
       };
-      topicMap.set(key, acc);
+      topicMap.set(topicKey, acc);
     }
 
     acc.totalQuestions += 1;
@@ -69,36 +79,88 @@ export function detectFindings(
     }
     attStat.total += 1;
 
+    const { isDoubtful, isConfident } = getEffectiveRaguStatus(row);
+    if (row.was_ever_flagged_ragu === null && row.flagged_ragu_at_submit !== null && row.flagged_ragu_at_submit !== undefined) {
+      acc.hasFallbackConfidence = true;
+    }
+
     if (row.is_correct) {
       acc.correctQuestions += 1;
       attStat.correct += 1;
+      if (isDoubtful) {
+        acc.doubtfulCorrect += 1;
+      }
+      if (isConfident) {
+        acc.confidentCorrect += 1;
+      }
     } else {
-      // Wrong answers tracking
-      if (row.selected_option_key) {
-        const count = acc.wrongAnswersByOption.get(row.selected_option_key) || 0;
-        acc.wrongAnswersByOption.set(row.selected_option_key, count + 1);
-
-        let optAttempts = acc.wrongOptionAttempts.get(row.selected_option_key);
-        if (!optAttempts) {
-          optAttempts = new Set();
-          acc.wrongOptionAttempts.set(row.selected_option_key, optAttempts);
-        }
-        optAttempts.add(row.attempt_id);
+      // Confident errors tracking
+      if (isConfident) {
+        acc.confidentErrors += 1;
       }
 
-      // Confident errors strictly require was_ever_flagged_ragu === false (not null)
-      if (row.was_ever_flagged_ragu === false) {
-        acc.confidentErrors += 1;
+      // Question-level distractor tracking for RECURRING_DISTRACTOR
+      if (row.selected_option_key) {
+        let qAcc = questionMap.get(row.question_id);
+        if (!qAcc) {
+          qAcc = {
+            questionId: row.question_id,
+            questionText: row.question_text || "",
+            topicId: row.topic_id || topicKey,
+            topicName: row.topic_name || "Tanpa Topik",
+            wrongOptionAttempts: new Map(),
+          };
+          questionMap.set(row.question_id, qAcc);
+        }
+        let attSet = qAcc.wrongOptionAttempts.get(row.selected_option_key);
+        if (!attSet) {
+          attSet = new Set();
+          qAcc.wrongOptionAttempts.set(row.selected_option_key, attSet);
+        }
+        attSet.add(row.attempt_id);
       }
     }
 
-    // Doubtful vs Confident tracking (skip if was_ever_flagged_ragu is null)
-    if (row.was_ever_flagged_ragu === true) {
+    if (isDoubtful) {
       acc.doubtfulTotal += 1;
-      if (row.is_correct) acc.doubtfulCorrect += 1;
-    } else if (row.was_ever_flagged_ragu === false) {
+    }
+    if (isConfident) {
       acc.confidentTotal += 1;
-      if (row.is_correct) acc.confidentCorrect += 1;
+    }
+  }
+
+  // --- A. RECURRING_DISTRACTOR (Question-Level Detector) ---
+  // Pengecoh yang sama dipilih pada butir soal yang sama (question_id) di >= 2 attempt berbeda
+  for (const qAcc of questionMap.values()) {
+    for (const [optionKey, attemptSet] of qAcc.wrongOptionAttempts.entries()) {
+      if (attemptSet.size >= config.sampleThresholds.recurringDistractorMinAttempts) {
+        const questionSummary = formatQuestionSummary(qAcc.questionText, qAcc.questionId);
+        const count = attemptSet.size;
+        const rec = buildRecommendationDraft("RECURRING_DISTRACTOR", {
+          topicName: qAcc.topicName,
+          optionKey,
+          count,
+          questionSummary,
+        });
+
+        findings.push({
+          id: `FND_RECURRING_DISTRACTOR_${qAcc.questionId}_${optionKey}`,
+          code: "RECURRING_DISTRACTOR",
+          title: `Pengecoh Berulang pada Opsi ${optionKey}`,
+          topicId: qAcc.topicId,
+          topicName: qAcc.topicName,
+          severity: 3,
+          persistence: Math.min(count, 5),
+          confidence: 4,
+          topicWeight: 1.0,
+          urgencyScore: 3 * Math.min(count, 5) * 4 * 1.0,
+          evidenceSummary: `Opsi salah '${optionKey}' dipilih ${count} kali di sesi try out berbeda pada butir '${questionSummary}'.`,
+          recommendationTemplateId: rec.templateId,
+          recommendationTemplateStatus: rec.status,
+          recommendationDraft: rec.draftText,
+          metadata: { questionId: qAcc.questionId, optionKey, count, questionSummary },
+        });
+      }
     }
   }
 
@@ -107,45 +169,13 @@ export function detectFindings(
   for (const acc of topicMap.values()) {
     const accuracy = acc.totalQuestions > 0 ? (acc.correctQuestions / acc.totalQuestions) * 100 : 0;
 
-    // A. RECURRING_DISTRACTOR: Same wrong option chosen >= recurringDistractorMinCount (3)
-    // across >= recurringDistractorMinTryouts (2) distinct tryouts
-    for (const [optionKey, count] of acc.wrongAnswersByOption.entries()) {
-      const distinctTryouts = acc.wrongOptionAttempts.get(optionKey)?.size || 0;
-      if (
-        count >= config.sampleThresholds.recurringDistractorMinCount &&
-        distinctTryouts >= config.sampleThresholds.recurringDistractorMinTryouts
-      ) {
-        const rec = buildRecommendationDraft("RECURRING_DISTRACTOR", {
-          topicName: acc.topicName,
-          optionKey,
-          count,
-        });
-        findings.push({
-          id: `FND_RECURRING_DISTRACTOR_${acc.topicId}_${optionKey}`,
-          code: "RECURRING_DISTRACTOR",
-          title: `Pengecoh Berulang pada Opsi ${optionKey}`,
-          topicId: acc.topicId,
-          topicName: acc.topicName,
-          severity: 3,
-          persistence: Math.min(count, 5),
-          confidence: 4,
-          topicWeight: 1.0,
-          urgencyScore: 3 * Math.min(count, 5) * 4 * 1.0,
-          evidenceSummary: `Opsi salah '${optionKey}' dipilih ${count} kali di ${distinctTryouts} sesi try out berbeda pada topik ${acc.topicName}.`,
-          recommendationTemplateId: rec.templateId,
-          recommendationTemplateStatus: rec.status,
-          recommendationDraft: rec.draftText,
-          metadata: { optionKey, count, distinctTryouts },
-        });
-      }
-    }
-
     // B. CONFIDENT_ERRORS_TOPIC: >= confidentErrorsTopicMinCount (3) wrong answers without ragu
     if (acc.confidentErrors >= config.behaviorThresholds.confidentErrorsTopicMinCount) {
       const rec = buildRecommendationDraft("CONFIDENT_ERRORS_TOPIC", {
         topicName: acc.topicName,
         count: acc.confidentErrors,
       });
+      const confidence = acc.hasFallbackConfidence ? 3 : 4;
       findings.push({
         id: `FND_CONFIDENT_ERRORS_${acc.topicId}`,
         code: "CONFIDENT_ERRORS_TOPIC",
@@ -154,9 +184,9 @@ export function detectFindings(
         topicName: acc.topicName,
         severity: 4,
         persistence: Math.min(acc.confidentErrors, 5),
-        confidence: 4,
+        confidence,
         topicWeight: 1.0,
-        urgencyScore: 4 * Math.min(acc.confidentErrors, 5) * 4 * 1.0,
+        urgencyScore: 4 * Math.min(acc.confidentErrors, 5) * confidence * 1.0,
         evidenceSummary: `Ditemukan ${acc.confidentErrors} kesalahan yang dijawab dengan rasa yakin (tanpa tanda ragu).`,
         recommendationTemplateId: rec.templateId,
         recommendationTemplateStatus: rec.status,
@@ -165,17 +195,35 @@ export function detectFindings(
       });
     }
 
-    // C. PERSISTENT_WEAKNESS: Accuracy < persistentWeaknessMaxAccuracy (60%) across >= 2 attempts with >= 4 questions
+    // C. PERSISTENT_WEAKNESS:
+    // Mengikuti ambang sampel topik (>= 10 soal indikatif, >= 20 soal utama), bukan 4 soal.
+    // Akurasi < 60% yang bertahan di >= 2 sesi try out.
     if (
+      acc.totalQuestions >= config.sampleThresholds.subtopicIndicativeMin &&
       acc.attempts.size >= 2 &&
-      acc.totalQuestions >= 4 &&
       accuracy < config.behaviorThresholds.persistentWeaknessMaxAccuracy
     ) {
+      const sampleStatus =
+        acc.totalQuestions >= config.sampleThresholds.subtopicPrimaryMin
+          ? "sampel utama"
+          : "sampel indikatif";
+
+      // Periksa apakah berurutan (consecutive)
+      const sortedAttempts = Array.from(acc.attemptOrderMap.values()).sort(
+        (a, b) => new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime(),
+      );
+      const isConsecutive =
+        sortedAttempts.length >= 2 &&
+        sortedAttempts.every((a) => a.total > 0 && (a.correct / a.total) * 100 < config.behaviorThresholds.persistentWeaknessMaxAccuracy);
+
       const rec = buildRecommendationDraft("PERSISTENT_WEAKNESS", {
         topicName: acc.topicName,
         accuracy: Math.round(accuracy),
         attemptCount: acc.attempts.size,
+        sampleStatus,
+        isConsecutive,
       });
+
       findings.push({
         id: `FND_PERSISTENT_WEAKNESS_${acc.topicId}`,
         code: "PERSISTENT_WEAKNESS",
@@ -184,30 +232,36 @@ export function detectFindings(
         topicName: acc.topicName,
         severity: 4,
         persistence: Math.min(acc.attempts.size + 1, 5),
-        confidence: 4,
+        confidence: acc.totalQuestions >= config.sampleThresholds.subtopicPrimaryMin ? 5 : 4,
         topicWeight: 1.2,
-        urgencyScore: 4 * Math.min(acc.attempts.size + 1, 5) * 4 * 1.2,
-        evidenceSummary: `Akurasi bertahan rendah (${Math.round(accuracy)}%) di ${acc.attempts.size} sesi try out.`,
+        urgencyScore: 4 * Math.min(acc.attempts.size + 1, 5) * (acc.totalQuestions >= config.sampleThresholds.subtopicPrimaryMin ? 5 : 4) * 1.2,
+        evidenceSummary: `Akurasi bertahan rendah (${Math.round(accuracy)}%, ${sampleStatus}) di ${acc.attempts.size} sesi try out${isConsecutive ? " berurutan" : ""}.`,
         recommendationTemplateId: rec.templateId,
         recommendationTemplateStatus: rec.status,
         recommendationDraft: rec.draftText,
-        metadata: { accuracy: Math.round(accuracy), attemptCount: acc.attempts.size },
+        metadata: {
+          accuracy: Math.round(accuracy),
+          attemptCount: acc.attempts.size,
+          sampleStatus,
+          isConsecutive,
+        },
       });
     }
 
-    // D. FRAGILE_KNOWLEDGE: Confident accuracy >= 70% but doubtful accuracy <= 40%
-    if (acc.confidentTotal >= 2 && acc.doubtfulTotal >= 2) {
-      const confAcc = (acc.confidentCorrect / acc.confidentTotal) * 100;
-      const doubtAcc = (acc.doubtfulCorrect / acc.doubtfulTotal) * 100;
-      if (
-        confAcc >= config.behaviorThresholds.fragileKnowledgeConfMinAcc &&
-        doubtAcc <= config.behaviorThresholds.fragileKnowledgeDoubtMaxAcc
-      ) {
+    // D. FRAGILE_KNOWLEDGE:
+    // Pemicu baru: proporsi jawaban BENAR yang ditandai ragu pada topik >= 30% dengan sampel topik >= 10 soal
+    if (
+      acc.totalQuestions >= config.sampleThresholds.fragileKnowledgeMinQuestions &&
+      acc.correctQuestions > 0
+    ) {
+      const doubtfulCorrectRatio = acc.doubtfulCorrect / acc.correctQuestions;
+      if (doubtfulCorrectRatio >= config.behaviorThresholds.fragileKnowledgeDoubtfulCorrectRatio) {
+        const doubtfulPercent = Math.round(doubtfulCorrectRatio * 100);
         const rec = buildRecommendationDraft("FRAGILE_KNOWLEDGE", {
           topicName: acc.topicName,
-          confidentAccuracy: Math.round(confAcc),
-          doubtfulAccuracy: Math.round(doubtAcc),
+          doubtfulRatio: doubtfulPercent,
         });
+
         findings.push({
           id: `FND_FRAGILE_KNOWLEDGE_${acc.topicId}`,
           code: "FRAGILE_KNOWLEDGE",
@@ -216,14 +270,18 @@ export function detectFindings(
           topicName: acc.topicName,
           severity: 3,
           persistence: 3,
-          confidence: 4,
+          confidence: acc.hasFallbackConfidence ? 3 : 4,
           topicWeight: 1.0,
-          urgencyScore: 3 * 3 * 4 * 1.0,
-          evidenceSummary: `Akurasi mencapai ${Math.round(confAcc)}% saat yakin, namun anjlok ke ${Math.round(doubtAcc)}% saat ragu.`,
+          urgencyScore: 3 * 3 * (acc.hasFallbackConfidence ? 3 : 4) * 1.0,
+          evidenceSummary: `${doubtfulPercent}% jawaban benar pada topik ini ditandai ragu-ragu (${acc.doubtfulCorrect} dari ${acc.correctQuestions} butir benar).`,
           recommendationTemplateId: rec.templateId,
           recommendationTemplateStatus: rec.status,
           recommendationDraft: rec.draftText,
-          metadata: { confidentAccuracy: Math.round(confAcc), doubtfulAccuracy: Math.round(doubtAcc) },
+          metadata: {
+            doubtfulRatio: doubtfulPercent,
+            doubtfulCorrect: acc.doubtfulCorrect,
+            correctQuestions: acc.correctQuestions,
+          },
         });
       }
     }
@@ -285,16 +343,20 @@ export function detectFindings(
     return findings;
   }
 
-  // F. RUSHED_WRONG: >= 3 questions answered wrong with z-score < -0.8
+  // F. RUSHED_WRONG: Proporsi butir salah-cepat terhadap total jawaban >= 5%
   const rushedErrors = rows.filter(
     (r) =>
       !r.is_correct &&
       r.time_spent_z_score !== null &&
       r.time_spent_z_score < config.behaviorThresholds.rushedZScore,
   );
-  if (rushedErrors.length >= 3) {
+  const rushedRatio = rushedErrors.length / totalGlobalQuestions;
+
+  if (rushedRatio >= config.behaviorThresholds.rushedWrongMinRatio) {
+    const ratioPercent = Math.round(rushedRatio * 100);
     const rec = buildRecommendationDraft("RUSHED_WRONG", {
       count: rushedErrors.length,
+      ratio: ratioPercent,
     });
     findings.push({
       id: "FND_RUSHED_WRONG_GLOBAL",
@@ -305,15 +367,15 @@ export function detectFindings(
       confidence: 4,
       topicWeight: 1.0,
       urgencyScore: 3 * Math.min(rushedErrors.length, 5) * 4 * 1.0,
-      evidenceSummary: `Ditemukan ${rushedErrors.length} butir salah yang dijawab dengan kecepatan abnormal (z-score < -0.8).`,
+      evidenceSummary: `Ditemukan ${rushedErrors.length} butir salah (${ratioPercent}% dari total soal) yang dijawab dengan kecepatan abnormal (z < -0.8).`,
       recommendationTemplateId: rec.templateId,
       recommendationTemplateStatus: rec.status,
       recommendationDraft: rec.draftText,
-      metadata: { count: rushedErrors.length },
+      metadata: { count: rushedErrors.length, ratio: ratioPercent },
     });
   }
 
-  // G. LATE_SESSION_DROP: Accuracy drops significantly in the last quartile (position >= 0.75)
+  // G. LATE_SESSION_DROP: Penurunan akurasi kuartil akhir sesi (posisi >= 0.75) merosot >= 20 poin persentase
   const rowsWithPosition = rows.filter((r) => r.session_position_ratio !== null);
   const earlyMidRows = rowsWithPosition.filter(
     (r) => r.session_position_ratio! < config.behaviorThresholds.lateSessionDropRatio,
@@ -328,10 +390,10 @@ export function detectFindings(
     const lateAcc =
       (lateRows.filter((r) => r.is_correct).length / lateRows.length) * 100;
 
-    const drop = earlyMidAcc - lateAcc;
-    if (drop >= config.behaviorThresholds.lateSessionDropMinPercentage) {
+    const dropPoints = earlyMidAcc - lateAcc;
+    if (dropPoints >= config.behaviorThresholds.lateSessionDropThresholdPoints) {
       const rec = buildRecommendationDraft("LATE_SESSION_DROP", {
-        dropPercentage: Math.round(drop),
+        dropPercentage: Math.round(dropPoints),
       });
       findings.push({
         id: "FND_LATE_SESSION_DROP_GLOBAL",
@@ -342,12 +404,12 @@ export function detectFindings(
         confidence: 4,
         topicWeight: 1.1,
         urgencyScore: 4 * 3 * 4 * 1.1,
-        evidenceSummary: `Akurasi anjlok ${Math.round(drop)}% pada kuartil akhir sesi ujian (dari ${Math.round(earlyMidAcc)}% menjadi ${Math.round(lateAcc)}%).`,
+        evidenceSummary: `Akurasi anjlok ${Math.round(dropPoints)} poin persentase pada kuartil akhir sesi ujian (dari ${Math.round(earlyMidAcc)}% menjadi ${Math.round(lateAcc)}%).`,
         recommendationTemplateId: rec.templateId,
         recommendationTemplateStatus: rec.status,
         recommendationDraft: rec.draftText,
         metadata: {
-          dropPercentage: Math.round(drop),
+          dropPercentage: Math.round(dropPoints),
           earlyMidAcc: Math.round(earlyMidAcc),
           lateAcc: Math.round(lateAcc),
         },

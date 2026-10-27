@@ -293,20 +293,29 @@ function AnalyticsPage() {
                 ) : (
                   <div className="space-y-4">
                     {aiInsightQuery.data?.source === "fallback" ? (
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border/50 text-xs text-muted-foreground mb-4">
-                        <div className="flex items-center gap-2">
-                          <Key className="h-4 w-4 text-primary shrink-0" />
+                      aiInsightQuery.data.fallbackReason === "no_key" ? (
+                        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border/50 text-xs text-muted-foreground mb-4">
+                          <div className="flex items-center gap-2">
+                            <Key className="h-4 w-4 text-primary shrink-0" />
+                            <span>
+                              Laporan ini dibuat menggunakan mesin analisis berbasis aturan. Sambungkan API Key Gemini untuk narasi cerdas dan refleksi personal.
+                            </span>
+                          </div>
+                          <Link
+                            to="/app/settings/ai-config"
+                            className="text-primary font-medium hover:underline shrink-0 ml-3"
+                          >
+                            Atur API Key
+                          </Link>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/40 border border-border/50 text-xs text-muted-foreground mb-4">
+                          <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
                           <span>
-                            Laporan ini dibuat menggunakan mesin analisis berbasis aturan. Sambungkan API Key Gemini untuk narasi cerdas dan refleksi personal.
+                            Narasi AI tidak lolos pemeriksaan, ditampilkan laporan berbasis aturan.
                           </span>
                         </div>
-                        <Link
-                          to="/app/settings/ai-config"
-                          className="text-primary font-medium hover:underline shrink-0 ml-3"
-                        >
-                          Atur API Key
-                        </Link>
-                      </div>
+                      )
                     ) : null}
                     <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground leading-relaxed">
                       <ReactMarkdown>

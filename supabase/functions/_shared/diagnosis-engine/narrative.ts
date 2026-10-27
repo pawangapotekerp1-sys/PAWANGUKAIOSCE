@@ -2,9 +2,15 @@ import { DIAGNOSIS_CONFIG } from "./config.ts";
 import { formatQuestionSummary } from "./recommend.ts";
 import type { DiagnosisReport } from "./types.ts";
 
+export type NarrativeRejectionCode =
+  | "REJECT_FOREIGN_NUMBERS"
+  | "REJECT_FOREIGN_IDS"
+  | "REJECT_MISSING_INDIKATIF_LABEL";
+
 export interface NarrativeValidationResult {
   valid: boolean;
   reason?: string;
+  code?: NarrativeRejectionCode;
   invalidNumbers?: number[];
   invalidIds?: string[];
 }
@@ -102,9 +108,12 @@ export function extractAllowedNumbers(report: DiagnosisReport): Set<number> {
     allowed.add(Math.round(f.urgencyScore));
     allowed.add(Math.floor(f.urgencyScore));
 
-    // Numbers in metadata
+    // Numbers in metadata (excluding questionSummary and raw question texts)
     if (f.metadata) {
-      for (const val of Object.values(f.metadata)) {
+      for (const [key, val] of Object.entries(f.metadata)) {
+        if (/question.*summary|question.*text|stem/i.test(key)) {
+          continue;
+        }
         if (typeof val === "number") {
           allowed.add(val);
           allowed.add(Math.round(val));
@@ -124,8 +133,15 @@ export function extractAllowedNumbers(report: DiagnosisReport): Set<number> {
       }
     }
 
-    // Extract numbers from evidenceSummary and recommendationDraft strings
-    const str = `${f.evidenceSummary} ${f.recommendationDraft}`;
+    // Extract numbers from evidenceSummary and recommendationDraft strings,
+    // explicitly stripping any questionSummary to prevent question text numbers from leaking
+    let evSummary = f.evidenceSummary;
+    let recDraft = f.recommendationDraft;
+    if (typeof f.metadata?.questionSummary === "string" && f.metadata.questionSummary) {
+      evSummary = evSummary.replace(f.metadata.questionSummary, "");
+      recDraft = recDraft.replace(f.metadata.questionSummary, "");
+    }
+    const str = `${evSummary} ${recDraft}`;
     const matches = str.match(/\b\d+(?:[.,]\d+)?\b/g);
     if (matches) {
       for (const m of matches) {
@@ -220,6 +236,7 @@ export function validateNarrative(
   if (hasIndicativeFinding && !text.toLowerCase().includes("indikatif")) {
     return {
       valid: false,
+      code: "REJECT_MISSING_INDIKATIF_LABEL",
       reason: "Laporan memuat temuan berstatus sampel indikatif namun kata 'indikatif' tidak tercantum dalam narasi.",
     };
   }
@@ -234,6 +251,7 @@ export function validateNarrative(
     }
     return {
       valid: false,
+      code: invalidNumbers.length > 0 ? "REJECT_FOREIGN_NUMBERS" : "REJECT_FOREIGN_IDS",
       reason: reasons.join("; "),
       invalidNumbers: Array.from(new Set(invalidNumbers)),
       invalidIds: Array.from(new Set(invalidIds)),

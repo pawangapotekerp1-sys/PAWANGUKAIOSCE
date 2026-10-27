@@ -223,6 +223,7 @@ export type StudentAiRangeInsight = {
   report?: DiagnosisReport;
   model?: string;
   engineVersion?: string;
+  fallbackReason?: "no_key" | "validation_failed" | "gemini_error" | null;
 };
 
 export async function generateStudentAiRangeInsight(

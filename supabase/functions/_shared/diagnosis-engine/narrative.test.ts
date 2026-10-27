@@ -99,36 +99,71 @@ Pertahankan ritme belajar.
     expect(result.valid).toBe(true);
   });
 
-  test("validateNarrative allows numbers that originate from question summaries without false positive", () => {
-    // Question text contains "45 tahun"
+  test("validateNarrative supports decimal comma (e.g. 45,5% or 66,7%) and fractional expressions (3 dari 10)", () => {
+    // 10 questions: 3 correct, 7 wrong -> accuracy = 30%
     const rows: EvidenceRow[] = [
-      ...Array.from({ length: 10 }, (_, i) =>
-        createMockRow({
-          attempt_id: `att-${i < 5 ? 1 : 2}`,
-          question_id: "q-age",
-          question_text: "Pasien pria 45 tahun mengalami hipertensi derajat 2",
-          selected_option_key: "A",
-          is_correct: false,
-        }),
-      ),
+      ...Array.from({ length: 3 }, (_, i) => createMockRow({ question_id: `q-c-${i}`, is_correct: true })),
+      ...Array.from({ length: 7 }, (_, i) => createMockRow({ question_id: `q-w-${i}`, is_correct: false })),
+    ];
+    const report = runDiagnosisEngine(rows);
+    expect(report.totalQuestions).toBe(10);
+
+    // Text using decimal comma and "3 dari 10"
+    const textWithCommaAndFraction = `
+# Laporan Analisis Kelemahan Belajar
+## 1. Ringkasan Kinerja
+Siswa menjawab benar 3 dari 10 butir soal dengan tingkat akurasi 30,0%.
+## 2. Profil Karakteristik Kesalahan
+Terdapat 0 butir miskonsepsi.
+## 3. Temuan Prioritas & Rekomendasi Studi
+Belum ditemukan pola kelemahan spesifik yang signifikan dari data yang ada.
+## 4. Disiplin Ujian & Rekomendasi Belajar
+Konsistensi belajar perlu ditingkatkan.
+    `.trim();
+
+    const result = validateNarrative(textWithCommaAndFraction, report);
+    expect(result.valid).toBe(true);
+  });
+
+  test("validateNarrative strictly rejects numbers that are only present in question summaries", () => {
+    // Question text contains "45 tahun" (number 45 is NOT a report metric: attempts=1, questions=2, accuracy=50%)
+    const rows: EvidenceRow[] = [
+      createMockRow({
+        attempt_id: "att-1",
+        question_id: "q-age",
+        question_text: "Pasien pria 45 tahun mengalami komplikasi renal stadium 4",
+        selected_option_key: "A",
+        is_correct: false,
+      }),
+      createMockRow({
+        attempt_id: "att-1",
+        question_id: "q-ok",
+        is_correct: true,
+      }),
     ];
     const report = runDiagnosisEngine(rows);
 
-    // Text cites the question title with "45"
+    // Allowed numbers should NOT contain 45
+    const allowed = extractAllowedNumbers(report);
+    expect(allowed.has(45)).toBe(false);
+
+    // Narrative quoting the question text's clinical number "45"
     const textWithSummaryNumber = `
 # Laporan Analisis Kelemahan Belajar
 ## 1. Ringkasan Kinerja
-Siswa menyelesaikan 2 sesi dengan 10 butir soal dan akurasi 0%.
+Siswa menyelesaikan 1 sesi dengan 2 butir soal dan akurasi 50%.
 ## 2. Profil Karakteristik Kesalahan
-Miskonsepsi 10 butir.
+Miskonsepsi 0 butir.
 ## 3. Temuan Prioritas & Rekomendasi Studi
-1. Pada butir soal 'Pasien pria 45 tahun mengalami hipertensi...', opsi A dipilih berulang 10 kali (sampel indikatif).
+1. Terdapat kesalahan pada butir soal pasien usia 45 tahun.
 ## 4. Disiplin Ujian & Rekomendasi Belajar
 Fokuskan review.
     `.trim();
 
     const result = validateNarrative(textWithSummaryNumber, report);
-    expect(result.valid).toBe(true);
+    expect(result.valid).toBe(false);
+    expect(result.code).toBe("REJECT_FOREIGN_NUMBERS");
+    expect(result.invalidNumbers).toContain(45);
   });
 
   test("validateNarrative rejects text with invented numbers not in report", () => {

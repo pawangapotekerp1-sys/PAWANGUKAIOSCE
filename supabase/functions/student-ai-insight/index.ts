@@ -29,19 +29,17 @@ export function resolveModelToUse(model: string | null | undefined): string {
 
 export async function computeDiagnosisInputHash(params: {
   userId: string;
-  dateFrom: string;
-  dateTo: string;
-  limitAttempts: number | null;
-  timezone: string;
+  engineVersion: string;
+  unreleasedScheduledAttemptsCount: number;
   attempts: Array<{ id: string; submittedAt: string }>;
 }): Promise<string> {
   const normalized = {
     userId: params.userId,
-    dateFrom: params.dateFrom,
-    dateTo: params.dateTo,
-    limitAttempts: params.limitAttempts,
-    timezone: params.timezone,
-    attempts: [...params.attempts].sort((a, b) => a.id.localeCompare(b.id)),
+    engineVersion: params.engineVersion,
+    unreleasedScheduledAttemptsCount: params.unreleasedScheduledAttemptsCount,
+    attempts: [...params.attempts]
+      .map((a) => ({ id: a.id, submittedAt: a.submittedAt }))
+      .sort((a, b) => a.id.localeCompare(b.id)),
   };
   const encoder = new TextEncoder();
   const data = encoder.encode(JSON.stringify(normalized));
@@ -526,12 +524,15 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
         submittedAt,
       }));
 
+      const unreleasedScheduledAttemptsCount = Math.max(
+        0,
+        ...evidenceRows.map((r) => r.unreleased_scheduled_attempts ?? 0),
+      );
+
       const inputHash = await computeDiagnosisInputHash({
         userId: user.id,
-        dateFrom: payload.dateFrom,
-        dateTo: payload.dateTo,
-        limitAttempts,
-        timezone: payload.timezone ?? "UTC",
+        engineVersion: ENGINE_VERSION,
+        unreleasedScheduledAttemptsCount,
         attempts: attemptItems,
       });
 
@@ -564,6 +565,7 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
               report: cachedReport.report,
               source: cachedReport.source,
               model: cachedReport.model,
+              fallbackReason: cachedReport.fallback_reason ?? null,
               engineVersion: cachedReport.engine_version,
               generatedAt: cachedReport.created_at,
             },
@@ -587,6 +589,7 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
               narrative: fallbackNarrative,
               summary: fallbackNarrative,
               source: "fallback",
+              fallback_reason: "no_key",
               model: "deterministic-engine",
               updated_at: new Date().toISOString(),
             },
@@ -599,6 +602,7 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
             narrative: fallbackNarrative,
             report,
             source: "fallback",
+            fallbackReason: "no_key",
             model: "deterministic-engine",
             engineVersion: ENGINE_VERSION,
             generatedAt: new Date().toISOString(),
@@ -646,8 +650,9 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
         let validation = validateNarrative(geminiResult.text, report);
 
         // If invalid, retry ONCE
+        let fallbackReason: "validation_failed" | "gemini_error" | null = null;
         if (!validation.valid) {
-          console.warn("Diagnosis narration validation failed on call 1:", validation.reason);
+          console.warn(`[DIAGNOSIS_VALIDATION_REJECT] code=${validation.code} details=${validation.invalidNumbers?.join(",") || validation.invalidIds?.join(",") || "missing_indikatif"}`);
           const retryPrompt = [
             prompt,
             "",
@@ -669,14 +674,17 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
           if (validation.valid) {
             narrative = retryResult.text;
             source = "gemini";
+            fallbackReason = null;
           } else {
-            console.warn("Diagnosis narration validation failed after retry. Falling back to render.ts:", validation.reason);
+            console.warn(`[DIAGNOSIS_VALIDATION_REJECT] code=${validation.code} details=${validation.invalidNumbers?.join(",") || validation.invalidIds?.join(",") || "missing_indikatif"}`);
             narrative = report.fallbackMarkdown;
             source = "fallback";
+            fallbackReason = "validation_failed";
           }
         } else {
           narrative = geminiResult.text;
           source = "gemini";
+          fallbackReason = null;
         }
 
         await service
@@ -720,6 +728,7 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
               narrative: finalNarrative,
               summary: finalNarrative,
               source,
+              fallback_reason: fallbackReason,
               model: resolvedModel,
               updated_at: new Date().toISOString(),
             },
@@ -732,6 +741,7 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
             narrative: finalNarrative,
             report,
             source,
+            fallbackReason,
             model: resolvedModel,
             engineVersion: ENGINE_VERSION,
             generatedAt: new Date().toISOString(),
@@ -778,6 +788,7 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
               narrative: fallbackNarrative,
               summary: fallbackNarrative,
               source: "fallback",
+              fallback_reason: "gemini_error",
               model: "deterministic-engine",
               updated_at: new Date().toISOString(),
             },
@@ -790,6 +801,7 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
             narrative: fallbackNarrative,
             report,
             source: "fallback",
+            fallbackReason: "gemini_error",
             model: "deterministic-engine",
             engineVersion: ENGINE_VERSION,
             generatedAt: new Date().toISOString(),

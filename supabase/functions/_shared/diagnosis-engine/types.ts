@@ -1,10 +1,10 @@
 import type { DiagnosisConfig } from "./config.ts";
 
 export type ErrorTag =
-  | "miskonsepsi"
-  | "celah_pengetahuan"
+  | "kehabisan_waktu"
   | "ceroboh"
-  | "kehabisan_waktu";
+  | "miskonsepsi"
+  | "celah_pengetahuan";
 
 export type FindingCode =
   | "RECURRING_DISTRACTOR"
@@ -26,18 +26,22 @@ export interface EvidenceRow {
   correct_option_key: string;
   is_correct: boolean;
   explanation: string | null;
-  was_ever_flagged_ragu: boolean;
-  time_spent_seconds: number;
-  time_spent_z_score: number;
-  answer_change_count: number;
-  changed_correct_to_wrong_count: number;
-  changed_wrong_to_correct_count: number;
-  session_position_ratio: number;
+  was_ever_flagged_ragu: boolean | null;
+  time_spent_seconds: number | null;
+  time_spent_z_score: number | null;
+  answer_change_count: number | null;
+  changed_correct_to_wrong_count: number | null;
+  changed_wrong_to_correct_count: number | null;
+  session_position_ratio: number | null;
+  unreleased_scheduled_attempts?: number | null;
 }
 
 export interface ClassifiedEvidenceRow extends EvidenceRow {
   error_tags: ErrorTag[];
+  primary_error_tag: ErrorTag | null;
 }
+
+export type TemplateStatus = "draft" | "approved";
 
 export interface Finding {
   id: string;
@@ -45,13 +49,14 @@ export interface Finding {
   title: string;
   topicId?: string;
   topicName?: string;
-  severity: number;      // Scale 1 to 5
-  persistence: number;   // Scale 1 to 5
-  confidence: number;    // Scale 1 to 5
+  severity: number;      // Skala 1 - 5
+  persistence: number;   // Skala 1 - 5
+  confidence: number;    // Skala 1 - 5
   topicWeight: number;   // Default 1.0
   urgencyScore: number;  // severity * persistence * confidence * topicWeight
   evidenceSummary: string;
   recommendationTemplateId: string;
+  recommendationTemplateStatus: TemplateStatus;
   recommendationDraft: string;
   metadata: Record<string, unknown>;
 }
@@ -63,6 +68,7 @@ export interface DiagnosisReport {
   totalAttempts: number;
   totalQuestions: number;
   overallAccuracy: number;
+  unreleasedScheduledAttemptsCount: number;
   classifiedErrorCounts: Record<ErrorTag, number>;
   findings: Finding[];
   topFindings: Finding[];

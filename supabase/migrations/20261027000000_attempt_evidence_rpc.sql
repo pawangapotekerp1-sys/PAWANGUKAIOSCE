@@ -5,6 +5,8 @@ create index if not exists attempts_user_id_submitted_at_idx
   on public.attempts (user_id, submitted_at desc)
   where status = 'submitted';
 
+drop function if exists public.get_attempt_evidence(date, date, text, integer);
+
 create or replace function public.get_attempt_evidence(
   date_from date default null,
   date_to date default null,
@@ -27,7 +29,8 @@ returns table (
   answer_change_count integer,
   changed_correct_to_wrong_count integer,
   changed_wrong_to_correct_count integer,
-  session_position_ratio numeric
+  session_position_ratio numeric,
+  unreleased_scheduled_attempts integer
 )
 language plpgsql
 security definer
@@ -38,6 +41,7 @@ declare
   safe_timezone text := coalesce(nullif(user_timezone, ''), 'UTC');
   range_start_utc timestamptz;
   range_end_utc timestamptz;
+  unreleased_count integer := 0;
 begin
   if target_user_id is null then
     raise exception 'Pengguna harus login untuk mengakses data bukti diagnosis.'
@@ -60,6 +64,19 @@ begin
   if date_to is not null then
     range_end_utc := ((date_to + 1)::timestamp at time zone safe_timezone);
   end if;
+
+  -- Count scheduled attempts that are submitted but whose event has not ended yet
+  select count(*)::integer
+  into unreleased_count
+  from public.scheduled_tryout_attempts as sta
+  join public.scheduled_tryout_events as ste
+    on ste.id = sta.event_id
+  where sta.user_id = target_user_id
+    and sta.status = 'submitted'
+    and ste.editorial_status = 'published'
+    and timezone('utc', now()) < ste.access_end_at
+    and (range_start_utc is null or sta.submitted_at >= range_start_utc)
+    and (range_end_utc is null or sta.submitted_at < range_end_utc);
 
   return query
   with target_attempts as (
@@ -109,7 +126,7 @@ begin
     group by ace.attempt_item_id
   ),
   scoped_items as (
-    -- Regular attempt items
+    -- Regular attempt items (with telemetry from metrics)
     select
       ta.id as attempt_id,
       ta.submitted_at,
@@ -145,7 +162,7 @@ begin
 
     union all
 
-    -- Scheduled attempt items (keys and explanations available only post-event)
+    -- Scheduled attempt items (keys and explanations available post-event; behavior metrics are NULL)
     select
       ta.id as attempt_id,
       ta.submitted_at,
@@ -157,11 +174,11 @@ begin
       sai.correct_option_key_snapshot as correct_option_key,
       (sans.selected_option_key is not null and sans.selected_option_key = sai.correct_option_key_snapshot) as is_correct,
       sai.explanation_text_snapshot as explanation,
-      coalesce(sans.is_doubtful, false) as was_ever_flagged_ragu,
-      0::integer as time_spent_seconds,
-      0::integer as answer_change_count,
-      0::integer as changed_correct_to_wrong_count,
-      0::integer as changed_wrong_to_correct_count,
+      null::boolean as was_ever_flagged_ragu,
+      null::integer as time_spent_seconds,
+      null::integer as answer_change_count,
+      null::integer as changed_correct_to_wrong_count,
+      null::integer as changed_wrong_to_correct_count,
       sai.sort_order,
       count(*) over (partition by ta.id)::integer as attempt_total_items
     from target_attempts as ta
@@ -178,6 +195,7 @@ begin
       coalesce(avg(si.time_spent_seconds), 0)::numeric as avg_time,
       coalesce(stddev_pop(si.time_spent_seconds), 0)::numeric as std_time
     from scoped_items as si
+    where si.time_spent_seconds is not null
   )
   select
     si.attempt_id,
@@ -193,6 +211,7 @@ begin
     si.time_spent_seconds,
     round(
       case
+        when si.time_spent_seconds is null then null
         when ts.std_time = 0 then 0.0
         else (si.time_spent_seconds - ts.avg_time) / ts.std_time
       end,
@@ -207,7 +226,8 @@ begin
         else (si.sort_order - 1)::numeric / (si.attempt_total_items - 1)::numeric
       end,
       4
-    ) as session_position_ratio
+    ) as session_position_ratio,
+    unreleased_count as unreleased_scheduled_attempts
   from scoped_items as si
   cross join timing_stats as ts
   order by si.submitted_at desc, si.sort_order asc;

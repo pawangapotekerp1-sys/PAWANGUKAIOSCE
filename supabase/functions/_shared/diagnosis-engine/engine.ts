@@ -3,42 +3,75 @@ import type { DiagnosisConfig } from "./config.ts";
 import { DIAGNOSIS_CONFIG, ENGINE_VERSION } from "./config.ts";
 import { detectFindings } from "./findings.ts";
 import { prioritizeFindings } from "./prioritize.ts";
+import { validateTemplateApproval } from "./recommend.ts";
 import { renderFallbackMarkdown } from "./render.ts";
 import type { DiagnosisReport, EvidenceRow } from "./types.ts";
+
+export interface RunEngineOptions {
+  config?: DiagnosisConfig;
+  unreleasedScheduledAttemptsCount?: number;
+}
 
 /**
  * Pure, deterministic Diagnosis Engine.
  * Takes raw evidence rows from get_attempt_evidence and generates a comprehensive,
- * structured, prioritized diagnosis report with slatted DRAFT recommendations.
+ * structured, prioritized diagnosis report.
  * 0 I/O, 0 network, 100% deterministic.
  */
 export function runDiagnosisEngine(
   rows: EvidenceRow[],
-  config: DiagnosisConfig = DIAGNOSIS_CONFIG,
+  optionsOrConfig: DiagnosisConfig | RunEngineOptions = DIAGNOSIS_CONFIG,
 ): DiagnosisReport {
+  const options: RunEngineOptions =
+    "sampleThresholds" in optionsOrConfig
+      ? { config: optionsOrConfig as DiagnosisConfig }
+      : (optionsOrConfig as RunEngineOptions);
+
+  const config = options.config || DIAGNOSIS_CONFIG;
+
+  // Validate production template approval gate if enabled
+  if (config.flags?.requireApprovedTemplates) {
+    validateTemplateApproval(true);
+  }
+
+  const unreleasedCount =
+    options.unreleasedScheduledAttemptsCount ??
+    (rows && rows.length > 0 && typeof rows[0]?.unreleased_scheduled_attempts === "number"
+      ? rows[0].unreleased_scheduled_attempts
+      : 0);
+
   if (!rows || rows.length === 0) {
-    const emptyReport: DiagnosisReport = {
+    const emptyPreliminary: Omit<DiagnosisReport, "fallbackMarkdown"> = {
       version: ENGINE_VERSION,
       generatedAt: new Date().toISOString(),
       mode: "empty",
       totalAttempts: 0,
       totalQuestions: 0,
       overallAccuracy: 0,
+      unreleasedScheduledAttemptsCount: unreleasedCount,
       classifiedErrorCounts: {
+        kehabisan_waktu: 0,
+        ceroboh: 0,
         miskonsepsi: 0,
         celah_pengetahuan: 0,
-        ceroboh: 0,
-        kehabisan_waktu: 0,
       },
       findings: [],
       topFindings: [],
-      fallbackMarkdown: "# Laporan Analisis Kelemahan Belajar\n\nBelum ada data pengerjaan try out yang dapat dianalisis.",
     };
-    return emptyReport;
+
+    const emptyMarkdown = renderFallbackMarkdown({
+      ...emptyPreliminary,
+      fallbackMarkdown: "",
+    });
+
+    return {
+      ...emptyPreliminary,
+      fallbackMarkdown: emptyMarkdown,
+    };
   }
 
   // 1. Classify all rows with error tags
-  const { tagCounts } = classifyAllEvidenceRows(rows);
+  const { tagCounts } = classifyAllEvidenceRows(rows, config);
 
   // 2. Detect all structured patterns
   const allFindings = detectFindings(rows, config);
@@ -70,6 +103,7 @@ export function runDiagnosisEngine(
     totalAttempts: attemptIds.size,
     totalQuestions,
     overallAccuracy: Math.round(overallAccuracy * 100) / 100,
+    unreleasedScheduledAttemptsCount: unreleasedCount,
     classifiedErrorCounts: tagCounts,
     findings: allFindings,
     topFindings,

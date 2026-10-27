@@ -5,7 +5,8 @@ import type { Finding } from "./types.ts";
  * Deterministic tie-breaker:
  * 1. urgencyScore DESC
  * 2. code ASC
- * 3. topicName ASC
+ * 3. topicId ASC (bukan topicName)
+ * 4. id ASC (jaminan kestabilan mutlak)
  * Returns top 3 to 5 findings.
  */
 export function prioritizeFindings(
@@ -29,12 +30,16 @@ export function prioritizeFindings(
       return a.code.localeCompare(b.code);
     }
 
-    // 3. Tertiary tie-breaker: topicName ASC
-    const aTopic = a.topicName || "";
-    const bTopic = b.topicName || "";
-    return aTopic.localeCompare(bTopic);
+    // 3. Tertiary tie-breaker: topicId ASC (WAJIB topicId bukan topicName)
+    const aTopicId = a.topicId || "";
+    const bTopicId = b.topicId || "";
+    if (aTopicId !== bTopicId) {
+      return aTopicId.localeCompare(bTopicId);
+    }
+
+    // 4. Final tie-breaker: id ASC
+    return a.id.localeCompare(b.id);
   });
 
-  // Limit to maxTop (default 5), ensuring at least minTop (if available)
   return sorted.slice(0, maxTop);
 }

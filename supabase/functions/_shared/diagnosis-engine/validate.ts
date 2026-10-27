@@ -1,10 +1,10 @@
 import { z } from "npm:zod@4.4.1";
 
 export const ErrorTagSchema = z.enum([
+  "kehabisan_waktu",
+  "ceroboh",
   "miskonsepsi",
   "celah_pengetahuan",
-  "ceroboh",
-  "kehabisan_waktu",
 ]);
 
 export const FindingCodeSchema = z.enum([
@@ -18,6 +18,8 @@ export const FindingCodeSchema = z.enum([
   "IMPROVING",
 ]);
 
+export const TemplateStatusSchema = z.enum(["draft", "approved"]);
+
 export const EvidenceRowSchema = z.object({
   attempt_id: z.string(),
   submitted_at: z.string(),
@@ -28,13 +30,14 @@ export const EvidenceRowSchema = z.object({
   correct_option_key: z.string(),
   is_correct: z.boolean(),
   explanation: z.string().nullable(),
-  was_ever_flagged_ragu: z.boolean(),
-  time_spent_seconds: z.number(),
-  time_spent_z_score: z.number(),
-  answer_change_count: z.number(),
-  changed_correct_to_wrong_count: z.number(),
-  changed_wrong_to_correct_count: z.number(),
-  session_position_ratio: z.number(),
+  was_ever_flagged_ragu: z.boolean().nullable(),
+  time_spent_seconds: z.number().nullable(),
+  time_spent_z_score: z.number().nullable(),
+  answer_change_count: z.number().nullable(),
+  changed_correct_to_wrong_count: z.number().nullable(),
+  changed_wrong_to_correct_count: z.number().nullable(),
+  session_position_ratio: z.number().nullable(),
+  unreleased_scheduled_attempts: z.number().nullable().optional(),
 });
 
 export const FindingSchema = z.object({
@@ -50,6 +53,7 @@ export const FindingSchema = z.object({
   urgencyScore: z.number(),
   evidenceSummary: z.string(),
   recommendationTemplateId: z.string(),
+  recommendationTemplateStatus: TemplateStatusSchema,
   recommendationDraft: z.string(),
   metadata: z.record(z.string(), z.unknown()),
 });
@@ -61,11 +65,12 @@ export const DiagnosisReportSchema = z.object({
   totalAttempts: z.number(),
   totalQuestions: z.number(),
   overallAccuracy: z.number(),
+  unreleasedScheduledAttemptsCount: z.number(),
   classifiedErrorCounts: z.object({
+    kehabisan_waktu: z.number(),
+    ceroboh: z.number(),
     miskonsepsi: z.number(),
     celah_pengetahuan: z.number(),
-    ceroboh: z.number(),
-    kehabisan_waktu: z.number(),
   }),
   findings: z.array(FindingSchema),
   topFindings: z.array(FindingSchema),

@@ -27,6 +27,29 @@ export function resolveModelToUse(model: string | null | undefined): string {
   return normalizeAiModel(model);
 }
 
+export async function computeDiagnosisInputHash(params: {
+  userId: string;
+  dateFrom: string;
+  dateTo: string;
+  limitAttempts: number | null;
+  timezone: string;
+  attempts: Array<{ id: string; submittedAt: string }>;
+}): Promise<string> {
+  const normalized = {
+    userId: params.userId,
+    dateFrom: params.dateFrom,
+    dateTo: params.dateTo,
+    limitAttempts: params.limitAttempts,
+    timezone: params.timezone,
+    attempts: [...params.attempts].sort((a, b) => a.id.localeCompare(b.id)),
+  };
+  const encoder = new TextEncoder();
+  const data = encoder.encode(JSON.stringify(normalized));
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 export function buildInsightLogPayload(params: {
   userId: string;
   credentialId: string | null;
@@ -212,7 +235,8 @@ function buildRulesFallback(
   };
 }
 
-Deno.serve(async (req) => {
+if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
+  Deno.serve(async (req) => {
   const corsResponse = handleCors(req);
 
   if (corsResponse) {
@@ -490,10 +514,28 @@ Deno.serve(async (req) => {
       }
       const evidenceRows = evidenceParse.data;
 
-      // 2. Run deterministic diagnosis engine
-      const report = runDiagnosisEngine(evidenceRows, DIAGNOSIS_CONFIG);
+      // Compute input hash based on eligible attempts and query parameters
+      const uniqueAttemptsMap = new Map<string, string>();
+      for (const row of evidenceRows) {
+        if (!uniqueAttemptsMap.has(row.attempt_id)) {
+          uniqueAttemptsMap.set(row.attempt_id, row.submitted_at);
+        }
+      }
+      const attemptItems = Array.from(uniqueAttemptsMap.entries()).map(([id, submittedAt]) => ({
+        id,
+        submittedAt,
+      }));
 
-      // 3. Resolve API key (BYOK). Without API key -> directly return deterministic render.ts report
+      const inputHash = await computeDiagnosisInputHash({
+        userId: user.id,
+        dateFrom: payload.dateFrom,
+        dateTo: payload.dateTo,
+        limitAttempts,
+        timezone: payload.timezone ?? "UTC",
+        attempts: attemptItems,
+      });
+
+      // Resolve API key (BYOK)
       let apiKey: string | null = null;
       if (credential?.secret_id) {
         try {
@@ -503,8 +545,54 @@ Deno.serve(async (req) => {
         }
       }
 
+      // Check cache in ai_insight_reports
+      const { data: cachedReport } = await service
+        .from("ai_insight_reports")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("input_hash", inputHash)
+        .eq("engine_version", ENGINE_VERSION)
+        .maybeSingle();
+
+      if (cachedReport) {
+        const canUpgradeToGemini = cachedReport.source === "fallback" && Boolean(apiKey);
+        if (!canUpgradeToGemini) {
+          return jsonResponse({
+            insight: {
+              summary: cachedReport.summary,
+              narrative: cachedReport.narrative,
+              report: cachedReport.report,
+              source: cachedReport.source,
+              model: cachedReport.model,
+              engineVersion: cachedReport.engine_version,
+              generatedAt: cachedReport.created_at,
+            },
+          });
+        }
+      }
+
+      // 2. Run deterministic diagnosis engine
+      const report = runDiagnosisEngine(evidenceRows, DIAGNOSIS_CONFIG);
+
       if (!apiKey) {
         const fallbackNarrative = report.fallbackMarkdown;
+        await service
+          .from("ai_insight_reports")
+          .upsert(
+            {
+              user_id: user.id,
+              input_hash: inputHash,
+              engine_version: ENGINE_VERSION,
+              report,
+              narrative: fallbackNarrative,
+              summary: fallbackNarrative,
+              source: "fallback",
+              model: "deterministic-engine",
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id,input_hash,engine_version" },
+          );
+
         return jsonResponse({
           insight: {
             summary: fallbackNarrative,
@@ -619,13 +707,32 @@ Deno.serve(async (req) => {
             ? decorateNarrativeWithDeterministicBadges(narrative, report)
             : narrative;
 
+        const resolvedModel = source === "gemini" ? modelToUse : "deterministic-engine";
+
+        await service
+          .from("ai_insight_reports")
+          .upsert(
+            {
+              user_id: user.id,
+              input_hash: inputHash,
+              engine_version: ENGINE_VERSION,
+              report,
+              narrative: finalNarrative,
+              summary: finalNarrative,
+              source,
+              model: resolvedModel,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id,input_hash,engine_version" },
+          );
+
         return jsonResponse({
           insight: {
             summary: finalNarrative,
             narrative: finalNarrative,
             report,
             source,
-            model: source === "gemini" ? modelToUse : "deterministic-engine",
+            model: resolvedModel,
             engineVersion: ENGINE_VERSION,
             generatedAt: new Date().toISOString(),
           },
@@ -659,10 +766,28 @@ Deno.serve(async (req) => {
           throw new HttpError(400, "BYOK_INVALID", message);
         }
 
+        const fallbackNarrative = report.fallbackMarkdown;
+        await service
+          .from("ai_insight_reports")
+          .upsert(
+            {
+              user_id: user.id,
+              input_hash: inputHash,
+              engine_version: ENGINE_VERSION,
+              report,
+              narrative: fallbackNarrative,
+              summary: fallbackNarrative,
+              source: "fallback",
+              model: "deterministic-engine",
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id,input_hash,engine_version" },
+          );
+
         return jsonResponse({
           insight: {
-            summary: report.fallbackMarkdown,
-            narrative: report.fallbackMarkdown,
+            summary: fallbackNarrative,
+            narrative: fallbackNarrative,
             report,
             source: "fallback",
             model: "deterministic-engine",
@@ -694,3 +819,4 @@ Deno.serve(async (req) => {
     );
   }
 });
+}

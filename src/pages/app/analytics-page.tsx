@@ -236,55 +236,55 @@ function AnalyticsPage() {
 
             <Card className="mt-8 border-primary/20 bg-primary/5 shadow-md overflow-hidden relative">
               <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-3 flex flex-row items-center justify-between">
                  <CardTitle className="text-xl font-bold flex items-center gap-2 text-foreground">
                    <Sparkles className="h-5 w-5 text-primary" />
-                   Analisis Mendalam AI
+                   Analisis Mendalam
                  </CardTitle>
+                 {aiInsightQuery.data ? (
+                   <Badge variant={aiInsightQuery.data.source === "gemini" ? "default" : "secondary"}>
+                     {aiInsightQuery.data.source === "gemini" ? "Dianalisis dengan AI" : "Laporan berbasis aturan"}
+                   </Badge>
+                 ) : null}
               </CardHeader>
               <CardContent>
-                {!aiCredentialQuery.data?.hasCredential ? (
-                  <div className="flex flex-col items-center justify-center p-6 text-center">
-                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                      <Key className="h-6 w-6 text-primary" />
-                    </div>
-                    <h4 className="text-base font-semibold mb-2">Kredensial AI Belum Diatur</h4>
-                    <p className="text-sm text-muted-foreground max-w-md mb-4">
-                      Fitur analisis cerdas menggunakan sistem Bring Your Own Key (BYOK). Silakan atur API Key Gemini Anda di Pengaturan AI Global untuk mengaktifkan fitur ini.
-                    </p>
-                    <Link
-                      {...getButtonStyleProps({ variant: "primary" })}
-                      to="/app/settings/ai-config"
-                    >
-                      Buka Pengaturan AI
-                    </Link>
-                  </div>
-                ) : !aiInsightQuery.data && !aiInsightQuery.isFetching && !aiInsightQuery.isError ? (
+                {!aiInsightQuery.data && !aiInsightQuery.isFetching && !aiInsightQuery.isError ? (
                   <div className="flex flex-col items-center justify-center p-6 text-center">
                     <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                       <Bot className="h-6 w-6 text-primary" />
                     </div>
                     <p className="text-sm text-muted-foreground max-w-md mb-4">
-                      Dapatkan rangkuman kelemahan yang lebih spesifik dan saran strategi belajar dari asisten AI cerdas berdasarkan {diagnosis.summary.overallQuestionCount} soal ({diagnosis.summary.eligibleAttemptCount} try out) Anda.
+                      Dapatkan rangkuman kelemahan yang lebih spesifik dan saran strategi belajar berdasarkan {diagnosis.summary.overallQuestionCount} soal ({diagnosis.summary.eligibleAttemptCount} try out) Anda.
                     </p>
+                    {!aiCredentialQuery.data?.hasCredential ? (
+                      <p className="text-xs text-muted-foreground/80 max-w-md mb-4 bg-muted/50 p-2.5 rounded-lg border border-border/50">
+                        API Key Gemini belum diatur. Anda tetap dapat membuat laporan berbasis aturan, atau{" "}
+                        <Link to="/app/settings/ai-config" className="text-primary font-medium underline hover:text-primary/80">
+                          atur API Key
+                        </Link>{" "}
+                        untuk narasi cerdas AI.
+                      </p>
+                    ) : null}
                     <Button 
                       onClick={() => aiInsightQuery.refetch()}
                       className="font-semibold"
                     >
-                      Buat Analisis AI
+                      {aiCredentialQuery.data?.hasCredential ? "Buat Analisis AI" : "Buat Laporan Analisis"}
                     </Button>
                   </div>
                 ) : aiInsightQuery.isFetching ? (
                   <div className="flex flex-col items-center justify-center p-12 text-center space-y-4">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-sm font-medium text-muted-foreground">AI sedang menganalisis data try out Anda...</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {aiCredentialQuery.data?.hasCredential ? "AI sedang menganalisis data try out Anda..." : "Sistem sedang menganalisis data try out Anda..."}
+                    </p>
                   </div>
                 ) : aiInsightQuery.isError ? (
                   <Alert variant="destructive" className="bg-destructive/5 border-destructive/20">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Gagal memuat analisis AI</AlertTitle>
+                    <AlertTitle>Gagal memuat analisis</AlertTitle>
                     <AlertDescription className="mt-1 flex flex-col items-start gap-3">
-                      <span>{aiInsightQuery.error instanceof Error ? aiInsightQuery.error.message : "Terjadi kesalahan saat memproses data dengan AI."}</span>
+                      <span>{aiInsightQuery.error instanceof Error ? aiInsightQuery.error.message : "Terjadi kesalahan saat memproses data analisis."}</span>
                       <Button variant="outline" size="sm" onClick={() => aiInsightQuery.refetch()}>
                         Coba Lagi
                       </Button>
@@ -292,13 +292,31 @@ function AnalyticsPage() {
                   </Alert>
                 ) : (
                   <div className="space-y-4">
+                    {aiInsightQuery.data?.source === "fallback" ? (
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border/50 text-xs text-muted-foreground mb-4">
+                        <div className="flex items-center gap-2">
+                          <Key className="h-4 w-4 text-primary shrink-0" />
+                          <span>
+                            Laporan ini dibuat menggunakan mesin analisis berbasis aturan. Sambungkan API Key Gemini untuk narasi cerdas dan refleksi personal.
+                          </span>
+                        </div>
+                        <Link
+                          to="/app/settings/ai-config"
+                          className="text-primary font-medium hover:underline shrink-0 ml-3"
+                        >
+                          Atur API Key
+                        </Link>
+                      </div>
+                    ) : null}
                     <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground leading-relaxed">
                       <ReactMarkdown>
-                        {sanitizeMarkdown(aiInsightQuery.data?.summary)}
+                        {sanitizeMarkdown(aiInsightQuery.data?.narrative ?? aiInsightQuery.data?.summary)}
                       </ReactMarkdown>
                     </div>
                     <div className="text-[11px] font-mono font-medium text-muted-foreground/60 uppercase tracking-wide flex items-center justify-between border-t border-border/50 pt-4 mt-6">
-                      <span>Model: {aiInsightQuery.data?.model ?? "Gemini 3.8 Flash"}</span>
+                      {aiInsightQuery.data?.source === "gemini" ? (
+                        <span>Model: {aiInsightQuery.data?.model ?? "Gemini 3.8 Flash"}</span>
+                      ) : null}
                       <span>Digenerasi: {new Date(aiInsightQuery.data?.generatedAt ?? "").toLocaleString("id-ID")}</span>
                     </div>
                   </div>

@@ -6,6 +6,7 @@ import {
   validateNarrative,
 } from "../_shared/diagnosis-engine/narrative.ts";
 import type { EvidenceRow } from "../_shared/diagnosis-engine/types.ts";
+import { computeDiagnosisInputHash } from "./index.ts";
 
 function createMockRow(overrides: Partial<EvidenceRow> = {}): EvidenceRow {
   return {
@@ -188,5 +189,45 @@ describe("Phase 4 Pipeline - Evidence -> Engine -> Gemini -> Validator -> Retry 
 
     expect(responsePayload.insight.report.topFindings).toHaveLength(0);
     expect(responsePayload.insight.summary).toContain("Belum ditemukan pola kelemahan spesifik");
+  });
+
+  test("computeDiagnosisInputHash is deterministic and order-invariant across attempts", async () => {
+    const paramsA = {
+      userId: "user-1",
+      dateFrom: "2026-10-01",
+      dateTo: "2026-10-27",
+      limitAttempts: 5,
+      timezone: "Asia/Jakarta",
+      attempts: [
+        { id: "att-1", submittedAt: "2026-10-20T10:00:00Z" },
+        { id: "att-2", submittedAt: "2026-10-25T10:00:00Z" },
+      ],
+    };
+
+    const paramsB = {
+      userId: "user-1",
+      dateFrom: "2026-10-01",
+      dateTo: "2026-10-27",
+      limitAttempts: 5,
+      timezone: "Asia/Jakarta",
+      attempts: [
+        { id: "att-2", submittedAt: "2026-10-25T10:00:00Z" },
+        { id: "att-1", submittedAt: "2026-10-20T10:00:00Z" },
+      ],
+    };
+
+    const hashA = await computeDiagnosisInputHash(paramsA);
+    const hashB = await computeDiagnosisInputHash(paramsB);
+
+    expect(hashA).toBe(hashB);
+    expect(hashA).toHaveLength(64); // SHA-256 hex string
+
+    // Modifying an attempt ID changes hash
+    const paramsC = {
+      ...paramsA,
+      attempts: [{ id: "att-3", submittedAt: "2026-10-26T10:00:00Z" }],
+    };
+    const hashC = await computeDiagnosisInputHash(paramsC);
+    expect(hashC).not.toBe(hashA);
   });
 });

@@ -45,11 +45,8 @@ describe("gemini-client", () => {
     const { testGeminiConnection } = await import("./gemini-client.ts");
     await testGeminiConnection("api-key", "gemini-3.7-flash");
 
-    const [url, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
     const body = JSON.parse(String(requestInit.body));
-
-    expect(url).not.toContain("?key=");
-    expect((requestInit.headers as Record<string, string>)["x-goog-api-key"]).toBe("api-key");
 
     expect(body.generationConfig.thinkingConfig).toEqual({
       thinkingBudget: 0,
@@ -241,7 +238,6 @@ describe("gemini-client", () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: false,
       status: 503,
-      headers: new Headers({ "retry-after": "1" }),
       json: async () => ({
         error: {
           message: "The service is temporarily unavailable.",

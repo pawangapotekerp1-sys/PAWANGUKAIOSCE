@@ -15,6 +15,13 @@ import {
 } from "../_shared/gemini-client.ts";
 import { DIAGNOSIS_CONFIG, ENGINE_VERSION } from "../_shared/diagnosis-engine/config.ts";
 import { PersonalWeaknessDiagnosisDataSchema } from "../_shared/diagnosis-engine/schemas.ts";
+import { runDiagnosisEngine } from "../_shared/diagnosis-engine/engine.ts";
+import { EvidenceRowSchema } from "../_shared/diagnosis-engine/validate.ts";
+import {
+  buildDiagnosisNarrationPrompt,
+  decorateNarrativeWithDeterministicBadges,
+  validateNarrative,
+} from "../_shared/diagnosis-engine/narrative.ts";
 
 export function resolveModelToUse(model: string | null | undefined): string {
   return normalizeAiModel(model);
@@ -419,15 +426,99 @@ Deno.serve(async (req) => {
     }
 
     if (payload.action === "generate-range-insight") {
-      if (!credential?.secret_id) {
-        throw new HttpError(400, "BYOK_MISSING", "Belum ada BYOK tersimpan.");
-      }
-
       if (typeof payload.dateFrom !== "string" || typeof payload.dateTo !== "string") {
         throw new HttpError(400, "INVALID_DATE_RANGE", "Rentang tanggal tidak valid.");
       }
 
-      // 30 seconds cooldown per user
+      const limitAttempts =
+        typeof payload.limitAttempts === "number" && payload.limitAttempts > 0
+          ? payload.limitAttempts
+          : null;
+
+      // 1. Fetch RPCs in parallel: get_personal_weakness_diagnosis and get_attempt_evidence
+      const [diagnosisRes, evidenceRes] = await Promise.all([
+        userClient.rpc("get_personal_weakness_diagnosis", {
+          date_from: payload.dateFrom,
+          date_to: payload.dateTo,
+          user_timezone: payload.timezone ?? "UTC",
+          limit_attempts: limitAttempts,
+        }),
+        userClient.rpc("get_attempt_evidence", {
+          date_from: payload.dateFrom,
+          date_to: payload.dateTo,
+          user_timezone: payload.timezone ?? "UTC",
+          limit_attempts: limitAttempts,
+        }),
+      ]);
+
+      if (diagnosisRes.error) {
+        throw new Error(diagnosisRes.error.message);
+      }
+
+      const parseResult = PersonalWeaknessDiagnosisDataSchema.safeParse(diagnosisRes.data);
+      if (!parseResult.success) {
+        console.error("Diagnosis RPC schema mismatch:", parseResult.error.format());
+        throw new HttpError(
+          500,
+          "DIAGNOSIS_SCHEMA_MISMATCH",
+          `Struktur data diagnosis tidak sesuai skema: ${parseResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ")}`,
+        );
+      }
+      const diagnosis = parseResult.data;
+
+      const eligibleSubtopics = diagnosis.subtopicRankings || [];
+      if (eligibleSubtopics.length === 0) {
+        throw new HttpError(
+          400,
+          "INSUFFICIENT_DATA",
+          "Dibutuhkan minimal 1 subtopik berstatus indikatif atau utama (minimal 10 soal terjawab) untuk analisis AI.",
+        );
+      }
+
+      if (evidenceRes.error) {
+        throw new Error(evidenceRes.error.message);
+      }
+
+      const evidenceParse = EvidenceRowSchema.array().safeParse(evidenceRes.data ?? []);
+      if (!evidenceParse.success) {
+        console.error("Evidence RPC schema mismatch:", evidenceParse.error.format());
+        throw new HttpError(
+          500,
+          "EVIDENCE_SCHEMA_MISMATCH",
+          `Struktur data evidence tidak sesuai skema: ${evidenceParse.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ")}`,
+        );
+      }
+      const evidenceRows = evidenceParse.data;
+
+      // 2. Run deterministic diagnosis engine
+      const report = runDiagnosisEngine(evidenceRows, DIAGNOSIS_CONFIG);
+
+      // 3. Resolve API key (BYOK). Without API key -> directly return deterministic render.ts report
+      let apiKey: string | null = null;
+      if (credential?.secret_id) {
+        try {
+          apiKey = await readVaultSecret(service, credential.secret_id);
+        } catch {
+          apiKey = null;
+        }
+      }
+
+      if (!apiKey) {
+        const fallbackNarrative = report.fallbackMarkdown;
+        return jsonResponse({
+          insight: {
+            summary: fallbackNarrative,
+            narrative: fallbackNarrative,
+            report,
+            source: "fallback",
+            model: "deterministic-engine",
+            engineVersion: ENGINE_VERSION,
+            generatedAt: new Date().toISOString(),
+          },
+        });
+      }
+
+      // 4. Rate limit check (cooldown 30s) when invoking Gemini AI
       const { data: lastUsage } = await service
         .from("ai_usage_logs")
         .select("created_at")
@@ -444,84 +535,61 @@ Deno.serve(async (req) => {
           throw new HttpError(429, "COOLDOWN_ACTIVE", `Harap tunggu ${waitSeconds} detik sebelum membuat analisis AI baru.`);
         }
       }
-      
-      const apiKey = await readVaultSecret(service, credential.secret_id);
+
       const modelToUse = resolveModelToUse(credential.model);
-      const limitAttempts = typeof payload.limitAttempts === "number" && payload.limitAttempts > 0
-        ? payload.limitAttempts
-        : null;
+      const prompt = buildDiagnosisNarrationPrompt(report);
+      let narrative = report.fallbackMarkdown;
+      let source: "gemini" | "fallback" = "fallback";
+      let usageResult = null;
+      let latencyMs = 0;
 
       try {
-        const { data: diagnosisRaw, error: diagnosisError } = await userClient.rpc("get_personal_weakness_diagnosis", {
-          date_from: payload.dateFrom,
-          date_to: payload.dateTo,
-          user_timezone: payload.timezone ?? "UTC",
-          limit_attempts: limitAttempts,
-        });
-
-        if (diagnosisError) {
-          throw new Error(diagnosisError.message);
-        }
-
-        const parseResult = PersonalWeaknessDiagnosisDataSchema.safeParse(diagnosisRaw);
-        if (!parseResult.success) {
-          console.error("Diagnosis RPC schema mismatch:", parseResult.error.format());
-          throw new HttpError(
-            500,
-            "DIAGNOSIS_SCHEMA_MISMATCH",
-            `Struktur data diagnosis tidak sesuai skema: ${parseResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ")}`
-          );
-        }
-        const diagnosis = parseResult.data;
-
-        const eligibleSubtopics = diagnosis.subtopicRankings || [];
-        if (eligibleSubtopics.length === 0) {
-          throw new HttpError(
-            400,
-            "INSUFFICIENT_DATA",
-            "Dibutuhkan minimal 1 subtopik berstatus indikatif atau utama (minimal 10 soal terjawab) untuk analisis AI."
-          );
-        }
-
-        const { data: failedQuestions, error: failedQuestionsError } = await userClient.rpc("get_frequent_failed_questions", {
-          date_from: payload.dateFrom,
-          date_to: payload.dateTo,
-          user_timezone: payload.timezone ?? "UTC",
-        });
-
-        if (failedQuestionsError) {
-          throw new Error(failedQuestionsError.message);
-        }
-
-        const subtopics = eligibleSubtopics.slice(0, 3);
-        const subtopicText = subtopics.map((item) => `${item.topicName} (${Math.round(item.accuracy)}%)`).join(", ");
-        const patterns = (diagnosis?.globalBehaviorPatterns || []).slice(0, 2);
-        const patternText = patterns.map((p: any) => p.label).join(", ");
-        const failedQuestionsText = (failedQuestions || []).map((q: any) => `- [${q.topic_name}] ${q.question_stem}`).join("\n");
-        
-        const result = await generateGeminiTextWithUsage({
+        // Call 1
+        let geminiResult = await generateGeminiTextWithUsage({
           apiKey,
           model: modelToUse,
-          prompt: [
-            "Kamu adalah mentor ahli klinis untuk mahasiswa profesi apoteker.",
-            "Tuliskan laporan analisis mendalam mengenai evaluasi objektif kelemahan mereka.",
-            "PENTING: Gunakan teks-teks soal yang sering dijawab salah di bawah ini untuk mencari pola jebakan spesifik (contoh: tidak teliti pada parameter lab pasien ginjal, salah rumus dosis pediatri, bingung efek samping spesifik).",
-            "Format jawabanmu HARUS menggunakan struktur berikut (gunakan Markdown):",
-            "1. **Ringkasan Eksekutif**: 2-3 kalimat tajam tentang status performa mereka saat ini.",
-            "2. **Pola Kesalahan Utama**: Gunakan *bullet points* untuk membongkar 2-3 pola jebakan soal yang paling sering membuat mereka salah, berdasarkan data teks soal di bawah.",
-            "3. **Evaluasi Perilaku**: Jelaskan kaitan antara kelemahan topik dengan pola perilaku menjawab mereka.",
-            "4. **Rekomendasi Taktis Langkah-demi-Langkah**: Berikan 3 poin arahan studi yang sangat spesifik dan bisa langsung dipraktikkan minggu ini.",
-            `Total Try Out: ${diagnosis?.summary?.eligibleAttemptCount ?? 0}`,
-            `Akurasi Keseluruhan: ${diagnosis?.summary?.overallAccuracy ?? 0}%`,
-            `Kelemahan Topik Prioritas: ${subtopicText || "Belum ada data sub-topik terperinci"}`,
-            `Pola Perilaku Menjawab: ${patternText || "Tidak ada pola khusus"}`,
-            `Saran otomatis sistem: ${diagnosis?.narrative?.nextReadiness || "Tidak ada"}`,
-            "",
-            "15 SOAL YANG PALING SERING DIJAWAB SALAH (Cari polanya):",
-            failedQuestionsText || "Belum ada data soal yang salah."
-          ].join("\n"),
-          maxOutputTokens: DIAGNOSIS_CONFIG.ai.maxOutputTokens,
+          prompt,
+          temperature: DIAGNOSIS_CONFIG.ai.temperature, // 0.2
+          maxOutputTokens: DIAGNOSIS_CONFIG.ai.maxOutputTokens, // 1800 explicitly passed!
         });
+        latencyMs = geminiResult.latencyMs ?? 0;
+        usageResult = geminiResult.usage;
+
+        let validation = validateNarrative(geminiResult.text, report);
+
+        // If invalid, retry ONCE
+        if (!validation.valid) {
+          console.warn("Diagnosis narration validation failed on call 1:", validation.reason);
+          const retryPrompt = [
+            prompt,
+            "",
+            `PERINGATAN VALIDASI: Narasi sebelumnya ditolak karena memuat data di luar laporan (${validation.reason}).`,
+            "Tulis ulang narasi dengan HANYA menggunakan angka dan data yang tercantum persis di data laporan resmi di atas!",
+          ].join("\n");
+
+          const retryResult = await generateGeminiTextWithUsage({
+            apiKey,
+            model: modelToUse,
+            prompt: retryPrompt,
+            temperature: DIAGNOSIS_CONFIG.ai.temperature,
+            maxOutputTokens: DIAGNOSIS_CONFIG.ai.maxOutputTokens,
+          });
+          latencyMs += retryResult.latencyMs ?? 0;
+          usageResult = retryResult.usage;
+
+          validation = validateNarrative(retryResult.text, report);
+          if (validation.valid) {
+            narrative = retryResult.text;
+            source = "gemini";
+          } else {
+            console.warn("Diagnosis narration validation failed after retry. Falling back to render.ts:", validation.reason);
+            narrative = report.fallbackMarkdown;
+            source = "fallback";
+          }
+        } else {
+          narrative = geminiResult.text;
+          source = "gemini";
+        }
 
         await service
           .from("user_ai_credentials")
@@ -536,33 +604,43 @@ Deno.serve(async (req) => {
           credentialId: credential.id,
           model: modelToUse,
           requestKind: "student_insight",
-          status: "success",
-          usage: result.usage,
-          latencyMs: result.latencyMs,
+          status: source === "gemini" ? "success" : "error",
+          usage: usageResult ?? undefined,
+          latencyMs,
           metadata: {
             dateFrom: payload.dateFrom,
             dateTo: payload.dateTo,
-          }
+            source,
+          },
         });
+
+        const finalNarrative =
+          source === "gemini"
+            ? decorateNarrativeWithDeterministicBadges(narrative, report)
+            : narrative;
 
         return jsonResponse({
           insight: {
-            source: "ai",
-            generatedAt: new Date().toISOString(),
-            summary: result.text,
-            model: modelToUse,
+            summary: finalNarrative,
+            narrative: finalNarrative,
+            report,
+            source,
+            model: source === "gemini" ? modelToUse : "deterministic-engine",
             engineVersion: ENGINE_VERSION,
+            generatedAt: new Date().toISOString(),
           },
         });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Student AI range insight failed.";
+      } catch (geminiError) {
+        console.error("Gemini call failed during diagnosis narration:", geminiError);
+        const message = geminiError instanceof Error ? geminiError.message : "Diagnosis Gemini narration failed.";
+
         await service
           .from("user_ai_credentials")
           .update({
             last_error: message,
           })
           .eq("id", credential.id);
-        
+
         await writeUsageLog(service, {
           userId: user.id,
           credentialId: credential.id,
@@ -570,17 +648,28 @@ Deno.serve(async (req) => {
           requestKind: "student_insight",
           status: "error",
           errorMessage: message,
+          metadata: {
+            dateFrom: payload.dateFrom,
+            dateTo: payload.dateTo,
+            source: "fallback",
+          },
         });
 
-        if (error instanceof HttpError) {
-          throw error;
-        }
-
-        if (isGeminiCredentialError(error)) {
+        if (isGeminiCredentialError(geminiError)) {
           throw new HttpError(400, "BYOK_INVALID", message);
         }
 
-        throw error;
+        return jsonResponse({
+          insight: {
+            summary: report.fallbackMarkdown,
+            narrative: report.fallbackMarkdown,
+            report,
+            source: "fallback",
+            model: "deterministic-engine",
+            engineVersion: ENGINE_VERSION,
+            generatedAt: new Date().toISOString(),
+          },
+        });
       }
     }
 

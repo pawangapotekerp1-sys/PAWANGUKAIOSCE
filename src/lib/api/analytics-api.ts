@@ -213,10 +213,14 @@ export async function getPersonalWeaknessDiagnosis(
   return mapPersonalWeaknessDiagnosisViewModel((data ?? {}) as PersonalWeaknessDiagnosisRow);
 }
 
+import type { DiagnosisReport } from "../schemas/personal-weakness-diagnosis";
+
 export type StudentAiRangeInsight = {
-  source: "ai" | "rules";
+  source: "ai" | "rules" | "gemini" | "fallback";
   generatedAt: string;
   summary: string;
+  narrative?: string;
+  report?: DiagnosisReport;
   model?: string;
   engineVersion?: string;
 };

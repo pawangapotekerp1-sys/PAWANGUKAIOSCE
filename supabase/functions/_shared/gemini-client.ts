@@ -566,7 +566,7 @@ async function generateGeminiTextOnce({
     ? maxOutputTokens
     : (thinkingLevel || typeof thinkingBudget === "number" || responseMimeType === "application/json")
       ? 8192
-      : 1800;
+      : 512;
   const generationConfig: Record<string, unknown> = {
     temperature,
     maxOutputTokens: effectiveMaxOutputTokens,
@@ -603,12 +603,11 @@ async function generateGeminiTextOnce({
   let response: Response;
   try {
     response = await fetch(
-      `${env.geminiBaseUrl}/models/${encodeURIComponent(resolvedModel)}:generateContent`,
+      `${env.geminiBaseUrl}/models/${encodeURIComponent(resolvedModel)}:generateContent?key=${encodeURIComponent(apiKey)}`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-goog-api-key": apiKey,
         },
         signal:
           typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function"

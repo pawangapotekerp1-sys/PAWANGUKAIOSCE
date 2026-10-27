@@ -170,6 +170,12 @@ function TryoutSessionPage() {
       queryClient.removeQueries({
         queryKey: ["active-tryout-attempt"],
       });
+      queryClient.removeQueries({
+        queryKey: ["activeAttempt"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["tryout-catalog"],
+      });
       navigate(`/app/tryout/result?attempt=${attemptId}`, {
         replace: true,
       });
@@ -207,10 +213,14 @@ function TryoutSessionPage() {
       return;
     }
 
+    if (activeAttemptFallbackQuery.data.timeRemainingSeconds <= 0) {
+      return;
+    }
+
     navigate(`/app/tryout/session?attempt=${activeAttemptFallbackQuery.data.attemptId}`, {
       replace: true,
     });
-  }, [activeAttemptFallbackQuery.data?.attemptId, attemptId, navigate]);
+  }, [activeAttemptFallbackQuery.data?.attemptId, activeAttemptFallbackQuery.data?.timeRemainingSeconds, attemptId, navigate]);
 
   const sessionData = sessionQuery.data;
   const sessionAttempt = sessionData?.view === "ready" ? sessionData.attempt : null;

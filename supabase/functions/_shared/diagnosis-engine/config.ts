@@ -11,6 +11,7 @@ export const DIAGNOSIS_CONFIG = {
     recurringDistractorMinAttempts: 2, // Minimal 2 attempt memilih pengecoh sama pada butir soal yang sama
     trendMinQuestionsPerPeriod: 10,  // Minimal 10 soal per periode (awal & akhir) untuk tren IMPROVING
     fragileKnowledgeMinQuestions: 10,// Minimal 10 soal pada subtopik untuk FRAGILE_KNOWLEDGE
+    confidentErrorsMinTopicQuestions: 10, // Minimal 10 soal pada subtopik untuk CONFIDENT_ERRORS_TOPIC
   },
   behaviorThresholds: {
     slowZScore: 1.0,                 // Z-score waktu lambat (celah_pengetahuan)
@@ -22,8 +23,11 @@ export const DIAGNOSIS_CONFIG = {
     lateSessionDropMetric: "percentage_points" as const,
     rushedWrongMinRatio: 0.05,       // Proporsi butir salah-cepat terhadap total jawaban (>= 5%)
     fragileKnowledgeDoubtfulCorrectRatio: 0.30, // Proporsi jawaban BENAR yang ditandai ragu pada topik (>= 30%)
-    confidentErrorsTopicMinCount: 3, // Minimal salah tanpa ragu pada topik
+    confidentErrorsTopicMinCount: 3, // Minimal 3 butir salah tanpa ragu pada topik
+    confidentErrorsMinRatio: 0.20,   // Proporsi minimal salah tanpa ragu terhadap total soal topik (>= 20%)
     persistentWeaknessMaxAccuracy: 60, // Batas akurasi kelemahan persisten (< 60%)
+    trendImprovementMinPercentagePoints: 15, // Kenaikan akurasi minimal 15 poin persentase untuk IMPROVING
+    trendImprovementMetric: "percentage_points" as const,
   },
   rateLimits: {
     cooldownSeconds: 30,

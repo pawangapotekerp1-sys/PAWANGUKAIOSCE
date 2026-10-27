@@ -314,6 +314,73 @@ describe("Diagnosis Engine - Findings Detectors & Revised Triggers", () => {
     expect(fnd?.metadata.dropPercentage).toBe(30);
     expect(fnd?.recommendationDraft).toContain("30 poin persentase");
   });
+
+  test("CONFIDENT_ERRORS_TOPIC respects topic sample gate (>= 10 questions) and proportion threshold (>= 20%)", () => {
+    // Case 1: < 10 questions (5 questions total, 3 confident errors) -> NO finding
+    const smallTopicRows: EvidenceRow[] = Array.from({ length: 5 }, (_, i) =>
+      createMockRow({
+        question_id: `q-ce-small-${i}`,
+        is_correct: i >= 3, // 3 wrong
+        was_ever_flagged_ragu: false,
+      }),
+    );
+    expect(detectFindings(smallTopicRows).find((f) => f.code === "CONFIDENT_ERRORS_TOPIC")).toBeUndefined();
+
+    // Case 2: >= 10 questions (20 questions total), but proportion < 20% (3 confident errors / 20 = 15%) -> NO finding
+    const lowRatioRows: EvidenceRow[] = Array.from({ length: 20 }, (_, i) =>
+      createMockRow({
+        question_id: `q-ce-low-${i}`,
+        is_correct: i >= 3, // 3 wrong out of 20
+        was_ever_flagged_ragu: false,
+      }),
+    );
+    expect(detectFindings(lowRatioRows).find((f) => f.code === "CONFIDENT_ERRORS_TOPIC")).toBeUndefined();
+
+    // Case 3: 10 questions, 3 confident errors (30% >= 20%) -> TRIGGERS finding
+    const validRows: EvidenceRow[] = Array.from({ length: 10 }, (_, i) =>
+      createMockRow({
+        question_id: `q-ce-valid-${i}`,
+        is_correct: i >= 3, // 3 wrong out of 10
+        was_ever_flagged_ragu: false,
+      }),
+    );
+    const fnd = detectFindings(validRows).find((f) => f.code === "CONFIDENT_ERRORS_TOPIC");
+    expect(fnd).toBeDefined();
+    expect(fnd?.metadata.confidentErrors).toBe(3);
+    expect(fnd?.metadata.totalQuestions).toBe(10);
+    expect(fnd?.evidenceSummary).toContain("3 kesalahan (30% dari 10 butir)");
+  });
+
+  test("IMPROVING requires >= 10 questions per period and >= 15 percentage points gain", () => {
+    // 2 chronological attempts:
+    // Period 1 (att-1): 10 questions, 3 correct (30%)
+    // Period 2 (att-2): 10 questions, 7 correct (70%)
+    // Gain = 70 - 30 = 40 percentage points >= 15
+    const rows: EvidenceRow[] = [
+      ...Array.from({ length: 10 }, (_, i) =>
+        createMockRow({
+          attempt_id: "att-1",
+          submitted_at: "2026-10-01T00:00:00Z",
+          question_id: `q-imp-1-${i}`,
+          is_correct: i < 3, // 3/10 = 30%
+        }),
+      ),
+      ...Array.from({ length: 10 }, (_, i) =>
+        createMockRow({
+          attempt_id: "att-2",
+          submitted_at: "2026-10-15T00:00:00Z",
+          question_id: `q-imp-2-${i}`,
+          is_correct: i < 7, // 7/10 = 70%
+        }),
+      ),
+    ];
+
+    const fnd = detectFindings(rows).find((f) => f.code === "IMPROVING");
+    expect(fnd).toBeDefined();
+    expect(fnd?.metadata.pointsIncrease).toBe(40);
+    expect(fnd?.evidenceSummary).toContain("40 poin persentase");
+    expect(fnd?.recommendationDraft).toContain("40 poin persentase");
+  });
 });
 
 describe("Diagnosis Engine - Determinism, Invariance & Tie-Break", () => {
@@ -401,5 +468,210 @@ describe("Diagnosis Engine - Determinism, Invariance & Tie-Break", () => {
     const report = runDiagnosisEngine(rows);
     const parsed = DiagnosisReportSchema.safeParse(report);
     expect(parsed.success).toBe(true);
+  });
+});
+
+describe("Diagnosis Engine - Boundary Testing (n-1 vs n) & Edge Cases", () => {
+  test("boundary: topic sample gate 9 vs 10 questions for PERSISTENT_WEAKNESS", () => {
+    // 9 questions across 2 attempts (4 in att-1, 5 in att-2) -> NO finding
+    const rows9: EvidenceRow[] = [
+      ...Array.from({ length: 4 }, (_, i) =>
+        createMockRow({ attempt_id: "att-1", question_id: `q-9-${i}`, is_correct: false }),
+      ),
+      ...Array.from({ length: 5 }, (_, i) =>
+        createMockRow({ attempt_id: "att-2", question_id: `q-9-${i + 4}`, is_correct: false }),
+      ),
+    ];
+    expect(detectFindings(rows9).find((f) => f.code === "PERSISTENT_WEAKNESS")).toBeUndefined();
+
+    // 10 questions across 2 attempts (5 in att-1, 5 in att-2) -> TRIGGERS finding
+    const rows10: EvidenceRow[] = [
+      ...Array.from({ length: 5 }, (_, i) =>
+        createMockRow({ attempt_id: "att-1", question_id: `q-10-${i}`, is_correct: false }),
+      ),
+      ...Array.from({ length: 5 }, (_, i) =>
+        createMockRow({ attempt_id: "att-2", question_id: `q-10-${i + 5}`, is_correct: false }),
+      ),
+    ];
+    const fnd10 = detectFindings(rows10).find((f) => f.code === "PERSISTENT_WEAKNESS");
+    expect(fnd10).toBeDefined();
+    expect(fnd10?.metadata.sampleStatus).toBe("sampel indikatif");
+    expect(fnd10?.confidence).toBe(4);
+  });
+
+  test("boundary: topic sample gate 19 vs 20 questions for primary sample status in PERSISTENT_WEAKNESS", () => {
+    // 19 questions across 2 attempts -> sampel indikatif (confidence 4)
+    const rows19: EvidenceRow[] = [
+      ...Array.from({ length: 10 }, (_, i) =>
+        createMockRow({ attempt_id: "att-1", question_id: `q-19-${i}`, is_correct: false }),
+      ),
+      ...Array.from({ length: 9 }, (_, i) =>
+        createMockRow({ attempt_id: "att-2", question_id: `q-19-${i + 10}`, is_correct: false }),
+      ),
+    ];
+    const fnd19 = detectFindings(rows19).find((f) => f.code === "PERSISTENT_WEAKNESS");
+    expect(fnd19).toBeDefined();
+    expect(fnd19?.metadata.sampleStatus).toBe("sampel indikatif");
+    expect(fnd19?.confidence).toBe(4);
+
+    // 20 questions across 2 attempts -> sampel utama (confidence 5)
+    const rows20: EvidenceRow[] = [
+      ...Array.from({ length: 10 }, (_, i) =>
+        createMockRow({ attempt_id: "att-1", question_id: `q-20-${i}`, is_correct: false }),
+      ),
+      ...Array.from({ length: 10 }, (_, i) =>
+        createMockRow({ attempt_id: "att-2", question_id: `q-20-${i + 10}`, is_correct: false }),
+      ),
+    ];
+    const fnd20 = detectFindings(rows20).find((f) => f.code === "PERSISTENT_WEAKNESS");
+    expect(fnd20).toBeDefined();
+    expect(fnd20?.metadata.sampleStatus).toBe("sampel utama");
+    expect(fnd20?.confidence).toBe(5);
+  });
+
+  test("boundary: global sample gate 99 vs 100 questions for behavioral detectors", () => {
+    // Helper to generate rows meeting behavioral triggers
+    const generateRows = (count: number): EvidenceRow[] =>
+      Array.from({ length: count }, (_, i) => {
+        const isLate = i >= Math.floor(count * 0.75);
+        return createMockRow({
+          question_id: `q-glob-${i}`,
+          is_correct: isLate ? false : i % 2 === 0, // early 50% acc, late 0% acc -> drop >= 20 pts
+          session_position_ratio: i / count,
+          time_spent_z_score: i < 10 ? -1.2 : 0.0, // 10 rushed errors
+          changed_correct_to_wrong_count: i === 0 ? 3 : 0, // 3 C->W changes
+          changed_wrong_to_correct_count: 0,
+        });
+      });
+
+    // 99 questions -> globalBehaviorMinQuestions gate blocks all global detectors
+    const rows99 = generateRows(99);
+    const findings99 = detectFindings(rows99);
+    expect(findings99.find((f) => f.code === "RUSHED_WRONG")).toBeUndefined();
+    expect(findings99.find((f) => f.code === "LATE_SESSION_DROP")).toBeUndefined();
+    expect(findings99.find((f) => f.code === "NET_ANSWER_CHANGE")).toBeUndefined();
+
+    // 100 questions -> all global detectors evaluate and trigger
+    const rows100 = generateRows(100);
+    const findings100 = detectFindings(rows100);
+    expect(findings100.find((f) => f.code === "RUSHED_WRONG")).toBeDefined();
+    expect(findings100.find((f) => f.code === "LATE_SESSION_DROP")).toBeDefined();
+    expect(findings100.find((f) => f.code === "NET_ANSWER_CHANGE")).toBeDefined();
+  });
+
+  test("boundary: trend period sample gate 9 vs 10 questions for IMPROVING", () => {
+    // Period 1 = 9 questions, Period 2 = 10 questions -> NO finding
+    const rows9and10: EvidenceRow[] = [
+      ...Array.from({ length: 9 }, (_, i) =>
+        createMockRow({ attempt_id: "att-1", submitted_at: "2026-10-01T00:00:00Z", question_id: `q-tr-1-${i}`, is_correct: false }),
+      ),
+      ...Array.from({ length: 10 }, (_, i) =>
+        createMockRow({ attempt_id: "att-2", submitted_at: "2026-10-15T00:00:00Z", question_id: `q-tr-2-${i}`, is_correct: true }),
+      ),
+    ];
+    expect(detectFindings(rows9and10).find((f) => f.code === "IMPROVING")).toBeUndefined();
+
+    // Period 1 = 10 questions (0%), Period 2 = 10 questions (80%) -> TRIGGERS finding
+    const rows10and10: EvidenceRow[] = [
+      ...Array.from({ length: 10 }, (_, i) =>
+        createMockRow({ attempt_id: "att-1", submitted_at: "2026-10-01T00:00:00Z", question_id: `q-tr-10a-${i}`, is_correct: false }),
+      ),
+      ...Array.from({ length: 10 }, (_, i) =>
+        createMockRow({ attempt_id: "att-2", submitted_at: "2026-10-15T00:00:00Z", question_id: `q-tr-10b-${i}`, is_correct: i < 8 }),
+      ),
+    ];
+    const fndImp = detectFindings(rows10and10).find((f) => f.code === "IMPROVING");
+    expect(fndImp).toBeDefined();
+    expect(fndImp?.metadata.pointsIncrease).toBe(80);
+  });
+
+  test("boundary: distractor attempts 1 vs 2 attempts on same question_id for RECURRING_DISTRACTOR", () => {
+    // Same question, distractor chosen in 1 attempt -> NO finding
+    const row1 = [
+      createMockRow({ attempt_id: "att-1", question_id: "q-single", selected_option_key: "C", is_correct: false }),
+    ];
+    expect(detectFindings(row1).find((f) => f.code === "RECURRING_DISTRACTOR")).toBeUndefined();
+
+    // Same question, distractor chosen in 2 attempts -> TRIGGERS finding
+    const rows2 = [
+      createMockRow({ attempt_id: "att-1", question_id: "q-single", selected_option_key: "C", is_correct: false }),
+      createMockRow({ attempt_id: "att-2", question_id: "q-single", selected_option_key: "C", is_correct: false }),
+    ];
+    expect(detectFindings(rows2).find((f) => f.code === "RECURRING_DISTRACTOR")).toBeDefined();
+  });
+
+  test("NET_ANSWER_CHANGE requires >= 100 global questions and >= 2 net events", () => {
+    const base100 = (ctow: number, wtoc: number): EvidenceRow[] =>
+      Array.from({ length: 100 }, (_, i) =>
+        createMockRow({
+          question_id: `q-nac-${i}`,
+          is_correct: true,
+          changed_correct_to_wrong_count: i === 0 ? ctow : 0,
+          changed_wrong_to_correct_count: i === 1 ? wtoc : 0,
+        }),
+      );
+
+    // Case 1: ctow = 1, wtoc = 0 (< 2 events) -> NO finding
+    expect(detectFindings(base100(1, 0)).find((f) => f.code === "NET_ANSWER_CHANGE")).toBeUndefined();
+
+    // Case 2: ctow = 2, wtoc = 2 (not greater than wtoc) -> NO finding
+    expect(detectFindings(base100(2, 2)).find((f) => f.code === "NET_ANSWER_CHANGE")).toBeUndefined();
+
+    // Case 3: ctow = 2, wtoc = 0 (>= 2 events and ctow > wtoc) -> TRIGGERS finding
+    const fnd = detectFindings(base100(2, 0)).find((f) => f.code === "NET_ANSWER_CHANGE");
+    expect(fnd).toBeDefined();
+    expect(fnd?.metadata.changedCorrectToWrong).toBe(2);
+    expect(fnd?.metadata.changedWrongToCorrect).toBe(0);
+  });
+
+  test("null data handling (scheduled tryout without telemetry) emits zero false positives", () => {
+    // 100 questions representing scheduled tryouts where telemetry metrics are strictly NULL
+    const nullRows: EvidenceRow[] = Array.from({ length: 100 }, (_, i) =>
+      createMockRow({
+        attempt_id: `att-sched-${i < 50 ? 1 : 2}`,
+        question_id: `q-null-${i}`,
+        is_correct: i % 2 === 0,
+        was_ever_flagged_ragu: null,
+        flagged_ragu_at_submit: false,
+        time_spent_seconds: null,
+        time_spent_z_score: null,
+        answer_change_count: null,
+        changed_correct_to_wrong_count: null,
+        changed_wrong_to_correct_count: null,
+        session_position_ratio: null,
+      }),
+    );
+
+    const report = runDiagnosisEngine(nullRows);
+    expect(report.totalQuestions).toBe(100);
+    // Should NOT tag ceroboh or kehabisan_waktu because time metrics are null
+    expect(report.classifiedErrorCounts.ceroboh).toBe(0);
+    expect(report.classifiedErrorCounts.kehabisan_waktu).toBe(0);
+
+    // Global behavioral findings relying on telemetry must NOT trigger falsely
+    expect(report.findings.find((f) => f.code === "RUSHED_WRONG")).toBeUndefined();
+    expect(report.findings.find((f) => f.code === "LATE_SESSION_DROP")).toBeUndefined();
+    expect(report.findings.find((f) => f.code === "NET_ANSWER_CHANGE")).toBeUndefined();
+  });
+
+  test("render scheduled pending notice in fallback markdown", () => {
+    const rows = [
+      createMockRow({ question_id: "q-1", is_correct: true, unreleased_scheduled_attempts: 3 }),
+    ];
+
+    // Case 1: with unreleased_scheduled_attempts > 0
+    const reportWithPending = runDiagnosisEngine(rows);
+    expect(reportWithPending.unreleasedScheduledAttemptsCount).toBe(3);
+    expect(reportWithPending.fallbackMarkdown).toContain(
+      "> **Catatan Try Out Terjadwal:** Terdapat 3 sesi try out terjadwal yang belum disertakan dalam analisis ini karena periode pelaksanaan event belum berakhir.",
+    );
+
+    // Case 2: with unreleased_scheduled_attempts === 0
+    const rowsZero = [
+      createMockRow({ question_id: "q-1", is_correct: true, unreleased_scheduled_attempts: 0 }),
+    ];
+    const reportZero = runDiagnosisEngine(rowsZero);
+    expect(reportZero.unreleasedScheduledAttemptsCount).toBe(0);
+    expect(reportZero.fallbackMarkdown).not.toContain("Catatan Try Out Terjadwal");
   });
 });

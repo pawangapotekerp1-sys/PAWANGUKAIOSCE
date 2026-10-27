@@ -42,12 +42,13 @@ export const RECOMMENDATION_TEMPLATES: Record<FindingCode, RecommendationTemplat
     templateId: "TPL_CONFIDENT_ERRORS_V1",
     code: "CONFIDENT_ERRORS_TOPIC",
     title: "Kesalahan Tanpa Ragu di Subtopik",
-    triggerCondition: "Terjadi >= 3 jawaban salah tanpa tanda ragu pada topik yang sama.",
+    triggerCondition: "Sampel topik >= 10 soal DAN terdapat >= 3 butir salah tanpa tanda ragu (proporsi >= 20% dari total soal topik).",
     status: "draft",
     renderText: (slots) => {
       const topicName = (slots.topicName as string) || "Topik terkait";
       const count = slots.count ?? 3;
-      return `Rekalibrasi Keyakinan Jawaban: Pada topik "${topicName}", terdeteksi ${count} soal dijawab keliru tanpa tanda ragu. Pola ini mengindikasikan keyakinan semu pada materi yang belum sepenuhnya dikuasai. Cocokkan jawaban Anda dengan pembahasan resmi dan catat konsep yang meleset agar tidak mengulang kekeliruan serupa.`;
+      const ratio = slots.ratio !== undefined ? slots.ratio : 20;
+      return `Rekalibrasi Keyakinan Jawaban: Pada topik "${topicName}", terdeteksi ${count} butir salah (${ratio}% dari total soal) yang dijawab tanpa tanda ragu. Pola ini mengindikasikan keyakinan semu pada materi yang belum sepenuhnya dikuasai. Cocokkan jawaban Anda dengan pembahasan resmi dan catat konsep yang meleset agar tidak mengulang kekeliruan serupa.`;
     },
   },
 
@@ -122,13 +123,14 @@ export const RECOMMENDATION_TEMPLATES: Record<FindingCode, RecommendationTemplat
     templateId: "TPL_IMPROVING_V1",
     code: "IMPROVING",
     title: "Tren Peningkatan Konsisten",
-    triggerCondition: "Minimal 10 soal pada periode awal dan akhir, dengan kenaikan akurasi periode akhir >= 15% (dan akurasi akhir >= 50%).",
+    triggerCondition: "Minimal 10 soal pada periode awal dan akhir, dengan kenaikan akurasi periode akhir >= 15 poin persentase (dan akurasi akhir >= 50%).",
     status: "draft",
     renderText: (slots) => {
       const topicName = (slots.topicName as string) || "Topik terkait";
       const initialAcc = slots.initialAccuracy ?? 0;
       const latestAcc = slots.latestAccuracy ?? 0;
-      return `Penguatan Tren Positif: Akurasi pada topik "${topicName}" menunjukkan kenaikan konsisten dari ${initialAcc}% menjadi ${latestAcc}%. Pertahankan pola belajar Anda pada topik ini untuk menjaga retensi pemahaman jangka panjang.`;
+      const points = slots.pointsIncrease ?? (Number(latestAcc) - Number(initialAcc));
+      return `Penguatan Tren Positif: Akurasi pada topik "${topicName}" meningkat ${points} poin persentase (dari ${initialAcc}% menjadi ${latestAcc}%). Pertahankan pola belajar Anda pada topik ini untuk menjaga retensi pemahaman jangka panjang.`;
     },
   },
 };

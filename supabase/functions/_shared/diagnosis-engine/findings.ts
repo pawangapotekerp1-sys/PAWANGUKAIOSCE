@@ -169,8 +169,17 @@ export function detectFindings(
   for (const acc of topicMap.values()) {
     const accuracy = acc.totalQuestions > 0 ? (acc.correctQuestions / acc.totalQuestions) * 100 : 0;
 
-    // B. CONFIDENT_ERRORS_TOPIC: >= confidentErrorsTopicMinCount (3) wrong answers without ragu
-    if (acc.confidentErrors >= config.behaviorThresholds.confidentErrorsTopicMinCount) {
+    // B. CONFIDENT_ERRORS_TOPIC:
+    // Syarat: minimal confidentErrorsMinTopicQuestions (>= 10) total soal pada topik,
+    // minimal confidentErrorsTopicMinCount (>= 3) salah tanpa ragu,
+    // dan proporsi minimal confidentErrorsMinRatio (>= 20%) terhadap total soal topik.
+    const confidentErrorRatio = acc.totalQuestions > 0 ? acc.confidentErrors / acc.totalQuestions : 0;
+    if (
+      acc.totalQuestions >= config.sampleThresholds.confidentErrorsMinTopicQuestions &&
+      acc.confidentErrors >= config.behaviorThresholds.confidentErrorsTopicMinCount &&
+      confidentErrorRatio >= config.behaviorThresholds.confidentErrorsMinRatio
+    ) {
+      const percent = Math.round(confidentErrorRatio * 100);
       const rec = buildRecommendationDraft("CONFIDENT_ERRORS_TOPIC", {
         topicName: acc.topicName,
         count: acc.confidentErrors,
@@ -187,11 +196,15 @@ export function detectFindings(
         confidence,
         topicWeight: 1.0,
         urgencyScore: 4 * Math.min(acc.confidentErrors, 5) * confidence * 1.0,
-        evidenceSummary: `Ditemukan ${acc.confidentErrors} kesalahan yang dijawab dengan rasa yakin (tanpa tanda ragu).`,
+        evidenceSummary: `Ditemukan ${acc.confidentErrors} kesalahan (${percent}% dari ${acc.totalQuestions} butir) yang dijawab dengan rasa yakin tanpa tanda ragu.`,
         recommendationTemplateId: rec.templateId,
         recommendationTemplateStatus: rec.status,
         recommendationDraft: rec.draftText,
-        metadata: { confidentErrors: acc.confidentErrors },
+        metadata: {
+          confidentErrors: acc.confidentErrors,
+          totalQuestions: acc.totalQuestions,
+          confidentErrorRatio,
+        },
       });
     }
 
@@ -308,11 +321,16 @@ export function detectFindings(
         const earlyAcc = (earlyCorrect / earlyTotal) * 100;
         const lateAcc = (lateCorrect / lateTotal) * 100;
 
-        if (lateAcc >= earlyAcc + 15 && lateAcc >= 50) {
+        if (
+          lateAcc >= earlyAcc + config.behaviorThresholds.trendImprovementMinPercentagePoints &&
+          lateAcc >= 50
+        ) {
+          const pointsIncrease = Math.round(lateAcc - earlyAcc);
           const rec = buildRecommendationDraft("IMPROVING", {
             topicName: acc.topicName,
             initialAccuracy: Math.round(earlyAcc),
             latestAccuracy: Math.round(lateAcc),
+            pointsIncrease,
           });
           findings.push({
             id: `FND_IMPROVING_${acc.topicId}`,
@@ -325,11 +343,16 @@ export function detectFindings(
             confidence: 4,
             topicWeight: 0.8,
             urgencyScore: 1 * 3 * 4 * 0.8,
-            evidenceSummary: `Akurasi meningkat dari ${Math.round(earlyAcc)}% menjadi ${Math.round(lateAcc)}% di sesi-sesi terakhir.`,
+            evidenceSummary: `Akurasi meningkat ${pointsIncrease} poin persentase (dari ${Math.round(earlyAcc)}% menjadi ${Math.round(lateAcc)}%) di sesi-sesi terakhir.`,
             recommendationTemplateId: rec.templateId,
             recommendationTemplateStatus: rec.status,
             recommendationDraft: rec.draftText,
-            metadata: { initialAccuracy: Math.round(earlyAcc), latestAccuracy: Math.round(lateAcc) },
+            metadata: {
+              initialAccuracy: Math.round(earlyAcc),
+              latestAccuracy: Math.round(lateAcc),
+              pointsIncrease,
+              metric: config.behaviorThresholds.trendImprovementMetric,
+            },
           });
         }
       }

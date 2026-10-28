@@ -84,4 +84,33 @@ describe("AiConfigPage", () => {
       });
     });
   });
+
+  test("renders amber warning and deferred validation feedback when credential is saved during Gemini 503 high demand", async () => {
+    const transientMsg =
+      "Layanan Gemini mengalami gangguan sementara dari sisi Google (This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.). Sistem akan mencoba kembali dalam beberapa saat.";
+
+    mockSaveGlobalAiCredential.mockResolvedValue({
+      hasCredential: true,
+      model: "gemini-3.8-flash",
+      lastValidatedAt: null,
+      lastError: transientMsg,
+    });
+
+    renderPage();
+
+    const input = await screen.findByLabelText(/API key Gemini/i);
+    fireEvent.change(input, { target: { value: "AIzaSyTest12345" } });
+
+    const saveButton = screen.getByRole("button", { name: /simpan kredensial/i });
+    fireEvent.click(saveButton);
+
+    expect(
+      await screen.findByText(/API key Gemini berhasil disimpan ke Vault \(validasi otomatis tertunda karena server Google sedang sibuk\)/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Status: Tersimpan di Vault \(belum tervalidasi otomatis\)/i)).toBeInTheDocument();
+
+    const warningBox = screen.getByText(transientMsg);
+    expect(warningBox.className).toContain("amber");
+    expect(warningBox.className).not.toContain("destructive");
+  });
 });

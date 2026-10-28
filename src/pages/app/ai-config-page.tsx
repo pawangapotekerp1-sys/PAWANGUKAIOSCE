@@ -35,7 +35,11 @@ export default function AiConfigPage() {
     onSuccess: (status, variables) => {
       queryClient.setQueryData(["global-ai-credential-status"], status);
       const trimmedApiKey = variables.apiKey.trim();
-      setCredentialFeedback("API key Gemini berhasil disimpan ke Vault secara aman.");
+      setCredentialFeedback(
+        status.lastError && !status.lastValidatedAt
+          ? "API key Gemini berhasil disimpan ke Vault (validasi otomatis tertunda karena server Google sedang sibuk)."
+          : "API key Gemini berhasil disimpan ke Vault secara aman.",
+      );
       setApiKey(trimmedApiKey);
     },
     onError: (error) => {
@@ -148,9 +152,19 @@ export default function AiConfigPage() {
                 <p className="text-[11px] font-mono font-semibold uppercase tracking-wider text-muted-foreground">
                   Tervalidasi terakhir: {new Date(statusQuery.data.lastValidatedAt).toLocaleString("id-ID")}
                 </p>
+              ) : statusQuery.data?.hasCredential ? (
+                <p className="text-[11px] font-mono font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                  Status: Tersimpan di Vault (belum tervalidasi otomatis)
+                </p>
               ) : null}
               {statusQuery.data?.lastError ? (
-                <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-2.5 text-xs text-destructive">
+                <div
+                  className={
+                    statusQuery.data.hasCredential
+                      ? "rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-2.5 text-xs text-amber-800 dark:text-amber-300"
+                      : "rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-2.5 text-xs text-destructive"
+                  }
+                >
                   {statusQuery.data.lastError}
                 </div>
               ) : null}

@@ -28,6 +28,18 @@ const SUPPORTED_TRANSCRIPT_MIME_TYPES = new Set([
   "text/markdown",
 ]);
 
+export const GLOBAL_AI_CREDENTIAL_ACTIONS = new Set([
+  "get-status",
+  "export-credential",
+  "save-credential",
+  "delete-credential",
+  "test-credential",
+]);
+
+export function isGlobalAiCredentialAction(action: unknown): boolean {
+  return typeof action === "string" && GLOBAL_AI_CREDENTIAL_ACTIONS.has(action);
+}
+
 export function ensureFlashCardManagerAccess(role: FlashCardManagerRole) {
   if (role !== "admin" && role !== "mentor") {
     throw new FlashCardManagerAccessError("Fitur flash card hanya bisa diakses admin atau mentor.");
@@ -418,6 +430,8 @@ export function buildFlashCardReadyForReviewUpdate(globalSummary: string) {
 }
 
 export function buildFlashCardCredentialWritePayload({
+  lastValidatedAt,
+  lastError,
   apiKey,
   model,
   userId,
@@ -425,13 +439,16 @@ export function buildFlashCardCredentialWritePayload({
   apiKey: string;
   model: string;
   userId: string;
+  lastValidatedAt?: string | null;
+  lastError?: string | null;
 }) {
   return {
     user_id: userId,
     provider: "gemini",
     model: model.trim() || "gemini-3.7-flash",
     secret_hint: `â€¢â€¢â€¢â€¢${apiKey.trim().slice(-4)}`,
-    last_error: null,
+    ...(lastValidatedAt !== undefined ? { last_validated_at: lastValidatedAt } : {}),
+    last_error: lastError ?? null,
   };
 }
 
@@ -759,4 +776,100 @@ export function sanitizeMaterialMetadataForClient(
     delete result.pipeline_checkpoint;
   }
   return result;
+}
+
+
+export function sanitizeCredentialErrorMessage(
+  value: string,
+  rawApiKey?: string,
+): string {
+  if (!value || typeof value !== "string") {
+    return "";
+  }
+
+  let sanitized = value;
+  const trimmedKey = typeof rawApiKey === "string" ? rawApiKey.trim() : "";
+  if (trimmedKey.length > 0) {
+    sanitized = sanitized.split(trimmedKey).join("[REDACTED_API_KEY]");
+    const encodedKey = encodeURIComponent(trimmedKey);
+    if (encodedKey && encodedKey !== trimmedKey) {
+      sanitized = sanitized.split(encodedKey).join("[REDACTED_API_KEY]");
+    }
+  }
+
+  return sanitized
+    .replace(/AIza[0-9A-Za-z-_]{4,}/gi, "[REDACTED_API_KEY]")
+    .replace(
+      /(?:x-goog-api-key|authorization|api[-_]?key)\s*[:=]\s*(?:bearer\s+)?[^\s,"';&]+/gi,
+      "[REDACTED_HEADER]",
+    )
+    .replace(/\bbearer\s+[^\s,"';&]+/gi, "[REDACTED_TOKEN]")
+    .replace(/(?:key|token|bearer)=[^\s&"']+/gi, "[REDACTED]");
+}
+
+export function classifyCredentialValidationError(
+  error: unknown,
+  rawApiKey?: string,
+): {
+  kind: "invalid" | "transient" | "other";
+  status: number | undefined;
+  message: string;
+} {
+  const rawMessage =
+    error instanceof Error && error.message.trim().length > 0
+      ? error.message
+      : "BYOK validation failed.";
+  const message = sanitizeCredentialErrorMessage(rawMessage, rawApiKey);
+  const status =
+    typeof (error as any)?.status === "number"
+      ? ((error as any).status as number)
+      : typeof (error as any)?.diagnostics?.rawStatus === "number"
+      ? ((error as any).diagnostics.rawStatus as number)
+      : undefined;
+  const code = typeof (error as any)?.code === "string" ? (error as any).code : undefined;
+  const category =
+    typeof (error as any)?.diagnostics?.category === "string"
+      ? (error as any).diagnostics.category
+      : undefined;
+  const errName = typeof (error as any)?.name === "string" ? (error as any).name : "";
+
+  if (
+    status === 400 ||
+    status === 401 ||
+    status === 403 ||
+    status === 404 ||
+    code === "GEMINI_AUTHENTICATION_FAILED" ||
+    code === "GEMINI_REQUEST_INVALID" ||
+    code === "GEMINI_MODEL_UNAVAILABLE" ||
+    category === "GEMINI_AUTHENTICATION_FAILED" ||
+    category === "GEMINI_REQUEST_INVALID" ||
+    category === "GEMINI_MODEL_UNAVAILABLE"
+  ) {
+    return { kind: "invalid", status, message };
+  }
+
+  if (
+    status === 408 ||
+    status === 429 ||
+    status === 502 ||
+    status === 503 ||
+    status === 504 ||
+    code === "GEMINI_PROVIDER_UNAVAILABLE" ||
+    code === "GEMINI_RATE_LIMITED" ||
+    code === "GEMINI_TOKEN_LIMITED" ||
+    code === "GEMINI_QUOTA_EXHAUSTED" ||
+    category === "GEMINI_PROVIDER_UNAVAILABLE" ||
+    category === "GEMINI_RATE_LIMITED" ||
+    category === "GEMINI_TOKEN_LIMITED" ||
+    category === "GEMINI_QUOTA_EXHAUSTED" ||
+    errName === "TimeoutError" ||
+    errName === "AbortError" ||
+    /timeout|timed out|aborted|overloaded|high demand|unavailable|rate limit|too many requests|quota/i.test(
+      rawMessage,
+    )
+  ) {
+    return { kind: "transient", status, message };
+  }
+
+  return { kind: "other", status, message };
 }

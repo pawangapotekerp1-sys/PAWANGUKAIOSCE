@@ -17,7 +17,11 @@ if (typeof (globalThis as any).Deno === "undefined") {
   };
 }
 
-import { processMaterialGeneration } from "./index.ts";
+import {
+  handleSaveCredential,
+  handleTestCredential,
+  processMaterialGeneration,
+} from "./index.ts";
 import {
   assertFlashCardMaterialEditable,
   assertFlashCardMaterialPublishable,
@@ -43,6 +47,7 @@ import {
   validateFlashCardMaterialDraftInput,
   resolveStepGroupFromCheckpoint,
   sanitizeMaterialMetadataForClient,
+  sanitizeCredentialErrorMessage,
 } from "./handler";
 import { validateMaterialMetadata } from "../_shared/flash-card.ts";
 
@@ -1593,5 +1598,318 @@ describe("Large Material Runtime Guards (Step Inference, PDF Skip, Client Metada
     expect(noProgressRecovery.autoResumed).toBe(false);
     expect(noProgressRecovery.updatePayload.status).toBe("failed");
     expect(noProgressRecovery.updatePayload.processing_error).toBe(timeoutMessage);
+  });
+});
+
+
+describe("BYOK credential save and test handling (Domain 2)", () => {
+  function createMockCredentialService(initialCredential: any = null) {
+    let credentialRow = initialCredential ? { ...initialCredential } : null;
+    const vaultSecrets = new Map<string, string>();
+    if (initialCredential?.secret_id) {
+      vaultSecrets.set(initialCredential.secret_id, "AIzaSyInitialValidKey1234567890");
+    }
+    const createdSecretIds: string[] = [];
+    const deletedSecretIds: string[] = [];
+    let secretCounter = 0;
+
+    const service: any = {
+      from: (table: string) => {
+        if (table === "user_ai_credentials") {
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: () => Promise.resolve({ data: credentialRow ? { ...credentialRow } : null, error: null }),
+              }),
+            }),
+            insert: (payload: any) => {
+              credentialRow = {
+                id: "cred-new-1",
+                model: payload.model,
+                secret_id: payload.secret_id,
+                last_validated_at: payload.last_validated_at ?? null,
+                last_error: payload.last_error ?? null,
+                ...payload,
+              };
+              return Promise.resolve({ data: credentialRow, error: null });
+            },
+            update: (payload: any) => ({
+              eq: () => {
+                if (credentialRow) {
+                  credentialRow = {
+                    ...credentialRow,
+                    ...payload,
+                  };
+                }
+                return Promise.resolve({ data: credentialRow, error: null });
+              },
+            }),
+          };
+        }
+        return {} as any;
+      },
+      rpc: (fn: string, args: any) => {
+        if (fn === "create_vault_secret") {
+          secretCounter += 1;
+          const newId = `vault-sec-${secretCounter}`;
+          vaultSecrets.set(newId, args.secret);
+          createdSecretIds.push(newId);
+          return Promise.resolve({ data: newId, error: null });
+        }
+        if (fn === "read_vault_secret") {
+          const secretVal = vaultSecrets.get(args.target_secret_id);
+          return Promise.resolve({ data: secretVal ?? null, error: secretVal ? null : { message: "Not found" } });
+        }
+        if (fn === "delete_vault_secret") {
+          vaultSecrets.delete(args.target_secret_id);
+          deletedSecretIds.push(args.target_secret_id);
+          return Promise.resolve({ data: null, error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      },
+      getCredentialRow: () => credentialRow,
+      getVaultSecrets: () => vaultSecrets,
+      getCreatedSecretIds: () => createdSecretIds,
+      getDeletedSecretIds: () => deletedSecretIds,
+    };
+
+    return service;
+  }
+
+  test("save-credential when Gemini returns 503, 429, or 504 timeout saves key to Vault & DB with last_validated_at: null and last_error populated, returning 200", async () => {
+    const transientCases = [
+      {
+        label: "503 high demand",
+        mockFetch: async () => ({
+          ok: false,
+          status: 503,
+          statusText: "Service Unavailable",
+          headers: new Headers(),
+          json: async () => ({
+            error: {
+              code: 503,
+              status: "UNAVAILABLE",
+              message: "The model is overloaded. Please try again later.",
+            },
+          }),
+        }),
+        expectedMessagePattern: /gangguan sementara|503|overloaded/i,
+      },
+      {
+        label: "429 rate limit",
+        mockFetch: async () => ({
+          ok: false,
+          status: 429,
+          statusText: "Too Many Requests",
+          headers: new Headers(),
+          json: async () => ({
+            error: {
+              code: 429,
+              status: "RESOURCE_EXHAUSTED",
+              message: "Resource has been exhausted (e.g. check quota).",
+            },
+          }),
+        }),
+        expectedMessagePattern: /penuh sementara|kuota|rpm|429/i,
+      },
+      {
+        label: "504 timeout",
+        mockFetch: async () => {
+          const timeoutErr = new Error("The operation was aborted due to timeout");
+          timeoutErr.name = "TimeoutError";
+          throw timeoutErr;
+        },
+        expectedMessagePattern: /timeout|waktu tunggu/i,
+      },
+    ];
+
+    for (const testCase of transientCases) {
+      const mockService = createMockCredentialService({
+        id: "cred-existing-1",
+        model: "gemini-3.8-flash",
+        secret_id: "old-vault-sec-0",
+        last_validated_at: "2026-10-20T00:00:00.000Z",
+        last_error: null,
+      });
+
+      vi.stubGlobal("fetch", vi.fn().mockImplementation(testCase.mockFetch));
+
+      const rawKey = "AIzaSyTransientTestKey987654321";
+      const response = await handleSaveCredential(mockService, {
+        credential: mockService.getCredentialRow(),
+        userId: "user-123",
+        apiKey: rawKey,
+        model: "gemini-3.8-flash",
+      });
+
+      expect(response.status).toBe(200);
+      const body = await response.json();
+
+      // Key is saved to Vault and old secret is cleaned up
+      expect(mockService.getCreatedSecretIds()).toHaveLength(1);
+      expect(mockService.getDeletedSecretIds()).toEqual(["old-vault-sec-0"]);
+
+      // DB row has last_validated_at = null and last_error populated & sanitized
+      const dbRow = mockService.getCredentialRow();
+      expect(dbRow.secret_id).toBe("vault-sec-1");
+      expect(dbRow.last_validated_at).toBeNull();
+      expect(dbRow.last_error).toMatch(testCase.expectedMessagePattern);
+      expect(dbRow.last_error).not.toContain(rawKey);
+
+      // Response payload contains status and testResult: { ok: false, message }
+      expect(body.status).toEqual({
+        hasCredential: true,
+        model: "gemini-3.8-flash",
+        lastValidatedAt: null,
+        lastError: dbRow.last_error,
+      });
+      expect(body.testResult).toEqual({
+        ok: false,
+        message: dbRow.last_error,
+      });
+    }
+  });
+
+  test("save-credential when Gemini returns 400, 401, 403, or 404 rejects with 400 BYOK_INVALID and does NOT save key to Vault or DB", async () => {
+    const rejectionStatuses = [
+      {
+        status: 400,
+        errorPayload: {
+          error: {
+            code: 400,
+            status: "INVALID_ARGUMENT",
+            message: "API key not valid. Please pass a valid API key: AIzaSyInvalidKey00000000000",
+          },
+        },
+      },
+      {
+        status: 403,
+        errorPayload: {
+          error: {
+            code: 403,
+            status: "PERMISSION_DENIED",
+            message: "Permission denied for key AIzaSyInvalidKey00000000000",
+          },
+        },
+      },
+      {
+        status: 404,
+        errorPayload: {
+          error: {
+            code: 404,
+            status: "NOT_FOUND",
+            message: "models/gemini-nonexistent is not found for API version v1beta",
+          },
+        },
+      },
+    ];
+
+    for (const item of rejectionStatuses) {
+      const mockService = createMockCredentialService({
+        id: "cred-existing-valid",
+        model: "gemini-3.8-flash",
+        secret_id: "valid-vault-sec-1",
+        last_validated_at: "2026-10-20T00:00:00.000Z",
+        last_error: null,
+      });
+
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: false,
+          status: item.status,
+          headers: new Headers(),
+          json: async () => item.errorPayload,
+        }),
+      );
+
+      const invalidKey = "AIzaSyInvalidKey00000000000";
+      await expect(
+        handleSaveCredential(mockService, {
+          credential: mockService.getCredentialRow(),
+          userId: "user-123",
+          apiKey: invalidKey,
+          model: item.status === 404 ? "gemini-nonexistent" : "gemini-3.8-flash",
+        }),
+      ).rejects.toMatchObject({
+        status: 400,
+        code: "BYOK_INVALID",
+      });
+
+      // Vault must NOT be written to and existing valid secret must NOT be deleted or overwritten
+      expect(mockService.getCreatedSecretIds()).toHaveLength(0);
+      expect(mockService.getDeletedSecretIds()).toHaveLength(0);
+      expect(mockService.getCredentialRow().secret_id).toBe("valid-vault-sec-1");
+      expect(mockService.getCredentialRow().last_validated_at).toBe("2026-10-20T00:00:00.000Z");
+    }
+  });
+
+  test("save-credential when Gemini connection succeeds saves key with last_validated_at timestamp and last_error: null", async () => {
+    const mockService = createMockCredentialService(null);
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({
+          candidates: [{ content: { parts: [{ text: "OK" }] } }],
+        }),
+      }),
+    );
+
+    const response = await handleSaveCredential(mockService, {
+      credential: null,
+      userId: "user-123",
+      apiKey: "AIzaSyValidNewKey1234567890",
+      model: "gemini-3.8-flash",
+    });
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.status.hasCredential).toBe(true);
+    expect(typeof body.status.lastValidatedAt).toBe("string");
+    expect(body.status.lastError).toBeNull();
+    expect(body.testResult?.ok).toBe(true);
+  });
+
+  test("test-credential sanitizes last_error so no raw API key or auth header is ever written to user_ai_credentials.last_error", async () => {
+    const rawSecretKey = "AIzaSySuperSecretKey999888777";
+    const mockService = createMockCredentialService({
+      id: "cred-test-1",
+      model: "gemini-3.8-flash",
+      secret_id: "sec-test-1",
+      last_validated_at: "2026-10-20T00:00:00.000Z",
+      last_error: null,
+    });
+    mockService.getVaultSecrets().set("sec-test-1", rawSecretKey);
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(async () => {
+        throw new Error(
+          `Fetch failed for https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${rawSecretKey} with headers x-goog-api-key: ${rawSecretKey} and Authorization: Bearer ${rawSecretKey}`,
+        );
+      }),
+    );
+
+    await expect(
+      handleTestCredential(mockService, {
+        credential: mockService.getCredentialRow(),
+        userId: "user-123",
+      }),
+    ).rejects.toThrow();
+
+    const updatedCredential = mockService.getCredentialRow();
+    expect(updatedCredential.last_error).toBeTruthy();
+    expect(updatedCredential.last_error).not.toContain(rawSecretKey);
+    expect(updatedCredential.last_error).toContain("[REDACTED");
+
+    // Direct unit check on sanitizeCredentialErrorMessage with short custom keys and headers
+    const dirtyMsg = "Error with key=short-custom-key, x-goog-api-key: short-custom-key, Authorization: Bearer my-bearer-secret";
+    const cleaned = sanitizeCredentialErrorMessage(dirtyMsg, "short-custom-key");
+    expect(cleaned).not.toContain("short-custom-key");
+    expect(cleaned).not.toContain("my-bearer-secret");
   });
 });

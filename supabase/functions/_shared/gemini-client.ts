@@ -236,7 +236,8 @@ export function sanitizeText(value: string): string {
   }
   return value
     .replace(/AIza[0-9A-Za-z-_]{15,}/gi, "[REDACTED_API_KEY]")
-    .replace(/(?:key|token|bearer)=?[^\s&"']+/gi, "[REDACTED]");
+    .replace(/\b(?:x-goog-api-key|api[-_]?key)\s*[:=]\s*[^\s&"',;]+/gi, "[REDACTED_API_KEY]")
+    .replace(/\b(?:key|token|bearer)=?[^\s&"']+/gi, "[REDACTED]");
 }
 
 export type GeminiErrorClassification = {
@@ -356,11 +357,41 @@ export function classifyGeminiErrorResponse(params: {
     };
   }
 
-  // 5. Check Service / Provider Unavailable or Model Overload (503, 502, 504, or unavailable)
+  // 5. Check Model Not Found / Unavailable (HTTP 404)
+  if (
+    status === 404 ||
+    normalizedStatus === "not_found" ||
+    (status === 400 && normalizedMessage.includes("model") && normalizedMessage.includes("not found"))
+  ) {
+    return {
+      category: "GEMINI_MODEL_UNAVAILABLE",
+      isRetryable: false,
+      userMessage:
+        "Model Gemini tidak ditemukan atau tidak tersedia untuk API key ini. Periksa konfigurasi model Gemini Anda.",
+      retryAfterSeconds: null,
+      rawStatus: status,
+      errorCode: payload?.error?.code ?? status,
+    };
+  }
+
+  // 6. Check Gateway / Request Timeout (HTTP 504)
+  if (status === 504 || normalizedStatus === "deadline_exceeded") {
+    const rawDetail = sanitizeText(rawMessage);
+    const detailSuffix = rawDetail ? ` (${rawDetail})` : "";
+    return {
+      category: "GEMINI_PROVIDER_UNAVAILABLE",
+      isRetryable: true,
+      userMessage: `Waktu tunggu respons Gemini habis (timeout)${detailSuffix}. Sistem akan mencoba kembali dalam beberapa saat.`,
+      retryAfterSeconds,
+      rawStatus: status,
+      errorCode: payload?.error?.code ?? status,
+    };
+  }
+
+  // 7. Check Service / Provider Unavailable or Model Overload (503, 502, or unavailable)
   const isOverloadOrUnavailable =
     status === 503 ||
     status === 502 ||
-    status === 504 ||
     normalizedStatus === "unavailable" ||
     normalizedMessage.includes("overloaded") ||
     normalizedMessage.includes("try again later") ||
@@ -379,7 +410,7 @@ export function classifyGeminiErrorResponse(params: {
     };
   }
 
-  // 6. Generic Invalid Request (400)
+  // 8. Generic Invalid Request (400)
   if (status === 400) {
     return {
       category: "GEMINI_REQUEST_INVALID",
@@ -391,7 +422,7 @@ export function classifyGeminiErrorResponse(params: {
     };
   }
 
-  // 7. Fallback
+  // 9. Fallback
   return {
     category: "GEMINI_PROVIDER_UNAVAILABLE",
     isRetryable: status >= 500,
@@ -603,11 +634,12 @@ async function generateGeminiTextOnce({
   let response: Response;
   try {
     response = await fetch(
-      `${env.geminiBaseUrl}/models/${encodeURIComponent(resolvedModel)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+      `${env.geminiBaseUrl}/models/${encodeURIComponent(resolvedModel)}:generateContent`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
         },
         signal:
           typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function"
@@ -746,16 +778,19 @@ export async function generateGeminiTextWithUsage(request: GeminiRequest): Promi
       // Retry policy:
       // 1. If explicit retry hint is provided and within reasonable threshold (<= 30s for rate limit, <= 10s for 503): retry ONCE after waiting.
       // 2. If Gemini server capacity overload on rate limit (429): retry ONCE after transient backoff.
-      // 3. If HTTP 503/504 / GEMINI_PROVIDER_UNAVAILABLE without a short retryAfterSeconds hint:
+      // 3. If HTTP 503/504 / GEMINI_PROVIDER_UNAVAILABLE with server overload ("model is overloaded", "try again later", "high demand") or timeout (504):
       //    Fail fast immediately (maxAttempts = 1) so edge isolate execution time and RPD quota are preserved and
       //    the backend orchestrator / frontend step driver can perform a realistic cooldown (30-60s) or deterministic fallback.
-      // 4. If rate limited without reliable retry hint or overload: DO NOT perform fast repeated retries inline! (maxAttempts = 1)
+      // 4. If generic server failure (503/500/502) without overload: retry ONCE (maxAttempts = 2) for transient network glitches.
+      // 5. If rate limited without reliable retry hint or overload: DO NOT perform fast repeated retries inline! (maxAttempts = 1)
       let maxAttempts = 2;
       if (isProviderUnavailable) {
         if (hasReliableRetryHint && retryAfterSeconds! <= 10) {
           maxAttempts = 2;
-        } else {
+        } else if (isServerOverload || error.status === 504) {
           maxAttempts = 1;
+        } else {
+          maxAttempts = 2;
         }
       } else if (isRateLimit) {
         if (hasReliableRetryHint && retryAfterSeconds! <= 30) {

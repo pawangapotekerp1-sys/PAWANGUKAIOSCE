@@ -45,8 +45,11 @@ describe("gemini-client", () => {
     const { testGeminiConnection } = await import("./gemini-client.ts");
     await testGeminiConnection("api-key", "gemini-3.7-flash");
 
-    const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const [url, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
     const body = JSON.parse(String(requestInit.body));
+
+    expect(url).not.toContain("?key=");
+    expect((requestInit.headers as Record<string, string>)["x-goog-api-key"]).toBe("api-key");
 
     expect(body.generationConfig.thinkingConfig).toEqual({
       thinkingBudget: 0,
@@ -771,6 +774,7 @@ describe("gemini-client", () => {
     // Halts immediately: 1 attempt, zero retries for permanent quota exhaustion
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
   test("fails fast immediately on HTTP 503 without retry hint to delegate cooldown to backend orchestrator", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: false,
@@ -798,6 +802,89 @@ describe("gemini-client", () => {
     });
 
     // Fails fast: exactly 1 attempt so the edge function releases worker immediately
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  test("retries once when HTTP 503 provides a short Retry-After hint (<= 10s)", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 503,
+      headers: new Headers({ "retry-after": "2" }),
+      json: async () => ({
+        error: {
+          code: 503,
+          status: "UNAVAILABLE",
+          message: "The model is overloaded. Please try again later.",
+        },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { generateGeminiTextWithUsage } = await import("./gemini-client.ts");
+    await expect(() =>
+      generateGeminiTextWithUsage({
+        apiKey: "api-key",
+        model: "gemini-3.8-flash",
+        prompt: "Generate flashcard",
+      }),
+    ).rejects.toMatchObject({
+      code: "GEMINI_PROVIDER_UNAVAILABLE",
+      status: 503,
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  test("classifies HTTP 404 model not found as non-retryable GEMINI_MODEL_UNAVAILABLE with clear Indonesian message", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: async () => ({
+        error: {
+          code: 404,
+          status: "NOT_FOUND",
+          message: "models/gemini-unknown is not found for API version v1beta.",
+        },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { generateGeminiTextWithUsage } = await import("./gemini-client.ts");
+    await expect(() =>
+      generateGeminiTextWithUsage({
+        apiKey: "api-key",
+        model: "gemini-unknown",
+        prompt: "Hello",
+      }),
+    ).rejects.toMatchObject({
+      code: "GEMINI_MODEL_UNAVAILABLE",
+      status: 404,
+      message: expect.stringMatching(/Model Gemini tidak ditemukan/i),
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  test("surfaces clear Indonesian timeout message on AbortError / 504 timeout and fails fast", async () => {
+    const timeoutErr = new Error("The operation was aborted due to timeout");
+    timeoutErr.name = "TimeoutError";
+    const fetchMock = vi.fn().mockRejectedValue(timeoutErr);
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { generateGeminiTextWithUsage } = await import("./gemini-client.ts");
+    await expect(() =>
+      generateGeminiTextWithUsage({
+        apiKey: "api-key",
+        model: "gemini-3.8-flash",
+        prompt: "Hello",
+        timeoutMs: 1000,
+      }),
+    ).rejects.toMatchObject({
+      code: "GEMINI_PROVIDER_UNAVAILABLE",
+      status: 504,
+      message: expect.stringMatching(/Waktu tunggu respons Gemini habis \(timeout\)/i),
+    });
+
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });

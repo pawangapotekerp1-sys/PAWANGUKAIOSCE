@@ -58,6 +58,8 @@ import {
   isGlobalAiCredentialAction,
   isProcessingJobStale,
   resolveStepGroupFromCheckpoint,
+  classifyCredentialValidationError,
+  sanitizeCredentialErrorMessage,
   sanitizeMaterialMetadataForClient,
   shouldApplyStaleRecovery,
   STALE_PROCESSING_TIMEOUT_MS,
@@ -194,11 +196,15 @@ async function upsertUserCredential(
     userId,
     apiKey,
     model,
+    lastValidatedAt,
+    lastError,
   }: {
     credential: UserAiCredentialRow | null;
     userId: string;
     apiKey: string;
     model?: string;
+    lastValidatedAt?: string | null;
+    lastError?: string | null;
   },
 ) {
   const previousSecretId = credential?.secret_id ?? null;
@@ -212,6 +218,8 @@ async function upsertUserCredential(
     ...buildFlashCardCredentialWritePayload({
       apiKey,
       model: model ?? "",
+      lastValidatedAt,
+      lastError,
       userId,
     }),
     secret_id: nextSecretId,
@@ -238,6 +246,138 @@ async function upsertUserCredential(
 
   if (previousSecretId && previousSecretId !== nextSecretId) {
     await deleteVaultSecret(service, previousSecretId);
+  }
+}
+
+export async function handleSaveCredential(
+  service: ServiceClient,
+  {
+    credential,
+    userId,
+    apiKey,
+    model,
+  }: {
+    credential: UserAiCredentialRow | null;
+    userId: string;
+    apiKey: unknown;
+    model?: string;
+  },
+) {
+  if (typeof apiKey !== "string" || apiKey.trim().length === 0) {
+    throw new HttpError(400, "BYOK_REQUIRED", "Gemini API key pribadi wajib diisi.");
+  }
+
+  const trimmedApiKey = apiKey.trim();
+  const targetModel =
+    typeof model === "string" && model.trim().length > 0
+      ? model.trim()
+      : (credential?.model ?? "gemini-3.7-flash");
+
+  try {
+    const testResult = await testGeminiConnection(trimmedApiKey, targetModel);
+
+    await upsertUserCredential(service, {
+      credential,
+      userId,
+      apiKey: trimmedApiKey,
+      model,
+      lastValidatedAt: new Date().toISOString(),
+      lastError: null,
+    });
+
+    return jsonResponse({
+      status: mapFlashCardGeneratorStatus(await readUserCredential(service, userId)),
+      testResult,
+    });
+  } catch (error) {
+    const classified = classifyCredentialValidationError(error, trimmedApiKey);
+
+    if (classified.kind === "invalid" || isGeminiCredentialError(error)) {
+      throw new HttpError(400, "BYOK_INVALID", classified.message);
+    }
+
+    if (classified.kind === "transient") {
+      await upsertUserCredential(service, {
+        credential,
+        userId,
+        apiKey: trimmedApiKey,
+        model,
+        lastValidatedAt: null,
+        lastError: classified.message,
+      });
+
+      return jsonResponse({
+        status: mapFlashCardGeneratorStatus(await readUserCredential(service, userId)),
+        testResult: {
+          ok: false,
+          message: classified.message,
+        },
+      });
+    }
+
+    if (error instanceof Error) {
+      error.message = classified.message;
+      throw error;
+    }
+
+    throw new Error(classified.message);
+  }
+}
+
+export async function handleTestCredential(
+  service: ServiceClient,
+  {
+    credential,
+    userId,
+  }: {
+    credential: UserAiCredentialRow | null;
+    userId: string;
+  },
+) {
+  if (!credential?.secret_id) {
+    throw new HttpError(400, "BYOK_MISSING", "Belum ada BYOK yang bisa dites.");
+  }
+
+  const apiKey = await readVaultSecret(service, credential.secret_id);
+
+  try {
+    const testResult = await testGeminiConnection(apiKey, credential.model);
+    await service
+      .from("user_ai_credentials")
+      .update({
+        last_validated_at: new Date().toISOString(),
+        last_error: null,
+      })
+      .eq("id", credential.id);
+
+    return jsonResponse({
+      status: mapFlashCardGeneratorStatus(await readUserCredential(service, userId)),
+      testResult,
+    });
+  } catch (error) {
+    const classified = classifyCredentialValidationError(
+      error instanceof Error ? error : new Error("BYOK test failed."),
+      apiKey,
+    );
+    const message = classified.message;
+
+    await service
+      .from("user_ai_credentials")
+      .update({
+        last_error: message,
+      })
+      .eq("id", credential.id);
+
+    if (classified.kind === "invalid" || isGeminiCredentialError(error)) {
+      throw new HttpError(400, "BYOK_INVALID", message);
+    }
+
+    if (error instanceof Error) {
+      error.message = message;
+      throw error;
+    }
+
+    throw new Error(message);
   }
 }
 
@@ -1018,19 +1158,11 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
     }
 
     if (payload.action === "save-credential") {
-      if (typeof payload.apiKey !== "string" || payload.apiKey.trim().length === 0) {
-        throw new HttpError(400, "BYOK_REQUIRED", "Gemini API key pribadi wajib diisi.");
-      }
-
-      await upsertUserCredential(service, {
+      return await handleSaveCredential(service, {
         credential,
         userId: user.id,
         apiKey: payload.apiKey,
         model: typeof payload.model === "string" ? payload.model : undefined,
-      });
-
-      return jsonResponse({
-        status: mapFlashCardGeneratorStatus(await readUserCredential(service, user.id)),
       });
     }
 
@@ -1056,41 +1188,10 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
     }
 
     if (payload.action === "test-credential") {
-      if (!credential?.secret_id) {
-        throw new HttpError(400, "BYOK_MISSING", "Belum ada BYOK yang bisa dites.");
-      }
-
-      const apiKey = await readVaultSecret(service, credential.secret_id);
-
-      try {
-        const testResult = await testGeminiConnection(apiKey, credential.model);
-        await service
-          .from("user_ai_credentials")
-          .update({
-            last_validated_at: new Date().toISOString(),
-            last_error: null,
-          })
-          .eq("id", credential.id);
-
-        return jsonResponse({
-          status: mapFlashCardGeneratorStatus(await readUserCredential(service, user.id)),
-          testResult,
-        });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "BYOK test failed.";
-        await service
-          .from("user_ai_credentials")
-          .update({
-            last_error: message,
-          })
-          .eq("id", credential.id);
-
-        if (isGeminiCredentialError(error)) {
-          throw new HttpError(400, "BYOK_INVALID", message);
-        }
-
-        throw error;
-      }
+      return await handleTestCredential(service, {
+        credential,
+        userId: user.id,
+      });
     }
 
     if (payload.action === "create-material") {

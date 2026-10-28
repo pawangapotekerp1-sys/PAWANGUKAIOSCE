@@ -887,4 +887,45 @@ describe("gemini-client", () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  test("testGeminiConnection retries up to 2 times (3 attempts total) on HTTP 503 high demand before succeeding", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        json: async () => ({
+          error: {
+            code: 503,
+            status: "UNAVAILABLE",
+            message: "This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.",
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        json: async () => ({
+          error: {
+            code: 503,
+            status: "UNAVAILABLE",
+            message: "This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.",
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          candidates: [{ content: { parts: [{ text: "OK" }] } }],
+        }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { testGeminiConnection } = await import("./gemini-client.ts");
+    const result = await testGeminiConnection("api-key", "gemini-3.8-flash");
+
+    expect(result.ok).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
 });

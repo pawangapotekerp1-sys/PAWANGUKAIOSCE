@@ -54,6 +54,7 @@ export type GeminiRequest = {
   responseMimeType?: string;
   responseSchema?: Record<string, unknown>;
   timeoutMs?: number;
+  retryOnServerOverload?: boolean;
 };
 
 const DEFAULT_GEMINI_FETCH_TIMEOUT_MS = 45_000;
@@ -785,7 +786,9 @@ export async function generateGeminiTextWithUsage(request: GeminiRequest): Promi
       // 5. If rate limited without reliable retry hint or overload: DO NOT perform fast repeated retries inline! (maxAttempts = 1)
       let maxAttempts = 2;
       if (isProviderUnavailable) {
-        if (hasReliableRetryHint && retryAfterSeconds! <= 10) {
+        if (request.retryOnServerOverload && error.status !== 504) {
+          maxAttempts = GEMINI_TEXT_MAX_ATTEMPTS;
+        } else if (hasReliableRetryHint && retryAfterSeconds! <= 10) {
           maxAttempts = 2;
         } else if (isServerOverload || error.status === 504) {
           maxAttempts = 1;
@@ -888,6 +891,7 @@ export async function testGeminiConnection(apiKey: string, model: string) {
     prompt: "Balas dengan kata OK saja.",
     maxOutputTokens: 8192,
     thinkingBudget: 0,
+    retryOnServerOverload: true,
   });
 
   return {

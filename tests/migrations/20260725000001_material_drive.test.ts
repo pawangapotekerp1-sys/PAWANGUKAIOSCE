@@ -2,7 +2,7 @@ import { describe, expect, test, beforeAll } from "vitest";
 import { createClient } from "@supabase/supabase-js";
 
 // Use the local dev service role key and url
-const supabaseUrl = process.env.SUPABASE_URL || "http://127.0.0.1:54321";
+const supabaseUrl = process.env.SUPABASE_URL || "http://127.0.0.1:54721";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU";
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -31,7 +31,7 @@ describe("20260725000001_material_drive migration", () => {
     await supabase.from("profiles").update({ role: 'mentor' }).eq("id", mentorId);
     
     // Sign in to get session
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: authData, error: authError } = await createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false } }).auth.signInWithPassword({ email, password });
     if (authError) throw authError;
     
     mentorClient = createClient(supabaseUrl, process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0", {
@@ -152,15 +152,15 @@ describe("20260725000001_material_drive migration", () => {
       email,
       password,
       email_confirm: true,
-      user_metadata: { role: 'student' }
+      user_metadata: { role: 'pro' }
     });
     expect(userError).toBeNull();
     
     // Update role in profiles to student so it definitely doesn't match mentor
-    await supabase.from("profiles").update({ role: 'student' }).eq("id", user.user.id);
+    await supabase.from("profiles").update({ role: 'pro' }).eq("id", user.user.id);
     
     // Sign in to get session
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: authData, error: authError } = await createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false } }).auth.signInWithPassword({ email, password });
     expect(authError).toBeNull();
     
     const studentClient = createClient(supabaseUrl, process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0", {

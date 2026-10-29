@@ -16,6 +16,7 @@ type LiveClassFormModalProps = {
 function toLocalDatetimeString(isoString?: string): string {
   if (!isoString) return "";
   const date = new Date(isoString);
+  if (isNaN(date.getTime())) return "";
   const offset = date.getTimezoneOffset() * 60000;
   const localDate = new Date(date.getTime() - offset);
   return localDate.toISOString().slice(0, 16);
@@ -87,7 +88,12 @@ export function LiveClassFormModal({
       return;
     }
 
-    if (!zoomLink.trim() || (!zoomLink.startsWith("http://") && !zoomLink.startsWith("https://"))) {
+    try {
+      const parsed = new URL(zoomLink.trim());
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        throw new Error();
+      }
+    } catch {
       setError("Link Zoom wajib diisi dengan URL valid (diawali https:// atau http://)");
       return;
     }
@@ -142,9 +148,15 @@ export function LiveClassFormModal({
 
           <div className="space-y-1.5">
             <Label>Target Siswa *</Label>
-            <div className="grid grid-cols-3 gap-2">
+            <div
+              role="radiogroup"
+              aria-label="Target Siswa"
+              className="grid grid-cols-3 gap-2"
+            >
               <button
                 type="button"
+                role="radio"
+                aria-checked={targetType === "all"}
                 onClick={() => setTargetType("all")}
                 className={`py-2 px-3 text-xs font-semibold rounded-lg border text-center transition-colors ${
                   targetType === "all"
@@ -156,6 +168,8 @@ export function LiveClassFormModal({
               </button>
               <button
                 type="button"
+                role="radio"
+                aria-checked={targetType === "pro"}
                 onClick={() => setTargetType("pro")}
                 className={`py-2 px-3 text-xs font-semibold rounded-lg border text-center transition-colors ${
                   targetType === "pro"
@@ -167,6 +181,8 @@ export function LiveClassFormModal({
               </button>
               <button
                 type="button"
+                role="radio"
+                aria-checked={targetType === "osce_pro"}
                 onClick={() => setTargetType("osce_pro")}
                 className={`py-2 px-3 text-xs font-semibold rounded-lg border text-center transition-colors ${
                   targetType === "osce_pro"
@@ -181,7 +197,7 @@ export function LiveClassFormModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="startTime">Waktu Mulai *</Label>
+              <Label htmlFor="startTime">Waktu Mulai (WIB) *</Label>
               <Input
                 id="startTime"
                 type="datetime-local"
@@ -191,7 +207,7 @@ export function LiveClassFormModal({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="endTime">Waktu Selesai *</Label>
+              <Label htmlFor="endTime">Waktu Selesai (WIB) *</Label>
               <Input
                 id="endTime"
                 type="datetime-local"

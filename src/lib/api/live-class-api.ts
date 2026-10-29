@@ -59,6 +59,10 @@ export function formatLiveClassSchedule(startTime: string, endTime: string): str
   const startDate = new Date(startTime);
   const endDate = new Date(endTime);
 
+  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    return "-";
+  }
+
   const dateStr = new Intl.DateTimeFormat("id-ID", {
     weekday: "long",
     day: "numeric",

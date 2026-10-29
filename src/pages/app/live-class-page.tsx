@@ -16,6 +16,7 @@ import { StudentLiveClassView } from "../../components/live-class/student-live-c
 import { MentorLiveClassView } from "../../components/live-class/mentor-live-class-view";
 import { LiveClassFormModal } from "../../components/live-class/live-class-form-modal";
 import ConfirmDialog from "../../components/ui/confirm-dialog";
+import { toast } from "sonner";
 
 export default function LiveClassPage() {
   const [searchParams] = useSearchParams();
@@ -45,8 +46,12 @@ export default function LiveClassPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["live-classes"] });
+      toast.success(editingItem ? "Jadwal live class berhasil diperbarui" : "Jadwal live class berhasil ditambahkan");
       setIsModalOpen(false);
       setEditingItem(null);
+    },
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Gagal menyimpan jadwal");
     },
   });
 
@@ -56,7 +61,11 @@ export default function LiveClassPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["live-classes"] });
+      toast.success("Jadwal live class berhasil dihapus");
       setDeletingItem(null);
+    },
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Gagal menghapus jadwal");
     },
   });
 
@@ -72,7 +81,11 @@ export default function LiveClassPage() {
 
   const handleConfirmDelete = async () => {
     if (deletingItem) {
-      await deleteMutation.mutateAsync(deletingItem.id);
+      try {
+        await deleteMutation.mutateAsync(deletingItem.id);
+      } catch {
+        // error notification handled by deleteMutation onError
+      }
     }
   };
 

@@ -7,7 +7,7 @@ create table if not exists public.live_classes (
   end_time timestamptz not null,
   zoom_link text not null,
   target_roles public.app_role[] not null default array['pro', 'osce_pro']::public.app_role[],
-  created_by uuid references auth.users(id) on delete set null,
+  created_by uuid references auth.users(id) on delete set null default auth.uid(),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
 

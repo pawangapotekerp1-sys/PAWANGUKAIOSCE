@@ -67,6 +67,7 @@ export default function AiConfigPage() {
       setCredentialFeedback("API key Gemini berhasil dihapus dari sistem.");
     },
     onError: (error) => {
+      queryClient.invalidateQueries({ queryKey: ["global-ai-credential-status"] });
       setCredentialFeedback(error instanceof Error ? error.message : "API key Gemini belum berhasil dihapus.");
     },
   });

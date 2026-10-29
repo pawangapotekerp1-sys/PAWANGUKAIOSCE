@@ -582,7 +582,9 @@ async function generateGeminiTextOnce({
   model,
   prompt,
   parts,
-  temperature = 0.2,
+  // Gemini 3 models are tuned for the default temperature of 1.0; lower values can cause looping
+  // and degraded/slow reasoning. Callers may still override explicitly.
+  temperature = 1.0,
   maxOutputTokens,
   thinkingBudget,
   thinkingLevel,

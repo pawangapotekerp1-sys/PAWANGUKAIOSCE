@@ -141,7 +141,7 @@ describe("Diagnosis Engine - Fase 6 Golden Tests (Synthetic History Scenarios)",
     expect(distractorFinding).toBeDefined();
     expect(distractorFinding?.evidenceSummary).toContain("Opsi salah 'C' dipilih 2 kali");
     expect(distractorFinding?.evidenceSummary).toContain("Pasien gagal ginjal kronis stadium 4");
-    expect(distractorFinding?.recommendationDraft).toContain("opsi 'C' dipilih berulang");
+    expect(distractorFinding?.recommendationDraft).toContain("Anda memilih opsi 'C' yang salah di 2 sesi berbeda");
 
     expect(normalizeForSnapshot(report)).toMatchSnapshot();
   });

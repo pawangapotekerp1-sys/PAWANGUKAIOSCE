@@ -162,30 +162,79 @@ describe("Diagnosis Engine - classify.ts & Priorities", () => {
   });
 });
 
+const FULL_TEMPLATE_SLOTS = {
+  topicName: "Kardiovaskular",
+  optionKey: "B",
+  count: 3,
+  questionSummary: "Antihipertensi batuk kering",
+  accuracy: 45,
+  attemptCount: 3,
+  sampleStatus: "sampel utama",
+  isConsecutive: true,
+  ratio: 8,
+  totalQuestions: 20,
+  dropPercentage: 25,
+  changedCorrectToWrong: 4,
+  changedWrongToCorrect: 1,
+  doubtfulRatio: 35,
+  initialAccuracy: 30,
+  latestAccuracy: 65,
+  pointsIncrease: 35,
+};
+
+const REQUIRED_SLOTS_BY_CODE: Record<string, string[]> = {
+  RECURRING_DISTRACTOR: ["topicName", "optionKey", "count", "questionSummary"],
+  CONFIDENT_ERRORS_TOPIC: ["topicName", "count", "ratio", "totalQuestions"],
+  PERSISTENT_WEAKNESS: ["topicName", "accuracy", "attemptCount", "sampleStatus"],
+  RUSHED_WRONG: ["count", "ratio"],
+  LATE_SESSION_DROP: ["dropPercentage"],
+  NET_ANSWER_CHANGE: ["changedCorrectToWrong", "changedWrongToCorrect"],
+  FRAGILE_KNOWLEDGE: ["topicName", "doubtfulRatio"],
+  IMPROVING: ["topicName", "initialAccuracy", "latestAccuracy", "pointsIncrease"],
+};
+
+describe("Diagnosis Engine - recommend.ts Required Slots (no invented numbers)", () => {
+  test("every template declares its required slots", () => {
+    for (const [code, tpl] of Object.entries(RECOMMENDATION_TEMPLATES)) {
+      expect([...tpl.requiredSlots].sort()).toEqual([...REQUIRED_SLOTS_BY_CODE[code]].sort());
+    }
+  });
+
+  for (const [code, slots] of Object.entries(REQUIRED_SLOTS_BY_CODE)) {
+    for (const slot of slots) {
+      test(`${code} throws when required slot '${slot}' is missing instead of inventing a value`, () => {
+        const partial: Record<string, unknown> = { ...FULL_TEMPLATE_SLOTS };
+        delete partial[slot];
+        expect(() =>
+          buildRecommendationDraft(code as keyof typeof RECOMMENDATION_TEMPLATES, partial),
+        ).toThrowError(new RegExp(`TEMPLATE SLOT MISSING.*${code}.*${slot}`));
+      });
+    }
+  }
+
+  test("null slot values are treated as missing", () => {
+    expect(() => buildRecommendationDraft("LATE_SESSION_DROP", { dropPercentage: null })).toThrowError(
+      /TEMPLATE SLOT MISSING/,
+    );
+  });
+
+  test("zero is a valid slot value (not treated as missing)", () => {
+    const rec = buildRecommendationDraft("NET_ANSWER_CHANGE", {
+      changedCorrectToWrong: 3,
+      changedWrongToCorrect: 0,
+    });
+    expect(rec.draftText).toContain("(0 kali)");
+  });
+});
+
 describe("Diagnosis Engine - recommend.ts Revised Copy", () => {
-  test("all templates remain 'draft' and satisfy revised pedagogical guidelines", () => {
+  test("all templates are 'approved' and satisfy revised pedagogical guidelines", () => {
     for (const [code, tpl] of Object.entries(RECOMMENDATION_TEMPLATES)) {
       expect(tpl.templateId).toBeDefined();
       expect(tpl.code).toBe(code);
-      expect(tpl.status).toBe("draft"); // Tetap draft per instruksi
+      expect(tpl.status).toBe("approved");
 
-      const text = tpl.renderText({
-        topicName: "Kardiovaskular",
-        optionKey: "B",
-        count: 3,
-        questionSummary: "Antihipertensi batuk kering",
-        accuracy: 45,
-        attemptCount: 3,
-        sampleStatus: "sampel utama",
-        isConsecutive: true,
-        ratio: 8,
-        dropPercentage: 25,
-        changedCorrectToWrong: 4,
-        changedWrongToCorrect: 1,
-        doubtfulRatio: 35,
-        initialAccuracy: 30,
-        latestAccuracy: 65,
-      });
+      const text = tpl.renderText(FULL_TEMPLATE_SLOTS);
 
       expect(text).not.toContain("[DRAFT]");
       expect(text).not.toContain("DRAFT");
@@ -207,6 +256,9 @@ describe("Diagnosis Engine - recommend.ts Revised Copy", () => {
       }
       if (code === "RUSHED_WRONG") {
         expect(text).not.toContain("30–45 detik");
+        expect(text).not.toContain("jauh melampaui");
+        expect(text).toContain("lebih cepat dari rata-rata waktu Anda sendiri");
+        expect(text).toContain("8% dari total jawaban");
         expect(text).toContain("baca ulang inti pertanyaan dan kata kunci dalam skenario soal sebelum menetapkan pilihan jawaban");
       }
       if (code === "IMPROVING") {
@@ -214,13 +266,42 @@ describe("Diagnosis Engine - recommend.ts Revised Copy", () => {
       }
       if (code === "RECURRING_DISTRACTOR") {
         expect(text).toContain("Antihipertensi batuk kering");
+        expect(text).toMatch(/^Pengecoh Berulang:/);
+        expect(text).not.toMatch(/distraktor|distorsi/i);
+        expect(text).toContain("Anda memilih opsi 'B' yang salah di 3 sesi berbeda");
+      }
+      if (code === "CONFIDENT_ERRORS_TOPIC") {
+        expect(text).not.toContain("keyakinan semu");
+        expect(text).toContain("ada konsep yang Anda yakini, padahal belum tepat");
+        expect(text).toContain("3 butir salah (8% dari 20 butir soal topik)");
+      }
+      if (code === "PERSISTENT_WEAKNESS") {
+        expect(text).not.toContain("berada pada tingkat");
+        expect(text).toContain('Akurasi topik "Kardiovaskular" sebesar 45% (sampel utama) di 3 sesi try out berurutan');
       }
     }
   });
 
-  test("validateTemplateApproval throws in production mode when drafts exist", () => {
-    expect(() => validateTemplateApproval(true)).toThrowError(/PRODUCTION CHECK FAILED/);
+  test("validateTemplateApproval passes for the approved registry and throws for a registry containing drafts", () => {
+    expect(() => validateTemplateApproval(true)).not.toThrow();
     expect(() => validateTemplateApproval(false)).not.toThrow();
+
+    const withDraft = {
+      ...RECOMMENDATION_TEMPLATES,
+      IMPROVING: { ...RECOMMENDATION_TEMPLATES.IMPROVING, status: "draft" as const },
+    };
+    expect(() => validateTemplateApproval(true, withDraft)).toThrowError(
+      /PRODUCTION CHECK FAILED.*TPL_IMPROVING_V1/,
+    );
+  });
+
+  test("production flag requireApprovedTemplates is enabled and the engine runs with it", () => {
+    expect(DIAGNOSIS_CONFIG.flags.requireApprovedTemplates).toBe(true);
+    expect(() => runDiagnosisEngine([], DIAGNOSIS_CONFIG)).not.toThrow();
+  });
+
+  test("ENGINE_VERSION is bumped to 1.3.0 so cached 1.2.0 reports are invalidated", () => {
+    expect(ENGINE_VERSION).toBe("1.3.0");
   });
 });
 
@@ -321,7 +402,9 @@ describe("Diagnosis Engine - Findings Detectors & Revised Triggers", () => {
     const fnd = detectFindings(rows).find((f) => f.code === "RUSHED_WRONG");
     expect(fnd).toBeDefined();
     expect(fnd?.metadata.ratio).toBe(6);
-    expect(fnd?.recommendationDraft).toContain("6% dari total soal");
+    expect(fnd?.recommendationDraft).toContain("6% dari total jawaban");
+    expect(fnd?.evidenceSummary).toContain("6% dari total jawaban");
+    expect(fnd?.evidenceSummary).not.toContain("abnormal");
   });
 
   test("LATE_SESSION_DROP calculates percentage points drop >= 20 on >= 100 questions", () => {

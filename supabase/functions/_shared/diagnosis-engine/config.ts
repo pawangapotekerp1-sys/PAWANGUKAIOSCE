@@ -1,4 +1,4 @@
-export const ENGINE_VERSION = "1.2.0";
+export const ENGINE_VERSION = "1.3.0";
 
 export const DIAGNOSIS_CONFIG = {
   version: ENGINE_VERSION,
@@ -38,7 +38,7 @@ export const DIAGNOSIS_CONFIG = {
     temperature: 0.2,
   },
   flags: {
-    requireApprovedTemplates: false, // Flag produksi: jika true, gagal bila ada template berstatus draft
+    requireApprovedTemplates: true, // Flag produksi: engine gagal (throw) bila ada template berstatus draft
   },
 } as const;
 

@@ -393,7 +393,7 @@ export function detectFindings(
       confidence: 4,
       topicWeight: 1.0,
       urgencyScore: 3 * Math.min(rushedErrors.length, 5) * 4 * 1.0,
-      evidenceSummary: `Ditemukan ${rushedErrors.length} butir salah (${ratioPercent}% dari total soal) yang dijawab dengan kecepatan abnormal (z < -0.8).`,
+      evidenceSummary: `Ditemukan ${rushedErrors.length} butir salah (${ratioPercent}% dari total jawaban) yang dijawab lebih cepat dari rata-rata waktu Anda sendiri (z < -0.8).`,
       recommendationTemplateId: rec.templateId,
       recommendationTemplateStatus: rec.status,
       recommendationDraft: rec.draftText,

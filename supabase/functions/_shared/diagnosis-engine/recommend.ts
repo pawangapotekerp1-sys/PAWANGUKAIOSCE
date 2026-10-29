@@ -6,6 +6,12 @@ export interface RecommendationTemplateDefinition {
   title: string;
   triggerCondition: string;
   status: TemplateStatus;
+  /**
+   * Slot yang WAJIB ada (bukan undefined/null) agar teks dapat dirender.
+   * Tidak ada nilai cadangan: slot yang hilang membuat render gagal (throw),
+   * sehingga laporan berbasis aturan tidak pernah menampilkan angka karangan.
+   */
+  requiredSlots: readonly string[];
   renderText: (slots: Record<string, unknown>) => string;
 }
 
@@ -16,10 +22,22 @@ export interface RecommendationDraft {
 }
 
 /**
+ * Mengambil slot wajib. Melempar error bila slot undefined/null.
+ * Nilai 0, false, atau string kosong tetap dianggap valid (bukan "hilang").
+ */
+function requireSlot<T = unknown>(code: FindingCode, slots: Record<string, unknown>, key: string): T {
+  const value = slots[key];
+  if (value === undefined || value === null) {
+    throw new Error(`[TEMPLATE SLOT MISSING] Template ${code} membutuhkan slot '${key}' tetapi tidak tersedia.`);
+  }
+  return value as T;
+}
+
+/**
  * Master Registry of Recommendation Templates.
  * Every template contains complete metadata: ID, code, trigger condition, status ('draft' | 'approved'),
- * and deterministic text generation.
- * All templates remain 'draft' until explicit approval by user.
+ * required slots, and deterministic text generation.
+ * Status 'approved' diberikan setelah peninjauan redaksi oleh user (ENGINE_VERSION 1.3.0).
  * NOTE: Never include clinical dosages, clinical claims, or invented facts outside the report object.
  */
 export const RECOMMENDATION_TEMPLATES: Record<FindingCode, RecommendationTemplateDefinition> = {
@@ -28,13 +46,15 @@ export const RECOMMENDATION_TEMPLATES: Record<FindingCode, RecommendationTemplat
     code: "RECURRING_DISTRACTOR",
     title: "Pengecoh Berulang pada Butir Soal",
     triggerCondition: "Pengecoh yang sama dipilih pada butir soal yang sama (question_id) di >= 2 sesi try out berbeda.",
-    status: "draft",
+    status: "approved",
+    requiredSlots: ["topicName", "optionKey", "count", "questionSummary"],
     renderText: (slots) => {
-      const topicName = (slots.topicName as string) || "Topik terkait";
-      const optionKey = (slots.optionKey as string) || "tertentu";
-      const count = slots.count ?? 2;
-      const questionSummary = (slots.questionSummary as string) || "Soal terkait";
-      return `Evaluasi Distraktor Berulang: Pada butir soal "${questionSummary}" (topik ${topicName}), opsi '${optionKey}' dipilih berulang sebanyak ${count} kali di sesi try out yang berbeda sebagai jawaban salah. Disarankan menelaah kembali materi pembeda antara opsi tersebut dengan konsep kunci jawaban yang tepat agar tidak terjebak pola distorsi pemahaman yang sama.`;
+      const code = "RECURRING_DISTRACTOR";
+      const topicName = requireSlot<string>(code, slots, "topicName");
+      const optionKey = requireSlot<string>(code, slots, "optionKey");
+      const count = requireSlot<number>(code, slots, "count");
+      const questionSummary = requireSlot<string>(code, slots, "questionSummary");
+      return `Pengecoh Berulang: Pada soal "${questionSummary}" (topik ${topicName}), Anda memilih opsi '${optionKey}' yang salah di ${count} sesi berbeda. Bandingkan opsi tersebut dengan kunci jawaban dan catat konsep yang membedakan keduanya.`;
     },
   },
 
@@ -43,13 +63,15 @@ export const RECOMMENDATION_TEMPLATES: Record<FindingCode, RecommendationTemplat
     code: "CONFIDENT_ERRORS_TOPIC",
     title: "Kesalahan Tanpa Ragu di Subtopik",
     triggerCondition: "Sampel topik >= 10 soal DAN terdapat >= 3 butir salah tanpa tanda ragu (proporsi >= 20% dari total soal topik).",
-    status: "draft",
+    status: "approved",
+    requiredSlots: ["topicName", "count", "ratio", "totalQuestions"],
     renderText: (slots) => {
-      const topicName = (slots.topicName as string) || "Topik terkait";
-      const count = slots.count ?? 3;
-      const ratio = slots.ratio !== undefined ? slots.ratio : 20;
-      const totalQuestions = slots.totalQuestions !== undefined ? slots.totalQuestions : count;
-      return `Rekalibrasi Keyakinan Jawaban: Pada topik "${topicName}", terdeteksi ${count} butir salah (${ratio}% dari ${totalQuestions} butir soal topik) yang dijawab tanpa tanda ragu. Pola ini mengindikasikan keyakinan semu pada materi yang belum sepenuhnya dikuasai. Cocokkan jawaban Anda dengan pembahasan resmi dan catat konsep yang meleset agar tidak mengulang kekeliruan serupa.`;
+      const code = "CONFIDENT_ERRORS_TOPIC";
+      const topicName = requireSlot<string>(code, slots, "topicName");
+      const count = requireSlot<number>(code, slots, "count");
+      const ratio = requireSlot<number>(code, slots, "ratio");
+      const totalQuestions = requireSlot<number>(code, slots, "totalQuestions");
+      return `Rekalibrasi Keyakinan Jawaban: Pada topik "${topicName}", terdapat ${count} butir salah (${ratio}% dari ${totalQuestions} butir soal topik) yang dijawab tanpa tanda ragu. Artinya ada konsep yang Anda yakini, padahal belum tepat. Cocokkan jawaban Anda dengan pembahasan resmi dan catat konsep yang meleset agar tidak mengulang kekeliruan serupa.`;
     },
   },
 
@@ -58,14 +80,17 @@ export const RECOMMENDATION_TEMPLATES: Record<FindingCode, RecommendationTemplat
     code: "PERSISTENT_WEAKNESS",
     title: "Kelemahan Persisten Lintas Sesi",
     triggerCondition: "Akurasi topik < 60% yang bertahan di >= 2 sesi try out dengan sampel topik memenuhi ambang (>= 10 soal indikatif, >= 20 soal utama).",
-    status: "draft",
+    status: "approved",
+    requiredSlots: ["topicName", "accuracy", "attemptCount", "sampleStatus"],
     renderText: (slots) => {
-      const topicName = (slots.topicName as string) || "Topik terkait";
-      const accuracy = slots.accuracy ?? 0;
-      const attemptCount = slots.attemptCount ?? 2;
-      const sampleStatus = (slots.sampleStatus as string) || "sampel indikatif";
-      const consecutiveText = slots.isConsecutive ? " berurutan" : "";
-      return `Penguatan Fondasi Teori: Akurasi pada topik "${topicName}" berada pada tingkat ${accuracy}% (${sampleStatus}) di ${attemptCount} sesi try out${consecutiveText}. Jadwalkan pendalaman materi dari literatur acuan resmi untuk membangun pemahaman konseptual yang kokoh sebelum melanjutkan latihan berikutnya.`;
+      const code = "PERSISTENT_WEAKNESS";
+      const topicName = requireSlot<string>(code, slots, "topicName");
+      const accuracy = requireSlot<number>(code, slots, "accuracy");
+      const attemptCount = requireSlot<number>(code, slots, "attemptCount");
+      const sampleStatus = requireSlot<string>(code, slots, "sampleStatus");
+      // isConsecutive opsional: bila tidak ada, kata "berurutan" tidak ditampilkan (tidak mengarang angka).
+      const consecutiveText = slots.isConsecutive === true ? " berurutan" : "";
+      return `Penguatan Fondasi Teori: Akurasi topik "${topicName}" sebesar ${accuracy}% (${sampleStatus}) di ${attemptCount} sesi try out${consecutiveText}. Jadwalkan pendalaman materi dari literatur acuan resmi untuk membangun pemahaman konseptual yang kokoh sebelum melanjutkan latihan berikutnya.`;
     },
   },
 
@@ -73,12 +98,14 @@ export const RECOMMENDATION_TEMPLATES: Record<FindingCode, RecommendationTemplat
     templateId: "TPL_RUSHED_WRONG_V1",
     code: "RUSHED_WRONG",
     title: "Pengerjaan Terburu-buru pada Soal Salah",
-    triggerCondition: "Sampel global >= 100 soal DAN proporsi butir salah-cepat (z < -0.8) mencapai >= 5% dari total jawaban.",
-    status: "draft",
+    triggerCondition: "Sampel global >= 100 soal DAN proporsi butir salah-cepat (z < -0.8 terhadap rata-rata waktu siswa sendiri) mencapai >= 5% dari total jawaban.",
+    status: "approved",
+    requiredSlots: ["count", "ratio"],
     renderText: (slots) => {
-      const count = slots.count ?? 3;
-      const ratio = slots.ratio !== undefined ? slots.ratio : 5;
-      return `Pengendalian Ritme Pengerjaan: Terdapat ${count} butir salah (${ratio}% dari total soal) yang dikerjakan dengan kecepatan jauh melampaui rata-rata. Biasakan membaca ulang inti pertanyaan dan kata kunci dalam skenario soal sebelum menetapkan pilihan jawaban.`;
+      const code = "RUSHED_WRONG";
+      const count = requireSlot<number>(code, slots, "count");
+      const ratio = requireSlot<number>(code, slots, "ratio");
+      return `Pengendalian Ritme Pengerjaan: Terdapat ${count} butir salah (${ratio}% dari total jawaban) yang dikerjakan lebih cepat dari rata-rata waktu Anda sendiri. Biasakan membaca ulang inti pertanyaan dan kata kunci dalam skenario soal sebelum menetapkan pilihan jawaban.`;
     },
   },
 
@@ -87,9 +114,11 @@ export const RECOMMENDATION_TEMPLATES: Record<FindingCode, RecommendationTemplat
     code: "LATE_SESSION_DROP",
     title: "Penurunan Akurasi Kuartil Akhir Sesi",
     triggerCondition: "Sampel global >= 100 soal DAN akurasi kuartil akhir sesi (posisi >= 0.75) merosot >= 20 poin persentase dibandingkan 3 kuartil awal.",
-    status: "draft",
+    status: "approved",
+    requiredSlots: ["dropPercentage"],
     renderText: (slots) => {
-      const dropPercentage = slots.dropPercentage ?? 20;
+      const code = "LATE_SESSION_DROP";
+      const dropPercentage = requireSlot<number>(code, slots, "dropPercentage");
       return `Manajemen Performa Akhir Sesi: Akurasi mengalami penurunan sebesar ${dropPercentage} poin persentase pada kuartil akhir sesi ujian. Penurunan ini dapat terkait kelelahan kognitif, keterbatasan sisa waktu, atau tingkat kesulitan butir soal di akhir sesi. Disarankan memperbanyak latihan simulasi blok penuh dan menerapkan pembagian alokasi waktu yang konsisten agar ketelitian tetap terjaga hingga butir terakhir.`;
     },
   },
@@ -99,10 +128,12 @@ export const RECOMMENDATION_TEMPLATES: Record<FindingCode, RecommendationTemplat
     code: "NET_ANSWER_CHANGE",
     title: "Perubahan Jawaban Berdampak Negatif",
     triggerCondition: "Sampel global >= 100 soal DAN pengubahan benar->salah melampaui salah->benar (minimal 2 kali).",
-    status: "draft",
+    status: "approved",
+    requiredSlots: ["changedCorrectToWrong", "changedWrongToCorrect"],
     renderText: (slots) => {
-      const cToW = slots.changedCorrectToWrong ?? 0;
-      const wToC = slots.changedWrongToCorrect ?? 0;
+      const code = "NET_ANSWER_CHANGE";
+      const cToW = requireSlot<number>(code, slots, "changedCorrectToWrong");
+      const wToC = requireSlot<number>(code, slots, "changedWrongToCorrect");
       return `Disiplin Pergantian Jawaban: Dalam data Anda, perubahan jawaban dari benar ke salah (${cToW} kali) lebih sering terjadi daripada dari salah ke benar (${wToC} kali). Biasakan untuk mengubah pilihan jawaban hanya bila Anda menemukan alasan atau data konkret yang membuktikan kekeliruan interpretasi awal.`;
     },
   },
@@ -112,10 +143,12 @@ export const RECOMMENDATION_TEMPLATES: Record<FindingCode, RecommendationTemplat
     code: "FRAGILE_KNOWLEDGE",
     title: "Pemahaman Rentan Ragu",
     triggerCondition: "Sampel topik >= 10 soal DAN proporsi jawaban benar yang ditandai ragu pada topik mencapai >= 30%.",
-    status: "draft",
+    status: "approved",
+    requiredSlots: ["topicName", "doubtfulRatio"],
     renderText: (slots) => {
-      const topicName = (slots.topicName as string) || "Topik terkait";
-      const doubtfulRatio = slots.doubtfulRatio ?? 30;
+      const code = "FRAGILE_KNOWLEDGE";
+      const topicName = requireSlot<string>(code, slots, "topicName");
+      const doubtfulRatio = requireSlot<number>(code, slots, "doubtfulRatio");
       return `Stabilisasi Pemahaman Ragu: Pada topik "${topicName}", sebanyak ${doubtfulRatio}% jawaban benar masih dikerjakan dengan tanda ragu-ragu. Hal ini menandakan pemahaman konsep yang sudah mengarah tepat namun belum kokoh. Lakukan pemantapan materi dan ringkas poin-poin kunci untuk mengonfirmasi keyakinan konsep Anda.`;
     },
   },
@@ -125,12 +158,14 @@ export const RECOMMENDATION_TEMPLATES: Record<FindingCode, RecommendationTemplat
     code: "IMPROVING",
     title: "Tren Peningkatan Konsisten",
     triggerCondition: "Minimal 10 soal pada periode awal dan akhir, dengan kenaikan akurasi periode akhir >= 15 poin persentase (dan akurasi akhir >= 50%).",
-    status: "draft",
+    status: "approved",
+    requiredSlots: ["topicName", "initialAccuracy", "latestAccuracy", "pointsIncrease"],
     renderText: (slots) => {
-      const topicName = (slots.topicName as string) || "Topik terkait";
-      const initialAcc = slots.initialAccuracy ?? 0;
-      const latestAcc = slots.latestAccuracy ?? 0;
-      const points = slots.pointsIncrease ?? (Number(latestAcc) - Number(initialAcc));
+      const code = "IMPROVING";
+      const topicName = requireSlot<string>(code, slots, "topicName");
+      const initialAcc = requireSlot<number>(code, slots, "initialAccuracy");
+      const latestAcc = requireSlot<number>(code, slots, "latestAccuracy");
+      const points = requireSlot<number>(code, slots, "pointsIncrease");
       return `Penguatan Tren Positif: Akurasi pada topik "${topicName}" meningkat ${points} poin persentase (dari ${initialAcc}% menjadi ${latestAcc}%). Pertahankan pola belajar Anda pada topik ini untuk menjaga retensi pemahaman jangka panjang.`;
     },
   },
@@ -152,6 +187,7 @@ export function formatQuestionSummary(questionText?: string | null, questionId?:
 
 /**
  * Builds recommendation draft text based on finding code and slots.
+ * Throws [TEMPLATE SLOT MISSING] when a required slot is undefined/null.
  */
 export function buildRecommendationDraft(
   code: FindingCode,
@@ -175,12 +211,15 @@ export function buildRecommendationDraft(
 
 /**
  * Production gate validator:
- * When requireApproved is true, throws an Error if any template is still in 'draft' status.
+ * When requireApproved is true, throws an Error if any template in the registry is still in 'draft' status.
  */
-export function validateTemplateApproval(requireApproved = false): void {
+export function validateTemplateApproval(
+  requireApproved = false,
+  templates: Record<string, RecommendationTemplateDefinition> = RECOMMENDATION_TEMPLATES,
+): void {
   if (!requireApproved) return;
 
-  const draftTemplates = Object.values(RECOMMENDATION_TEMPLATES)
+  const draftTemplates = Object.values(templates)
     .filter((tpl) => tpl.status === "draft")
     .map((tpl) => `${tpl.templateId} (${tpl.code})`);
 

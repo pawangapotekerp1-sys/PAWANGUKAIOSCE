@@ -27,33 +27,90 @@ describe("gemini-client", () => {
     vi.restoreAllMocks();
   });
 
-  test("disables thinking during connection tests so Gemini still returns visible text", async () => {
+  test("connection test validates the key via models.get metadata lookup instead of a slow generateContent call", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
+      status: 200,
       json: async () => ({
-        candidates: [
-          {
-            content: {
-              parts: [{ text: "OK" }],
-            },
-          },
-        ],
+        name: "models/gemini-3.8-flash",
+        displayName: "Gemini 3.8 Flash",
+        supportedGenerationMethods: ["generateContent"],
       }),
     });
     vi.stubGlobal("fetch", fetchMock);
 
     const { testGeminiConnection } = await import("./gemini-client.ts");
-    await testGeminiConnection("api-key", "gemini-3.7-flash");
+    const result = await testGeminiConnection("api-key", "gemini-3.8-flash");
+
+    expect(result.ok).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
 
     const [url, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
-    const body = JSON.parse(String(requestInit.body));
-
+    expect(url).toBe("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash");
+    expect(url).not.toContain(":generateContent");
     expect(url).not.toContain("?key=");
+    expect(requestInit.method).toBe("GET");
+    expect(requestInit.body).toBeUndefined();
     expect((requestInit.headers as Record<string, string>)["x-goog-api-key"]).toBe("api-key");
+    expect(requestInit.signal).toBeDefined();
+  });
 
-    expect(body.generationConfig.thinkingConfig).toEqual({
-      thinkingLevel: "low",
+  test("connection test rejects an invalid API key (400 API_KEY_INVALID) immediately as a credential error without retrying", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      headers: new Headers(),
+      json: async () => ({
+        error: {
+          code: 400,
+          status: "INVALID_ARGUMENT",
+          message: "API key not valid. Please pass a valid API key.",
+          details: [{ reason: "API_KEY_INVALID" }],
+        },
+      }),
     });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { testGeminiConnection, isGeminiCredentialError } = await import("./gemini-client.ts");
+    const error = await testGeminiConnection("bad-key", "gemini-3.8-flash").catch((err) => err);
+
+    expect(error).toMatchObject({ status: 400, code: "GEMINI_AUTHENTICATION_FAILED" });
+    expect(isGeminiCredentialError(error)).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  test("connection test maps a missing model (404) to GEMINI_MODEL_UNAVAILABLE without retrying", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      headers: new Headers(),
+      json: async () => ({
+        error: { code: 404, status: "NOT_FOUND", message: "models/gemini-9-flash is not found" },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { testGeminiConnection } = await import("./gemini-client.ts");
+    await expect(testGeminiConnection("api-key", "gemini-9-flash")).rejects.toMatchObject({
+      status: 404,
+      code: "GEMINI_MODEL_UNAVAILABLE",
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  test("connection test surfaces a 504 timeout after bounded retries when the metadata lookup keeps aborting", async () => {
+    const timeoutErr = new Error("The operation was aborted due to timeout");
+    timeoutErr.name = "TimeoutError";
+    const fetchMock = vi.fn().mockRejectedValue(timeoutErr);
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { testGeminiConnection } = await import("./gemini-client.ts");
+    await expect(testGeminiConnection("api-key", "gemini-3.8-flash")).rejects.toMatchObject({
+      status: 504,
+      code: "GEMINI_PROVIDER_UNAVAILABLE",
+      message: expect.stringMatching(/Waktu tunggu respons Gemini habis \(timeout\)/i),
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   test("uses official REST response_mime_type and response_schema fields for structured output requests", async () => {
@@ -917,7 +974,7 @@ describe("gemini-client", () => {
         ok: true,
         status: 200,
         json: async () => ({
-          candidates: [{ content: { parts: [{ text: "OK" }] } }],
+          name: "models/gemini-3.8-flash",
         }),
       });
     vi.stubGlobal("fetch", fetchMock);

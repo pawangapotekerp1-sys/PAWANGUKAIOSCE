@@ -113,4 +113,27 @@ describe("AiConfigPage", () => {
     expect(warningBox.className).toContain("amber");
     expect(warningBox.className).not.toContain("destructive");
   });
+  test("renders amber degraded badge when credential is saved but has transient error", async () => {
+    mockGetGlobalAiCredentialStatus.mockResolvedValue({
+      hasCredential: true,
+      lastValidatedAt: "2026-10-29T10:29:27.000Z",
+      lastError: "Waktu tunggu respons Gemini habis (timeout). Sistem akan mencoba kembali dalam beberapa saat.",
+    });
+
+    renderPage();
+
+    expect(await screen.findByText(/Koneksi Mengalami Gangguan Sementara/i)).toBeInTheDocument();
+  });
+
+  test("renders green active badge when credential is fully valid without error", async () => {
+    mockGetGlobalAiCredentialStatus.mockResolvedValue({
+      hasCredential: true,
+      lastValidatedAt: "2026-10-29T10:29:27.000Z",
+      lastError: null,
+    });
+
+    renderPage();
+
+    expect(await screen.findByText(/Koneksi Gemini Aktif/i)).toBeInTheDocument();
+  });
 });

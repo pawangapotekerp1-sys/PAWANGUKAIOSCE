@@ -1894,12 +1894,17 @@ describe("BYOK credential save and test handling (Domain 2)", () => {
       }),
     );
 
-    await expect(
-      handleTestCredential(mockService, {
-        credential: mockService.getCredentialRow(),
-        userId: "user-123",
-      }),
-    ).rejects.toThrow();
+    const response = await handleTestCredential(mockService, {
+      credential: mockService.getCredentialRow(),
+      userId: "user-123",
+    });
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.testResult.ok).toBe(false);
+    expect(body.testResult.message).toBeTruthy();
+    expect(body.testResult.message).not.toContain(rawSecretKey);
+    expect(body.testResult.message).toContain("[REDACTED");
 
     const updatedCredential = mockService.getCredentialRow();
     expect(updatedCredential.last_error).toBeTruthy();

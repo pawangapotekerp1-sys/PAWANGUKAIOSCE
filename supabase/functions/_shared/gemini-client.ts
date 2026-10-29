@@ -786,7 +786,7 @@ export async function generateGeminiTextWithUsage(request: GeminiRequest): Promi
       // 5. If rate limited without reliable retry hint or overload: DO NOT perform fast repeated retries inline! (maxAttempts = 1)
       let maxAttempts = 2;
       if (isProviderUnavailable) {
-        if (request.retryOnServerOverload && error.status !== 504) {
+        if (request.retryOnServerOverload && (error.status !== 504 || (typeof request.timeoutMs === "number" && request.timeoutMs <= 15_000))) {
           maxAttempts = GEMINI_TEXT_MAX_ATTEMPTS;
         } else if (hasReliableRetryHint && retryAfterSeconds! <= 10) {
           maxAttempts = 2;
@@ -889,8 +889,10 @@ export async function testGeminiConnection(apiKey: string, model: string) {
     apiKey,
     model,
     prompt: "Balas dengan kata OK saja.",
-    maxOutputTokens: 8192,
+    maxOutputTokens: 16,
+    thinkingLevel: "low",
     thinkingBudget: 0,
+    timeoutMs: 15_000,
     retryOnServerOverload: true,
   });
 

@@ -58,6 +58,8 @@ export type GeminiRequest = {
 };
 
 const DEFAULT_GEMINI_FETCH_TIMEOUT_MS = 45_000;
+const GEMINI_CONNECTION_TEST_TIMEOUT_MS = 8_000;
+const GEMINI_CONNECTION_TEST_MAX_ATTEMPTS = 3;
 const GEMINI_RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
 const GEMINI_CAPACITY_MESSAGE_PATTERNS = [
   "resource_exhausted",
@@ -885,22 +887,93 @@ export async function generateGeminiStructuredData<TValue>(request: GeminiReques
 
 export async function testGeminiConnection(apiKey: string, model: string) {
   const startedAt = Date.now();
-  await generateGeminiText({
-    apiKey,
-    model,
-    prompt: "Balas dengan kata OK saja.",
-    maxOutputTokens: 16,
-    thinkingLevel: "low",
-    thinkingBudget: 0,
-    timeoutMs: 15_000,
-    retryOnServerOverload: true,
-  });
+  let lastError: unknown = null;
 
-  return {
-    ok: true,
-    message: "Koneksi Gemini berhasil.",
-    latencyMs: Date.now() - startedAt,
-  };
+  // Validate the key with a lightweight models.get metadata lookup instead of a generateContent call.
+  // Generation latency on Gemini 3 thinking models is highly variable (often > 15-45 s for even a
+  // trivial prompt), which made Save/Tes Koneksi time out. models.get still rejects invalid keys
+  // (400 API_KEY_INVALID / 403) and unavailable models (404), costs no tokens and no RPD quota.
+  for (let attempt = 1; attempt <= GEMINI_CONNECTION_TEST_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      await fetchGeminiModelMetadataOnce(apiKey, model);
+      return {
+        ok: true,
+        message: "Koneksi Gemini berhasil.",
+        latencyMs: Date.now() - startedAt,
+      };
+    } catch (error) {
+      lastError = error;
+
+      if (!(error instanceof GeminiRequestError) || error.diagnostics?.isRetryable !== true) {
+        throw error;
+      }
+
+      const retryAfterSeconds = error.diagnostics?.retryAfterSeconds;
+      const retryHintTooLong = typeof retryAfterSeconds === "number" && retryAfterSeconds > 10;
+      if (attempt >= GEMINI_CONNECTION_TEST_MAX_ATTEMPTS || retryHintTooLong) {
+        throw error;
+      }
+
+      await wait(calculateBackoffDelay(attempt, retryAfterSeconds));
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("Gemini connection test failed.");
+}
+
+async function fetchGeminiModelMetadataOnce(apiKey: string, model: string): Promise<void> {
+  const env = readEdgeEnv();
+  const resolvedModel = normalizeAiModel(model);
+
+  let response: Response;
+  try {
+    response = await fetch(`${env.geminiBaseUrl}/models/${encodeURIComponent(resolvedModel)}`, {
+      method: "GET",
+      headers: {
+        "x-goog-api-key": apiKey,
+      },
+      signal:
+        typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function"
+          ? AbortSignal.timeout(GEMINI_CONNECTION_TEST_TIMEOUT_MS)
+          : undefined,
+    });
+  } catch (fetchErr: any) {
+    const errName = typeof fetchErr?.name === "string" ? fetchErr.name : "";
+    const errMsg = typeof fetchErr?.message === "string" ? fetchErr.message : "";
+    if (errName === "TimeoutError" || errName === "AbortError" || /aborted|timeout|timed out/i.test(errMsg)) {
+      throw new GeminiRequestError(
+        504,
+        "Waktu tunggu respons Gemini habis (timeout). Sistem akan mencoba kembali dalam beberapa saat.",
+        "GEMINI_PROVIDER_UNAVAILABLE",
+        {
+          category: "GEMINI_PROVIDER_UNAVAILABLE",
+          isRetryable: true,
+          retryAfterSeconds: null,
+          rawStatus: 504,
+          originalMessage: sanitizeText(errMsg || "Request timed out via AbortSignal"),
+        },
+      );
+    }
+    throw fetchErr;
+  }
+
+  if (response.ok) {
+    return;
+  }
+
+  const payload = await response.json().catch(() => ({}));
+  const classification = classifyGeminiErrorResponse({
+    status: response.status,
+    payload,
+    headers: response.headers,
+  });
+  throw new GeminiRequestError(response.status, classification.userMessage, classification.category, {
+    category: classification.category,
+    isRetryable: classification.isRetryable,
+    retryAfterSeconds: classification.retryAfterSeconds,
+    rawStatus: response.status,
+    originalMessage: sanitizeText(typeof payload?.error?.message === "string" ? payload.error.message : ""),
+  });
 }
 
 export function isGeminiCredentialError(error: unknown) {

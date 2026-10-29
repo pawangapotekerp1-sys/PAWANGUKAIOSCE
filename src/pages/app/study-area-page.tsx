@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router";
 import {
+  Radio,
   Video,
   Presentation,
   Sparkles,
@@ -28,6 +29,14 @@ interface StudyFeatureCard {
 }
 
 const STUDY_FEATURES: StudyFeatureCard[] = [
+  {
+    id: "live-class",
+    title: "Live Class",
+    description: "Ikuti bimbingan online tatap muka interaktif bersama mentor via Zoom sesuai jadwal kelas.",
+    href: "/app/live-class?mode=student",
+    buttonText: "Pilih Live Class",
+    icon: Radio,
+  },
   {
     id: "rekaman",
     title: "Rekaman",

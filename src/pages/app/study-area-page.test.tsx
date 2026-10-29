@@ -21,7 +21,7 @@ vi.mock("../../lib/auth/use-session", () => ({
 }));
 
 describe("StudyAreaPage", () => {
-  it("renders Area Belajar header and 3 learning feature cards", () => {
+  it("renders Area Belajar header and learning feature cards including Live Class", () => {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(
       <QueryClientProvider client={queryClient}>
@@ -31,12 +31,17 @@ describe("StudyAreaPage", () => {
       </QueryClientProvider>
     );
 
-    // 3 feature titles
+    // Feature titles
+    expect(screen.getByText("Live Class")).toBeInTheDocument();
     expect(screen.getByText("Rekaman")).toBeInTheDocument();
     expect(screen.getByText("Materi")).toBeInTheDocument();
     expect(screen.getByText("Flash Card")).toBeInTheDocument();
 
     // Access links
+    expect(screen.getByRole("link", { name: /Pilih Live Class/i })).toHaveAttribute(
+      "href",
+      "/app/live-class?mode=student"
+    );
     expect(screen.getByRole("link", { name: /Pilih Rekaman/i })).toHaveAttribute(
       "href",
       "/app/rekaman-kelas?mode=student"

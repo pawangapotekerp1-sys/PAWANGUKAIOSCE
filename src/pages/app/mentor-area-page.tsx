@@ -5,6 +5,7 @@ import {
   Sparkles,
   Layers,
   CalendarClock,
+  Radio,
   Video,
   Presentation,
   ArrowRight,
@@ -45,6 +46,14 @@ const MENTOR_FEATURES: MentorFeatureCard[] = [
     href: "/scheduled-ops/events",
     buttonText: "Pilih Event Terjadwal",
     icon: CalendarClock,
+  },
+  {
+    id: "kelola-live-class",
+    title: "Kelola Live Class",
+    description: "Atur jadwal kelas tatap muka online, tautan Zoom, waktu pelaksanaan, dan target peserta.",
+    href: "/app/live-class?mode=manage",
+    buttonText: "Pilih Kelola Live Class",
+    icon: Radio,
   },
   {
     id: "kelola-rekaman",

@@ -15,6 +15,7 @@ import {
   validateMaterialMetadata,
 } from "../_shared/flash-card.ts";
 import {
+  DEFAULT_AI_MODEL,
   GeminiRequestError,
   generateGeminiText,
   isGeminiCredentialError,
@@ -130,7 +131,7 @@ function encodeBase64(bytes: Uint8Array): string {
   return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("base64");
 }
 
-function mapFlashCardGeneratorStatus(credential: UserAiCredentialRow | null) {
+export function mapFlashCardGeneratorStatus(credential: UserAiCredentialRow | null) {
   return {
     hasCredential: Boolean(credential?.secret_id),
     model: credential?.model ?? DEFAULT_AI_MODEL,
@@ -247,6 +248,34 @@ async function upsertUserCredential(
   if (previousSecretId && previousSecretId !== nextSecretId) {
     await deleteVaultSecret(service, previousSecretId);
   }
+}
+
+export async function handleDeleteCredential(
+  service: ServiceClient,
+  {
+    credential,
+  }: {
+    credential: UserAiCredentialRow | null;
+  },
+) {
+  if (credential?.secret_id) {
+    await deleteVaultSecret(service, credential.secret_id);
+  }
+
+  if (credential?.id) {
+    const { error } = await service
+      .from("user_ai_credentials")
+      .delete()
+      .eq("id", credential.id);
+
+    if (error) {
+      throw new HttpError(500, "BYOK_DELETE_FAILED", error.message);
+    }
+  }
+
+  return jsonResponse({
+    status: mapFlashCardGeneratorStatus(null),
+  });
 }
 
 export async function handleSaveCredential(
@@ -1170,23 +1199,8 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
     }
 
     if (payload.action === "delete-credential") {
-      if (credential?.secret_id) {
-        await deleteVaultSecret(service, credential.secret_id);
-      }
-
-      if (credential?.id) {
-        const { error } = await service
-          .from("user_ai_credentials")
-          .delete()
-          .eq("id", credential.id);
-
-        if (error) {
-          throw new HttpError(500, "BYOK_DELETE_FAILED", error.message);
-        }
-      }
-
-      return jsonResponse({
-        status: mapFlashCardGeneratorStatus(null),
+      return await handleDeleteCredential(service, {
+        credential,
       });
     }
 

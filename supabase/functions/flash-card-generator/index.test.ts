@@ -19,7 +19,9 @@ if (typeof (globalThis as any).Deno === "undefined") {
 
 import {
   handleSaveCredential,
+  handleDeleteCredential,
   handleTestCredential,
+  mapFlashCardGeneratorStatus,
   processMaterialGeneration,
 } from "./index.ts";
 import {
@@ -1644,6 +1646,12 @@ describe("BYOK credential save and test handling (Domain 2)", () => {
                 return Promise.resolve({ data: credentialRow, error: null });
               },
             }),
+            delete: () => ({
+              eq: () => {
+                credentialRow = null;
+                return Promise.resolve({ data: null, error: null });
+              },
+            }),
           };
         }
         return {} as any;
@@ -1916,5 +1924,51 @@ describe("BYOK credential save and test handling (Domain 2)", () => {
     const cleaned = sanitizeCredentialErrorMessage(dirtyMsg, "short-custom-key");
     expect(cleaned).not.toContain("short-custom-key");
     expect(cleaned).not.toContain("my-bearer-secret");
+  });
+  test("mapFlashCardGeneratorStatus safely handles null and defaults to gemini-3.8-flash without throwing ReferenceError", () => {
+    const status = mapFlashCardGeneratorStatus(null);
+    expect(status).toEqual({
+      hasCredential: false,
+      model: "gemini-3.8-flash",
+      lastValidatedAt: null,
+      lastError: null,
+    });
+  });
+
+  test("handleDeleteCredential removes vault secret and DB row, returning status with DEFAULT_AI_MODEL", async () => {
+    const mockService = createMockCredentialService({
+      id: "cred-to-delete",
+      model: "gemini-3.8-flash",
+      secret_id: "sec-to-delete",
+      last_validated_at: "2026-10-20T00:00:00.000Z",
+      last_error: null,
+    });
+
+    const response = await handleDeleteCredential(mockService, {
+      credential: mockService.getCredentialRow(),
+    });
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.status).toEqual({
+      hasCredential: false,
+      model: "gemini-3.8-flash",
+      lastValidatedAt: null,
+      lastError: null,
+    });
+    expect(mockService.getDeletedSecretIds()).toEqual(["sec-to-delete"]);
+  });
+
+  test("handleDeleteCredential succeeds idempotently when credential is null", async () => {
+    const mockService = createMockCredentialService(null);
+
+    const response = await handleDeleteCredential(mockService, {
+      credential: null,
+    });
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.status.hasCredential).toBe(false);
+    expect(body.status.model).toBe("gemini-3.8-flash");
   });
 });

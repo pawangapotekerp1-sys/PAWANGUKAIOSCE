@@ -136,4 +136,28 @@ describe("AiConfigPage", () => {
 
     expect(await screen.findByText(/Koneksi Gemini Aktif/i)).toBeInTheDocument();
   });
+  test("deletes credential and shows success feedback", async () => {
+    mockGetGlobalAiCredentialStatus.mockResolvedValue({
+      hasCredential: true,
+      lastValidatedAt: "2026-10-20T00:00:00.000Z",
+      lastError: null,
+    });
+    mockDeleteGlobalAiCredential.mockResolvedValue({
+      hasCredential: false,
+      lastValidatedAt: null,
+      lastError: null,
+    });
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /hapus kredensial/i })).toBeEnabled();
+    });
+    fireEvent.click(screen.getByRole("button", { name: /hapus kredensial/i }));
+
+    await waitFor(() => {
+      expect(mockDeleteGlobalAiCredential).toHaveBeenCalled();
+    });
+    expect(await screen.findByText(/API key Gemini berhasil dihapus dari sistem/i)).toBeInTheDocument();
+  });
 });

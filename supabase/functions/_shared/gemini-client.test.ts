@@ -985,4 +985,49 @@ describe("gemini-client", () => {
     expect(result.ok).toBe(true);
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
+
+  test("defaults generationConfig.temperature to 1.0 as recommended for Gemini 3 models", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        candidates: [{ content: { parts: [{ text: "OK" }] } }],
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { generateGeminiText } = await import("./gemini-client.ts");
+    await generateGeminiText({
+      apiKey: "api-key",
+      model: "gemini-3.8-flash",
+      prompt: "Hello",
+    });
+
+    const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(String(requestInit.body));
+    expect(body.generationConfig.temperature).toBe(1);
+  });
+
+  test("still honors an explicit temperature override", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        candidates: [{ content: { parts: [{ text: "OK" }] } }],
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { generateGeminiText } = await import("./gemini-client.ts");
+    await generateGeminiText({
+      apiKey: "api-key",
+      model: "gemini-3.8-flash",
+      prompt: "Hello",
+      temperature: 0.5,
+    });
+
+    const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(String(requestInit.body));
+    expect(body.generationConfig.temperature).toBe(0.5);
+  });
 });

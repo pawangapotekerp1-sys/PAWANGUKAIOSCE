@@ -64,18 +64,21 @@ export function formatLiveClassSchedule(startTime: string, endTime: string): str
     day: "numeric",
     month: "short",
     year: "numeric",
+    timeZone: "Asia/Jakarta",
   }).format(startDate);
 
   const startTimeStr = new Intl.DateTimeFormat("id-ID", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+    timeZone: "Asia/Jakarta",
   }).format(startDate);
 
   const endTimeStr = new Intl.DateTimeFormat("id-ID", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+    timeZone: "Asia/Jakarta",
   }).format(endDate);
 
   return `${dateStr} • ${startTimeStr} - ${endTimeStr} WIB`;

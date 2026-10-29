@@ -27,8 +27,9 @@ describe("live-class-api helpers", () => {
 
   it("formats schedule into readable Indonesian string", () => {
     const formatted = formatLiveClassSchedule("2026-10-30T10:00:00Z", "2026-10-30T12:00:00Z");
-    expect(formatted).toBeTruthy();
-    expect(typeof formatted).toBe("string");
+    expect(formatted).toContain("WIB");
+    expect(formatted).toMatch(/17[.:]00 - 19[.:]00 WIB/);
+    expect(formatted).toContain("30 Okt 2026");
   });
 });
 

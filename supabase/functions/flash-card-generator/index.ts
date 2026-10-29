@@ -133,7 +133,7 @@ function encodeBase64(bytes: Uint8Array): string {
 function mapFlashCardGeneratorStatus(credential: UserAiCredentialRow | null) {
   return {
     hasCredential: Boolean(credential?.secret_id),
-    model: credential?.model ?? "gemini-3.7-flash",
+    model: credential?.model ?? DEFAULT_AI_MODEL,
     lastValidatedAt: credential?.last_validated_at ?? null,
     lastError: credential?.last_error ?? null,
   };
@@ -372,12 +372,15 @@ export async function handleTestCredential(
       throw new HttpError(400, "BYOK_INVALID", message);
     }
 
-    if (error instanceof Error) {
-      error.message = message;
-      throw error;
-    }
-
-    throw new Error(message);
+    // Return structured test failure on transient errors (503, 504 timeout, 429) rather than crashing 500
+    return jsonResponse({
+      status: mapFlashCardGeneratorStatus(await readUserCredential(service, userId)),
+      testResult: {
+        ok: false,
+        message,
+        latencyMs: null,
+      },
+    });
   }
 }
 

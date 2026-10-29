@@ -52,7 +52,7 @@ describe("gemini-client", () => {
     expect((requestInit.headers as Record<string, string>)["x-goog-api-key"]).toBe("api-key");
 
     expect(body.generationConfig.thinkingConfig).toEqual({
-      thinkingBudget: 0,
+      thinkingLevel: "low",
     });
   });
 

@@ -54,6 +54,7 @@ export default function AiConfigPage() {
       setCredentialFeedback(testResult.message);
     },
     onError: (error) => {
+      queryClient.invalidateQueries({ queryKey: ["global-ai-credential-status"] });
       setCredentialFeedback(error instanceof Error ? error.message : "Koneksi Gemini belum berhasil dicek.");
     },
   });
@@ -71,6 +72,10 @@ export default function AiConfigPage() {
   });
 
   const hasCredential = statusQuery.data?.hasCredential ?? false;
+  const lastValidatedAt = statusQuery.data?.lastValidatedAt ?? null;
+  const lastError = statusQuery.data?.lastError ?? null;
+  const isHealthy = hasCredential && Boolean(lastValidatedAt) && !lastError;
+  const isDegraded = hasCredential && Boolean(lastError || !lastValidatedAt);
   const credentialMutationPending = saveCredentialMutation.isPending
     || testCredentialMutation.isPending
     || deleteCredentialMutation.isPending;
@@ -98,17 +103,29 @@ export default function AiConfigPage() {
               <Badge variant="secondary" className="px-3.5 py-1.5 text-xs font-semibold">
                 Memeriksa koneksi...
               </Badge>
-            ) : (
+            ) : isHealthy ? (
               <Badge 
-                variant={statusQuery.data?.hasCredential ? "outline" : "secondary"}
-                className={`px-3.5 py-1.5 text-xs font-bold ${
-                  statusQuery.data?.hasCredential 
-                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30" 
-                    : "bg-muted text-muted-foreground"
-                }`}
+                variant="outline"
+                className="px-3.5 py-1.5 text-xs font-bold bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
               >
                 <CheckCircle2 className="h-3.5 w-3.5 mr-1.5 inline-block" />
-                {statusQuery.data?.hasCredential ? "Koneksi Gemini Aktif" : "Koneksi Gemini Belum Aktif"}
+                Koneksi Gemini Aktif
+              </Badge>
+            ) : isDegraded ? (
+              <Badge 
+                variant="outline"
+                className="px-3.5 py-1.5 text-xs font-bold bg-amber-500/10 text-amber-600 border-amber-500/30"
+              >
+                <AlertCircle className="h-3.5 w-3.5 mr-1.5 inline-block" />
+                Koneksi Mengalami Gangguan Sementara
+              </Badge>
+            ) : (
+              <Badge 
+                variant="secondary"
+                className="px-3.5 py-1.5 text-xs font-bold bg-muted text-muted-foreground"
+              >
+                <AlertCircle className="h-3.5 w-3.5 mr-1.5 inline-block" />
+                Koneksi Gemini Belum Aktif
               </Badge>
             )}
           </div>

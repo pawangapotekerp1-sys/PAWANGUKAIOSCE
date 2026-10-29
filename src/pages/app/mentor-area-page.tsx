@@ -121,7 +121,7 @@ export default function MentorAreaPage() {
                 title={item.title}
                 description={item.description}
                 icon={item.icon}
-                href={isLocked ? "/app/ai-config" : item.href}
+                href={isLocked ? "/app/settings/ai-config" : item.href}
                 actionLabel={isLocked ? "Atur API Key" : item.buttonText}
                 colorPreset={preset}
                 isLocked={isLocked}

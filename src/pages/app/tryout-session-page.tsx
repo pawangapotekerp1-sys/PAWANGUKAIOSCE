@@ -37,7 +37,6 @@ function TryoutSessionPage() {
   const queryClient = useQueryClient();
   const { user } = useSession();
   const studentShell = useStudentShell("/app/tryout");
-  const isMentor = studentShell.role === "mentor";
   const [searchParams] = useSearchParams();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isQuestionNavHidden, setIsQuestionNavHidden] = useState(false);
@@ -230,9 +229,9 @@ function TryoutSessionPage() {
   const isLastQuestion = currentIndex === questions.length - 1;
   const isAttemptRunning = sessionAttempt?.status === "in_progress";
   const isAttemptInteractionDisabled =
-    !isAttemptRunning || resumeMutation.isPending || pauseMutation.isPending || submitMutation.isPending || isMentor;
+    !isAttemptRunning || resumeMutation.isPending || pauseMutation.isPending || submitMutation.isPending;
   const isQuestionMutationPending = answerMutation.isPending;
-  const isQuestionNavigationDisabled = isMentor ? false : (isAttemptInteractionDisabled || isQuestionMutationPending);
+  const isQuestionNavigationDisabled = isAttemptInteractionDisabled || isQuestionMutationPending;
 
   currentQuestionRef.current = currentQuestion;
 
@@ -338,7 +337,7 @@ function TryoutSessionPage() {
   }, [sessionAttempt?.id, sessionAttempt?.status]);
 
   useEffect(() => {
-    if (sessionAttempt?.status !== "paused" || !attemptId || isMentor) {
+    if (sessionAttempt?.status !== "paused" || !attemptId) {
       return;
     }
 
@@ -348,10 +347,10 @@ function TryoutSessionPage() {
 
     resumeRequestedAttemptIdRef.current = attemptId;
     resumeMutation.mutate();
-  }, [attemptId, isMentor, resumeMutation, sessionAttempt?.status]);
+  }, [attemptId, resumeMutation, sessionAttempt?.status]);
 
   useEffect(() => {
-    if (sessionAttempt?.status !== "in_progress" || isMentor) {
+    if (sessionAttempt?.status !== "in_progress") {
       return;
     }
 
@@ -373,10 +372,10 @@ function TryoutSessionPage() {
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [isMentor, sessionAttempt?.id, sessionAttempt?.status, sessionAttempt?.timeRemainingSeconds]);
+  }, [sessionAttempt?.id, sessionAttempt?.status, sessionAttempt?.timeRemainingSeconds]);
 
   useEffect(() => {
-    if (sessionAttempt?.status !== "in_progress" || isMentor) {
+    if (sessionAttempt?.status !== "in_progress") {
       return;
     }
 
@@ -390,10 +389,10 @@ function TryoutSessionPage() {
 
     hasTriggeredAutoSubmit.current = true;
     void triggerSubmit();
-  }, [isMentor, sessionAttempt?.status, submitMutation, timeRemainingSeconds]);
+  }, [sessionAttempt?.status, submitMutation, timeRemainingSeconds]);
 
   useEffect(() => {
-    if (sessionAttempt?.status !== "in_progress" || !attemptId || isMentor) {
+    if (sessionAttempt?.status !== "in_progress" || !attemptId) {
       return;
     }
 
@@ -438,14 +437,11 @@ function TryoutSessionPage() {
     };
   }, [attemptId, pauseMutation, sessionAttempt?.status, submitMutation.isPending]);
 
-  const isMentorRef = useRef(isMentor);
-  isMentorRef.current = isMentor;
-
   // Separate effect specifically for pausing on actual component unmount (e.g. client-side routing)
   // This avoids accidental pausing when the main useEffect re-runs due to dependency changes.
   useEffect(() => {
     return () => {
-      if (!isMentorRef.current && requestPauseRef.current && !hasStartedSubmit.current && hasTriggeredAutoSubmit.current === false) {
+      if (requestPauseRef.current && !hasStartedSubmit.current && hasTriggeredAutoSubmit.current === false) {
         void requestPauseRef.current();
       }
     };
@@ -481,7 +477,7 @@ function TryoutSessionPage() {
       return;
     }
 
-    if (isAttemptRunning && !isMentor) {
+    if (isAttemptRunning) {
       void flushCurrentQuestionProgress();
     }
 
@@ -504,7 +500,7 @@ function TryoutSessionPage() {
   }
 
   function selectAnswer(optionKey: string) {
-    if (!isAttemptRunning || isMentor) {
+    if (!isAttemptRunning) {
       return;
     }
 
@@ -512,7 +508,7 @@ function TryoutSessionPage() {
   }
 
   function toggleDoubtful() {
-    if (!isAttemptRunning || !currentQuestion?.selectedOptionKey || isMentor) {
+    if (!isAttemptRunning || !currentQuestion?.selectedOptionKey) {
       return;
     }
 
@@ -546,11 +542,6 @@ function TryoutSessionPage() {
             <Timer className="w-5 h-5" />
             {timerLabel}
             </Badge>
-            {isMentor && (
-              <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 font-semibold py-1.5 px-3 text-xs">
-                Mode Mentor (Read-Only)
-              </Badge>
-            )}
           </div>
           <Button
             aria-pressed={isQuestionNavHidden}
@@ -756,14 +747,6 @@ function TryoutSessionPage() {
                 </Button>
 
                 {isLastQuestion ? (
-                  isMentor ? (
-                    <Link
-                      {...getButtonStyleProps({ variant: "outline" })}
-                      to="/app/tryout"
-                    >
-                      Selesai Pratinjau
-                    </Link>
-                  ) : (
                   <Button
                     disabled={isAttemptInteractionDisabled || isQuestionMutationPending}
                     loading={submitMutation.isPending}
@@ -774,7 +757,7 @@ function TryoutSessionPage() {
                     Kirim hasil
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
-                )) : (
+                ) : (
                   <Button
                     disabled={isQuestionNavigationDisabled}
                     onClick={() => goToQuestion(Math.min(questions.length - 1, currentIndex + 1))}

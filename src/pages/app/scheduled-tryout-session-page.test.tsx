@@ -528,27 +528,39 @@ describe("Scheduled tryout session page", () => {
     });
   });
 
-  test("renders in read-only mode for mentor role without saving answers on question navigation", async () => {
+  test("allows mentor role to answer questions and submit scheduled tryout normally", async () => {
     mockUseStudentShell.mockReturnValue({
       navItems: [],
-      tierLabel: "PRO MENTOR",
+      tierLabel: "Mentor",
       role: "mentor",
     });
 
     renderScheduledSession();
 
-    await screen.findByText(/Mode Mentor \(Read-Only\)/i);
+    await screen.findByText(/timer 00:40:00/i);
+    expect(screen.queryByText(/Mode Mentor \(Read-Only\)/i)).not.toBeInTheDocument();
+
+    const optionA = screen.getByRole("button", { name: /A Pilihan A/i });
+    expect(optionA).not.toBeDisabled();
+
+    fireEvent.click(optionA);
+
+    await waitFor(() => {
+      expect(mockSaveScheduledTryoutAnswer).toHaveBeenCalledWith({
+        attemptId: "scheduled-attempt-1",
+        attemptItemId: "scheduled-item-1",
+        selectedOptionKey: "A",
+        isDoubtful: false,
+      });
+    });
 
     const nextButton = await screen.findByRole("button", { name: /selanjutnya/i });
     fireEvent.click(nextButton);
 
-    expect(mockSaveScheduledTryoutAnswer).not.toHaveBeenCalled();
-
-    const optionA = screen.getByRole("button", { name: /Pilihan A/i });
-    expect(optionA).toBeDisabled();
-
-    fireEvent.click(optionA);
-    expect(mockSaveScheduledTryoutAnswer).not.toHaveBeenCalled();
+    expect(screen.queryByRole("link", { name: /selesai pratinjau/i })).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /kirim hasil/i })).not.toBeDisabled();
+    });
   });
   test("renders mobile question nav drawer trigger and verifies responsive layout classes", async () => {
     renderScheduledSession();

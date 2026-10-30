@@ -113,3 +113,14 @@ describe("student-ai-insight log payload builder", () => {
     expect(source).toContain("model: modelToUse");
   });
 });
+
+describe("student-ai-insight credential error isolation", () => {
+  test("source code guards user_ai_credentials.last_error updates with isGeminiCredentialError", () => {
+    const source = readFileSync(resolve(import.meta.dirname, "./index.ts"), "utf8");
+    // Verify that updates to user_ai_credentials inside catch blocks are protected by isGeminiCredentialError
+    const catchGenerateRegex = /catch\s*\(error\)\s*\{[\s\S]*?if\s*\(isGeminiCredentialError\(error\)\)\s*\{[\s\S]*?\.from\("user_ai_credentials"\)/;
+    const catchNarrationRegex = /catch\s*\(geminiError\)\s*\{[\s\S]*?if\s*\(isGeminiCredentialError\(geminiError\)\)\s*\{[\s\S]*?\.from\("user_ai_credentials"\)/;
+    expect(catchGenerateRegex.test(source)).toBe(true);
+    expect(catchNarrationRegex.test(source)).toBe(true);
+  });
+});

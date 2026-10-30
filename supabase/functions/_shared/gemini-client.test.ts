@@ -113,6 +113,44 @@ describe("gemini-client", () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
+  test("connection test succeeds via global models probe if specific model returns 503 high demand but key is valid", async () => {
+    const fetchMock = vi.fn().mockImplementation(async (url) => {
+      if (String(url).includes("/models/gemini-3.8-flash")) {
+        return {
+          ok: false,
+          status: 503,
+          headers: new Headers(),
+          json: async () => ({
+            error: {
+              code: 503,
+              status: "UNAVAILABLE",
+              message: "This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.",
+            },
+          }),
+        };
+      }
+      if (String(url).includes("/models?pageSize=1")) {
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers(),
+          json: async () => ({
+            models: [{ name: "models/gemini-3.8-flash" }],
+          }),
+        };
+      }
+      return { ok: false, status: 404, json: async () => ({}) };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { testGeminiConnection } = await import("./gemini-client.ts");
+    const result = await testGeminiConnection("valid-key", "gemini-3.8-flash");
+
+    expect(result.ok).toBe(true);
+    expect(result.message).toContain("Koneksi Gemini berhasil");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   test("uses official REST response_mime_type and response_schema fields for structured output requests", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,

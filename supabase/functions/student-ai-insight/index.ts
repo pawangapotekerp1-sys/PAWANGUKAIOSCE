@@ -433,12 +433,14 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : "Student AI insight failed.";
-        await service
-          .from("user_ai_credentials")
-          .update({
-            last_error: message,
-          })
-          .eq("id", credential.id);
+        if (isGeminiCredentialError(error)) {
+          await service
+            .from("user_ai_credentials")
+            .update({
+              last_error: message,
+            })
+            .eq("id", credential.id);
+        }
         await writeUsageLog(service, {
           userId: user.id,
           credentialId: credential.id,
@@ -763,12 +765,14 @@ if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
         console.error("Gemini call failed during diagnosis narration:", geminiError);
         const message = geminiError instanceof Error ? geminiError.message : "Diagnosis Gemini narration failed.";
 
-        await service
-          .from("user_ai_credentials")
-          .update({
-            last_error: message,
-          })
-          .eq("id", credential.id);
+        if (isGeminiCredentialError(geminiError)) {
+          await service
+            .from("user_ai_credentials")
+            .update({
+              last_error: message,
+            })
+            .eq("id", credential.id);
+        }
 
         await writeUsageLog(service, {
           userId: user.id,

@@ -963,6 +963,30 @@ async function fetchGeminiModelMetadataOnce(apiKey: string, model: string): Prom
     return;
   }
 
+  // Fallback: If the specific model endpoint is experiencing temporary server overload/503/502/504,
+  // probe GET /models?pageSize=1 with the same API key. If the probe succeeds with 200 OK, the API key
+  // is verified valid and authorized, decoupled from transient model serving spikes on Google's backend.
+  if (response.status === 503 || response.status === 502 || response.status === 504) {
+    try {
+      const probeResponse = await fetch(`${env.geminiBaseUrl}/models?pageSize=1`, {
+        method: "GET",
+        headers: {
+          "x-goog-api-key": apiKey,
+        },
+        signal:
+          typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function"
+            ? AbortSignal.timeout(GEMINI_CONNECTION_TEST_TIMEOUT_MS)
+            : undefined,
+      });
+
+      if (probeResponse.ok) {
+        return;
+      }
+    } catch {
+      // Continue to normal error classification below if probe also fails
+    }
+  }
+
   const payload = await response.json().catch(() => ({}));
   const classification = classifyGeminiErrorResponse({
     status: response.status,

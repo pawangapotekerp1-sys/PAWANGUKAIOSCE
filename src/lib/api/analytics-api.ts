@@ -186,18 +186,25 @@ export async function getPersonalWeaknessDiagnosis(
     dateFrom,
     dateTo,
     timezone,
+    limitAttempts,
   }: {
     client?: AnalyticsClient;
-    dateFrom: string;
-    dateTo: string;
+    dateFrom?: string;
+    dateTo?: string;
     timezone: string;
+    limitAttempts?: number;
   },
 ): Promise<PersonalWeaknessDiagnosisViewModel> {
-  const { data, error } = await client.rpc("get_personal_weakness_diagnosis", {
-    date_from: dateFrom,
-    date_to: dateTo,
+  const rpcParams: Record<string, unknown> = {
+    date_from: dateFrom ?? null,
+    date_to: dateTo ?? null,
     user_timezone: timezone,
-  });
+  };
+  if (typeof limitAttempts === "number" && limitAttempts > 0) {
+    rpcParams.limit_attempts = limitAttempts;
+  }
+
+  const { data, error } = await client.rpc("get_personal_weakness_diagnosis", rpcParams);
 
   if (error) {
     throw new Error(error.message);
@@ -206,10 +213,17 @@ export async function getPersonalWeaknessDiagnosis(
   return mapPersonalWeaknessDiagnosisViewModel((data ?? {}) as PersonalWeaknessDiagnosisRow);
 }
 
+import type { DiagnosisReport } from "../schemas/personal-weakness-diagnosis";
+
 export type StudentAiRangeInsight = {
-  source: "ai";
+  source: "ai" | "rules" | "gemini" | "fallback";
   generatedAt: string;
   summary: string;
+  narrative?: string;
+  report?: DiagnosisReport;
+  model?: string;
+  engineVersion?: string;
+  fallbackReason?: "no_key" | "validation_failed" | "gemini_error" | null;
 };
 
 export async function generateStudentAiRangeInsight(
@@ -218,11 +232,13 @@ export async function generateStudentAiRangeInsight(
     dateFrom,
     dateTo,
     timezone,
+    limitAttempts,
   }: {
     client?: AnalyticsClient;
-    dateFrom: string;
-    dateTo: string;
+    dateFrom?: string;
+    dateTo?: string;
     timezone: string;
+    limitAttempts?: number;
   }
 ): Promise<StudentAiRangeInsight> {
   const { data, error } = await client.functions.invoke("student-ai-insight", {
@@ -231,6 +247,7 @@ export async function generateStudentAiRangeInsight(
       dateFrom,
       dateTo,
       timezone,
+      limitAttempts,
     },
   });
 

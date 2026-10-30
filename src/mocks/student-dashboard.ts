@@ -144,7 +144,7 @@ export function createProductNavItems(
     if (item.href === "/app/tryout-selection" && (activeHref.startsWith("/app/tryout") || activeHref.startsWith("/app/scheduled-tryout"))) {
       isActive = true;
     }
-    if (item.href === "/app/area-belajar" && (activeHref.startsWith("/app/area-belajar") || activeHref === "/app/rekaman-kelas" || activeHref === "/app/materi-ppt" || activeHref.startsWith("/app/flash-cards") || activeHref.startsWith("/app/osce-demo"))) {
+    if (item.href === "/app/area-belajar" && (activeHref.startsWith("/app/area-belajar") || activeHref.startsWith("/app/live-class") || activeHref === "/app/rekaman-kelas" || activeHref === "/app/materi-ppt" || activeHref.startsWith("/app/flash-cards") || activeHref.startsWith("/app/osce-demo"))) {
       isActive = true;
     }
     return { ...item, active: isActive };

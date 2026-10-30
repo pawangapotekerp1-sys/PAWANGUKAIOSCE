@@ -96,6 +96,8 @@ export type PersistedDiagnosisSubtopicRanking = {
   questionCount: number;
   attemptCoverageCount: number;
   accuracy: number;
+  smoothedAccuracy?: number;
+  isIndicative?: boolean;
   averageTimePerQuestion: number;
   behaviorFlags: DiagnosisBehaviorCode[];
   summary: string;
@@ -212,6 +214,8 @@ export function mapPersonalWeaknessDiagnosisViewModel(
       questionCount: coerceNumber(item?.questionCount, 0),
       attemptCoverageCount: coerceNumber(item?.attemptCoverageCount, 0),
       accuracy: coerceNumber(item?.accuracy, 0),
+      smoothedAccuracy: typeof item?.smoothedAccuracy === "number" ? item.smoothedAccuracy : undefined,
+      isIndicative: Boolean(item?.isIndicative),
       averageTimePerQuestion: coerceNumber(item?.averageTimePerQuestion, 0),
       behaviorFlags: mapDiagnosisBehaviorFlags(item?.behaviorFlags),
       summary: coerceString(item?.summary),

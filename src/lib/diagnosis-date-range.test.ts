@@ -35,6 +35,31 @@ describe("diagnosis date range helpers", () => {
     });
   });
 
+  test("creates last-3 and last-5 tryout preset ranges", () => {
+    const now = new Date("2026-05-09T10:00:00+07:00");
+
+    expect(createPresetDiagnosisRange("last3", now)).toMatchObject({
+      preset: "last3",
+      limitAttempts: 3,
+      dateTo: "2026-05-09",
+    });
+
+    expect(createPresetDiagnosisRange("last5", now)).toMatchObject({
+      preset: "last5",
+      limitAttempts: 5,
+      dateTo: "2026-05-09",
+    });
+
+    expect(
+      toAppliedDiagnosisRange({
+        preset: "last3",
+        dateFrom: "",
+        dateTo: "2026-05-09",
+        limitAttempts: 3,
+      })
+    ).not.toBeNull();
+  });
+
   test("returns null for an invalid custom range", () => {
     expect(
       toAppliedDiagnosisRange({

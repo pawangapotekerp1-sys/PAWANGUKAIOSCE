@@ -33,6 +33,7 @@ const FlashCardDeckPage = lazy(() => import("../pages/app/flash-card-deck-page")
 const FlashCardGeneratorPage = lazy(() => import("../pages/app/flash-card-generator-page"));
 const FlashCardGeneratorCreatePage = lazy(() => import("../pages/app/flash-card-generator-create-page"));
 const FlashCardGeneratorReviewPage = lazy(() => import("../pages/app/flash-card-generator-review-page"));
+const LiveClassPage = lazy(() => import("../pages/app/live-class-page"));
 const MaterialDrivePage = lazy(() => import("../pages/app/material-drive-page"));
 const AdminDashboardPage = lazy(() => import("../pages/admin/admin-dashboard-page"));
 const PaymentsPage = lazy(() => import("../pages/admin/payments-page"));
@@ -82,6 +83,7 @@ function AppRouter() {
             <Route path="leaderboard" element={<LeaderboardPage />} />
             <Route path="review" element={<ReviewPage />} />
             <Route path="review/:attemptId" element={<ReviewPage />} />
+            <Route path="live-class" element={<LiveClassPage />} />
             <Route path="rekaman-kelas" element={<MaterialDrivePage driveType="rekaman" />} />
             <Route path="materi-ppt" element={<MaterialDrivePage driveType="ppt" />} />
             <Route path="tryout-selection" element={<TryoutSelectionPage />} />

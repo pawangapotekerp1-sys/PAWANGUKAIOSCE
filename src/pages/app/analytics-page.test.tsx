@@ -7,6 +7,12 @@ import AnalyticsPage from "./analytics-page";
 
 const mockUseSession = vi.fn();
 const mockGetPersonalWeaknessDiagnosis = vi.fn();
+const mockGenerateStudentAiRangeInsight = vi.fn();
+const mockGetGlobalAiCredentialStatus = vi.fn();
+
+vi.mock("react-markdown", () => ({
+  default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
 
 vi.mock("../../lib/auth/use-session", () => ({
   useSession: () => mockUseSession(),
@@ -15,18 +21,11 @@ vi.mock("../../lib/auth/use-session", () => ({
 vi.mock("../../lib/api/analytics-api", () => ({
   getPersonalWeaknessDiagnosis: (...args: unknown[]) => mockGetPersonalWeaknessDiagnosis(...args),
   getStudentAnalytics: vi.fn(),
-  generateStudentAiRangeInsight: vi.fn().mockResolvedValue({
-    source: "ai",
-    generatedAt: "2026-08-14T00:00:00.000Z",
-    summary: "Mock AI insight",
-  }),
+  generateStudentAiRangeInsight: (...args: unknown[]) => mockGenerateStudentAiRangeInsight(...args),
 }));
 
 vi.mock("../../lib/api/global-ai-credential-api", () => ({
-  getGlobalAiCredentialStatus: vi.fn().mockResolvedValue({
-    hasCredential: true,
-    model: "gemini-3.7-flash",
-  }),
+  getGlobalAiCredentialStatus: (...args: unknown[]) => mockGetGlobalAiCredentialStatus(...args),
 }));
 
 vi.mock("../../lib/diagnosis-date-range", () => ({
@@ -35,7 +34,25 @@ vi.mock("../../lib/diagnosis-date-range", () => ({
     dateFrom: "2026-05-03",
     dateTo: "2026-05-09",
   }),
-  createPresetDiagnosisRange: (preset: "7d" | "14d" | "30d") => {
+  createPresetDiagnosisRange: (preset: "7d" | "14d" | "30d" | "last3" | "last5") => {
+    if (preset === "last3") {
+      return {
+        preset,
+        dateFrom: "2026-02-09",
+        dateTo: "2026-05-09",
+        limitAttempts: 3,
+      };
+    }
+
+    if (preset === "last5") {
+      return {
+        preset,
+        dateFrom: "2026-02-09",
+        dateTo: "2026-05-09",
+        limitAttempts: 5,
+      };
+    }
+
     if (preset === "14d") {
       return {
         preset,
@@ -226,6 +243,17 @@ describe("Analytics page", () => {
       },
     });
     mockGetPersonalWeaknessDiagnosis.mockResolvedValue(createDiagnosisFixture());
+    mockGetGlobalAiCredentialStatus.mockResolvedValue({
+      hasCredential: true,
+      model: "gemini-3.7-flash",
+    });
+    mockGenerateStudentAiRangeInsight.mockResolvedValue({
+      source: "fallback",
+      generatedAt: "2026-08-14T00:00:00.000Z",
+      summary: "Mock AI insight",
+      narrative: "Mock AI insight",
+      fallbackReason: "no_key",
+    });
   });
 
   afterEach(() => {
@@ -245,9 +273,9 @@ describe("Analytics page", () => {
     );
 
     expect(
-      await screen.findByText(/area yang perlu diperbaiki/i),
+      await screen.findByText(/periode analisis/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/lihat topik dan materi yang paling sering menahan/i)).toBeInTheDocument();
+    expect(screen.getByText(/topik paling perlu perhatian/i)).toBeInTheDocument();
     expect(screen.queryByText(/analisis pola belajar/i)).not.toBeInTheDocument();
   });
 
@@ -257,6 +285,19 @@ describe("Analytics page", () => {
     expect(screen.getByRole("button", { name: /7 hari/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /14 hari/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /30 hari/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /3 to terakhir/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /5 to terakhir/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /3 to terakhir/i }));
+
+    await waitFor(() =>
+      expect(mockGetPersonalWeaknessDiagnosis).toHaveBeenLastCalledWith({
+        dateFrom: "2026-02-09",
+        dateTo: "2026-05-09",
+        timezone: "Asia/Jakarta",
+        limitAttempts: 3,
+      }),
+    );
 
     fireEvent.click(screen.getByRole("button", { name: /14 hari/i }));
 
@@ -374,7 +415,7 @@ describe("Analytics page", () => {
   test("does not render any legacy analytics sections", async () => {
     renderAnalytics();
 
-    await screen.findByText(/area yang perlu diperbaiki/i);
+    await screen.findByText(/periode analisis/i);
 
     expect(screen.queryByText(/analisis pola belajar/i)).not.toBeInTheDocument();
     expect(
@@ -386,5 +427,84 @@ describe("Analytics page", () => {
     expect(
       screen.queryByText(/cara pakai hasil ini/i),
     ).not.toBeInTheDocument();
+  });
+
+  test("student without API key can generate a rules-based report", async () => {
+    mockGetGlobalAiCredentialStatus.mockResolvedValueOnce({
+      hasCredential: false,
+      model: null,
+    });
+    mockGenerateStudentAiRangeInsight.mockResolvedValueOnce({
+      source: "fallback",
+      generatedAt: "2026-08-14T00:00:00.000Z",
+      summary: "Hasil analisis berbasis aturan untuk latihan mandiri.",
+      narrative: "Hasil analisis berbasis aturan untuk latihan mandiri.",
+      fallbackReason: "no_key",
+    });
+
+    renderAnalytics();
+
+    // Verify button text is "Buat Laporan Analisis" (student without key)
+    const button = await screen.findByRole("button", { name: /buat laporan analisis/i });
+    expect(button).toBeInTheDocument();
+
+    // Student clicks the button
+    fireEvent.click(button);
+
+    // Insight is loaded and displayed
+    expect(await screen.findByText(/hasil analisis berbasis aturan untuk latihan mandiri/i)).toBeInTheDocument();
+    expect(screen.getByText(/laporan berbasis aturan/i)).toBeInTheDocument();
+    expect(screen.getByText(/sambungkan api key gemini/i)).toBeInTheDocument();
+  });
+
+  test("source=fallback displays badge and hides model label", async () => {
+    mockGetGlobalAiCredentialStatus.mockResolvedValueOnce({
+      hasCredential: false,
+      model: null,
+    });
+    mockGenerateStudentAiRangeInsight.mockResolvedValueOnce({
+      source: "fallback",
+      generatedAt: "2026-08-14T00:00:00.000Z",
+      summary: "Laporan deterministik.",
+      narrative: "Laporan deterministik.",
+      fallbackReason: "no_key",
+    });
+
+    renderAnalytics();
+
+    const button = await screen.findByRole("button", { name: /buat laporan analisis/i });
+    fireEvent.click(button);
+
+    expect(await screen.findByText(/laporan deterministik/i)).toBeInTheDocument();
+    // Badge shows "Laporan berbasis aturan"
+    expect(screen.getByText(/laporan berbasis aturan/i)).toBeInTheDocument();
+    // Model label is HIDDEN
+    expect(screen.queryByText(/model:/i)).not.toBeInTheDocument();
+  });
+
+  test("source=gemini displays model label and AI badge", async () => {
+    mockGetGlobalAiCredentialStatus.mockResolvedValueOnce({
+      hasCredential: true,
+      model: "gemini-3.8-flash",
+    });
+    mockGenerateStudentAiRangeInsight.mockResolvedValueOnce({
+      source: "gemini",
+      model: "gemini-3.8-flash",
+      generatedAt: "2026-08-14T00:00:00.000Z",
+      summary: "Narasi cerdas Gemini.",
+      narrative: "Narasi cerdas Gemini.",
+      fallbackReason: null,
+    });
+
+    renderAnalytics();
+
+    const button = await screen.findByRole("button", { name: /buat analisis ai/i });
+    fireEvent.click(button);
+
+    expect(await screen.findByText(/narasi cerdas gemini/i)).toBeInTheDocument();
+    // Badge shows "Dianalisis dengan AI"
+    expect(screen.getByText(/dianalisis dengan ai/i)).toBeInTheDocument();
+    // Model label is SHOWN
+    expect(screen.getByText(/model: gemini-3.8-flash/i)).toBeInTheDocument();
   });
 });

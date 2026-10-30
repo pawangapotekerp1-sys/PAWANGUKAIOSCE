@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, test } from "vitest";
 
 if (typeof (globalThis as any).Deno === "undefined") {
@@ -8,6 +10,15 @@ if (typeof (globalThis as any).Deno === "undefined") {
 }
 
 const { buildInsightLogPayload, resolveModelToUse } = await import("./index.ts");
+
+describe("student-ai-insight vault access", () => {
+  test("uses public vault helper RPCs instead of unexposed vault schema queries", () => {
+    const indexSource = readFileSync(resolve(import.meta.dirname, "./index.ts"), "utf8");
+    expect(indexSource).toContain('.rpc("create_vault_secret"');
+    expect(indexSource).toContain('.rpc("read_vault_secret"');
+    expect(indexSource).not.toContain('.schema("vault")');
+  });
+});
 
 describe("student-ai-insight model resolution", () => {
   test("resolveModelToUse normalizes gemini-3.7-flash, undefined, null, empty string, and gemini-2.5-flash to gemini-3.8-flash", () => {
@@ -87,5 +98,18 @@ describe("student-ai-insight log payload builder", () => {
         latencyMs: 340,
       },
     });
+  });
+
+  test("validates RPC output with Zod schema and enforces sample gate & cooldown in source", () => {
+    const source = readFileSync(resolve(import.meta.dirname, "./index.ts"), "utf8");
+    expect(source).toContain("PersonalWeaknessDiagnosisDataSchema.safeParse");
+    expect(source).toContain("DIAGNOSIS_SCHEMA_MISMATCH");
+    expect(source).toContain("eligibleSubtopics.length === 0");
+    expect(source).toContain("INSUFFICIENT_DATA");
+    expect(source).toContain("item.topicName");
+    expect(source).toContain("COOLDOWN_ACTIVE");
+    expect(source).toContain("cooldownSeconds");
+    expect(source).toContain("engineVersion: ENGINE_VERSION");
+    expect(source).toContain("model: modelToUse");
   });
 });

@@ -1,12 +1,13 @@
-export type DiagnosisRangePreset = "7d" | "14d" | "30d" | "custom";
+export type DiagnosisRangePreset = "7d" | "14d" | "30d" | "last3" | "last5" | "custom";
 
 export type DiagnosisRangeDraft = {
   preset: DiagnosisRangePreset;
   dateFrom: string;
   dateTo: string;
+  limitAttempts?: number;
 };
 
-const DIAGNOSIS_PRESET_DAYS: Record<Exclude<DiagnosisRangePreset, "custom">, number> = {
+const DIAGNOSIS_PRESET_DAYS: Record<"7d" | "14d" | "30d", number> = {
   "7d": 7,
   "14d": 14,
   "30d": 30,
@@ -30,6 +31,19 @@ export function createPresetDiagnosisRange(
   preset: Exclude<DiagnosisRangePreset, "custom">,
   now = new Date(),
 ): DiagnosisRangeDraft {
+  if (preset === "last3" || preset === "last5") {
+    const limitAttempts = preset === "last3" ? 3 : 5;
+    const dateTo = formatLocalDate(now);
+    const dateFrom = formatLocalDate(subtractCalendarDays(now, 90));
+
+    return {
+      preset,
+      dateFrom,
+      dateTo,
+      limitAttempts,
+    };
+  }
+
   const spanDays = DIAGNOSIS_PRESET_DAYS[preset];
   const dateTo = formatLocalDate(now);
   const dateFrom = formatLocalDate(subtractCalendarDays(now, spanDays - 1));
@@ -46,6 +60,10 @@ export function createDefaultDiagnosisRange(now = new Date()): DiagnosisRangeDra
 }
 
 export function toAppliedDiagnosisRange(input: DiagnosisRangeDraft): DiagnosisRangeDraft | null {
+  if (input.preset === "last3" || input.preset === "last5") {
+    return input;
+  }
+
   if (!input.dateFrom || !input.dateTo || input.dateFrom > input.dateTo) {
     return null;
   }

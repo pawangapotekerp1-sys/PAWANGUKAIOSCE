@@ -8,6 +8,9 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "npm:zod@^4.4.1": "zod",
+      "npm:zod@4.4.1": "zod",
+      "npm:zod": "zod",
     },
   },
 });

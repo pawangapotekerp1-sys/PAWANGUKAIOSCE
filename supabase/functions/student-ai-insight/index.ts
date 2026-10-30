@@ -13,9 +13,48 @@ import {
   normalizeAiModel,
   testGeminiConnection,
 } from "../_shared/gemini-client.ts";
+import { DIAGNOSIS_CONFIG, ENGINE_VERSION } from "../_shared/diagnosis-engine/config.ts";
+import { RECOMMENDATION_TEMPLATES } from "../_shared/diagnosis-engine/recommend.ts";
+import { PersonalWeaknessDiagnosisDataSchema } from "../_shared/diagnosis-engine/schemas.ts";
+import { runDiagnosisEngine } from "../_shared/diagnosis-engine/engine.ts";
+import { EvidenceRowSchema } from "../_shared/diagnosis-engine/validate.ts";
+import {
+  buildDiagnosisNarrationPrompt,
+  decorateNarrativeWithDeterministicBadges,
+  validateNarrative,
+} from "../_shared/diagnosis-engine/narrative.ts";
 
 export function resolveModelToUse(model: string | null | undefined): string {
   return normalizeAiModel(model);
+}
+
+export async function computeDiagnosisInputHash(params: {
+  userId: string;
+  engineVersion: string;
+  unreleasedScheduledAttemptsCount: number;
+  attempts: Array<{ id: string; submittedAt: string }>;
+  config?: Record<string, unknown>;
+  templateStatuses?: Record<string, string>;
+}): Promise<string> {
+  const normalized = {
+    userId: params.userId,
+    engineVersion: params.engineVersion,
+    unreleasedScheduledAttemptsCount: params.unreleasedScheduledAttemptsCount,
+    attempts: [...params.attempts]
+      .map((a) => ({ id: a.id, submittedAt: a.submittedAt }))
+      .sort((a, b) => a.id.localeCompare(b.id)),
+    config: params.config ?? DIAGNOSIS_CONFIG,
+    templateStatuses:
+      params.templateStatuses ??
+      Object.fromEntries(
+        Object.entries(RECOMMENDATION_TEMPLATES).map(([k, v]) => [k, v.status]),
+      ),
+  };
+  const encoder = new TextEncoder();
+  const data = encoder.encode(JSON.stringify(normalized));
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 export function buildInsightLogPayload(params: {
@@ -117,13 +156,11 @@ async function createVaultSecret(
   name: string,
   description: string,
 ) {
-  const { data, error } = await service
-    .schema("vault")
-    .rpc("create_secret", {
-      secret: apiKey,
-      name,
-      description,
-    });
+  const { data, error } = await service.rpc("create_vault_secret", {
+    secret: apiKey,
+    name,
+    description,
+  });
 
   if (error) {
     throw new HttpError(500, "VAULT_WRITE_FAILED", error.message);
@@ -133,18 +170,15 @@ async function createVaultSecret(
 }
 
 async function readVaultSecret(service: ReturnType<typeof createServiceClient>, secretId: string) {
-  const { data, error } = await service
-    .schema("vault")
-    .from("decrypted_secrets")
-    .select("decrypted_secret")
-    .eq("id", secretId)
-    .maybeSingle();
+  const { data, error } = await service.rpc("read_vault_secret", {
+    target_secret_id: secretId,
+  });
 
-  if (error || !data?.decrypted_secret) {
+  if (error || typeof data !== "string" || data.length === 0) {
     throw new HttpError(500, "VAULT_READ_FAILED", error?.message ?? "Secret BYOK belum tersedia.");
   }
 
-  return data.decrypted_secret as string;
+  return data;
 }
 
 async function writeUsageLog(
@@ -208,7 +242,8 @@ function buildRulesFallback(
   };
 }
 
-Deno.serve(async (req) => {
+if (typeof Deno !== "undefined" && typeof Deno.serve === "function") {
+  Deno.serve(async (req) => {
   const corsResponse = handleCors(req);
 
   if (corsResponse) {
@@ -422,72 +457,247 @@ Deno.serve(async (req) => {
     }
 
     if (payload.action === "generate-range-insight") {
-      if (!credential?.secret_id) {
-        throw new HttpError(400, "BYOK_MISSING", "Belum ada BYOK tersimpan.");
-      }
-
       if (typeof payload.dateFrom !== "string" || typeof payload.dateTo !== "string") {
         throw new HttpError(400, "INVALID_DATE_RANGE", "Rentang tanggal tidak valid.");
       }
-      
-      const apiKey = await readVaultSecret(service, credential.secret_id);
+
+      const limitAttempts =
+        typeof payload.limitAttempts === "number" && payload.limitAttempts > 0
+          ? payload.limitAttempts
+          : null;
+
+      // 1. Fetch RPCs in parallel: get_personal_weakness_diagnosis and get_attempt_evidence
+      const [diagnosisRes, evidenceRes] = await Promise.all([
+        userClient.rpc("get_personal_weakness_diagnosis", {
+          date_from: payload.dateFrom,
+          date_to: payload.dateTo,
+          user_timezone: payload.timezone ?? "UTC",
+          limit_attempts: limitAttempts,
+        }),
+        userClient.rpc("get_attempt_evidence", {
+          date_from: payload.dateFrom,
+          date_to: payload.dateTo,
+          user_timezone: payload.timezone ?? "UTC",
+          limit_attempts: limitAttempts,
+        }),
+      ]);
+
+      if (diagnosisRes.error) {
+        throw new Error(diagnosisRes.error.message);
+      }
+
+      const parseResult = PersonalWeaknessDiagnosisDataSchema.safeParse(diagnosisRes.data);
+      if (!parseResult.success) {
+        console.error("Diagnosis RPC schema mismatch:", parseResult.error.format());
+        throw new HttpError(
+          500,
+          "DIAGNOSIS_SCHEMA_MISMATCH",
+          `Struktur data diagnosis tidak sesuai skema: ${parseResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ")}`,
+        );
+      }
+      const diagnosis = parseResult.data;
+
+      const eligibleSubtopics = diagnosis.subtopicRankings || [];
+      if (eligibleSubtopics.length === 0) {
+        throw new HttpError(
+          400,
+          "INSUFFICIENT_DATA",
+          "Dibutuhkan minimal 1 subtopik berstatus indikatif atau utama (minimal 10 soal terjawab) untuk analisis AI.",
+        );
+      }
+
+      if (evidenceRes.error) {
+        throw new Error(evidenceRes.error.message);
+      }
+
+      const evidenceParse = EvidenceRowSchema.array().safeParse(evidenceRes.data ?? []);
+      if (!evidenceParse.success) {
+        console.error("Evidence RPC schema mismatch:", evidenceParse.error.format());
+        throw new HttpError(
+          500,
+          "EVIDENCE_SCHEMA_MISMATCH",
+          `Struktur data evidence tidak sesuai skema: ${evidenceParse.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ")}`,
+        );
+      }
+      const evidenceRows = evidenceParse.data;
+
+      // Compute input hash based on eligible attempts and query parameters
+      const uniqueAttemptsMap = new Map<string, string>();
+      for (const row of evidenceRows) {
+        if (!uniqueAttemptsMap.has(row.attempt_id)) {
+          uniqueAttemptsMap.set(row.attempt_id, row.submitted_at);
+        }
+      }
+      const attemptItems = Array.from(uniqueAttemptsMap.entries()).map(([id, submittedAt]) => ({
+        id,
+        submittedAt,
+      }));
+
+      const unreleasedScheduledAttemptsCount = Math.max(
+        0,
+        ...evidenceRows.map((r) => r.unreleased_scheduled_attempts ?? 0),
+      );
+
+      const inputHash = await computeDiagnosisInputHash({
+        userId: user.id,
+        engineVersion: ENGINE_VERSION,
+        unreleasedScheduledAttemptsCount,
+        attempts: attemptItems,
+      });
+
+      // Resolve API key (BYOK)
+      let apiKey: string | null = null;
+      if (credential?.secret_id) {
+        try {
+          apiKey = await readVaultSecret(service, credential.secret_id);
+        } catch {
+          apiKey = null;
+        }
+      }
+
+      // Check cache in ai_insight_reports
+      const { data: cachedReport } = await service
+        .from("ai_insight_reports")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("input_hash", inputHash)
+        .eq("engine_version", ENGINE_VERSION)
+        .maybeSingle();
+
+      if (cachedReport) {
+        const canUpgradeToGemini =
+          cachedReport.source === "fallback" &&
+          cachedReport.fallback_reason === "no_key" &&
+          Boolean(apiKey);
+        if (!canUpgradeToGemini) {
+          return jsonResponse({
+            insight: {
+              summary: cachedReport.summary,
+              narrative: cachedReport.narrative,
+              report: cachedReport.report,
+              source: cachedReport.source,
+              model: cachedReport.model,
+              fallbackReason: cachedReport.fallback_reason ?? null,
+              engineVersion: cachedReport.engine_version,
+              generatedAt: cachedReport.created_at,
+            },
+          });
+        }
+      }
+
+      // 2. Run deterministic diagnosis engine
+      const report = runDiagnosisEngine(evidenceRows, DIAGNOSIS_CONFIG);
+
+      if (!apiKey) {
+        const fallbackNarrative = report.fallbackMarkdown;
+        await service
+          .from("ai_insight_reports")
+          .upsert(
+            {
+              user_id: user.id,
+              input_hash: inputHash,
+              engine_version: ENGINE_VERSION,
+              report,
+              narrative: fallbackNarrative,
+              summary: fallbackNarrative,
+              source: "fallback",
+              fallback_reason: "no_key",
+              model: "deterministic-engine",
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id,input_hash,engine_version" },
+          );
+
+        return jsonResponse({
+          insight: {
+            summary: fallbackNarrative,
+            narrative: fallbackNarrative,
+            report,
+            source: "fallback",
+            fallbackReason: "no_key",
+            model: "deterministic-engine",
+            engineVersion: ENGINE_VERSION,
+            generatedAt: new Date().toISOString(),
+          },
+        });
+      }
+
+      // 4. Rate limit check (cooldown 30s) when invoking Gemini AI
+      const { data: lastUsage } = await service
+        .from("ai_usage_logs")
+        .select("created_at")
+        .eq("user_id", user.id)
+        .eq("request_kind", "student_insight")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (lastUsage?.created_at) {
+        const elapsedSeconds = (Date.now() - new Date(lastUsage.created_at).getTime()) / 1000;
+        if (elapsedSeconds < DIAGNOSIS_CONFIG.rateLimits.cooldownSeconds) {
+          const waitSeconds = Math.ceil(DIAGNOSIS_CONFIG.rateLimits.cooldownSeconds - elapsedSeconds);
+          throw new HttpError(429, "COOLDOWN_ACTIVE", `Harap tunggu ${waitSeconds} detik sebelum membuat analisis AI baru.`);
+        }
+      }
+
       const modelToUse = resolveModelToUse(credential.model);
+      const prompt = buildDiagnosisNarrationPrompt(report);
+      let narrative = report.fallbackMarkdown;
+      let source: "gemini" | "fallback" = "fallback";
+      let usageResult = null;
+      let latencyMs = 0;
 
       try {
-        const { data: diagnosis, error: diagnosisError } = await userClient.rpc("get_personal_weakness_diagnosis", {
-          date_from: payload.dateFrom,
-          date_to: payload.dateTo,
-          user_timezone: payload.timezone ?? "UTC",
-        });
-
-        if (diagnosisError) {
-          throw new Error(diagnosisError.message);
-        }
-
-        const eligibleCount = diagnosis?.summary?.eligibleAttemptCount ?? 0;
-        if (eligibleCount < 3) {
-          throw new HttpError(400, "INSUFFICIENT_DATA", "Dibutuhkan minimal 3 try out besar untuk analisis AI.");
-        }
-
-        const { data: failedQuestions, error: failedQuestionsError } = await userClient.rpc("get_frequent_failed_questions", {
-          date_from: payload.dateFrom,
-          date_to: payload.dateTo,
-          user_timezone: payload.timezone ?? "UTC",
-        });
-
-        if (failedQuestionsError) {
-          throw new Error(failedQuestionsError.message);
-        }
-
-        const subtopics = (diagnosis?.subtopicRankings || []).slice(0, 3);
-        const subtopicText = subtopics.map((item: any) => `${item.subtopicName} (${Math.round(item.accuracy)}%)`).join(", ");
-        const patterns = (diagnosis?.globalBehaviorPatterns || []).slice(0, 2);
-        const patternText = patterns.map((p: any) => p.label).join(", ");
-        const failedQuestionsText = (failedQuestions || []).map((q: any) => `- [${q.topic_name}] ${q.question_stem}`).join("\n");
-        
-        const result = await generateGeminiTextWithUsage({
+        // Call 1
+        let geminiResult = await generateGeminiTextWithUsage({
           apiKey,
           model: modelToUse,
-          prompt: [
-            "Kamu adalah mentor ahli klinis untuk mahasiswa profesi apoteker.",
-            "Tuliskan laporan analisis mendalam mengenai evaluasi objektif kelemahan mereka.",
-            "PENTING: Gunakan teks-teks soal yang sering dijawab salah di bawah ini untuk mencari pola jebakan spesifik (contoh: tidak teliti pada parameter lab pasien ginjal, salah rumus dosis pediatri, bingung efek samping spesifik).",
-            "Format jawabanmu HARUS menggunakan struktur berikut (gunakan Markdown):",
-            "1. **Ringkasan Eksekutif**: 2-3 kalimat tajam tentang status performa mereka saat ini.",
-            "2. **Pola Kesalahan Utama**: Gunakan *bullet points* untuk membongkar 2-3 pola jebakan soal yang paling sering membuat mereka salah, berdasarkan data teks soal di bawah.",
-            "3. **Evaluasi Perilaku**: Jelaskan kaitan antara kelemahan topik dengan pola perilaku menjawab mereka.",
-            "4. **Rekomendasi Taktis Langkah-demi-Langkah**: Berikan 3 poin arahan studi yang sangat spesifik dan bisa langsung dipraktikkan minggu ini.",
-            `Total Try Out: ${eligibleCount}`,
-            `Akurasi Keseluruhan: ${diagnosis?.summary?.overallAccuracy ?? 0}%`,
-            `Kelemahan Topik Prioritas: ${subtopicText || "Belum ada data sub-topik terperinci"}`,
-            `Pola Perilaku Menjawab: ${patternText || "Tidak ada pola khusus"}`,
-            `Saran otomatis sistem: ${diagnosis?.narrative?.nextReadiness || "Tidak ada"}`,
-            "",
-            "15 SOAL YANG PALING SERING DIJAWAB SALAH (Cari polanya):",
-            failedQuestionsText || "Belum ada data soal yang salah."
-          ].join("\n"),
-          maxOutputTokens: 800,
+          prompt,
+          temperature: DIAGNOSIS_CONFIG.ai.temperature, // 0.2
+          maxOutputTokens: DIAGNOSIS_CONFIG.ai.maxOutputTokens, // 1800 explicitly passed!
         });
+        latencyMs = geminiResult.latencyMs ?? 0;
+        usageResult = geminiResult.usage;
+
+        let validation = validateNarrative(geminiResult.text, report);
+
+        // If invalid, retry ONCE
+        let fallbackReason: "validation_failed" | "gemini_error" | null = null;
+        if (!validation.valid) {
+          console.warn(`[DIAGNOSIS_VALIDATION_REJECT] code=${validation.code} details=${validation.invalidNumbers?.join(",") || validation.invalidIds?.join(",") || "missing_indikatif"}`);
+          const retryPrompt = [
+            prompt,
+            "",
+            `PERINGATAN VALIDASI: Narasi sebelumnya ditolak karena memuat data di luar laporan (${validation.reason}).`,
+            "Tulis ulang narasi dengan HANYA menggunakan angka dan data yang tercantum persis di data laporan resmi di atas!",
+          ].join("\n");
+
+          const retryResult = await generateGeminiTextWithUsage({
+            apiKey,
+            model: modelToUse,
+            prompt: retryPrompt,
+            temperature: DIAGNOSIS_CONFIG.ai.temperature,
+            maxOutputTokens: DIAGNOSIS_CONFIG.ai.maxOutputTokens,
+          });
+          latencyMs += retryResult.latencyMs ?? 0;
+          usageResult = retryResult.usage;
+
+          validation = validateNarrative(retryResult.text, report);
+          if (validation.valid) {
+            narrative = retryResult.text;
+            source = "gemini";
+            fallbackReason = null;
+          } else {
+            console.warn(`[DIAGNOSIS_VALIDATION_REJECT] code=${validation.code} details=${validation.invalidNumbers?.join(",") || validation.invalidIds?.join(",") || "missing_indikatif"}`);
+            narrative = report.fallbackMarkdown;
+            source = "fallback";
+            fallbackReason = "validation_failed";
+          }
+        } else {
+          narrative = geminiResult.text;
+          source = "gemini";
+          fallbackReason = null;
+        }
 
         await service
           .from("user_ai_credentials")
@@ -502,31 +712,64 @@ Deno.serve(async (req) => {
           credentialId: credential.id,
           model: modelToUse,
           requestKind: "student_insight",
-          status: "success",
-          usage: result.usage,
-          latencyMs: result.latencyMs,
+          status: source === "gemini" ? "success" : "error",
+          usage: usageResult ?? undefined,
+          latencyMs,
           metadata: {
             dateFrom: payload.dateFrom,
             dateTo: payload.dateTo,
-          }
+            source,
+          },
         });
+
+        const finalNarrative =
+          source === "gemini"
+            ? decorateNarrativeWithDeterministicBadges(narrative, report)
+            : narrative;
+
+        const resolvedModel = source === "gemini" ? modelToUse : "deterministic-engine";
+
+        await service
+          .from("ai_insight_reports")
+          .upsert(
+            {
+              user_id: user.id,
+              input_hash: inputHash,
+              engine_version: ENGINE_VERSION,
+              report,
+              narrative: finalNarrative,
+              summary: finalNarrative,
+              source,
+              fallback_reason: fallbackReason,
+              model: resolvedModel,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id,input_hash,engine_version" },
+          );
 
         return jsonResponse({
           insight: {
-            source: "ai",
+            summary: finalNarrative,
+            narrative: finalNarrative,
+            report,
+            source,
+            fallbackReason,
+            model: resolvedModel,
+            engineVersion: ENGINE_VERSION,
             generatedAt: new Date().toISOString(),
-            summary: result.text,
           },
         });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Student AI range insight failed.";
+      } catch (geminiError) {
+        console.error("Gemini call failed during diagnosis narration:", geminiError);
+        const message = geminiError instanceof Error ? geminiError.message : "Diagnosis Gemini narration failed.";
+
         await service
           .from("user_ai_credentials")
           .update({
             last_error: message,
           })
           .eq("id", credential.id);
-        
+
         await writeUsageLog(service, {
           userId: user.id,
           credentialId: credential.id,
@@ -534,17 +777,48 @@ Deno.serve(async (req) => {
           requestKind: "student_insight",
           status: "error",
           errorMessage: message,
+          metadata: {
+            dateFrom: payload.dateFrom,
+            dateTo: payload.dateTo,
+            source: "fallback",
+          },
         });
 
-        if (error instanceof HttpError) {
-          throw error;
-        }
-
-        if (isGeminiCredentialError(error)) {
+        if (isGeminiCredentialError(geminiError)) {
           throw new HttpError(400, "BYOK_INVALID", message);
         }
 
-        throw error;
+        const fallbackNarrative = report.fallbackMarkdown;
+        await service
+          .from("ai_insight_reports")
+          .upsert(
+            {
+              user_id: user.id,
+              input_hash: inputHash,
+              engine_version: ENGINE_VERSION,
+              report,
+              narrative: fallbackNarrative,
+              summary: fallbackNarrative,
+              source: "fallback",
+              fallback_reason: "gemini_error",
+              model: "deterministic-engine",
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id,input_hash,engine_version" },
+          );
+
+        return jsonResponse({
+          insight: {
+            summary: fallbackNarrative,
+            narrative: fallbackNarrative,
+            report,
+            source: "fallback",
+            fallbackReason: "gemini_error",
+            model: "deterministic-engine",
+            engineVersion: ENGINE_VERSION,
+            generatedAt: new Date().toISOString(),
+          },
+        });
       }
     }
 
@@ -569,3 +843,4 @@ Deno.serve(async (req) => {
     );
   }
 });
+}

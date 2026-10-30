@@ -9,19 +9,21 @@ type DiagnosisRangeControlsProps = {
   draftRange: DiagnosisRangeDraft;
   appliedRange: DiagnosisRangeDraft;
   canApplyCustomRange: boolean;
-  onSelectPreset: (preset: "7d" | "14d" | "30d") => void;
+  onSelectPreset: (preset: "7d" | "14d" | "30d" | "last3" | "last5") => void;
   onDraftChange: (next: DiagnosisRangeDraft) => void;
   onApplyCustomRange: () => void;
   isApplying: boolean;
 };
 
-const RANGE_PRESET_OPTIONS: Array<{ label: string; value: "7d" | "14d" | "30d" }> = [
+const RANGE_PRESET_OPTIONS: Array<{ label: string; value: "7d" | "14d" | "30d" | "last3" | "last5" }> = [
   { label: "7 hari", value: "7d" },
   { label: "14 hari", value: "14d" },
   { label: "30 hari", value: "30d" },
+  { label: "3 TO Terakhir", value: "last3" },
+  { label: "5 TO Terakhir", value: "last5" },
 ];
 
-function isPresetActive(appliedRange: DiagnosisRangeDraft, preset: "7d" | "14d" | "30d"): boolean {
+function isPresetActive(appliedRange: DiagnosisRangeDraft, preset: "7d" | "14d" | "30d" | "last3" | "last5"): boolean {
   return appliedRange.preset === preset;
 }
 
@@ -47,7 +49,13 @@ function DiagnosisRangeControls({
                 Periode Analisis
               </p>
               <p className="text-sm font-medium text-muted-foreground mt-0.5">
-                Menampilkan data dari <span className="text-foreground font-semibold">{appliedRange.dateFrom}</span> sampai <span className="text-foreground font-semibold">{appliedRange.dateTo}</span>
+                {appliedRange.preset === "last3" ? (
+                  <span>Menampilkan data dari <span className="text-foreground font-semibold">3 Try Out Terakhir</span></span>
+                ) : appliedRange.preset === "last5" ? (
+                  <span>Menampilkan data dari <span className="text-foreground font-semibold">5 Try Out Terakhir</span></span>
+                ) : (
+                  <span>Menampilkan data dari <span className="text-foreground font-semibold">{appliedRange.dateFrom}</span> sampai <span className="text-foreground font-semibold">{appliedRange.dateTo}</span></span>
+                )}
               </p>
             </div>
           </div>

@@ -10,14 +10,17 @@ export default function AccountSuspendedPage() {
   const { user } = useSession();
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
 
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
+      setLogoutError(null);
       await logout();
       navigate("/auth/login", { replace: true });
     } catch {
       setIsLoggingOut(false);
+      setLogoutError("Gagal keluar akun. Silakan coba lagi.");
     }
   };
 
@@ -59,6 +62,11 @@ export default function AccountSuspendedPage() {
         </CardContent>
 
         <CardFooter className="flex flex-col gap-2">
+          {logoutError && (
+            <p className="text-xs font-medium text-rose-600 dark:text-rose-400 text-center">
+              {logoutError}
+            </p>
+          )}
           <Button
             variant="outline"
             className="w-full text-slate-700 dark:text-slate-200"

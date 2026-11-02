@@ -10,6 +10,7 @@ import {
   QuestionGeneratorRouteGuard,
   QuestionAuthoringRouteGuard,
   ScheduledTryoutOpsRouteGuard,
+  SubscriptionRouteGuard,
   SuspendedAccountRouteGuard,
 } from "./route-guards";
 
@@ -69,7 +70,9 @@ function AppRouter() {
         <Route path="/" element={<Navigate replace to="/auth/login" />} />
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/subscription" element={<SubscriptionPage />} />
+        <Route element={<SubscriptionRouteGuard />}>
+          <Route path="/subscription" element={<SubscriptionPage />} />
+        </Route>
         <Route element={<SuspendedAccountRouteGuard />}>
           <Route path="/account-suspended" element={<AccountSuspendedPage />} />
         </Route>

@@ -169,6 +169,20 @@ export function AuthenticatedRouteGuard() {
   return <Outlet />;
 }
 
+export function SubscriptionRouteGuard() {
+  const guardState = useGuardAccess();
+
+  if (guardState.status === "loading") {
+    return null;
+  }
+
+  if (guardState.status === "ready" && guardState.access.role === "belum_bayar") {
+    return <Navigate replace to="/account-suspended" />;
+  }
+
+  return <Outlet />;
+}
+
 export function SuspendedAccountRouteGuard() {
   const guardState = useGuardAccess();
 

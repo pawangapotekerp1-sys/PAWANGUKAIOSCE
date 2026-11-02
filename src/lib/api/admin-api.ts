@@ -4,6 +4,7 @@ import {
   mapAdminDashboardViewModel,
   type AdminDashboardViewModel,
 } from "../mappers/admin-mappers";
+import type { UserRole } from "../auth/permissions";
 
 export type AdminClient = Pick<ReturnType<typeof getSupabaseBrowserClient>, "from" | "functions" | "rpc">;
 
@@ -26,7 +27,7 @@ type ManagedUserRow = {
   email: string | null;
   full_name: string | null;
   leaderboard_alias: string | null;
-  role: "pendaftar_baru" | "pro" | "mentor" | "admin" | "osce_pro" | "belum_bayar";
+  role: UserRole;
   created_at: string;
 };
 

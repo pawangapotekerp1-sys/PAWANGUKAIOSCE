@@ -65,4 +65,21 @@ describe("AccountSuspendedPage", () => {
       expect(mockLogout).toHaveBeenCalledTimes(1);
     });
   });
+
+  test("displays error message when logout fails", async () => {
+    mockLogout.mockRejectedValueOnce(new Error("Network error"));
+
+    render(
+      <MemoryRouter>
+        <AccountSuspendedPage />
+      </MemoryRouter>,
+    );
+
+    const logoutButton = await screen.findByRole("button", { name: /keluar/i });
+    fireEvent.click(logoutButton);
+
+    expect(
+      await screen.findByText("Gagal keluar akun. Silakan coba lagi."),
+    ).toBeInTheDocument();
+  });
 });

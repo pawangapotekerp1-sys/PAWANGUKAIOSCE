@@ -1238,6 +1238,19 @@ describe("App router", () => {
       ).toBeInTheDocument();
     });
 
+    test("redirects belum_bayar users from /subscription to /account-suspended", async () => {
+      setAuthenticatedSession("belum_bayar", "expired");
+
+      renderApp("/subscription");
+
+      expect(
+        await screen.findByText(
+          /akun anda nonaktif, silahkan hubungi admin untuk melunasi pembayaran/i,
+        ),
+      ).toBeInTheDocument();
+    });
+
+
     test("allows belum_bayar users to view /account-suspended", async () => {
       setAuthenticatedSession("belum_bayar", "expired");
 

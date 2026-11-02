@@ -1,4 +1,4 @@
-export type UserRole = "pendaftar_baru" | "pro" | "mentor" | "admin" | "osce_pro";
+export type UserRole = "pendaftar_baru" | "pro" | "mentor" | "admin" | "osce_pro" | "belum_bayar";
 export type SubscriptionState = "pending_review" | "active" | "rejected" | "expired";
 
 export type AppProfile = {
@@ -29,7 +29,14 @@ export type AccessSnapshot = {
 };
 
 export function isUserRole(value: unknown): value is UserRole {
-  return value === "pendaftar_baru" || value === "pro" || value === "mentor" || value === "admin" || value === "osce_pro";
+  return (
+    value === "pendaftar_baru" ||
+    value === "pro" ||
+    value === "mentor" ||
+    value === "admin" ||
+    value === "osce_pro" ||
+    value === "belum_bayar"
+  );
 }
 
 export function isSubscriptionState(value: unknown): value is SubscriptionState {
@@ -109,9 +116,15 @@ export function canViewMaterialItem(
   return Boolean(role) && visibleTo.includes(role as string);
 }
 
-export function resolveAuthenticatedHome(access: AccessSnapshot): "/admin" | "/app" | "/subscription" {
+export function resolveAuthenticatedHome(
+  access: AccessSnapshot,
+): "/admin" | "/app" | "/subscription" | "/account-suspended" {
   if (access.role === "admin") {
     return "/admin";
+  }
+
+  if (access.role === "belum_bayar") {
+    return "/account-suspended";
   }
 
   return canAccessStudentApp(access) ? "/app" : "/subscription";

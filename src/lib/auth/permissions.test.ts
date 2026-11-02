@@ -7,7 +7,9 @@ import {
   canAccessQuestionBank,
   canViewMaterialItem,
   hasActiveSubscription,
+  isUserRole,
   resolveAuthenticatedHome,
+  type AccessSnapshot,
 } from "./permissions";
 
 describe("permissions", () => {
@@ -153,5 +155,39 @@ describe("canViewMaterialItem", () => {
   test("fails closed for restricted items while the role is unknown", () => {
     expect(canViewMaterialItem(["osce_pro"], null)).toBe(false);
     expect(canViewMaterialItem(["pro", "osce_pro"], undefined)).toBe(false);
+  });
+});
+
+describe("permissions auth helpers for belum_bayar role", () => {
+  test("recognizes belum_bayar as valid UserRole", () => {
+    expect(isUserRole("belum_bayar")).toBe(true);
+  });
+
+  test("denies student app access for belum_bayar role", () => {
+    const access: AccessSnapshot = {
+      role: "belum_bayar",
+      subscriptionState: "active",
+    };
+    expect(canAccessStudentApp(access)).toBe(false);
+  });
+
+  test("resolves authenticated home to /account-suspended for belum_bayar role", () => {
+    const access: AccessSnapshot = {
+      role: "belum_bayar",
+      subscriptionState: "active",
+    };
+    expect(resolveAuthenticatedHome(access)).toBe("/account-suspended");
+  });
+
+  test("resolves authenticated home normally for other roles", () => {
+    expect(
+      resolveAuthenticatedHome({ role: "admin", subscriptionState: "active" }),
+    ).toBe("/admin");
+    expect(
+      resolveAuthenticatedHome({ role: "pro", subscriptionState: "active" }),
+    ).toBe("/app");
+    expect(
+      resolveAuthenticatedHome({ role: "pendaftar_baru", subscriptionState: "expired" }),
+    ).toBe("/subscription");
   });
 });

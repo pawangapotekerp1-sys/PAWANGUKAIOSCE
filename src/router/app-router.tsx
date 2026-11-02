@@ -10,6 +10,7 @@ import {
   QuestionGeneratorRouteGuard,
   QuestionAuthoringRouteGuard,
   ScheduledTryoutOpsRouteGuard,
+  SuspendedAccountRouteGuard,
 } from "./route-guards";
 
 const LoginPage = lazy(() => import("../pages/auth/login-page"));
@@ -51,6 +52,7 @@ const StudyAreaPage = lazy(() => import("../pages/app/study-area-page"));
 const ScheduledEventEditorPage = lazy(() => import("../pages/scheduled-ops/scheduled-event-editor-page"));
 const ScheduledOpsEventsPage = lazy(() => import("../pages/scheduled-ops/scheduled-events-page"));
 const SubscriptionPage = lazy(() => import("../pages/subscription-page"));
+const AccountSuspendedPage = lazy(() => import("../pages/account-suspended-page"));
 const OsceDemoPage = lazy(() => import("../pages/app/osce-demo-page"));
 const OsceListPage = lazy(() => import("../pages/app/osce-list-page"));
 const OsceBuilderPage = lazy(() => import("../pages/app/osce-builder-page"));
@@ -68,6 +70,9 @@ function AppRouter() {
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
         <Route path="/subscription" element={<SubscriptionPage />} />
+        <Route element={<SuspendedAccountRouteGuard />}>
+          <Route path="/account-suspended" element={<AccountSuspendedPage />} />
+        </Route>
         <Route element={<AuthenticatedRouteGuard />}>
           <Route path="/profile" element={<ProfilePage />} />
         </Route>

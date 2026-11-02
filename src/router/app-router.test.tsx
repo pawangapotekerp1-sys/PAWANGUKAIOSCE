@@ -1224,4 +1224,68 @@ describe("App router", () => {
       await screen.findByText(/selamat datang/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' }),
     ).toBeInTheDocument();
   });
+
+  describe("belum_bayar role lockdown", () => {
+    test("redirects belum_bayar users from /app to /account-suspended", async () => {
+      setAuthenticatedSession("belum_bayar", "expired");
+
+      renderApp("/app");
+
+      expect(
+        await screen.findByText(
+          /akun anda nonaktif, silahkan hubungi admin untuk melunasi pembayaran/i,
+        ),
+      ).toBeInTheDocument();
+    });
+
+    test("allows belum_bayar users to view /account-suspended", async () => {
+      setAuthenticatedSession("belum_bayar", "expired");
+
+      renderApp("/account-suspended");
+
+      expect(
+        await screen.findByText(
+          /akun anda nonaktif, silahkan hubungi admin untuk melunasi pembayaran/i,
+        ),
+      ).toBeInTheDocument();
+    });
+
+    test("redirects belum_bayar users from /profile to /account-suspended", async () => {
+      setAuthenticatedSession("belum_bayar", "expired");
+
+      renderApp("/profile");
+
+      expect(
+        await screen.findByText(
+          /akun anda nonaktif, silahkan hubungi admin untuk melunasi pembayaran/i,
+        ),
+      ).toBeInTheDocument();
+    });
+
+    test("redirects pro users away from /account-suspended to /app", async () => {
+      setAuthenticatedSession("pro", "active");
+
+      renderApp("/account-suspended");
+
+      expect(
+        await screen.findByText(/fokus hari ini|kunci ulang|ringkasan hari ini/i, {
+          selector:
+            'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]',
+        }),
+      ).toBeInTheDocument();
+    });
+
+    test("redirects anonymous users away from /account-suspended to login", async () => {
+      setAnonymousSession();
+
+      renderApp("/account-suspended");
+
+      expect(
+        await screen.findByText(/selamat datang/i, {
+          selector:
+            'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]',
+        }),
+      ).toBeInTheDocument();
+    });
+  });
 });

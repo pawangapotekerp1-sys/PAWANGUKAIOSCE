@@ -140,6 +140,10 @@ export function AppRouteGuard() {
     return <Navigate replace to="/admin" />;
   }
 
+  if (guardState.access.role === "belum_bayar") {
+    return <Navigate replace to="/account-suspended" />;
+  }
+
   if (canAccessStudentApp(guardState.access)) {
     return <Outlet />;
   }
@@ -148,14 +152,51 @@ export function AppRouteGuard() {
 }
 
 export function AuthenticatedRouteGuard() {
-  const { status } = useSession();
+  const guardState = useGuardAccess();
 
-  if (status === "loading") {
+  if (guardState.status === "loading") {
     return null;
   }
 
-  if (status === "anonymous") {
+  if (guardState.status === "anonymous") {
     return <Navigate replace to="/auth/login" />;
+  }
+
+  if (guardState.status === "ready" && guardState.access.role === "belum_bayar") {
+    return <Navigate replace to="/account-suspended" />;
+  }
+
+  return <Outlet />;
+}
+
+export function SuspendedAccountRouteGuard() {
+  const guardState = useGuardAccess();
+
+  if (guardState.status === "loading") {
+    return null;
+  }
+
+  if (guardState.status === "anonymous" || guardState.status === "error") {
+    if (guardState.status === "anonymous") {
+      return <Navigate replace to="/auth/login" />;
+    }
+
+    return (
+      <GuardErrorState
+        message={guardState.message}
+        title="Akses akun belum bisa diverifikasi"
+      />
+    );
+  }
+
+  // Jika akunnya BUKAN belum_bayar (misal sudah lunas/pro/admin), arahkan ke home aslinya
+  if (guardState.access.role !== "belum_bayar") {
+    return (
+      <Navigate
+        replace
+        to={resolveAuthenticatedHome(guardState.access)}
+      />
+    );
   }
 
   return <Outlet />;

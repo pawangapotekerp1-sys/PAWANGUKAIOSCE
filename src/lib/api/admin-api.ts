@@ -26,7 +26,7 @@ type ManagedUserRow = {
   email: string | null;
   full_name: string | null;
   leaderboard_alias: string | null;
-  role: "pendaftar_baru" | "pro" | "mentor" | "admin";
+  role: "pendaftar_baru" | "pro" | "mentor" | "admin" | "osce_pro" | "belum_bayar";
   created_at: string;
 };
 
@@ -56,7 +56,7 @@ function resolveManagedUserFilterLabel(role: ManagedUserRow["role"]): ManagedUse
     return "admin";
   }
 
-  if (role === "pro") {
+  if (role === "pro" || role === "osce_pro") {
     return "user_aktif";
   }
 

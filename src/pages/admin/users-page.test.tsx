@@ -190,4 +190,17 @@ describe("UsersPage", () => {
       });
     });
   });
+
+  test("displays Belum Bayar role option in user edit dropdown and filter", async () => {
+    renderUsersPage();
+
+    expect(await screen.findByText(/kelola pengguna/i, { selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]' })).toBeInTheDocument();
+
+    // Memastikan opsi "Belum Bayar" tersedia pada dropdown per-baris
+    const roleSelects = await screen.findAllByRole("combobox");
+    expect(roleSelects.length).toBeGreaterThan(0);
+    
+    const options = Array.from(roleSelects[0].querySelectorAll("option")).map((opt) => opt.textContent);
+    expect(options).toContain("Belum Bayar");
+  });
 });

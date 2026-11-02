@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import { type FormEvent, useEffect, useState } from "react";
 import AdminShell from "../../components/layout/admin-shell";
 import Button from "../../components/ui/button";
+import SectionHeading from "../../components/ui/section-heading";
 
 
 
@@ -42,6 +43,14 @@ function resolveRoleLabel(role: ManagedRole) {
 
   if (role === "pro") {
     return "Pro";
+  }
+
+  if (role === "osce_pro") {
+    return "OSCE Pro";
+  }
+
+  if (role === "belum_bayar") {
+    return "Belum Bayar";
   }
 
   return "Peserta baru";
@@ -187,6 +196,10 @@ function UsersPage() {
       description="Pantau pengguna aktif, cek yang belum bayar, dan buat akun baru."
       navItems={createAdminNavItems("/admin/users")}
     >
+      <SectionHeading
+        title="Kelola pengguna"
+        description="Pantau pengguna aktif, cek yang belum bayar, dan buat akun baru."
+      />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-3">
           <Badge variant="default">Aktif {summary.activeUsers}</Badge>
@@ -246,8 +259,10 @@ function UsersPage() {
               >
                 <option value="pendaftar_baru">Peserta baru</option>
                 <option value="pro">Pro</option>
+                <option value="osce_pro">OSCE Pro</option>
                 <option value="mentor">Mentor</option>
                 <option value="admin">Admin</option>
+                <option value="belum_bayar">Belum Bayar</option>
               </select>
             </label>
             <div className="xl:col-span-2">
@@ -318,7 +333,7 @@ function UsersPage() {
                         Dibuat {formatCreatedAt(item.createdAt)}
                       </p>
                       <div className="mt-3 flex flex-wrap gap-2">
-                        <Badge variant={item.role === "admin" ? "default" : item.role === "pendaftar_baru" ? "secondary" : "default"}>
+                        <Badge variant={item.role === "admin" ? "default" : item.role === "pendaftar_baru" || item.role === "belum_bayar" ? "secondary" : "default"}>
                           {resolveRoleLabel(item.role)}
                         </Badge>
                         {item.leaderboardAlias ? (
@@ -342,8 +357,10 @@ function UsersPage() {
                         >
                           <option value="pendaftar_baru">Peserta baru</option>
                           <option value="pro">Pro</option>
+                          <option value="osce_pro">OSCE Pro</option>
                           <option value="mentor">Mentor</option>
                           <option value="admin">Admin</option>
+                          <option value="belum_bayar">Belum Bayar</option>
                         </select>
                       </label>
                       <Button

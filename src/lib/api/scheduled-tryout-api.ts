@@ -389,7 +389,9 @@ async function createSignedMediaUrls(
           missingUrlCache.set(p, now + 300 * 1000); // cache missing for 5 mins
         }
       } catch {
-        // Transient storage error (e.g., 429/5xx/network): skip caching as missing so retry can recover
+        // Transient storage error (e.g., 429/5xx/network): skip caching as missing so retry can recover,
+        // and short-circuit remaining probes to avoid stalling session load with N failing requests.
+        break;
       }
     }
     return result;

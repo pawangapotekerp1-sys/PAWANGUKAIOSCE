@@ -1564,4 +1564,106 @@ describe("scheduled-tryout-api", () => {
     expect(retryAttempt.questions[0]?.questionImageUrl).toBe("https://signed.example/recovered.png");
     expect(createSignedUrls).toHaveBeenCalledTimes(2);
   });
+
+  test("short-circuits sequential media signing fallback on first transient error", async () => {
+    const attemptSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: "scheduled-attempt-media-short-circuit",
+        event_id: "event-1",
+        event_cycle: 1,
+        user_id: "user-1",
+        status: "in_progress",
+        started_at: "2026-06-01T10:00:00.000Z",
+        submitted_at: null,
+        time_limit_seconds: 1200,
+        elapsed_seconds: 100,
+        last_resumed_at: "2026-06-01T10:05:00.000Z",
+        paused_at: null,
+        total_questions: 3,
+      },
+      error: null,
+    });
+    const itemsOrder = vi.fn().mockResolvedValue({
+      data: [
+        {
+          id: "attempt-item-sc-1",
+          attempt_id: "scheduled-attempt-media-short-circuit",
+          event_question_id: "eq-sc-1",
+          block_id_snapshot: "block-1",
+          question_snapshot: "Soal gambar 1",
+          question_image_path_snapshot: "question/scheduled-events/sc-img-1.png",
+          options_snapshot: [{ key: "A", text: "Pilihan A" }],
+          correct_option_key_snapshot: "A",
+          sort_order: 1,
+          block: { name: "Clinical Science" },
+        },
+        {
+          id: "attempt-item-sc-2",
+          attempt_id: "scheduled-attempt-media-short-circuit",
+          event_question_id: "eq-sc-2",
+          block_id_snapshot: "block-1",
+          question_snapshot: "Soal gambar 2",
+          question_image_path_snapshot: "question/scheduled-events/sc-img-2.png",
+          options_snapshot: [{ key: "A", text: "Pilihan A" }],
+          correct_option_key_snapshot: "A",
+          sort_order: 2,
+          block: { name: "Clinical Science" },
+        },
+        {
+          id: "attempt-item-sc-3",
+          attempt_id: "scheduled-attempt-media-short-circuit",
+          event_question_id: "eq-sc-3",
+          block_id_snapshot: "block-1",
+          question_snapshot: "Soal gambar 3",
+          question_image_path_snapshot: "question/scheduled-events/sc-img-3.png",
+          options_snapshot: [{ key: "A", text: "Pilihan A" }],
+          correct_option_key_snapshot: "A",
+          sort_order: 3,
+          block: { name: "Clinical Science" },
+        },
+      ],
+      error: null,
+    });
+    const answersOrder = vi.fn().mockResolvedValue({ data: [], error: null });
+    const createSignedUrls = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "Too Many Requests" },
+    });
+    const createSignedUrl = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "Too Many Requests" },
+    });
+
+    const client = {
+      rpc: vi.fn().mockResolvedValue({ data: "2026-06-01T10:06:00.000Z", error: null }),
+      from: vi.fn((table: string) => {
+        if (table === "scheduled_tryout_attempts") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: attemptSingle })) })) };
+        }
+        if (table === "scheduled_tryout_attempt_items") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ order: itemsOrder })) })) };
+        }
+        if (table === "scheduled_tryout_answers") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ order: answersOrder })) })) };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      }),
+      storage: {
+        from: vi.fn(() => ({
+          createSignedUrl,
+          createSignedUrls,
+        })),
+      },
+    };
+
+    const result = await getScheduledAttemptSessionPageData({
+      client: client as never,
+      attemptId: "scheduled-attempt-media-short-circuit",
+      now: new Date("2026-06-01T10:06:00.000Z"),
+    });
+
+    expect(result.view).toBe("ready");
+    expect(result.questions.map((q) => q.questionImageUrl)).toEqual([null, null, null]);
+    expect(createSignedUrl).toHaveBeenCalledTimes(1);
+  });
 });

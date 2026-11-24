@@ -81,9 +81,9 @@ function ScheduledTryoutSessionPage() {
   });
 
   // Sync soal dari mentor setiap 30 menit.
-  // Sync juga sudah otomatis berjalan saat siswa menjawab soal (save_answer RPC),
-  // resume (resume RPC), dan submit (submit RPC). Polling 30 menit ini hanya
-  // sebagai jaring pengaman jika siswa diam lama tanpa interaksi.
+  // Sync juga sudah otomatis berjalan saat siswa resume (resume RPC) dan
+  // submit (submit RPC). Polling 30 menit ini hanya sebagai jaring pengaman
+  // jika siswa diam lama tanpa interaksi.
   useEffect(() => {
     if (!attemptId) return;
 

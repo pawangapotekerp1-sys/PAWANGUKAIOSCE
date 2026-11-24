@@ -281,7 +281,8 @@ begin
   into target_attempt
   from public.scheduled_tryout_attempts
   where id = target_attempt_id
-    and user_id = auth.uid();
+    and user_id = auth.uid()
+  for share;
 
   if not found then
     raise exception 'Attempt try out terjadwal tidak ditemukan.'

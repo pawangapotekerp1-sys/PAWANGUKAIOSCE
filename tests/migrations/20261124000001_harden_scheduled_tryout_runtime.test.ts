@@ -50,6 +50,7 @@ describe("20261124000001_harden_scheduled_tryout_runtime migration", () => {
     const saveBody = getFunctionBody(sql, "save_scheduled_tryout_answer");
 
     expect(saveBody).not.toContain("sync_scheduled_tryout_attempt");
+    expect(saveBody).toContain("for share");
     expect(saveBody).toContain("if target_attempt.status <> 'in_progress' then");
   });
 

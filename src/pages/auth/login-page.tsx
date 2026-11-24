@@ -1,6 +1,6 @@
 import { ArrowRight, Info, Lock, Send, UserCircle, AlertCircle } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import Button from "../../components/ui/button";
 import { loginWithPassword, requestPasswordReset } from "../../lib/api/auth-api";
 import { Input } from "../../components/ui/input";
@@ -8,7 +8,25 @@ import { Label } from "../../components/ui/label";
 import { Alert, AlertDescription } from "../../components/ui/alert";
 import { Badge } from "../../components/ui/badge";
 
+function resolvePostLoginDestination(state: unknown): string {
+  const from =
+    typeof state === "object" && state !== null && "from" in state
+      ? (state as { from?: unknown }).from
+      : null;
+
+  if (
+    typeof from === "string" &&
+    !from.startsWith("//") &&
+    (from === "/app" || from.startsWith("/app/") || from.startsWith("/app?"))
+  ) {
+    return from;
+  }
+
+  return "/app/tryout-selection";
+}
+
 function LoginPage() {
+  const location = useLocation();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,7 +42,7 @@ function LoginPage() {
 
     try {
       await loginWithPassword({ email, password });
-      navigate("/app/tryout-selection", { replace: true });
+      navigate(resolvePostLoginDestination(location.state), { replace: true });
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Masuk belum berhasil. Coba lagi sebentar.");
     } finally {

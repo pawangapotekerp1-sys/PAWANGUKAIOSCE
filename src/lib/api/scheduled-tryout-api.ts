@@ -361,9 +361,20 @@ async function createSignedMediaUrls(
     return result;
   }
 
-  const { data, error } = await client.storage
-    .from("question-media")
-    .createSignedUrls(pathsToFetch, 3600);
+  let data: Awaited<
+    ReturnType<ReturnType<ScheduledTryoutClient["storage"]["from"]>["createSignedUrls"]>
+  >["data"] = null;
+  let error: unknown = null;
+
+  try {
+    const response = await client.storage
+      .from("question-media")
+      .createSignedUrls(pathsToFetch, 3600);
+    data = response.data;
+    error = response.error;
+  } catch (err) {
+    error = err;
+  }
 
   if (error) {
     // Fall back to sequential individual requests to avoid rate limits when a file is missing.

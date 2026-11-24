@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import {
   createScheduledEvent,
+  findActiveScheduledAttemptForUser,
   getScheduledEventLeaderboard,
   getScheduledAttemptResultPageData,
   getScheduledAttemptReviewPageData,
@@ -1292,5 +1293,275 @@ describe("scheduled-tryout-api", () => {
         now: new Date("2026-06-01T10:02:00.000Z"),
       }),
     ).rejects.toThrow(/sesi login berakhir/i);
+  });
+
+  test("findActiveScheduledAttemptForUser calls get_server_now RPC when now is omitted", async () => {
+    const attemptMaybeSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: "attempt-active-clock",
+        event_id: "event-1",
+        event_cycle: 1,
+        user_id: "user-1",
+        status: "in_progress",
+        started_at: "2026-06-01T10:00:00.000Z",
+        submitted_at: null,
+        time_limit_seconds: 1200,
+        elapsed_seconds: 0,
+        last_resumed_at: "2026-06-01T10:00:00.000Z",
+        paused_at: null,
+        total_questions: 10,
+      },
+      error: null,
+    });
+    const answersNot = vi.fn().mockResolvedValue({ count: 4, error: null });
+    const eventMaybeSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: "event-1",
+        title: "TO Akbar Juni",
+        access_end_at: "2026-06-02T10:00:00.000Z",
+      },
+      error: null,
+    });
+    const rpc = vi.fn().mockResolvedValue({
+      data: "2026-06-01T10:03:00.000Z",
+      error: null,
+    });
+
+    const client = {
+      rpc,
+      from: vi.fn((table: string) => {
+        if (table === "scheduled_tryout_attempts") {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                in: vi.fn(() => ({
+                  order: vi.fn(() => ({
+                    limit: vi.fn(() => ({
+                      maybeSingle: attemptMaybeSingle,
+                    })),
+                  })),
+                })),
+              })),
+            })),
+          };
+        }
+        if (table === "scheduled_tryout_answers") {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                not: answersNot,
+              })),
+            })),
+          };
+        }
+        if (table === "scheduled_tryout_events") {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                maybeSingle: eventMaybeSingle,
+              })),
+            })),
+          };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      }),
+      storage: {
+        from: vi.fn(() => ({
+          createSignedUrl: vi.fn(),
+          createSignedUrls: vi.fn(),
+        })),
+      },
+    };
+
+    const summary = await findActiveScheduledAttemptForUser({
+      client: client as never,
+      userId: "user-1",
+    });
+
+    expect(rpc).toHaveBeenCalledWith("get_server_now");
+    expect(summary).toEqual({
+      attemptId: "attempt-active-clock",
+      eventId: "event-1",
+      status: "in_progress",
+      title: "TO Akbar Juni",
+      answeredCount: 4,
+      totalQuestions: 10,
+      timeRemainingSeconds: 1020,
+      accessEndAt: "2026-06-02T10:00:00.000Z",
+    });
+  });
+
+  test("falls back to local clock when get_server_now returns an error or rejects", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-01T10:05:00.000Z"));
+
+    try {
+      const attemptSingle = vi.fn().mockResolvedValue({
+        data: {
+          id: "scheduled-attempt-rpc-fallback",
+          event_id: "event-1",
+          event_cycle: 1,
+          user_id: "user-1",
+          status: "in_progress",
+          started_at: "2026-06-01T10:00:00.000Z",
+          submitted_at: null,
+          time_limit_seconds: 1200,
+          elapsed_seconds: 0,
+          last_resumed_at: "2026-06-01T10:00:00.000Z",
+          paused_at: null,
+          total_questions: 1,
+        },
+        error: null,
+      });
+      const itemsOrder = vi.fn().mockResolvedValue({
+        data: [
+          {
+            id: "attempt-item-fallback-1",
+            attempt_id: "scheduled-attempt-rpc-fallback",
+            event_question_id: "eq-1",
+            block_id_snapshot: "block-1",
+            question_snapshot: "Soal fallback clock",
+            question_image_path_snapshot: null,
+            options_snapshot: [{ key: "A", text: "Pilihan A" }],
+            correct_option_key_snapshot: "A",
+            sort_order: 1,
+            block: { name: "Clinical Science" },
+          },
+        ],
+        error: null,
+      });
+      const answersOrder = vi.fn().mockResolvedValue({ data: [], error: null });
+      const rpc = vi
+        .fn()
+        .mockResolvedValueOnce({ data: null, error: { message: "RPC unavailable" } })
+        .mockRejectedValueOnce(new Error("Network offline"));
+
+      const client = {
+        rpc,
+        from: vi.fn((table: string) => {
+          if (table === "scheduled_tryout_attempts") {
+            return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: attemptSingle })) })) };
+          }
+          if (table === "scheduled_tryout_attempt_items") {
+            return { select: vi.fn(() => ({ eq: vi.fn(() => ({ order: itemsOrder })) })) };
+          }
+          if (table === "scheduled_tryout_answers") {
+            return { select: vi.fn(() => ({ eq: vi.fn(() => ({ order: answersOrder })) })) };
+          }
+          throw new Error(`Unexpected table ${table}`);
+        }),
+        storage: {
+          from: vi.fn(() => ({
+            createSignedUrl: vi.fn(),
+            createSignedUrls: vi.fn(),
+          })),
+        },
+      };
+
+      const errorFallbackResult = await getScheduledAttemptSessionPageData({
+        client: client as never,
+        attemptId: "scheduled-attempt-rpc-fallback",
+      });
+      expect(errorFallbackResult.view).toBe("ready");
+      expect(errorFallbackResult.attempt?.timeRemainingSeconds).toBe(900);
+
+      const rejectedFallbackResult = await getScheduledAttemptSessionPageData({
+        client: client as never,
+        attemptId: "scheduled-attempt-rpc-fallback",
+      });
+      expect(rejectedFallbackResult.view).toBe("ready");
+      expect(rejectedFallbackResult.attempt?.timeRemainingSeconds).toBe(900);
+      expect(rpc).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test("degrades cleanly when batch createSignedUrls rejects and recovers on retry without poisoning missingUrlCache", async () => {
+    const attemptSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: "scheduled-attempt-media-retry",
+        event_id: "event-1",
+        event_cycle: 1,
+        user_id: "user-1",
+        status: "in_progress",
+        started_at: "2026-06-01T10:00:00.000Z",
+        submitted_at: null,
+        time_limit_seconds: 1200,
+        elapsed_seconds: 100,
+        last_resumed_at: "2026-06-01T10:05:00.000Z",
+        paused_at: null,
+        total_questions: 1,
+      },
+      error: null,
+    });
+    const imagePath = "question/scheduled-events/transient-reject-retry.png";
+    const itemsOrder = vi.fn().mockResolvedValue({
+      data: [
+        {
+          id: "attempt-item-retry-1",
+          attempt_id: "scheduled-attempt-media-retry",
+          event_question_id: "eq-1",
+          block_id_snapshot: "block-1",
+          question_snapshot: "Soal retry gambar",
+          question_image_path_snapshot: imagePath,
+          options_snapshot: [{ key: "A", text: "Pilihan A" }],
+          correct_option_key_snapshot: "A",
+          sort_order: 1,
+          block: { name: "Clinical Science" },
+        },
+      ],
+      error: null,
+    });
+    const answersOrder = vi.fn().mockResolvedValue({ data: [], error: null });
+    const createSignedUrls = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+      .mockResolvedValueOnce({
+        data: [{ path: imagePath, signedUrl: "https://signed.example/recovered.png" }],
+        error: null,
+      });
+    const createSignedUrl = vi.fn().mockRejectedValueOnce(new TypeError("Failed to fetch"));
+
+    const client = {
+      rpc: vi.fn().mockResolvedValue({ data: "2026-06-01T10:06:00.000Z", error: null }),
+      from: vi.fn((table: string) => {
+        if (table === "scheduled_tryout_attempts") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: attemptSingle })) })) };
+        }
+        if (table === "scheduled_tryout_attempt_items") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ order: itemsOrder })) })) };
+        }
+        if (table === "scheduled_tryout_answers") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ order: answersOrder })) })) };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      }),
+      storage: {
+        from: vi.fn(() => ({
+          createSignedUrl,
+          createSignedUrls,
+        })),
+      },
+    };
+
+    const firstAttempt = await getScheduledAttemptSessionPageData({
+      client: client as never,
+      attemptId: "scheduled-attempt-media-retry",
+      now: new Date("2026-06-01T10:06:00.000Z"),
+    });
+
+    expect(firstAttempt.view).toBe("ready");
+    expect(firstAttempt.questions[0]?.questionImageUrl).toBeNull();
+
+    const retryAttempt = await getScheduledAttemptSessionPageData({
+      client: client as never,
+      attemptId: "scheduled-attempt-media-retry",
+      now: new Date("2026-06-01T10:06:05.000Z"),
+    });
+
+    expect(retryAttempt.view).toBe("ready");
+    expect(retryAttempt.questions[0]?.questionImageUrl).toBe("https://signed.example/recovered.png");
+    expect(createSignedUrls).toHaveBeenCalledTimes(2);
   });
 });

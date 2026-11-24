@@ -17,7 +17,9 @@ import {
   type ScheduledTryoutSessionPageData,
 } from "../mappers/scheduled-tryout-mappers";
 
-type ScheduledTryoutClient = Pick<ReturnType<typeof getSupabaseBrowserClient>, "from" | "rpc" | "storage">;
+type ScheduledTryoutClient = Pick<ReturnType<typeof getSupabaseBrowserClient>, "from" | "rpc" | "storage"> & {
+  auth?: Pick<ReturnType<typeof getSupabaseBrowserClient>["auth"], "getSession">;
+};
 
 type RelatedNameRow = {
   id?: string;
@@ -365,14 +367,18 @@ async function createSignedMediaUrls(
 
   if (error) {
     // Fall back to sequential individual requests to avoid rate limits when a file is missing.
-    // Caching ensures this slow path is rarely hit.
+    // Non-404 signing failures degrade gracefully to null without aborting exam loading.
     for (const p of pathsToFetch) {
-      const url = await createSignedMediaUrl(client, p);
-      if (url) {
-        result[p] = url;
-        signedUrlCache.set(p, { url, expiresAt: now + 3000 * 1000 }); // cache 50 mins
-      } else {
-        missingUrlCache.set(p, now + 300 * 1000); // cache missing for 5 mins
+      try {
+        const url = await createSignedMediaUrl(client, p);
+        if (url) {
+          result[p] = url;
+          signedUrlCache.set(p, { url, expiresAt: now + 3000 * 1000 }); // cache 50 mins
+        } else {
+          missingUrlCache.set(p, now + 300 * 1000); // cache missing for 5 mins
+        }
+      } catch {
+        // Transient storage error (e.g., 429/5xx/network): skip caching as missing so retry can recover
       }
     }
     return result;
@@ -386,6 +392,35 @@ async function createSignedMediaUrls(
   }
 
   return result;
+}
+
+async function resolveServerNow(
+  client: ScheduledTryoutClient,
+  explicitNow?: Date,
+): Promise<Date> {
+  if (explicitNow) {
+    return explicitNow;
+  }
+
+  if (typeof client.rpc !== "function") {
+    return new Date();
+  }
+
+  try {
+    const { data, error } = await client.rpc("get_server_now");
+
+    if (!error && typeof data === "string") {
+      const parsed = new Date(data);
+
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed;
+      }
+    }
+  } catch {
+    // Fall back to local clock if server clock RPC is temporarily unavailable
+  }
+
+  return new Date();
 }
 
 function mapAttempt(row: ScheduledAttemptRow): ScheduledPersistedAttempt {
@@ -801,7 +836,7 @@ export async function findActiveScheduledAttemptForUser(
   {
     client = getSupabaseBrowserClient(),
     userId,
-    now = new Date(),
+    now,
   }: {
     client?: ScheduledTryoutClient;
     userId: string;
@@ -826,24 +861,28 @@ export async function findActiveScheduledAttemptForUser(
   }
 
   const attempt = mapAttempt(data as ScheduledAttemptRow);
-  const answersResponse = await client
-    .from("scheduled_tryout_answers")
-    .select("attempt_item_id", {
-      count: "exact",
-      head: true,
-    })
-    .eq("attempt_id", attempt.id)
-    .not("selected_option_key", "is", null);
+  const [answersResponse, eventResponse, effectiveNow] = await Promise.all([
+    client
+      .from("scheduled_tryout_answers")
+      .select("attempt_item_id", {
+        count: "exact",
+        head: true,
+      })
+      .eq("attempt_id", attempt.id)
+      .not("selected_option_key", "is", null),
+    client
+      .from("scheduled_tryout_events")
+      .select("id, title, access_end_at")
+      .eq("id", attempt.eventId)
+      .maybeSingle(),
+    resolveServerNow(client, now),
+  ]);
 
   if (answersResponse.error) {
     throw new Error(answersResponse.error.message);
   }
 
-  const { data: eventData, error: eventError } = await client
-    .from("scheduled_tryout_events")
-    .select("id, title, access_end_at")
-    .eq("id", attempt.eventId)
-    .maybeSingle();
+  const { data: eventData, error: eventError } = eventResponse;
 
   if (eventError) {
     throw new Error(eventError.message);
@@ -856,7 +895,7 @@ export async function findActiveScheduledAttemptForUser(
     title: ((eventData as { title?: string } | null)?.title) ?? "Try Out Terjadwal",
     answeredCount: answersResponse.count ?? 0,
     totalQuestions: attempt.totalQuestions,
-    timeRemainingSeconds: calculateTimeRemainingSeconds(attempt, now),
+    timeRemainingSeconds: calculateTimeRemainingSeconds(attempt, effectiveNow),
     accessEndAt: ((eventData as { access_end_at?: string } | null)?.access_end_at) ?? null,
   };
 }
@@ -903,18 +942,27 @@ export async function getScheduledAttemptSessionPageData(
   {
     client = getSupabaseBrowserClient(),
     attemptId,
-    now = new Date(),
+    now,
   }: {
     client?: ScheduledTryoutClient;
     attemptId: string;
     now?: Date;
   },
 ): Promise<ScheduledTryoutSessionPageData> {
-  const [attempt, items, answers] = await Promise.all([
+  const [attempt, items, answers, effectiveNow] = await Promise.all([
     getScheduledAttemptById(client, attemptId),
     getScheduledAttemptItemsByAttemptId(client, attemptId),
     getScheduledAnswersByAttemptId(client, attemptId),
+    resolveServerNow(client, now),
   ]);
+
+  if (!attempt && client.auth?.getSession) {
+    const { data } = await client.auth.getSession();
+
+    if (!data?.session) {
+      throw new Error("Sesi login berakhir. Silakan masuk kembali untuk melanjutkan try out.");
+    }
+  }
 
   const imagePaths = Array.from(new Set(items.map((item) => item.questionImagePath).filter((value): value is string => Boolean(value))));
   const signedUrls = await createSignedMediaUrls(client, imagePaths);
@@ -926,7 +974,7 @@ export async function getScheduledAttemptSessionPageData(
       questionImageUrl: item.questionImagePath ? (signedUrls[item.questionImagePath] ?? null) : null,
     })),
     answers,
-    now,
+    now: effectiveNow,
   });
 }
 

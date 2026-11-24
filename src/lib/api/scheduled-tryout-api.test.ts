@@ -1104,4 +1104,193 @@ describe("scheduled-tryout-api", () => {
       }),
     );
   });
+
+  test("degrades image URLs to null instead of failing session load when storage signing fails with rate limit or 5xx", async () => {
+    const attemptSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: "scheduled-attempt-media-fail",
+        event_id: "event-1",
+        event_cycle: 1,
+        user_id: "user-1",
+        status: "in_progress",
+        started_at: "2026-06-01T10:00:00.000Z",
+        submitted_at: null,
+        time_limit_seconds: 1200,
+        elapsed_seconds: 100,
+        last_resumed_at: "2026-06-01T10:05:00.000Z",
+        paused_at: null,
+        total_questions: 1,
+      },
+      error: null,
+    });
+    const itemsOrder = vi.fn().mockResolvedValue({
+      data: [
+        {
+          id: "attempt-item-media-1",
+          attempt_id: "scheduled-attempt-media-fail",
+          event_question_id: "eq-1",
+          block_id_snapshot: "block-1",
+          question_snapshot: "Soal dengan gambar yang gagal di-sign.",
+          question_image_path_snapshot: "question/scheduled-events/rate-limited-img.png",
+          options_snapshot: [{ key: "A", text: "Pilihan A" }],
+          correct_option_key_snapshot: "A",
+          sort_order: 1,
+          block: { name: "Clinical Science" },
+        },
+      ],
+      error: null,
+    });
+    const answersOrder = vi.fn().mockResolvedValue({ data: [], error: null });
+    const createSignedUrls = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "Too Many Requests" },
+    });
+    const createSignedUrl = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "Too Many Requests" },
+    });
+
+    const client = {
+      rpc: vi.fn().mockResolvedValue({ data: "2026-06-01T10:06:00.000Z", error: null }),
+      from: vi.fn((table: string) => {
+        if (table === "scheduled_tryout_attempts") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: attemptSingle })) })) };
+        }
+        if (table === "scheduled_tryout_attempt_items") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ order: itemsOrder })) })) };
+        }
+        if (table === "scheduled_tryout_answers") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ order: answersOrder })) })) };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      }),
+      storage: {
+        from: vi.fn(() => ({
+          createSignedUrl,
+          createSignedUrls,
+        })),
+      },
+    };
+
+    const result = await getScheduledAttemptSessionPageData({
+      client: client as never,
+      attemptId: "scheduled-attempt-media-fail",
+      now: new Date("2026-06-01T10:06:00.000Z"),
+    });
+
+    expect(result.view).toBe("ready");
+    expect(result.questions[0]?.questionImageUrl).toBeNull();
+    expect(result.questions[0]?.stem).toBe("Soal dengan gambar yang gagal di-sign.");
+  });
+
+  test("uses get_server_now RPC instead of skewed client clock when now is omitted", async () => {
+    const attemptSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: "scheduled-attempt-clock",
+        event_id: "event-1",
+        event_cycle: 1,
+        user_id: "user-1",
+        status: "in_progress",
+        started_at: "2026-06-01T10:00:00.000Z",
+        submitted_at: null,
+        time_limit_seconds: 1200,
+        elapsed_seconds: 0,
+        last_resumed_at: "2026-06-01T10:00:00.000Z",
+        paused_at: null,
+        total_questions: 1,
+      },
+      error: null,
+    });
+    const itemsOrder = vi.fn().mockResolvedValue({
+      data: [
+        {
+          id: "attempt-item-clock-1",
+          attempt_id: "scheduled-attempt-clock",
+          event_question_id: "eq-1",
+          block_id_snapshot: "block-1",
+          question_snapshot: "Soal clock skew",
+          question_image_path_snapshot: null,
+          options_snapshot: [{ key: "A", text: "Pilihan A" }],
+          correct_option_key_snapshot: "A",
+          sort_order: 1,
+          block: { name: "Clinical Science" },
+        },
+      ],
+      error: null,
+    });
+    const answersOrder = vi.fn().mockResolvedValue({ data: [], error: null });
+    const rpc = vi.fn().mockResolvedValue({
+      data: "2026-06-01T10:02:00.000Z",
+      error: null,
+    });
+
+    const client = {
+      rpc,
+      from: vi.fn((table: string) => {
+        if (table === "scheduled_tryout_attempts") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: attemptSingle })) })) };
+        }
+        if (table === "scheduled_tryout_attempt_items") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ order: itemsOrder })) })) };
+        }
+        if (table === "scheduled_tryout_answers") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ order: answersOrder })) })) };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      }),
+      storage: {
+        from: vi.fn(() => ({
+          createSignedUrl: vi.fn(),
+          createSignedUrls: vi.fn(),
+        })),
+      },
+    };
+
+    const result = await getScheduledAttemptSessionPageData({
+      client: client as never,
+      attemptId: "scheduled-attempt-clock",
+    });
+
+    expect(rpc).toHaveBeenCalledWith("get_server_now");
+    expect(result.attempt?.timeRemainingSeconds).toBe(1080);
+  });
+
+  test("throws an auth-expired error instead of returning empty view when attempt is null and auth session is missing", async () => {
+    const attemptSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+    const itemsOrder = vi.fn().mockResolvedValue({ data: [], error: null });
+    const answersOrder = vi.fn().mockResolvedValue({ data: [], error: null });
+
+    const client = {
+      auth: {
+        getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+      },
+      rpc: vi.fn().mockResolvedValue({ data: "2026-06-01T10:02:00.000Z", error: null }),
+      from: vi.fn((table: string) => {
+        if (table === "scheduled_tryout_attempts") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: attemptSingle })) })) };
+        }
+        if (table === "scheduled_tryout_attempt_items") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ order: itemsOrder })) })) };
+        }
+        if (table === "scheduled_tryout_answers") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ order: answersOrder })) })) };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      }),
+      storage: {
+        from: vi.fn(() => ({
+          createSignedUrl: vi.fn(),
+          createSignedUrls: vi.fn(),
+        })),
+      },
+    };
+
+    await expect(
+      getScheduledAttemptSessionPageData({
+        client: client as never,
+        attemptId: "scheduled-attempt-missing-auth",
+        now: new Date("2026-06-01T10:02:00.000Z"),
+      }),
+    ).rejects.toThrow(/sesi login berakhir/i);
+  });
 });

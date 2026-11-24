@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, ArrowLeft, ArrowRight, Clock, Loader2 } from "lucide-react";
 import { startTransition, useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
+import { toast } from "sonner";
 import ProductShell from "../../components/layout/product-shell";
 import Button, { getButtonStyleProps } from "../../components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
@@ -72,6 +73,7 @@ function ScheduledTryoutSessionPage() {
   const sessionQuery = useQuery({
     queryKey: ["scheduled-tryout-session", attemptId],
     enabled: Boolean(attemptId),
+    staleTime: 0,
     queryFn: () =>
       getScheduledAttemptSessionPageData({
         attemptId: attemptId!,
@@ -139,10 +141,15 @@ function ScheduledTryoutSessionPage() {
         previous,
       };
     },
-    onError: (_error, _variables, context) => {
+    onError: (error, _variables, context) => {
       if (context?.previous) {
         queryClient.setQueryData(["scheduled-tryout-session", attemptId], context.previous);
       }
+      toast.error(
+        error instanceof Error && error.message
+          ? `Jawaban belum tersimpan: ${error.message}`
+          : "Jawaban belum tersimpan. Periksa koneksi lalu pilih ulang.",
+      );
     },
   });
   const pauseMutation = useMutation({
@@ -157,6 +164,9 @@ function ScheduledTryoutSessionPage() {
       void queryClient.invalidateQueries({
         queryKey: ["active-scheduled-tryout-attempt"],
       });
+    },
+    onError: () => {
+      hasRequestedPause.current = false;
     },
   });
   const resumeMutation = useMutation({
@@ -239,11 +249,18 @@ function ScheduledTryoutSessionPage() {
     const savePromise = answerMutation.mutateAsync(variables);
     inFlightAnswerSaveRef.current = savePromise;
 
-    void savePromise.finally(() => {
-      if (inFlightAnswerSaveRef.current === savePromise) {
-        inFlightAnswerSaveRef.current = null;
-      }
-    });
+    void savePromise.then(
+      () => {
+        if (inFlightAnswerSaveRef.current === savePromise) {
+          inFlightAnswerSaveRef.current = null;
+        }
+      },
+      () => {
+        if (inFlightAnswerSaveRef.current === savePromise) {
+          inFlightAnswerSaveRef.current = null;
+        }
+      },
+    );
 
     return savePromise;
   }
@@ -330,39 +347,63 @@ function ScheduledTryoutSessionPage() {
   }, [sessionAttempt?.id, sessionAttempt?.status]);
 
   useEffect(() => {
+    if (sessionAttempt?.status === "submitted" && attemptId) {
+      navigate(`/app/scheduled-tryout/result?attempt=${attemptId}`, {
+        replace: true,
+      });
+    }
+  }, [attemptId, navigate, sessionAttempt?.status]);
+
+  useEffect(() => {
     if (sessionAttempt?.status !== "paused" || !attemptId) {
       return;
     }
 
-    if (resumeMutation.isPending || resumeRequestedAttemptIdRef.current === attemptId) {
-      return;
+    function tryResumeIfVisible() {
+      if (document.hidden) {
+        return;
+      }
+
+      if (resumeMutation.isPending || resumeRequestedAttemptIdRef.current === attemptId) {
+        return;
+      }
+
+      resumeRequestedAttemptIdRef.current = attemptId;
+      resumeMutation.mutate();
     }
 
-    resumeRequestedAttemptIdRef.current = attemptId;
-    resumeMutation.mutate();
-  }, [attemptId, resumeMutation, sessionAttempt?.status]);
+    tryResumeIfVisible();
+    document.addEventListener("visibilitychange", tryResumeIfVisible);
+
+    return () => {
+      document.removeEventListener("visibilitychange", tryResumeIfVisible);
+    };
+  }, [attemptId, resumeMutation.isPending, resumeMutation.mutate, sessionAttempt?.status]);
 
   useEffect(() => {
     if (sessionAttempt?.status !== "in_progress") {
       return;
     }
 
-    if (timeRemainingSeconds === null || timeRemainingSeconds <= 0) {
+    const initialTimeRemaining = sessionAttempt.timeRemainingSeconds;
+
+    if (initialTimeRemaining <= 0) {
       return;
     }
 
-    const timer = window.setInterval(() => {
-      setTimeRemainingSeconds((current) => {
-        if (current === null) {
-          return current;
-        }
+    const expectedEndTime = Date.now() + initialTimeRemaining * 1000;
 
-        return Math.max(0, current - 1);
-      });
+    const timer = window.setInterval(() => {
+      const remaining = Math.max(0, Math.floor((expectedEndTime - Date.now()) / 1000));
+      setTimeRemainingSeconds(remaining);
+
+      if (remaining <= 0) {
+        window.clearInterval(timer);
+      }
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [sessionAttempt?.status, timeRemainingSeconds]);
+  }, [sessionAttempt?.id, sessionAttempt?.status, sessionAttempt?.timeRemainingSeconds]);
 
   useEffect(() => {
     if (sessionAttempt?.status !== "in_progress") {
@@ -383,6 +424,7 @@ function ScheduledTryoutSessionPage() {
 
   useEffect(() => {
     if (sessionAttempt?.status !== "in_progress" || !attemptId) {
+      requestPauseRef.current = null;
       return;
     }
 
@@ -400,6 +442,8 @@ function ScheduledTryoutSessionPage() {
 
       try {
         await flushCurrentQuestionProgress();
+      } catch {
+        // Non-fatal: still pause the attempt even if final answer flush fails offline
       } finally {
         pauseMutation.mutate();
       }
@@ -418,14 +462,23 @@ function ScheduledTryoutSessionPage() {
       }
     }
 
+    function handleBeforeUnload(event: BeforeUnloadEvent) {
+      if (!hasStartedSubmit.current) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    }
+
     window.addEventListener("pagehide", handlePageHide);
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
       window.removeEventListener("pagehide", handlePageHide);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [attemptId, pauseMutation, sessionAttempt?.status, submitMutation.isPending]);
+  }, [attemptId, pauseMutation.isPending, pauseMutation.mutate, sessionAttempt?.status, submitMutation.isPending]);
 
   // Separate effect specifically for pausing on actual component unmount (e.g. client-side routing)
   useEffect(() => {
@@ -452,10 +505,6 @@ function ScheduledTryoutSessionPage() {
       return;
     }
 
-    if (isAttemptRunning) {
-      void flushCurrentQuestionProgress();
-    }
-
     startTransition(() => {
       setCurrentIndex(index);
     });
@@ -470,6 +519,8 @@ function ScheduledTryoutSessionPage() {
       attemptItemId: currentQuestion.id,
       selectedOptionKey,
       isDoubtful,
+    }).catch(() => {
+      // Handled via answerMutation.onError rollback and toast feedback
     });
   }
 
@@ -560,19 +611,28 @@ function ScheduledTryoutSessionPage() {
               Kembali ke daftar sesi
             </Link>
           </div>
-        ) : sessionQuery.isError ? (
-          <Alert variant="destructive" className="mt-6 flex flex-col items-start gap-4">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Soal belum bisa dimuat</AlertTitle>
-            </div>
-            <AlertDescription>Buka daftar sesi lalu coba lagi.</AlertDescription>
-            <Link {...getButtonStyleProps({ variant: "primary" })} to="/app/scheduled-tryout">
-              Buka daftar sesi
-            </Link>
-          </Alert>
         ) : sessionData?.view === "ready" && currentQuestion ? (
           <>
+          {sessionQuery.isError ? (
+            <Alert variant="destructive" className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <div>
+                  <AlertTitle>Sinkronisasi sesi sempat terganggu</AlertTitle>
+                  <AlertDescription>
+                    Soal tetap bisa dikerjakan. Muat ulang sesi saat koneksi kembali stabil.
+                  </AlertDescription>
+                </div>
+              </div>
+              <Button
+                onClick={() => void sessionQuery.refetch()}
+                size="sm"
+                variant="outline"
+              >
+                Muat ulang sesi
+              </Button>
+            </Alert>
+          ) : null}
           <div
             className={[
               "mt-6 grid gap-4",
@@ -791,6 +851,30 @@ function ScheduledTryoutSessionPage() {
             )}
           />
           </>
+        ) : sessionQuery.isError ? (
+          <Alert variant="destructive" className="mt-6 flex flex-col items-start gap-4">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Soal belum bisa dimuat</AlertTitle>
+            </div>
+            <AlertDescription>
+              Buka daftar sesi lalu coba lagi.
+              {sessionQuery.error instanceof Error && sessionQuery.error.message
+                ? ` (${sessionQuery.error.message})`
+                : ""}
+            </AlertDescription>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                onClick={() => void sessionQuery.refetch()}
+                variant="primary"
+              >
+                Coba muat ulang
+              </Button>
+              <Link {...getButtonStyleProps({ variant: "outline" })} to="/app/scheduled-tryout">
+                Buka daftar sesi
+              </Link>
+            </div>
+          </Alert>
         ) : (
           <Alert className="mt-6 border-dashed flex flex-col items-start gap-4">
             <div>

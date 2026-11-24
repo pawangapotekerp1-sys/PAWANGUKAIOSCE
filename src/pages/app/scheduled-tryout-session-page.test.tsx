@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { BookOpenCheck, CircleGauge, FileCheck2 } from "lucide-react";
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import ScheduledTryoutSessionPage from "./scheduled-tryout-session-page";
 
@@ -13,6 +13,13 @@ const mockSaveScheduledTryoutAnswer = vi.fn();
 const mockSubmitScheduledTryoutAttempt = vi.fn();
 const mockFindActiveScheduledAttemptForUser = vi.fn();
 const mockUseStudentShell = vi.fn();
+const mockToastError = vi.fn();
+
+vi.mock("sonner", () => ({
+  toast: {
+    error: (...args: unknown[]) => mockToastError(...args),
+  },
+}));
 
 vi.mock("../../lib/api/scheduled-tryout-api", () => ({
   createScheduledTryoutAttempt: (...args: unknown[]) => mockCreateScheduledTryoutAttempt(...args),
@@ -64,6 +71,10 @@ function renderScheduledSession(initialEntry = "/app/scheduled-tryout/session?at
 
 afterEach(() => {
   cleanup();
+  Object.defineProperty(document, "hidden", {
+    configurable: true,
+    value: false,
+  });
 });
 
 beforeEach(() => {
@@ -577,5 +588,187 @@ describe("Scheduled tryout session page", () => {
 
     const desktopCard = screen.getByText(/^navigasi soal$/i).closest(".shadow-sm");
     expect(desktopCard).toHaveClass("hidden", "md:block");
+  });
+
+  test("keeps loaded questions and timer visible when a background refetch fails, with a retry action", async () => {
+    const readyPayload = {
+      view: "ready" as const,
+      attempt: {
+        id: "scheduled-attempt-1",
+        status: "in_progress" as const,
+        totalQuestions: 2,
+        timeRemainingSeconds: 2400,
+      },
+      questions: [
+        {
+          id: "scheduled-item-1",
+          order: 1,
+          blockLabel: "Clinical Science",
+          stem: "Pasien masuk dengan hipertensi emergensi. Apa langkah awal?",
+          questionImageUrl: null,
+          options: [
+            { key: "A", text: "Pilihan A" },
+            { key: "B", text: "Pilihan B" },
+          ],
+          selectedOptionKey: null,
+          isDoubtful: false,
+        },
+      ],
+    };
+
+    mockGetScheduledAttemptSessionPageData
+      .mockResolvedValueOnce(readyPayload)
+      .mockRejectedValueOnce(new Error("Network error"))
+      .mockResolvedValueOnce(readyPayload);
+
+    const { queryClient } = renderScheduledSession();
+
+    expect(await screen.findByText(/timer 00:40:00/i)).toBeInTheDocument();
+    expect(screen.getByText(/hipertensi emergensi/i)).toBeInTheDocument();
+
+    await queryClient.invalidateQueries({
+      queryKey: ["scheduled-tryout-session", "scheduled-attempt-1"],
+    });
+
+    expect(await screen.findByRole("button", { name: /muat ulang sesi/i })).toBeInTheDocument();
+    expect(screen.getByText(/hipertensi emergensi/i)).toBeInTheDocument();
+    expect(screen.queryByText(/timer --:--:--/i)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /muat ulang sesi/i }));
+
+    await waitFor(() => {
+      expect(mockGetScheduledAttemptSessionPageData).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  test("offers a direct retry button on fatal initial session load failure", async () => {
+    mockGetScheduledAttemptSessionPageData.mockRejectedValueOnce(new Error("Storage timeout"));
+
+    renderScheduledSession();
+
+    expect(await screen.findByText(/soal belum bisa dimuat/i)).toBeInTheDocument();
+    const retryButton = screen.getByRole("button", { name: /coba muat ulang/i });
+    expect(retryButton).toBeInTheDocument();
+
+    fireEvent.click(retryButton);
+
+    expect(await screen.findByText(/timer 00:40:00/i)).toBeInTheDocument();
+  });
+
+  test("does not auto-resume a paused attempt while document.hidden is true, and resumes once visible", async () => {
+    Object.defineProperty(document, "hidden", {
+      configurable: true,
+      value: true,
+    });
+    mockGetScheduledAttemptSessionPageData.mockResolvedValueOnce({
+      view: "ready",
+      attempt: {
+        id: "scheduled-attempt-1",
+        status: "paused",
+        totalQuestions: 1,
+        timeRemainingSeconds: 1800,
+      },
+      questions: [
+        {
+          id: "scheduled-item-1",
+          order: 1,
+          blockLabel: "Clinical Science",
+          stem: "Soal tertunda.",
+          questionImageUrl: null,
+          options: [{ key: "A", text: "Pilihan A" }],
+          selectedOptionKey: null,
+          isDoubtful: false,
+        },
+      ],
+    });
+
+    renderScheduledSession();
+
+    expect(await screen.findByText(/timer 00:30:00/i)).toBeInTheDocument();
+    expect(mockResumeScheduledTryoutAttempt).not.toHaveBeenCalled();
+
+    Object.defineProperty(document, "hidden", {
+      configurable: true,
+      value: false,
+    });
+    fireEvent(document, new Event("visibilitychange"));
+
+    await waitFor(() => {
+      expect(mockResumeScheduledTryoutAttempt).toHaveBeenCalledWith({
+        attemptId: "scheduled-attempt-1",
+      });
+    });
+  });
+
+  test("does not send redundant save_scheduled_tryout_answer RPC when navigating between questions without changes", async () => {
+    renderScheduledSession();
+
+    await screen.findByText(/timer 00:40:00/i);
+    mockSaveScheduledTryoutAnswer.mockClear();
+
+    fireEvent.click(screen.getByRole("button", { name: /selanjutnya/i }));
+
+    expect(await screen.findByText(/parameter sterilitas/i)).toBeInTheDocument();
+    expect(mockSaveScheduledTryoutAnswer).not.toHaveBeenCalled();
+  });
+
+  test("redirects to result page when loaded scheduled attempt is already submitted", async () => {
+    mockGetScheduledAttemptSessionPageData.mockResolvedValueOnce({
+      view: "ready",
+      attempt: {
+        id: "scheduled-attempt-1",
+        status: "submitted",
+        totalQuestions: 1,
+        timeRemainingSeconds: 0,
+      },
+      questions: [
+        {
+          id: "scheduled-item-1",
+          order: 1,
+          blockLabel: "Clinical Science",
+          stem: "Soal sudah selesai.",
+          questionImageUrl: null,
+          options: [{ key: "A", text: "Pilihan A" }],
+          selectedOptionKey: "A",
+          isDoubtful: false,
+        },
+      ],
+    });
+
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={["/app/scheduled-tryout/session?attempt=scheduled-attempt-1"]}>
+          <Routes>
+            <Route path="/app/scheduled-tryout/session" element={<ScheduledTryoutSessionPage />} />
+            <Route path="/app/scheduled-tryout/result" element={<div>Hasil tryout terjadwal</div>} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    expect(await screen.findByText(/hasil tryout terjadwal/i)).toBeInTheDocument();
+  });
+
+  test("shows an error toast and rolls back selection when saving an answer fails", async () => {
+    mockSaveScheduledTryoutAnswer.mockRejectedValueOnce(new Error("Koneksi terputus"));
+
+    renderScheduledSession();
+
+    await screen.findByText(/timer 00:40:00/i);
+
+    const optionAButton = screen.getByRole("button", { name: /A Pilihan A/i });
+    fireEvent.click(optionAButton);
+
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalledWith("Jawaban belum tersimpan: Koneksi terputus");
+    });
+    expect(optionAButton).toHaveAttribute("aria-pressed", "false");
   });
 });

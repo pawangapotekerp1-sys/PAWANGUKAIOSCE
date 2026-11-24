@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { Session } from "@supabase/supabase-js";
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import App from "../App";
+import { AppRouteGuard } from "./route-guards";
 import type { SubscriptionState, UserRole } from "../lib/auth/permissions";
 
 const mockUseSession = vi.fn();
@@ -656,6 +657,92 @@ describe("App router", () => {
     expect((await screen.findAllByRole("link", {
       name: /area mentor/i,
     }))[0]).toHaveAttribute("href", "/app/area-mentor");
+  });
+
+  test("preserves mounted app content when a background window-focus refresh fails transiently", async () => {
+    setAuthenticatedSession("pro", "active");
+    mockBootstrapProfile
+      .mockResolvedValueOnce({
+        id: "user-1",
+        email: "student@example.com",
+        role: "pro",
+      })
+      .mockRejectedValueOnce(new Error("Failed to fetch"));
+
+    renderApp("/app");
+
+    expect(
+      (
+        await screen.findAllByText(/fokus hari ini|kunci ulang|ringkasan hari ini/i, {
+          selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]',
+        })
+      )[0],
+    ).toBeInTheDocument();
+
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "visible",
+    });
+    fireEvent(window, new Event("focus"));
+
+    await waitFor(() => {
+      expect(mockBootstrapProfile).toHaveBeenCalledTimes(2);
+    });
+
+    expect(screen.queryByText(/akses akun belum bisa diverifikasi/i)).not.toBeInTheDocument();
+    expect(
+      screen.getAllByText(/fokus hari ini|kunci ulang|ringkasan hari ini/i, {
+        selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]',
+      })[0],
+    ).toBeInTheDocument();
+  });
+
+  test("suspends focus-triggered profile upsert rehydration during active scheduled tryout sessions", async () => {
+    setAuthenticatedSession("pro", "active");
+
+    renderApp("/app/scheduled-tryout/session");
+
+    expect(
+      await screen.findByText(/belum ada sesi aktif/i, {
+        selector: 'h1, h2, h3, h4, h5, h6, [data-slot="card-title"], [data-slot="alert-title"]',
+      }),
+    ).toBeInTheDocument();
+    expect(mockBootstrapProfile).toHaveBeenCalledTimes(1);
+
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "visible",
+    });
+    fireEvent(document, new Event("visibilitychange"));
+    fireEvent(window, new Event("focus"));
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(mockBootstrapProfile).toHaveBeenCalledTimes(1);
+  });
+
+  test("preserves return path and query string in location state when redirecting anonymous users to login", async () => {
+    setAnonymousSession();
+
+    function LoginStateProbe() {
+      const location = useLocation();
+      const from = (location.state as { from?: string } | null)?.from ?? "missing";
+      return <div data-testid="login-from-state">{from}</div>;
+    }
+
+    render(
+      <MemoryRouter initialEntries={["/app/scheduled-tryout/session?event=event-1"]}>
+        <Routes>
+          <Route element={<AppRouteGuard />}>
+            <Route path="/app/scheduled-tryout/session" element={<div>Session</div>} />
+          </Route>
+          <Route path="/auth/login" element={<LoginStateProbe />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByTestId("login-from-state")).toHaveTextContent(
+      "/app/scheduled-tryout/session?event=event-1",
+    );
   });
 
   test("renders the student dashboard for active mentor users", async () => {

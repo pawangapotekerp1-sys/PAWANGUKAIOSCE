@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate, Outlet } from "react-router";
+import { Navigate, Outlet, useLocation } from "react-router";
 import FullPageLoader from "../components/ui/full-page-loader";
 import { useSession } from "../lib/auth/use-session";
 import {
@@ -47,10 +47,17 @@ function GuardErrorState({
   );
 }
 
+const ACTIVE_EXAM_ROUTE_PATHS = new Set([
+  "/app/scheduled-tryout/session",
+  "/app/tryout/session",
+]);
+
 function useGuardAccess(): GuardState {
   const { status, user } = useSession();
+  const location = useLocation();
+  const isActiveExamRoute = ACTIVE_EXAM_ROUTE_PATHS.has(location.pathname);
   const refreshVersion = useWindowFocusRefresh({
-    enabled: status === "authenticated" && Boolean(user),
+    enabled: status === "authenticated" && Boolean(user) && !isActiveExamRoute,
   });
   const [guardState, setGuardState] = useState<GuardState>({
     status: "loading",
@@ -95,13 +102,16 @@ function useGuardAccess(): GuardState {
         });
       } catch (error) {
         if (!isCancelled) {
-          setGuardState({
-            status: "error",
-            message:
-              error instanceof Error && error.message
-                ? error.message
-                : "Akses akun belum bisa diverifikasi sekarang. Muat ulang halaman atau coba lagi beberapa saat.",
-          });
+          setGuardState((current) =>
+            current.status === "ready"
+              ? current
+              : {
+                  status: "error",
+                  message:
+                    error instanceof Error && error.message
+                      ? error.message
+                      : "Akses akun belum bisa diverifikasi sekarang. Muat ulang halaman atau coba lagi beberapa saat.",
+                });
         }
       }
     }
@@ -118,6 +128,7 @@ function useGuardAccess(): GuardState {
 
 export function AppRouteGuard() {
   const guardState = useGuardAccess();
+  const location = useLocation();
 
   if (guardState.status === "loading") {
     return null;
@@ -125,7 +136,13 @@ export function AppRouteGuard() {
 
   if (guardState.status === "anonymous" || guardState.status === "error") {
     if (guardState.status === "anonymous") {
-      return <Navigate replace to="/auth/login" />;
+      return (
+        <Navigate
+          replace
+          state={{ from: `${location.pathname}${location.search}` }}
+          to="/auth/login"
+        />
+      );
     }
 
     return (

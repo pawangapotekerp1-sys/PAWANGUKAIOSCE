@@ -36,7 +36,7 @@ function TryoutSessionPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useSession();
-  const studentShell = useStudentShell("/app/tryout");
+  const studentShell = useStudentShell("/app/tryout", { disableFocusRefresh: true });
   const [searchParams] = useSearchParams();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isQuestionNavHidden, setIsQuestionNavHidden] = useState(false);

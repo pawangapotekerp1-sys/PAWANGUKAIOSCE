@@ -38,11 +38,15 @@ grant execute on function public.can_manage_scheduled_tryouts() to authenticated
 -- ============================================================================
 
 alter table public.scheduled_tryout_events
-  add column if not exists questions_updated_at timestamptz not null default timezone('utc', now());
+  add column if not exists questions_updated_at timestamptz;
 
 update public.scheduled_tryout_events
 set questions_updated_at = coalesce(updated_at, created_at, timezone('utc', now()))
 where questions_updated_at is null;
+
+alter table public.scheduled_tryout_events
+  alter column questions_updated_at set default timezone('utc', now()),
+  alter column questions_updated_at set not null;
 
 alter table public.scheduled_tryout_attempts
   add column if not exists synced_questions_at timestamptz;
@@ -56,7 +60,10 @@ alter table public.scheduled_tryout_attempt_items
 alter table public.scheduled_tryout_answers
   add column if not exists user_id uuid references public.profiles (id) on delete cascade;
 
--- Backfill denormalized columns on existing rows
+-- Suspend updated_at triggers during backfill to avoid per-row trigger overhead
+alter table public.scheduled_tryout_attempt_items
+  disable trigger set_scheduled_tryout_attempt_items_updated_at;
+
 update public.scheduled_tryout_attempt_items as item
 set
   user_id = coalesce(item.user_id, attempt.user_id),
@@ -67,11 +74,23 @@ left join public.blocks as block
 where attempt.id = item.attempt_id
   and (item.user_id is null or item.block_name_snapshot is null);
 
+alter table public.scheduled_tryout_attempt_items
+  enable trigger set_scheduled_tryout_attempt_items_updated_at;
+
+alter table public.scheduled_tryout_answers
+  disable trigger set_scheduled_tryout_answers_updated_at;
+
 update public.scheduled_tryout_answers as ans
 set user_id = attempt.user_id
 from public.scheduled_tryout_attempts as attempt
 where attempt.id = ans.attempt_id
   and ans.user_id is null;
+
+alter table public.scheduled_tryout_answers
+  enable trigger set_scheduled_tryout_answers_updated_at;
+
+alter table public.scheduled_tryout_attempts
+  disable trigger set_scheduled_tryout_attempts_updated_at;
 
 update public.scheduled_tryout_attempts as attempt
 set synced_questions_at = event.questions_updated_at
@@ -79,49 +98,135 @@ from public.scheduled_tryout_events as event
 where event.id = attempt.event_id
   and attempt.synced_questions_at is null;
 
--- Safety triggers to keep watermarks and denormalized columns consistent
-create or replace function public.bump_scheduled_event_questions_watermark()
+alter table public.scheduled_tryout_attempts
+  enable trigger set_scheduled_tryout_attempts_updated_at;
+
+-- Enforce non-null invariants on denormalized ownership/snapshot columns
+alter table public.scheduled_tryout_attempt_items
+  drop constraint if exists scheduled_tryout_attempt_items_user_id_nn,
+  add constraint scheduled_tryout_attempt_items_user_id_nn
+    check (user_id is not null) not valid;
+alter table public.scheduled_tryout_attempt_items
+  validate constraint scheduled_tryout_attempt_items_user_id_nn;
+
+alter table public.scheduled_tryout_attempt_items
+  drop constraint if exists scheduled_tryout_attempt_items_block_name_nn,
+  add constraint scheduled_tryout_attempt_items_block_name_nn
+    check (block_name_snapshot is not null) not valid;
+alter table public.scheduled_tryout_attempt_items
+  validate constraint scheduled_tryout_attempt_items_block_name_nn;
+
+alter table public.scheduled_tryout_answers
+  drop constraint if exists scheduled_tryout_answers_user_id_nn,
+  add constraint scheduled_tryout_answers_user_id_nn
+    check (user_id is not null) not valid;
+alter table public.scheduled_tryout_answers
+  validate constraint scheduled_tryout_answers_user_id_nn;
+
+-- Statement-level triggers with transition tables to bump questions_updated_at once per statement
+create or replace function public.bump_scheduled_event_questions_watermark_from_questions()
 returns trigger
 language plpgsql
 security definer
 set search_path = ''
 as $$
-declare
-  affected_event_id uuid;
 begin
-  if tg_table_name = 'scheduled_tryout_event_questions' then
-    affected_event_id := coalesce(new.event_id, old.event_id);
-  elsif tg_table_name = 'scheduled_tryout_event_question_options' then
-    select q.event_id
-    into affected_event_id
-    from public.scheduled_tryout_event_questions as q
-    where q.id = coalesce(new.event_question_id, old.event_question_id);
-  end if;
-
-  if affected_event_id is not null then
+  if tg_op = 'DELETE' then
     update public.scheduled_tryout_events
     set questions_updated_at = timezone('utc', now())
-    where id = affected_event_id;
+    where id in (select distinct old_rows.event_id from old_rows where old_rows.event_id is not null);
+  else
+    update public.scheduled_tryout_events
+    set questions_updated_at = timezone('utc', now())
+    where id in (select distinct new_rows.event_id from new_rows where new_rows.event_id is not null);
   end if;
 
-  return coalesce(new, old);
+  return null;
 end;
 $$;
 
-revoke all on function public.bump_scheduled_event_questions_watermark() from public, anon, authenticated;
-grant execute on function public.bump_scheduled_event_questions_watermark() to service_role;
+revoke all on function public.bump_scheduled_event_questions_watermark_from_questions() from public, anon, authenticated;
+grant execute on function public.bump_scheduled_event_questions_watermark_from_questions() to service_role;
+
+create or replace function public.bump_scheduled_event_questions_watermark_from_options()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if tg_op = 'DELETE' then
+    update public.scheduled_tryout_events
+    set questions_updated_at = timezone('utc', now())
+    where id in (
+      select distinct q.event_id
+      from old_rows
+      join public.scheduled_tryout_event_questions as q
+        on q.id = old_rows.event_question_id
+    );
+  else
+    update public.scheduled_tryout_events
+    set questions_updated_at = timezone('utc', now())
+    where id in (
+      select distinct q.event_id
+      from new_rows
+      join public.scheduled_tryout_event_questions as q
+        on q.id = new_rows.event_question_id
+    );
+  end if;
+
+  return null;
+end;
+$$;
+
+revoke all on function public.bump_scheduled_event_questions_watermark_from_options() from public, anon, authenticated;
+grant execute on function public.bump_scheduled_event_questions_watermark_from_options() to service_role;
 
 drop trigger if exists bump_scheduled_event_questions_watermark_on_q on public.scheduled_tryout_event_questions;
-create trigger bump_scheduled_event_questions_watermark_on_q
-after insert or update or delete on public.scheduled_tryout_event_questions
-for each row
-execute function public.bump_scheduled_event_questions_watermark();
+drop trigger if exists bump_scheduled_event_questions_watermark_on_q_ins on public.scheduled_tryout_event_questions;
+drop trigger if exists bump_scheduled_event_questions_watermark_on_q_upd on public.scheduled_tryout_event_questions;
+drop trigger if exists bump_scheduled_event_questions_watermark_on_q_del on public.scheduled_tryout_event_questions;
+
+create trigger bump_scheduled_event_questions_watermark_on_q_ins
+after insert on public.scheduled_tryout_event_questions
+referencing new table as new_rows
+for each statement
+execute function public.bump_scheduled_event_questions_watermark_from_questions();
+
+create trigger bump_scheduled_event_questions_watermark_on_q_upd
+after update on public.scheduled_tryout_event_questions
+referencing new table as new_rows
+for each statement
+execute function public.bump_scheduled_event_questions_watermark_from_questions();
+
+create trigger bump_scheduled_event_questions_watermark_on_q_del
+after delete on public.scheduled_tryout_event_questions
+referencing old table as old_rows
+for each statement
+execute function public.bump_scheduled_event_questions_watermark_from_questions();
 
 drop trigger if exists bump_scheduled_event_questions_watermark_on_opt on public.scheduled_tryout_event_question_options;
-create trigger bump_scheduled_event_questions_watermark_on_opt
-after insert or update or delete on public.scheduled_tryout_event_question_options
-for each row
-execute function public.bump_scheduled_event_questions_watermark();
+drop trigger if exists bump_scheduled_event_questions_watermark_on_opt_ins on public.scheduled_tryout_event_question_options;
+drop trigger if exists bump_scheduled_event_questions_watermark_on_opt_upd on public.scheduled_tryout_event_question_options;
+drop trigger if exists bump_scheduled_event_questions_watermark_on_opt_del on public.scheduled_tryout_event_question_options;
+
+create trigger bump_scheduled_event_questions_watermark_on_opt_ins
+after insert on public.scheduled_tryout_event_question_options
+referencing new table as new_rows
+for each statement
+execute function public.bump_scheduled_event_questions_watermark_from_options();
+
+create trigger bump_scheduled_event_questions_watermark_on_opt_upd
+after update on public.scheduled_tryout_event_question_options
+referencing new table as new_rows
+for each statement
+execute function public.bump_scheduled_event_questions_watermark_from_options();
+
+create trigger bump_scheduled_event_questions_watermark_on_opt_del
+after delete on public.scheduled_tryout_event_question_options
+referencing old table as old_rows
+for each statement
+execute function public.bump_scheduled_event_questions_watermark_from_options();
 
 create or replace function public.populate_scheduled_tryout_item_defaults()
 returns trigger
@@ -453,6 +558,8 @@ create index if not exists scheduled_tryout_attempt_items_topic_idx
   on public.scheduled_tryout_attempt_items (topic_id_snapshot)
   where topic_id_snapshot is not null;
 
+drop index if exists public.scheduled_tryout_answers_attempt_idx;
+
 create index if not exists scheduled_tryout_answers_attempt_answered_at_idx
   on public.scheduled_tryout_answers (attempt_id, answered_at);
 
@@ -473,7 +580,7 @@ create or replace function public.sync_scheduled_tryout_attempt(
 returns public.scheduled_tryout_attempts
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
   target_attempt public.scheduled_tryout_attempts%rowtype;
@@ -768,7 +875,7 @@ create or replace function public.pause_scheduled_tryout_attempt(
 returns public.scheduled_tryout_attempts
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
   target_attempt public.scheduled_tryout_attempts%rowtype;
@@ -834,7 +941,7 @@ create or replace function public.resume_scheduled_tryout_attempt(
 returns public.scheduled_tryout_attempts
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
   target_attempt public.scheduled_tryout_attempts%rowtype;
@@ -883,7 +990,7 @@ create or replace function public.submit_scheduled_tryout_attempt(
 returns public.scheduled_tryout_attempt_results
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
   target_attempt public.scheduled_tryout_attempts%rowtype;
@@ -1010,7 +1117,7 @@ create or replace function public.save_scheduled_tryout_answer(
 returns public.scheduled_tryout_answers
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
   target_attempt public.scheduled_tryout_attempts%rowtype;
@@ -1101,7 +1208,7 @@ create or replace function public.start_scheduled_tryout_attempt(
 returns public.scheduled_tryout_attempts
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $body$
 declare
   event_row public.scheduled_tryout_events%rowtype;
@@ -1341,7 +1448,7 @@ create or replace function public.reactivate_scheduled_tryout_event(
 returns public.scheduled_tryout_events
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
   event_row public.scheduled_tryout_events%rowtype;

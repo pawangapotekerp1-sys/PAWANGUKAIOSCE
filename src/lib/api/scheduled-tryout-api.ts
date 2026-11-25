@@ -522,11 +522,23 @@ async function getScheduledSessionItemsByAttemptId(
   options: Array<{ key: string; text: string }>;
   sortOrder: number;
 }>> {
-  const { data, error } = await client
+  const primary = await client
     .from("scheduled_tryout_attempt_items")
     .select("id, attempt_id, block_name_snapshot, question_snapshot, question_image_path_snapshot, options_snapshot, sort_order")
     .eq("attempt_id", attemptId)
     .order("sort_order", { ascending: true });
+  let data: unknown = primary.data;
+  let error = primary.error;
+
+  if (error && /block_name_snapshot/i.test(error.message)) {
+    const fallback = await client
+      .from("scheduled_tryout_attempt_items")
+      .select("id, attempt_id, question_snapshot, question_image_path_snapshot, options_snapshot, sort_order, block:blocks(name)")
+      .eq("attempt_id", attemptId)
+      .order("sort_order", { ascending: true });
+    data = fallback.data;
+    error = fallback.error;
+  }
 
   if (error) {
     throw new Error(error.message);
@@ -558,11 +570,23 @@ async function getScheduledAttemptItemsByAttemptId(
   explanationText: string | null;
   explanationImagePath: string | null;
 }>> {
-  const { data, error } = await client
+  const primary = await client
     .from("scheduled_tryout_attempt_items")
     .select("id, attempt_id, event_question_id, block_id_snapshot, block_name_snapshot, question_snapshot, question_image_path_snapshot, options_snapshot, correct_option_key_snapshot, sort_order, explanation_text_snapshot, explanation_image_path_snapshot")
     .eq("attempt_id", attemptId)
     .order("sort_order", { ascending: true });
+  let data: unknown = primary.data;
+  let error = primary.error;
+
+  if (error && /block_name_snapshot/i.test(error.message)) {
+    const fallback = await client
+      .from("scheduled_tryout_attempt_items")
+      .select("id, attempt_id, event_question_id, block_id_snapshot, question_snapshot, question_image_path_snapshot, options_snapshot, correct_option_key_snapshot, sort_order, explanation_text_snapshot, explanation_image_path_snapshot, block:blocks(name)")
+      .eq("attempt_id", attemptId)
+      .order("sort_order", { ascending: true });
+    data = fallback.data;
+    error = fallback.error;
+  }
 
   if (error) {
     throw new Error(error.message);

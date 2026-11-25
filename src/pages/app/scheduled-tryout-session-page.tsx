@@ -35,7 +35,7 @@ import { useStudentShell } from "./use-student-shell";
 function ScheduledTryoutSessionPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const studentShell = useStudentShell("/app/scheduled-tryout");
+  const studentShell = useStudentShell("/app/scheduled-tryout", { disableFocusRefresh: true });
   const [searchParams] = useSearchParams();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isQuestionNavHidden, setIsQuestionNavHidden] = useState(false);

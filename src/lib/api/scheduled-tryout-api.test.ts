@@ -1685,7 +1685,7 @@ describe("scheduled-tryout-api", () => {
       },
       error: null,
     });
-    const itemsSelect = vi.fn(() => ({
+    const itemsSelect = vi.fn((_columns?: string) => ({
       eq: vi.fn(() => ({
         order: vi.fn().mockResolvedValue({
           data: [
@@ -1782,7 +1782,7 @@ describe("scheduled-tryout-api", () => {
       },
       error: null,
     });
-    const itemsSelect = vi.fn(() => ({
+    const itemsSelect = vi.fn((_columns?: string) => ({
       eq: vi.fn(() => ({
         order: vi.fn(() => {
           itemsStartedBeforeAttemptResolved = !attemptResolved;

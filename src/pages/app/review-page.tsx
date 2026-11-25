@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   CheckCircle,
   XCircle,
@@ -84,6 +84,7 @@ function ReviewPage() {
   const studentShell = useStudentShell("/app/review");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activeCategory, setActiveCategory] = useState<ReviewFilterCategory>("all_blok");
+  const hasInitializedRoleCategoryRef = useRef(false);
   const isDetailRoute = Boolean(attemptId);
   const searchSource = searchParams.get("source");
   const source = searchSource === "scheduled" ? "scheduled" : searchSource === "osce" ? "osce" : "tryout";
@@ -93,7 +94,8 @@ function ReviewPage() {
   }, [attemptId]);
 
   useEffect(() => {
-    if (studentShell.role === "osce_pro") {
+    if (!hasInitializedRoleCategoryRef.current && studentShell.role === "osce_pro") {
+      hasInitializedRoleCategoryRef.current = true;
       setActiveCategory("terjadwal");
     }
   }, [studentShell.role]);
@@ -164,10 +166,21 @@ function ReviewPage() {
                 <p className="text-sm font-medium">Riwayat sesi sedang disiapkan.</p>
               </div>
             ) : historyQuery.isError ? (
-              <Alert variant="destructive" className="mt-6 border-destructive/50 bg-destructive/5">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Riwayat pembahasan belum bisa dimuat</AlertTitle>
-                <AlertDescription>Coba lagi sebentar.</AlertDescription>
+              <Alert variant="destructive" className="mt-6 border-destructive/50 bg-destructive/5 flex flex-col items-start gap-4">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                  <div>
+                    <AlertTitle>Riwayat pembahasan belum bisa dimuat</AlertTitle>
+                    <AlertDescription>Coba lagi sebentar.</AlertDescription>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => void historyQuery.refetch()}
+                  size="sm"
+                  variant="primary"
+                >
+                  Coba muat ulang
+                </Button>
               </Alert>
             ) : filteredAttempts.length === 0 ? (
               <Alert className="mt-4 border-border/80 bg-card/60">

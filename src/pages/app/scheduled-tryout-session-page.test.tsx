@@ -771,4 +771,38 @@ describe("Scheduled tryout session page", () => {
     });
     expect(optionAButton).toHaveAttribute("aria-pressed", "false");
   });
+
+  test("updates session attempt state in-place on pause and resume without refetching all 100 questions", async () => {
+    renderScheduledSession();
+
+    await screen.findByText(/timer 00:40:00/i);
+    expect(mockGetScheduledAttemptSessionPageData).toHaveBeenCalledTimes(1);
+
+    Object.defineProperty(document, "hidden", {
+      configurable: true,
+      value: true,
+    });
+    fireEvent(document, new Event("visibilitychange"));
+
+    await waitFor(() => {
+      expect(mockPauseScheduledTryoutAttempt).toHaveBeenCalledWith({
+        attemptId: "scheduled-attempt-1",
+      });
+    });
+
+    Object.defineProperty(document, "hidden", {
+      configurable: true,
+      value: false,
+    });
+    fireEvent(document, new Event("visibilitychange"));
+
+    await waitFor(() => {
+      expect(mockResumeScheduledTryoutAttempt).toHaveBeenCalledWith({
+        attemptId: "scheduled-attempt-1",
+      });
+    });
+
+    expect(mockGetScheduledAttemptSessionPageData).toHaveBeenCalledTimes(1);
+    expect(screen.getByText(/timer 00:35:00/i)).toBeInTheDocument();
+  });
 });

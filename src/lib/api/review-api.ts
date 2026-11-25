@@ -80,11 +80,22 @@ export async function listReviewHistory({
 }: {
   userId: string;
 }): Promise<ReviewHistoryItem[]> {
-  const [tryoutHistory, scheduledHistory, osceHistory] = await Promise.all([
+  const results = await Promise.allSettled([
     listSubmittedAttemptHistory({ userId }),
     listScheduledSubmittedAttemptHistory({ userId }),
     listOsceAttemptHistory(),
   ]);
+
+  if (results.every((result) => result.status === "rejected")) {
+    const firstRejected = results[0] as PromiseRejectedResult;
+    throw firstRejected.reason instanceof Error
+      ? firstRejected.reason
+      : new Error("Riwayat pembahasan belum bisa dimuat.");
+  }
+
+  const tryoutHistory = results[0].status === "fulfilled" ? results[0].value : [];
+  const scheduledHistory = results[1].status === "fulfilled" ? results[1].value : [];
+  const osceHistory = results[2].status === "fulfilled" ? results[2].value : [];
 
   const items: ReviewHistoryItem[] = [
     ...tryoutHistory.map((item) => ({

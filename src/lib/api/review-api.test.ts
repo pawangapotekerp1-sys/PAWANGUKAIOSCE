@@ -98,6 +98,32 @@ describe("review-api", () => {
       expect(result[2].attemptId).toBe("attempt-2");
       expect(result[2].category).toBe("blok_cs");
     });
+
+    test("returns available review history when one source fails transiently, and throws only if all fail", async () => {
+      mockListSubmittedAttemptHistory.mockResolvedValueOnce([
+        {
+          attemptId: "attempt-1",
+          title: "Try Out Besar",
+          submittedAt: "2026-05-03T08:00:00.000Z",
+          score: 78,
+          correctAnswers: 156,
+          wrongAnswers: 44,
+          mode: "full",
+        },
+      ]);
+      mockListScheduledSubmittedAttemptHistory.mockRejectedValueOnce(new Error("statement timeout"));
+      mockListOsceAttemptHistory.mockResolvedValueOnce([]);
+
+      const partial = await listReviewHistory({ userId: "user-1" });
+      expect(partial).toHaveLength(1);
+      expect(partial[0].attemptId).toBe("attempt-1");
+
+      mockListSubmittedAttemptHistory.mockRejectedValueOnce(new Error("down 1"));
+      mockListScheduledSubmittedAttemptHistory.mockRejectedValueOnce(new Error("down 2"));
+      mockListOsceAttemptHistory.mockRejectedValueOnce(new Error("down 3"));
+
+      await expect(listReviewHistory({ userId: "user-1" })).rejects.toThrow("down 1");
+    });
   });
 
   describe("getReviewDetailData", () => {

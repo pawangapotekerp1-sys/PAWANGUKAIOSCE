@@ -256,4 +256,42 @@ describe("Review page", () => {
     const desktopCard = screen.getByText(/^navigasi soal$/i).closest(".shadow-xs");
     expect(desktopCard).toHaveClass("hidden", "xl:block");
   });
+
+  test("renders diagnostic error reason and retry action when scheduled review detail fails to load", async () => {
+    mockGetReviewDetailData
+      .mockRejectedValueOnce(new Error("canceling statement due to statement timeout"))
+      .mockResolvedValueOnce({
+        summary: {
+          title: "TO Klinik Juni",
+          submittedAt: "2026-05-04T08:00:00.000Z",
+          score: 82,
+          correctAnswers: 33,
+          wrongAnswers: 7,
+          source: "scheduled",
+        },
+        items: [
+          {
+            id: "item-1",
+            blockLabel: "Clinical Science",
+            question: "Apa target tekanan darah pada CKD?",
+            questionImageUrl: null,
+            userAnswer: "<130/80",
+            correctAnswer: "<130/80",
+            explanationText: "Target proteksi ginjal.",
+            explanationImageUrl: null,
+            isWrong: false,
+          },
+        ],
+      });
+
+    renderReviewPage("/app/review/scheduled-attempt-1?source=scheduled");
+
+    expect(await screen.findByText(/pembahasan belum bisa dimuat/i)).toBeInTheDocument();
+    expect(screen.getByText(/canceling statement due to statement timeout/i)).toBeInTheDocument();
+
+    const retryButton = screen.getByRole("button", { name: /coba muat ulang/i });
+    fireEvent.click(retryButton);
+
+    expect(await screen.findByText(/apa target tekanan darah pada ckd/i)).toBeInTheDocument();
+  });
 });

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CheckCircle,
   XCircle,
@@ -87,6 +87,16 @@ function ReviewPage() {
   const isDetailRoute = Boolean(attemptId);
   const searchSource = searchParams.get("source");
   const source = searchSource === "scheduled" ? "scheduled" : searchSource === "osce" ? "osce" : "tryout";
+
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [attemptId]);
+
+  useEffect(() => {
+    if (studentShell.role === "osce_pro") {
+      setActiveCategory("terjadwal");
+    }
+  }, [studentShell.role]);
 
   const historyQuery = useQuery({
     queryKey: ["review-history", user?.id],
@@ -241,10 +251,33 @@ function ReviewPage() {
                 <p className="text-sm font-medium">Pembahasan soal sedang disiapkan.</p>
               </div>
             ) : reviewQuery.isError ? (
-              <Alert variant="destructive" className="mt-6 border-destructive/50 bg-destructive/5">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Pembahasan belum bisa dimuat</AlertTitle>
-                <AlertDescription>Buka lagi dari riwayat.</AlertDescription>
+              <Alert variant="destructive" className="mt-6 border-destructive/50 bg-destructive/5 flex flex-col items-start gap-4">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                  <div>
+                    <AlertTitle>Pembahasan belum bisa dimuat</AlertTitle>
+                    <AlertDescription>
+                      Buka lagi dari riwayat.
+                      {reviewQuery.error instanceof Error && reviewQuery.error.message
+                        ? ` (${reviewQuery.error.message})`
+                        : ""}
+                    </AlertDescription>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button
+                    onClick={() => void reviewQuery.refetch()}
+                    variant="primary"
+                  >
+                    Coba muat ulang
+                  </Button>
+                  <Link
+                    {...getButtonStyleProps({ variant: "outline" })}
+                    to="/app/review"
+                  >
+                    Kembali ke riwayat
+                  </Link>
+                </div>
               </Alert>
             ) : (
               <div className="mt-2 space-y-8">

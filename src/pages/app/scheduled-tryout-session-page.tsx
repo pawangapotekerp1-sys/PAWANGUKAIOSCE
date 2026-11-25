@@ -157,10 +157,28 @@ function ScheduledTryoutSessionPage() {
       pauseScheduledTryoutAttempt({
         attemptId: attemptId!,
       }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: ["scheduled-tryout-session", attemptId],
-      });
+    onSuccess: (pausedAttempt) => {
+      queryClient.setQueryData<Awaited<ReturnType<typeof getScheduledAttemptSessionPageData>>>(
+        ["scheduled-tryout-session", attemptId],
+        (current) => {
+          if (!current || current.view !== "ready" || !current.attempt) {
+            return current;
+          }
+
+          return {
+            ...current,
+            attempt: {
+              ...current.attempt,
+              status: pausedAttempt.status,
+              totalQuestions: pausedAttempt.totalQuestions,
+              timeRemainingSeconds: Math.max(
+                0,
+                pausedAttempt.timeLimitSeconds - pausedAttempt.elapsedSeconds,
+              ),
+            },
+          };
+        },
+      );
       void queryClient.invalidateQueries({
         queryKey: ["active-scheduled-tryout-attempt"],
       });
@@ -174,13 +192,34 @@ function ScheduledTryoutSessionPage() {
       resumeScheduledTryoutAttempt({
         attemptId: attemptId!,
       }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: ["scheduled-tryout-session", attemptId],
-      });
+    onSuccess: (resumedAttempt) => {
+      queryClient.setQueryData<Awaited<ReturnType<typeof getScheduledAttemptSessionPageData>>>(
+        ["scheduled-tryout-session", attemptId],
+        (current) => {
+          if (!current || current.view !== "ready" || !current.attempt) {
+            return current;
+          }
+
+          return {
+            ...current,
+            attempt: {
+              ...current.attempt,
+              status: resumedAttempt.status,
+              totalQuestions: resumedAttempt.totalQuestions,
+              timeRemainingSeconds: Math.max(
+                0,
+                resumedAttempt.timeLimitSeconds - resumedAttempt.elapsedSeconds,
+              ),
+            },
+          };
+        },
+      );
       void queryClient.invalidateQueries({
         queryKey: ["active-scheduled-tryout-attempt"],
       });
+    },
+    onError: () => {
+      resumeRequestedAttemptIdRef.current = null;
     },
   });
   const submitMutation = useMutation({

@@ -58,12 +58,13 @@ type ScheduledAttemptRow = {
 type ScheduledAttemptItemRow = {
   id: string;
   attempt_id: string;
-  event_question_id: string | null;
-  block_id_snapshot: string | null;
+  event_question_id?: string | null;
+  block_id_snapshot?: string | null;
+  block_name_snapshot?: string | null;
   question_snapshot: string;
   question_image_path_snapshot: string | null;
   options_snapshot: Array<{ key: string; text: string }>;
-  correct_option_key_snapshot: string;
+  correct_option_key_snapshot?: string;
   sort_order: number;
   explanation_text_snapshot?: string | null;
   explanation_image_path_snapshot?: string | null;
@@ -401,6 +402,8 @@ async function createSignedMediaUrls(
     if (item.path && item.signedUrl) {
       result[item.path] = item.signedUrl;
       signedUrlCache.set(item.path, { url: item.signedUrl, expiresAt: now + 3000 * 1000 });
+    } else if (item.path && (item as { error?: unknown }).error) {
+      missingUrlCache.set(item.path, now + 300 * 1000);
     }
   }
 
@@ -508,6 +511,39 @@ async function getScheduledAttemptById(
   return data ? mapAttempt(data as ScheduledAttemptRow) : null;
 }
 
+async function getScheduledSessionItemsByAttemptId(
+  client: ScheduledTryoutClient,
+  attemptId: string,
+): Promise<Array<{
+  id: string;
+  blockName: string;
+  stem: string;
+  questionImagePath: string | null;
+  options: Array<{ key: string; text: string }>;
+  sortOrder: number;
+}>> {
+  const { data, error } = await client
+    .from("scheduled_tryout_attempt_items")
+    .select("id, attempt_id, block_name_snapshot, question_snapshot, question_image_path_snapshot, options_snapshot, sort_order")
+    .eq("attempt_id", attemptId)
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const rows = (data as ScheduledAttemptItemRow[] | null) ?? [];
+
+  return rows.map((row) => ({
+    id: row.id,
+    blockName: row.block_name_snapshot ?? resolveRelatedRow(row.block)?.name ?? "Tanpa blok",
+    stem: row.question_snapshot,
+    questionImagePath: row.question_image_path_snapshot,
+    options: row.options_snapshot ?? [],
+    sortOrder: row.sort_order,
+  }));
+}
+
 async function getScheduledAttemptItemsByAttemptId(
   client: ScheduledTryoutClient,
   attemptId: string,
@@ -524,7 +560,7 @@ async function getScheduledAttemptItemsByAttemptId(
 }>> {
   const { data, error } = await client
     .from("scheduled_tryout_attempt_items")
-    .select("id, attempt_id, event_question_id, block_id_snapshot, question_snapshot, question_image_path_snapshot, options_snapshot, correct_option_key_snapshot, sort_order, explanation_text_snapshot, explanation_image_path_snapshot, block:blocks(name)")
+    .select("id, attempt_id, event_question_id, block_id_snapshot, block_name_snapshot, question_snapshot, question_image_path_snapshot, options_snapshot, correct_option_key_snapshot, sort_order, explanation_text_snapshot, explanation_image_path_snapshot")
     .eq("attempt_id", attemptId)
     .order("sort_order", { ascending: true });
 
@@ -536,11 +572,11 @@ async function getScheduledAttemptItemsByAttemptId(
 
   return rows.map((row) => ({
     id: row.id,
-    blockName: resolveRelatedRow(row.block)?.name ?? "Tanpa blok",
+    blockName: row.block_name_snapshot ?? resolveRelatedRow(row.block)?.name ?? "Tanpa blok",
     stem: row.question_snapshot,
     questionImagePath: row.question_image_path_snapshot,
     options: row.options_snapshot ?? [],
-    correctOptionKey: row.correct_option_key_snapshot,
+    correctOptionKey: row.correct_option_key_snapshot ?? "",
     sortOrder: row.sort_order,
     explanationText: row.explanation_text_snapshot ?? null,
     explanationImagePath: row.explanation_image_path_snapshot ?? null,
@@ -901,6 +937,17 @@ export async function findActiveScheduledAttemptForUser(
     throw new Error(eventError.message);
   }
 
+  const timeRemainingSeconds = calculateTimeRemainingSeconds(attempt, effectiveNow);
+  const accessEndAt = ((eventData as { access_end_at?: string } | null)?.access_end_at) ?? null;
+
+  if (timeRemainingSeconds <= 0) {
+    return null;
+  }
+
+  if (accessEndAt && new Date(accessEndAt).getTime() <= effectiveNow.getTime()) {
+    return null;
+  }
+
   return {
     attemptId: attempt.id,
     eventId: attempt.eventId,
@@ -908,8 +955,8 @@ export async function findActiveScheduledAttemptForUser(
     title: ((eventData as { title?: string } | null)?.title) ?? "Try Out Terjadwal",
     answeredCount: answersResponse.count ?? 0,
     totalQuestions: attempt.totalQuestions,
-    timeRemainingSeconds: calculateTimeRemainingSeconds(attempt, effectiveNow),
-    accessEndAt: ((eventData as { access_end_at?: string } | null)?.access_end_at) ?? null,
+    timeRemainingSeconds,
+    accessEndAt,
   };
 }
 
@@ -964,7 +1011,7 @@ export async function getScheduledAttemptSessionPageData(
 ): Promise<ScheduledTryoutSessionPageData> {
   const [attempt, items, answers, effectiveNow] = await Promise.all([
     getScheduledAttemptById(client, attemptId),
-    getScheduledAttemptItemsByAttemptId(client, attemptId),
+    getScheduledSessionItemsByAttemptId(client, attemptId),
     getScheduledAnswersByAttemptId(client, attemptId),
     resolveServerNow(client, now),
   ]);
@@ -1430,7 +1477,40 @@ export async function getScheduledAttemptReviewPageData(
     attemptId: string;
   },
 ): Promise<ScheduledTryoutReviewPageData> {
-  const attempt = await getScheduledAttemptById(client, attemptId);
+  const attemptPromise = client
+    .from("scheduled_tryout_attempts")
+    .select("id, event_id, event_cycle, user_id, status, started_at, submitted_at, time_limit_seconds, elapsed_seconds, last_resumed_at, paused_at, total_questions, event:scheduled_tryout_events(title)")
+    .eq("id", attemptId)
+    .maybeSingle();
+  const resultPromise = Promise.resolve().then(() =>
+    client
+      .from("scheduled_tryout_attempt_results")
+      .select("attempt_id, score_percentage, correct_count, wrong_count, unanswered_count")
+      .eq("attempt_id", attemptId)
+      .maybeSingle(),
+  );
+  const itemsPromise = Promise.resolve().then(() =>
+    getScheduledAttemptItemsByAttemptId(client, attemptId),
+  );
+  const answersPromise = Promise.resolve().then(() =>
+    getScheduledAnswersByAttemptId(client, attemptId),
+  );
+
+  // Prevent unhandled rejection noise if attempt validation throws early
+  void resultPromise.catch(() => {});
+  void itemsPromise.catch(() => {});
+  void answersPromise.catch(() => {});
+
+  const attemptResponse = await attemptPromise;
+
+  if (attemptResponse.error) {
+    throw new Error(attemptResponse.error.message);
+  }
+
+  const rawAttempt = attemptResponse.data as (ScheduledAttemptRow & {
+    event?: RelatedNameRow | RelatedNameRow[] | { title?: string } | Array<{ title?: string }> | null;
+  }) | null;
+  const attempt = rawAttempt ? mapAttempt(rawAttempt) : null;
 
   if (!attempt) {
     throw new Error("Attempt try out terjadwal tidak ditemukan.");
@@ -1440,19 +1520,20 @@ export async function getScheduledAttemptReviewPageData(
     throw new Error("Review try out terjadwal hanya tersedia setelah attempt disubmit.");
   }
 
+  const embeddedEvent = resolveRelatedRow(rawAttempt?.event as { title?: string } | Array<{ title?: string }> | null);
+  const eventTitlePromise = embeddedEvent?.title
+    ? Promise.resolve({ data: { title: embeddedEvent.title }, error: null })
+    : client
+        .from("scheduled_tryout_events")
+        .select("title")
+        .eq("id", attempt.eventId)
+        .maybeSingle();
+
   const [eventResponse, resultResponse, items, answers] = await Promise.all([
-    client
-      .from("scheduled_tryout_events")
-      .select("title")
-      .eq("id", attempt.eventId)
-      .maybeSingle(),
-    client
-      .from("scheduled_tryout_attempt_results")
-      .select("attempt_id, score_percentage, correct_count, wrong_count, unanswered_count")
-      .eq("attempt_id", attemptId)
-      .maybeSingle(),
-    getScheduledAttemptItemsByAttemptId(client, attemptId),
-    getScheduledAnswersByAttemptId(client, attemptId),
+    eventTitlePromise,
+    resultPromise,
+    itemsPromise,
+    answersPromise,
   ]);
 
   if (eventResponse.error) {

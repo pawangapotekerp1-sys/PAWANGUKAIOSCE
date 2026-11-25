@@ -1666,4 +1666,260 @@ describe("scheduled-tryout-api", () => {
     expect(result.questions.map((q) => q.questionImageUrl)).toEqual([null, null, null]);
     expect(createSignedUrl).toHaveBeenCalledTimes(1);
   });
+
+  test("session item query omits answer keys, explanations, and blocks lateral join", async () => {
+    const attemptSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: "scheduled-attempt-slim",
+        event_id: "event-1",
+        event_cycle: 1,
+        user_id: "user-1",
+        status: "in_progress",
+        started_at: "2026-06-01T10:00:00.000Z",
+        submitted_at: null,
+        time_limit_seconds: 1200,
+        elapsed_seconds: 0,
+        last_resumed_at: "2026-06-01T10:00:00.000Z",
+        paused_at: null,
+        total_questions: 1,
+      },
+      error: null,
+    });
+    const itemsSelect = vi.fn(() => ({
+      eq: vi.fn(() => ({
+        order: vi.fn().mockResolvedValue({
+          data: [
+            {
+              id: "attempt-item-slim-1",
+              attempt_id: "scheduled-attempt-slim",
+              block_name_snapshot: "Clinical Science",
+              question_snapshot: "Soal ringan tanpa bocoran kunci",
+              question_image_path_snapshot: null,
+              options_snapshot: [{ key: "A", text: "Pilihan A" }],
+              sort_order: 1,
+            },
+          ],
+          error: null,
+        }),
+      })),
+    }));
+    const answersOrder = vi.fn().mockResolvedValue({ data: [], error: null });
+
+    const client = {
+      rpc: vi.fn().mockResolvedValue({ data: "2026-06-01T10:01:00.000Z", error: null }),
+      from: vi.fn((table: string) => {
+        if (table === "scheduled_tryout_attempts") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: attemptSingle })) })) };
+        }
+        if (table === "scheduled_tryout_attempt_items") {
+          return { select: itemsSelect };
+        }
+        if (table === "scheduled_tryout_answers") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ order: answersOrder })) })) };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      }),
+      storage: {
+        from: vi.fn(() => ({
+          createSignedUrl: vi.fn(),
+          createSignedUrls: vi.fn(),
+        })),
+      },
+    };
+
+    const result = await getScheduledAttemptSessionPageData({
+      client: client as never,
+      attemptId: "scheduled-attempt-slim",
+      now: new Date("2026-06-01T10:01:00.000Z"),
+    });
+
+    expect(result.view).toBe("ready");
+    expect(result.questions[0]?.blockLabel).toBe("Clinical Science");
+    const selectedColumns = String(itemsSelect.mock.calls[0]?.[0] ?? "");
+    expect(selectedColumns).not.toContain("correct_option_key_snapshot");
+    expect(selectedColumns).not.toContain("explanation_text_snapshot");
+    expect(selectedColumns).not.toContain("explanation_image_path_snapshot");
+    expect(selectedColumns).not.toContain("blocks(");
+  });
+
+  test("review page query loads embedded event title and block_name_snapshot in a single parallel batch without blocks join", async () => {
+    let attemptResolved = false;
+    let itemsStartedBeforeAttemptResolved = false;
+
+    const attemptSingle = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(() => {
+            attemptResolved = true;
+            resolve({
+              data: {
+                id: "scheduled-attempt-review-fast",
+                event_id: "event-1",
+                event_cycle: 1,
+                user_id: "user-1",
+                status: "submitted",
+                started_at: "2026-06-01T10:00:00.000Z",
+                submitted_at: "2026-06-01T10:30:00.000Z",
+                time_limit_seconds: 1800,
+                elapsed_seconds: 1800,
+                last_resumed_at: null,
+                paused_at: null,
+                total_questions: 1,
+                event: { title: "TO Akbar Cepat" },
+              },
+              error: null,
+            });
+          }, 15);
+        }),
+    );
+    const resultSingle = vi.fn().mockResolvedValue({
+      data: {
+        attempt_id: "scheduled-attempt-review-fast",
+        score_percentage: 100,
+        correct_count: 1,
+        wrong_count: 0,
+        unanswered_count: 0,
+      },
+      error: null,
+    });
+    const itemsSelect = vi.fn(() => ({
+      eq: vi.fn(() => ({
+        order: vi.fn(() => {
+          itemsStartedBeforeAttemptResolved = !attemptResolved;
+          return Promise.resolve({
+            data: [
+              {
+                id: "attempt-item-rev-1",
+                attempt_id: "scheduled-attempt-review-fast",
+                event_question_id: "eq-1",
+                block_id_snapshot: "block-1",
+                block_name_snapshot: "Pharmaceutical Science",
+                question_snapshot: "Soal review cepat",
+                question_image_path_snapshot: null,
+                options_snapshot: [{ key: "A", text: "Pilihan A" }],
+                correct_option_key_snapshot: "A",
+                sort_order: 1,
+                explanation_text_snapshot: "Pembahasan lengkap.",
+                explanation_image_path_snapshot: null,
+              },
+            ],
+            error: null,
+          });
+        }),
+      })),
+    }));
+    const answersOrder = vi.fn().mockResolvedValue({ data: [], error: null });
+    const eventsFrom = vi.fn();
+
+    const client = {
+      from: vi.fn((table: string) => {
+        if (table === "scheduled_tryout_attempts") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: attemptSingle })) })) };
+        }
+        if (table === "scheduled_tryout_attempt_results") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: resultSingle })) })) };
+        }
+        if (table === "scheduled_tryout_attempt_items") {
+          return { select: itemsSelect };
+        }
+        if (table === "scheduled_tryout_answers") {
+          return { select: vi.fn(() => ({ eq: vi.fn(() => ({ order: answersOrder })) })) };
+        }
+        if (table === "scheduled_tryout_events") {
+          eventsFrom();
+          throw new Error("Should not query scheduled_tryout_events when embedded on attempt");
+        }
+        throw new Error(`Unexpected table ${table}`);
+      }),
+      storage: {
+        from: vi.fn(() => ({
+          createSignedUrl: vi.fn(),
+          createSignedUrls: vi.fn(),
+        })),
+      },
+    };
+
+    const reviewData = await getScheduledAttemptReviewPageData({
+      client: client as never,
+      attemptId: "scheduled-attempt-review-fast",
+    });
+
+    expect(itemsStartedBeforeAttemptResolved).toBe(true);
+    expect(eventsFrom).not.toHaveBeenCalled();
+    expect(String(itemsSelect.mock.calls[0]?.[0] ?? "")).not.toContain("blocks(");
+    expect(reviewData.summary.title).toBe("TO Akbar Cepat");
+    expect(reviewData.items[0]?.blockLabel).toBe("Pharmaceutical Science");
+  });
+
+  test("findActiveScheduledAttemptForUser returns null when active attempt timer or event window has already expired", async () => {
+    const attemptMaybeSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: "attempt-expired",
+        event_id: "event-1",
+        event_cycle: 1,
+        user_id: "user-1",
+        status: "in_progress",
+        started_at: "2026-06-01T08:00:00.000Z",
+        submitted_at: null,
+        time_limit_seconds: 1200,
+        elapsed_seconds: 0,
+        last_resumed_at: "2026-06-01T08:00:00.000Z",
+        paused_at: null,
+        total_questions: 10,
+      },
+      error: null,
+    });
+    const client = {
+      rpc: vi.fn().mockResolvedValue({ data: "2026-06-01T10:00:00.000Z", error: null }),
+      from: vi.fn((table: string) => {
+        if (table === "scheduled_tryout_attempts") {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                in: vi.fn(() => ({
+                  order: vi.fn(() => ({
+                    limit: vi.fn(() => ({
+                      maybeSingle: attemptMaybeSingle,
+                    })),
+                  })),
+                })),
+              })),
+            })),
+          };
+        }
+        if (table === "scheduled_tryout_answers") {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                not: vi.fn().mockResolvedValue({ count: 2, error: null }),
+              })),
+            })),
+          };
+        }
+        if (table === "scheduled_tryout_events") {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                maybeSingle: vi.fn().mockResolvedValue({
+                  data: { id: "event-1", title: "TO Akbar", access_end_at: "2026-06-02T10:00:00.000Z" },
+                  error: null,
+                }),
+              })),
+            })),
+          };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      }),
+      storage: {
+        from: vi.fn(() => ({ createSignedUrl: vi.fn(), createSignedUrls: vi.fn() })),
+      },
+    };
+
+    const summary = await findActiveScheduledAttemptForUser({
+      client: client as never,
+      userId: "user-1",
+    });
+
+    expect(summary).toBeNull();
+  });
 });

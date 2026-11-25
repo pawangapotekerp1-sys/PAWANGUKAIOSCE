@@ -67,10 +67,16 @@ alter table public.scheduled_tryout_attempt_items
 update public.scheduled_tryout_attempt_items as item
 set
   user_id = coalesce(item.user_id, attempt.user_id),
-  block_name_snapshot = coalesce(item.block_name_snapshot, block.name, 'Tanpa blok')
+  block_name_snapshot = coalesce(
+    item.block_name_snapshot,
+    (
+      select block.name
+      from public.blocks as block
+      where block.id = item.block_id_snapshot
+    ),
+    'Tanpa blok'
+  )
 from public.scheduled_tryout_attempts as attempt
-left join public.blocks as block
-  on block.id = item.block_id_snapshot
 where attempt.id = item.attempt_id
   and (item.user_id is null or item.block_name_snapshot is null);
 

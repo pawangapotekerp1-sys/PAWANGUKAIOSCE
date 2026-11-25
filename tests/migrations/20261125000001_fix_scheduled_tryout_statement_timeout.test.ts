@@ -56,6 +56,12 @@ describe("20261125000001_fix_scheduled_tryout_statement_timeout migration", () =
       "alter table public.scheduled_tryout_answers add column if not exists user_id uuid",
     );
 
+    // Postgres forbids referencing the UPDATE target alias inside FROM ... JOIN ... ON (SQLSTATE 42P01)
+    expect(normalized).not.toContain("left join public.blocks as block on block.id = item.block_id_snapshot");
+    expect(normalized).toContain(
+      "select block.name from public.blocks as block where block.id = item.block_id_snapshot",
+    );
+
     // Must not introduce any permissive FOR ALL policy that ORs into SELECTs
     expect(normalized).not.toMatch(/create policy [^\n;]+ for all/);
 
